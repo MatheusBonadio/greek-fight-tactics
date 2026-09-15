@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using Game.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Unity.Scripting.LifecycleManagement;
 
 namespace Game.Net
 {
     public static class ArgumentJson
     {
+        [NoAutoStaticsCleanup]
         private static readonly JsonSerializerSettings Settings = new()
         {
             MissingMemberHandling = MissingMemberHandling.Ignore

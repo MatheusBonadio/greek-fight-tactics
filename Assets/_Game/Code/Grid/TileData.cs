@@ -1,4 +1,5 @@
 using Game.Core;
+using Unity.Scripting.LifecycleManagement;
 
 namespace Game.Grid
 {
@@ -7,6 +8,7 @@ namespace Game.Grid
         public const byte ImpassableCost = byte.MaxValue;
         public const int NoOccupant = 0;
 
+        [NoAutoStaticsCleanup]
         public static readonly TileData OutOfBounds = new()
         {
             Cost = ImpassableCost,

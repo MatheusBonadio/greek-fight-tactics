@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Unity.Scripting.LifecycleManagement;
 
 namespace Game.Grid
 {
@@ -11,6 +12,7 @@ namespace Game.Grid
         private const int NoParent = -1;
         private const int HeapEntriesPerNode = 4;
 
+        [NoAutoStaticsCleanup]
         private static readonly Coord[] Directions =
         {
             new(1, 0),
