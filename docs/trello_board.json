@@ -201,7 +201,7 @@
         "Fase 1 · Entrega acadêmica",
         "Unity / Core"
       ],
-      "description": "**Depende de:** [GRD-05], [ART-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] 250ms por célula, interpolação LINEAR entre centros (sem easing — treme o pixel)\n- [ ] Fila de células do caminho, cancelável\n- [ ] Troca automática de direção SE/SW/NE/NW conforme o vetor do passo\n- [ ] Espelhamento em código para SW e NW (a sheet só tem SE e NE reais)\n- [ ] Atualizar `TileData.OccupantId` na saída e na entrada da célula"
+      "description": "**Depende de:** [GRD-05], [ART-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] 250ms por célula, interpolação LINEAR entre centros (sem easing — treme o pixel)\n- [x] Fila de células do caminho, cancelável\n- [x] Troca automática de direção SE/SW/NE/NW conforme o vetor do passo\n- [ ] Espelhamento em código para SW e NW (a sheet só tem SE e NE reais)\n- [x] Atualizar `TileData.OccupantId` na saída e na entrada da célula"
     },
     {
       "title": "[EXP-02] Névoa de guerra",
@@ -221,7 +221,7 @@
         "Unity / Core",
         "UI / UX"
       ],
-      "description": "**Depende de:** [GRD-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] `hl_move` alimentado pelo A* com limite de alcance\n- [ ] `hl_refute` e `hl_maieutics` com alcance fixo em formato de losango\n- [ ] Limpeza de realces ao trocar de ação\n- [ ] Nunca desenhar realce sobre célula em névoa"
+      "description": "**Depende de:** [GRD-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] `hl_move` alimentado pelo A* com limite de alcance\n- [x] `hl_refute` e `hl_maieutics` com alcance fixo em formato de losango\n- [x] Limpeza de realces ao trocar de ação\n- [x] Nunca desenhar realce sobre célula em névoa"
     },
     {
       "title": "[EXP-03] Câmera de exploração",
