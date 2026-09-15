@@ -211,7 +211,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [ ] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [ ] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [ ] Revelação permanente — não volta a esconder\n- [ ] Serializar, recarregar e conferir que a névoa idêntica volta\n- [ ] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
+      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [ ] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [x] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [x] Revelação permanente — não volta a esconder\n- [x] Serializar, recarregar e conferir que a névoa idêntica volta\n- [x] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
     },
     {
       "title": "[GRD-06] Highlights de alcance",
