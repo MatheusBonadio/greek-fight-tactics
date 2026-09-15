@@ -18,9 +18,20 @@ namespace Game.Tests.PlayMode
         private const float BattleTimeoutSeconds = 90f;
         private const int ApproachDistance = 2;
 
+        private IsolatedDataDirectory data;
+
+        [UnitySetUp]
+        public IEnumerator IsolateData()
+        {
+            data = IsolatedDataDirectory.Enter();
+            yield return null;
+        }
+
         [UnityTearDown]
         public IEnumerator RestoreTime()
         {
+            data?.Dispose();
+            data = null;
             Time.timeScale = 1f;
             yield return null;
         }

@@ -13,6 +13,7 @@ namespace Game.UI
     {
         public const string ArgumentCacheFolder = "argument_cache";
         public const string SaveFolder = "saves";
+        public const string DataDirectoryVariable = "GFT_DATA_DIRECTORY";
 
         [SerializeField] private NetworkConfigSO network;
         [SerializeField] private FallacyCatalogSO catalog;
@@ -53,7 +54,19 @@ namespace Game.UI
 
         public FallacyCatalogSO Catalog => catalog;
 
-        public string DataDirectory => string.IsNullOrWhiteSpace(dataDirectoryOverride) ? Application.persistentDataPath : dataDirectoryOverride;
+        public string DataDirectory
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(dataDirectoryOverride))
+                {
+                    return dataDirectoryOverride;
+                }
+
+                var fromEnvironment = Environment.GetEnvironmentVariable(DataDirectoryVariable);
+                return string.IsNullOrWhiteSpace(fromEnvironment) ? Application.persistentDataPath : fromEnvironment;
+            }
+        }
 
         public void Configure(NetworkConfigSO networkConfig, FallacyCatalogSO fallacyCatalog, FallbackLibrarySO fallbacks, string dataDirectory)
         {

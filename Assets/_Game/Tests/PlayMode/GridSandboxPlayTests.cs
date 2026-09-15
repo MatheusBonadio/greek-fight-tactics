@@ -19,14 +19,23 @@ namespace Game.Tests.PlayMode
         private static readonly Coord FreeCell = new(4, 4);
 
         private GridSandboxController controller;
+        private IsolatedDataDirectory data;
 
         [UnitySetUp]
         public IEnumerator LoadSandbox()
         {
+            data = IsolatedDataDirectory.Enter();
             yield return SceneManager.LoadSceneAsync(SceneName, LoadSceneMode.Single);
             yield return null;
             controller = Object.FindAnyObjectByType<GridSandboxController>();
             Assert.IsNotNull(controller, "GridSandbox scene must contain a GridSandboxController");
+        }
+
+        [TearDown]
+        public void ReleaseDataDirectory()
+        {
+            data?.Dispose();
+            data = null;
         }
 
         [UnityTest]
@@ -43,7 +52,12 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(controller.Grid[playerCell].Revealed);
             Assert.AreEqual(playerCell, controller.Cursor.Cell);
             Assert.IsNull(controller.FogTilemap.GetTile(new Vector3Int(playerCell.X, playerCell.Y, 0)));
-            Assert.IsNotNull(controller.FogTilemap.GetTile(new Vector3Int(11, 11, 0)));
+            var hidden = Enumerable.Range(0, controller.Grid.Width)
+                .SelectMany(x => Enumerable.Range(0, controller.Grid.Height).Select(y => new Coord(x, y)))
+                .Where(cell => !controller.Grid[cell].Revealed)
+                .ToList();
+            Assert.IsNotEmpty(hidden);
+            Assert.IsTrue(hidden.All(cell => controller.FogTilemap.GetTile(new Vector3Int(cell.X, cell.Y, 0)) != null));
         }
 
         [UnityTest]

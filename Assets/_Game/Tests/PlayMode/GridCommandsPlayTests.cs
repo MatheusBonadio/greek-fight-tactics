@@ -11,11 +11,21 @@ namespace Game.Tests.PlayMode
 {
     public sealed class GridCommandsPlayTests
     {
+        private IsolatedDataDirectory data;
+
         [UnitySetUp]
         public IEnumerator LoadSandbox()
         {
+            data = IsolatedDataDirectory.Enter();
             yield return SceneManager.LoadSceneAsync("GridSandbox", LoadSceneMode.Single);
             yield return null;
+        }
+
+        [TearDown]
+        public void ReleaseDataDirectory()
+        {
+            data?.Dispose();
+            data = null;
         }
 
         [UnityTest]

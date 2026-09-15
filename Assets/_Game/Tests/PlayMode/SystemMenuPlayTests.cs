@@ -23,10 +23,20 @@ namespace Game.Tests.PlayMode
 
         private GameServices services;
         private GameSettings originalSettings;
+        private IsolatedDataDirectory data;
+
+        [UnitySetUp]
+        public IEnumerator IsolateData()
+        {
+            data = IsolatedDataDirectory.Enter();
+            yield return null;
+        }
 
         [UnityTearDown]
         public IEnumerator RestoreSettingsAndTime()
         {
+            data?.Dispose();
+            data = null;
             if (services && originalSettings != null)
             {
                 services.UpdateSettings(originalSettings);
