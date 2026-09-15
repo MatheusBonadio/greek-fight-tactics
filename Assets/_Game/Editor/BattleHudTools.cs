@@ -13,6 +13,8 @@ namespace Game.EditorTools
     {
         public const string HudPrefabPath = "Assets/_Game/Prefabs/UI/BattleHud.prefab";
         public const string CompendiumPrefabPath = "Assets/_Game/Prefabs/UI/Compendium.prefab";
+        public const string JurorMeterPrefabPath = "Assets/_Game/Prefabs/UI/JurorMeter.prefab";
+        public const int JurorFramePadding = 2;
         public const string UiSpriteFolder = ArtTools.PlaceholderFolder + "/ui";
         public const int CanvasReference = RenderSetupTools.ReferenceResolution;
         public const int Margin = 8;
@@ -46,6 +48,17 @@ namespace Game.EditorTools
 
             SavePrefab(HudPrefabPath, root => BuildHudRoot(root, uiText, catalog, controls));
             SavePrefab(CompendiumPrefabPath, root => BuildCompendiumRoot(root, uiText, catalog, controls));
+            SavePrefab(JurorMeterPrefabPath, BuildJurorMeterRoot);
+        }
+
+        private static void BuildJurorMeterRoot(GameObject root)
+        {
+            ConfigureCanvas(root);
+            var frameSize = new Vector2(JurorLayout.Width + 2 * JurorFramePadding, JurorLayout.Height + 2 * JurorFramePadding);
+            var frame = CreateImage(root.transform, "JurorFrame", null, TopCenter, new Vector2(0f, -Margin - BarHeight - 4f), frameSize, MarkerColor);
+            var meter = CreateRect(frame.transform, "Meter", Center, Vector2.zero, new Vector2(JurorLayout.Width, JurorLayout.Height)).gameObject.AddComponent<UnityEngine.UI.RawImage>();
+            meter.raycastTarget = false;
+            frame.gameObject.AddComponent<JurorMeterView>().Configure(meter);
         }
 
         private static void BuildHudRoot(GameObject root, UiTextSO uiText, FallacyCatalogSO catalog, InputActionAsset controls)

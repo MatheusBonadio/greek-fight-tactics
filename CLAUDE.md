@@ -455,6 +455,15 @@ unity vcs doctor
 - **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
 - **Testes PlayMode de menu:** usam o `persistentDataPath` real, então restauram as opções no teardown e nunca gravam save.
 
+**Medidor de 501 jurados (Tribunal).**
+- **`TribunalVerdicts` (Core):** guarda os números de referência. São 501 jurados e maioria de 251. O final Sofista absolve por 340, o Filósofo condena por 261 e a Mestra absolve por 281.
+- **`JurorCount` (Core):**
+  - Embaralha os votos de forma determinística pela seed, mantém os totais exatos e reserva o último voto para Menexeno.
+  - Revela a 60 votos/s e segura 1,5 s antes do voto dele; `SkipToEnd` pula a animação.
+  - O construtor rejeita um voto de Menexeno impossível para os totais pedidos.
+- **`JurorLayout`:** 1 pixel por jurado, em 3 fileiras (y 6, 8 e 10), com grupos de 10 colunas separados por 1 pixel. A absolvição entra pela esquerda e a condenação pela direita. Um teste garante que os dois lados nunca se cruzam dentro dos 200×16.
+- **`JurorMeterView`:** pinta uma `Texture2D` 200×16 com filtro Point num `RawImage` e destaca Menexeno em dourado, com uma marca acima e abaixo da coluna dele. O prefab é `Assets/_Game/Prefabs/UI/JurorMeter.prefab`, gerado por `BattleHudTools.BuildHud`.
+
 No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
 
 ```powershell

@@ -766,7 +766,7 @@
         "UI / UX",
         "Unity / Core"
       ],
-      "description": "A barra de Plateia vira 501 votos explícitos. É o clímax visual do jogo.\n\n**Depende de:** [UI-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] 200x16px, 1 pixel por jurado (agrupado visualmente)\n- [ ] Contagem animada voto a voto no desfecho\n- [ ] Destaque no voto de Menexeno, sempre o último\n- [ ] Números de referência: 340 absolvição sofista, 261 condenação, 281 mestra\n\n**Contexto do Sprint 05.** Tribunal e os três finais fecham a narrativa; tiles, retratos e áudio terminam na trilha de arte; depois vêm QA completo, endurecimento do backend para tráfego real, localização e loja. O [QA-03] só começa com o áudio ([SND-01]) integrado — é o caminho crítico do sprint. ~47 dias-pessoa de código e conteúdo, mais ~23 de arte e áudio na trilha paralela."
+      "description": "A barra de Plateia vira 501 votos explícitos. É o clímax visual do jogo.\n\n**Depende de:** [UI-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] 200x16px, 1 pixel por jurado (agrupado visualmente)\n- [x] Contagem animada voto a voto no desfecho\n- [x] Destaque no voto de Menexeno, sempre o último\n- [x] Números de referência: 340 absolvição sofista, 261 condenação, 281 mestra\n\n**Contexto do Sprint 05.** Tribunal e os três finais fecham a narrativa; tiles, retratos e áudio terminam na trilha de arte; depois vêm QA completo, endurecimento do backend para tráfego real, localização e loja. O [QA-03] só começa com o áudio ([SND-01]) integrado — é o caminho crítico do sprint. ~47 dias-pessoa de código e conteúdo, mais ~23 de arte e áudio na trilha paralela."
     },
     {
       "title": "[TRB-01] Julgamento com traição condicional",
