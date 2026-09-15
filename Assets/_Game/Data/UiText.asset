@@ -130,7 +130,7 @@ MonoBehaviour:
   - key: rejection.no_argument_to_answer
     value: "Ele ainda n\xE3o argumentou."
   - key: rejection.argument_not_refutable
-    value: "N\xE3o h\xE1 fal\xE1cia aqui. S\xF3 perguntas."
+    value: "N\xE3o h\xE1 erro a apontar. S\xF3 perguntas."
   - key: rejection.invalid_premise
     value: "Essa premissa n\xE3o existe."
   - key: rejection.no_quote_uses

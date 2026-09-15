@@ -58,7 +58,7 @@
     "rejection.target_out_of_range": "O adversário está longe demais.",
     "rejection.destination_unreachable": "Não há para onde circular.",
     "rejection.no_argument_to_answer": "Ele ainda não argumentou.",
-    "rejection.argument_not_refutable": "Não há falácia aqui. Só perguntas.",
+    "rejection.argument_not_refutable": "Não há erro a apontar. Só perguntas.",
     "rejection.invalid_premise": "Essa premissa não existe.",
     "rejection.no_quote_uses": "Nenhum pergaminho restante.",
     "rejection.missing_argument": "Falta um argumento para responder."

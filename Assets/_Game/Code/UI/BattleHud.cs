@@ -1,6 +1,7 @@
 using System;
 using Game.Battle;
 using Game.Core;
+using Game.Grid;
 using UnityEngine;
 
 namespace Game.UI
@@ -13,6 +14,8 @@ namespace Game.UI
         [SerializeField] private AudienceMeterView audience;
         [SerializeField] private ActionMenuView menu;
         [SerializeField] private DialogueBoxView dialogue;
+
+        private RangeHighlighter previewHighlighter;
 
         public Canvas Canvas => canvas;
 
@@ -47,6 +50,22 @@ namespace Game.UI
             menu.Bind(controller);
         }
 
+        public void BindPreview(RangeHighlighter highlighter)
+        {
+            menu.SelectionChanged -= OnSelectionChanged;
+            previewHighlighter = highlighter;
+            if (previewHighlighter == null)
+            {
+                return;
+            }
+
+            menu.SelectionChanged += OnSelectionChanged;
+            if (State != null && menu.Controller != null)
+            {
+                BattleTargetPreview.Apply(previewHighlighter, State, menu.Controller.Actions.Selected);
+            }
+        }
+
         public void ApplySettings(GameSettings settings)
         {
             if (settings == null)
@@ -77,6 +96,22 @@ namespace Game.UI
             if (canvas && !canvas.worldCamera)
             {
                 canvas.worldCamera = Camera.main;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (menu)
+            {
+                menu.SelectionChanged -= OnSelectionChanged;
+            }
+        }
+
+        private void OnSelectionChanged(ActionMenuEntry entry)
+        {
+            if (previewHighlighter != null && State != null)
+            {
+                BattleTargetPreview.Apply(previewHighlighter, State, entry);
             }
         }
     }

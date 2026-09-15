@@ -265,6 +265,13 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 **A virada do Ato II** mora inteiramente no passo 3: quando `Argument.IsRefutable == false`, `ActionId.Refute` é rejeitada pelo resolver e a UI desabilita o botão. Nenhuma outra camada precisa saber que o Ato II existe. Isso vale defender — é a tese do jogo virando mecânica num ponto só do código.
 
+- **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar".
+- **Oferta de Damaris:** `DamarisOffer.Apply` grava a escolha no save uma única vez.
+  - Aceitar dá a flag `ability_inversion`, soma 200 em `drachmas` e grava `menexeno_absent_days`.
+  - Recusar dá `ability_listening` e `menexeno_respect`.
+  - O `damarisBranch` sobrevive ao JSON local, ao documento do Firestore e a saves antigos carregados por `save_load`.
+- **Tribunal:** `TribunalScript` guarda as regras puras. Damaris trai no turno 3 se aceitou e defende se recusou. A ação final escolhe o desfecho: REFUTAR leva ao Sofista (340 absolvições), CONCEDER ao Filósofo (261 condenações) e MAIÊUTICA à Mestra (281). Menexeno vota pela absolvição em todos os finais, exceto o do Filósofo; na Mestra o GDD não define o voto dele.
+
 ---
 
 ## Fluxo: obtenção de argumento
@@ -521,7 +528,7 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Unity.exe"
 
 **Sem comentários no código.** A intenção fica nos nomes: se um valor precisa de explicação, vira constante nomeada (`TileData.ImpassableCost`); se um bloco precisa de explicação, vira método com nome. Vale para C#, scripts de ferramenta e exemplos em documentação.
 
-**Commits: Conventional Commits, sem escopo.** `type: description`, descrição em inglês, minúscula, no imperativo, sem ponto final.
+**Commits: Conventional Commits, sem escopo.** `type: description`, descrição em inglês, minúscula, no imperativo, sem ponto final. Só a linha de assunto: sem corpo e sem trailer `Co-Authored-By`.
 
 ```
 feat: add grid model with bounds checking

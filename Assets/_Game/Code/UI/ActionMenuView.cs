@@ -27,8 +27,12 @@ namespace Game.UI
         [SerializeField] private bool assistedMode;
 
         private float blinkClock;
+        private BattleMenuController notifiedController;
+        private ActionMenuEntry? notifiedEntry;
 
         public event Action<BattleMenuChoice> ChoiceMade;
+
+        public event Action<ActionMenuEntry> SelectionChanged;
 
         public BattleMenuController Controller { get; private set; }
 
@@ -172,6 +176,7 @@ namespace Game.UI
             }
 
             RenderActions();
+            NotifySelection();
             var inSubmenu = Controller.Layer != BattleMenuLayer.Actions;
             submenuPanel.SetActive(inSubmenu);
             if (inSubmenu)
@@ -183,6 +188,20 @@ namespace Game.UI
         private void Update()
         {
             Advance(Time.unscaledDeltaTime);
+        }
+
+        private void NotifySelection()
+        {
+            var selected = Controller.Actions.Selected;
+            if (ReferenceEquals(notifiedController, Controller) && notifiedEntry.HasValue &&
+                notifiedEntry.Value.Action == selected.Action && notifiedEntry.Value.IsAvailable == selected.IsAvailable)
+            {
+                return;
+            }
+
+            notifiedController = Controller;
+            notifiedEntry = selected;
+            SelectionChanged?.Invoke(selected);
         }
 
         private bool SameLayer(BattleMenuLayer layer) =>
