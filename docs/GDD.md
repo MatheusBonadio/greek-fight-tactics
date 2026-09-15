@@ -446,7 +446,7 @@ Nenhum gerador entrega RGB555 limpo. Sempre rodar depois:
 
 - [ ] Pixel Perfect Camera: referência 224×224 (ou 256×224), PPU 16, *Upscale Render Texture* ligado, *Crop Frame* X e Y
 - [ ] Todo sprite: *Filter Mode* = Point, *Compression* = None, *Pixels Per Unit* = 16
-- [ ] Grid: *Isometric Z as Y*, Cell Size (1, 0.5, 1)
+- [ ] Grid: *Isometric Z as Y*, Cell Size (2, 1, 1) — com PPU 16 o tile 32×16 mede 2 × 1 unidades; Grid em (0, -0.5, 0) e `tileAnchor` (-0.5, 0.5, 0)
 - [ ] `TileData[,]` como fonte de verdade — Tilemap é só render
 - [ ] Sorting por profundidade `gx + gy` (na Unity, com Y para cima, `IsoMath.SortingOrder` é negativo), com `TilemapRenderer` em modo *Individual*
 - [ ] Animator com curvas *Constant* em todos os clipes

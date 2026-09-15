@@ -162,7 +162,7 @@
         "Unity / Core",
         "Risco"
       ],
-      "description": "Ordenação errada em isométrico é o bug que mais consome tempo em projetos assim. Resolva aqui, com casos difíceis.\n\n**Depende de:** [GRD-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Grid component: Isometric Z as Y, Cell Size (1, 0.5, 1)\n- [ ] `TilemapRenderer` em modo Individual\n- [x] Transparency Sort Mode = Custom Axis (0, 1, 0) no asset 2D Renderer Data — com o 2D Renderer, a configuração de Project Settings é ignorada\n- [x] `sortingOrder = -(cell.X + cell.Y) * IsoMath.SortingStep` para props e atores (deixa folga para sub-ordenação)\n- [ ] Caso difícil validado: Prop que transborda a célula (oliveira 48x56) na frente e atrás de um ator\n- [ ] Caso difícil validado: Três atores em células adjacentes na diagonal\n- [ ] Caso difícil validado: Ator atrás de coluna de 56px de altura\n- [ ] Caso difícil validado: Bloco com altura ocupando visualmente 2 células"
+      "description": "Ordenação errada em isométrico é o bug que mais consome tempo em projetos assim. Resolva aqui, com casos difíceis.\n\n**Depende de:** [GRD-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Grid component: Isometric Z as Y, Cell Size (1, 0.5, 1)\n- [x] `TilemapRenderer` em modo Individual\n- [x] Transparency Sort Mode = Custom Axis (0, 1, 0) no asset 2D Renderer Data — com o 2D Renderer, a configuração de Project Settings é ignorada\n- [x] `sortingOrder = -(cell.X + cell.Y) * IsoMath.SortingStep` para props e atores (deixa folga para sub-ordenação)\n- [x] Caso difícil validado: Prop que transborda a célula (oliveira 48x56) na frente e atrás de um ator\n- [x] Caso difícil validado: Três atores em células adjacentes na diagonal\n- [x] Caso difícil validado: Ator atrás de coluna de 56px de altura\n- [x] Caso difícil validado: Bloco com altura ocupando visualmente 2 células"
     },
     {
       "title": "[GRD-03] Cursor, seleção e input",
@@ -182,7 +182,7 @@
         "Unity / Core",
         "QA / Testes"
       ],
-      "description": "Cena de teste permanente. Todo sistema novo de grid é validado aqui antes de ir para mapa real.\n\n**Depende de:** [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Mapa 12x12 usando todos os tiles de chão e blocos\n- [ ] HUD de debug: gx, gy, terreno e ocupante sob o cursor\n- [ ] Botões para spawnar/remover atores de teste\n- [ ] Toggle de gizmos do grid\n- [ ] `unity command screenshot` gera a imagem de referência do mapa 12x12 — base de comparação para mudanças de render\n- [ ] Módulos Tilemap e 2D Graphics do Profiler (novos no 6.6) usados para medir o custo do mapa"
+      "description": "Cena de teste permanente. Todo sistema novo de grid é validado aqui antes de ir para mapa real.\n\n**Depende de:** [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Mapa 12x12 usando todos os tiles de chão e blocos\n- [ ] HUD de debug: gx, gy, terreno e ocupante sob o cursor\n- [ ] Botões para spawnar/remover atores de teste\n- [ ] Toggle de gizmos do grid\n- [ ] `unity command screenshot` gera a imagem de referência do mapa 12x12 — base de comparação para mudanças de render\n- [ ] Módulos Tilemap e 2D Graphics do Profiler (novos no 6.6) usados para medir o custo do mapa"
     },
     {
       "title": "[GRD-05] A* na grade isométrica",
@@ -201,7 +201,7 @@
         "Fase 1 · Entrega acadêmica",
         "Unity / Core"
       ],
-      "description": "**Depende de:** [GRD-05], [ART-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] 250ms por célula, interpolação LINEAR entre centros (sem easing — treme o pixel)\n- [x] Fila de células do caminho, cancelável\n- [x] Troca automática de direção SE/SW/NE/NW conforme o vetor do passo\n- [ ] Espelhamento em código para SW e NW (a sheet só tem SE e NE reais)\n- [x] Atualizar `TileData.OccupantId` na saída e na entrada da célula"
+      "description": "**Depende de:** [GRD-05], [ART-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] 250ms por célula, interpolação LINEAR entre centros (sem easing — treme o pixel)\n- [x] Fila de células do caminho, cancelável\n- [x] Troca automática de direção SE/SW/NE/NW conforme o vetor do passo\n- [x] Espelhamento em código para SW e NW (a sheet só tem SE e NE reais)\n- [x] Atualizar `TileData.OccupantId` na saída e na entrada da célula"
     },
     {
       "title": "[EXP-02] Névoa de guerra",
@@ -211,7 +211,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [x] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [x] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [x] Revelação permanente — não volta a esconder\n- [x] Serializar, recarregar e conferir que a névoa idêntica volta\n- [x] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
+      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Tilemap sobreposto em sorting layer acima do chão\n- [x] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [x] Bitmask serializável: um bit por célula, byte[] compacto\n- [x] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [x] Revelação permanente — não volta a esconder\n- [x] Serializar, recarregar e conferir que a névoa idêntica volta\n- [x] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
     },
     {
       "title": "[GRD-06] Highlights de alcance",
@@ -230,7 +230,7 @@
         "Fase 1 · Entrega acadêmica",
         "Unity / Core"
       ],
-      "description": "**Depende de:** [EXP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Cinemachine (pacote core no 6.6) seguindo o ator com leve suavização e a extensão Pixel Perfect, SEMPRE arredondando para pixel inteiro\n- [ ] Clamp nos limites do mapa\n- [ ] Zoom de transição para batalha (preparar o hook, usar no [BTL-01])"
+      "description": "**Depende de:** [EXP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Cinemachine (pacote core no 6.6) seguindo o ator com leve suavização e a extensão Pixel Perfect, SEMPRE arredondando para pixel inteiro\n- [x] Clamp nos limites do mapa\n- [x] Zoom de transição para batalha (preparar o hook, usar no [BTL-01])"
     },
     {
       "title": "[DAT-01] ScriptableObjects do domínio",

@@ -9,7 +9,10 @@
     "Game.Net",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.2D.Sprite.Editor",
-    "Unity.RenderPipelines.Universal.2D.Runtime"
+    "Unity.RenderPipelines.Universal.2D.Runtime",
+    "Game.UI",
+    "Unity.Cinemachine",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [
     "Editor"

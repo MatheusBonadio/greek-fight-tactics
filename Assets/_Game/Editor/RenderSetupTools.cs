@@ -14,6 +14,8 @@ namespace Game.EditorTools
         public const float CameraDepth = -10f;
         public static readonly Vector3 TransparencySortAxis = new(0f, 1f, 0f);
 
+        public const string MainCameraTag = "MainCamera";
+
         private const string CameraRigName = "PixelPerfectCameraRig";
         private const string SortModeProperty = "m_TransparencySortMode";
         private const string SortAxisProperty = "m_TransparencySortAxis";
@@ -35,6 +37,7 @@ namespace Game.EditorTools
             try
             {
                 root.transform.position = new Vector3(0f, 0f, CameraDepth);
+                root.tag = MainCameraTag;
 
                 var camera = root.AddComponent<Camera>();
                 camera.orthographic = true;

@@ -206,7 +206,9 @@ Movimento na grade não é animação: é o ator percorrendo células a 250 ms c
 
 ## Grade e ordenação
 
-Grid com **Isometric Z as Y** e Cell Size `(1, 0.5, 1)`. Com tile 32×16 e PPU 16, uma célula mede 1,0 × 0,5 unidades. A conversão é `IsoMath` em `Game.Grid` (ver `CLAUDE.md`).
+Grid com **Isometric Z as Y** e Cell Size `(2, 1, 1)`: com tile 32×16 e PPU 16 o losango mede 2 × 1 unidades. `(1, 0.5, 1)` só valeria com PPU 32 e faz os tiles se sobreporem pela metade. O `Grid` fica em `(0, -0.5, 0)` porque a Unity ancora a célula no vértice inferior e `IsoMath` usa o centro, e cada `Tilemap` usa `tileAnchor = (-0.5, 0.5, 0)` para o pivot *Bottom Left* cair no canto do losango. A conversão é `IsoMath` em `Game.Grid` (ver `CLAUDE.md`).
+
+`docs/reference/grid_sandbox.png` é a imagem de referência da GridSandbox, gerada por `Game.EditorTools.SandboxTools.CaptureReference` (sem `-nographics`, a 48 px por unidade). Depois de mexer em import, pivot, âncora ou sorting, capture de novo e compare antes de commitar.
 
 Em pixel, com y para baixo, profundidade cresce com `x + y`. Na Unity, com y para cima, a célula de maior `x + y` está mais ao fundo e precisa de sorting order *menor* — por isso `IsoMath.SortingOrder` é negativo. `TilemapRenderer` em modo *Individual*.
 

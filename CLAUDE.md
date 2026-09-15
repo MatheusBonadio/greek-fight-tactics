@@ -170,7 +170,17 @@ namespace Game.Grid
 }
 ```
 
-Tile 32×16 com PPU 16 dá célula de 1,0 × 0,5 unidades. Na Unity o eixo Y cresce para cima, então a célula de maior `X + Y` está mais ao fundo e recebe sorting order menor. `SortingStep` deixa folga para sub-ordenar ator, prop e overlay dentro da mesma célula. O bitmask da névoa usa 1 bit por célula.
+Tile 32×16 com PPU 16 é um losango de 2 × 1 unidades; `CellWidth`/`CellHeight` são o **meio passo** por eixo, e `GridToWorld` devolve o centro do losango. Na Unity o eixo Y cresce para cima, então a célula de maior `X + Y` está mais ao fundo e recebe sorting order menor. `SortingStep` deixa folga para sub-ordenar ator, prop e overlay dentro da mesma célula. O bitmask da névoa usa 1 bit por célula.
+
+**Alinhamento com o `Grid` da Unity** — validado na captura da GridSandbox, não mude sem capturar de novo:
+
+| Ajuste | Valor | Por quê |
+|---|---|---|
+| `Grid.cellLayout` | `IsometricZAsY` | layout isométrico 2:1 |
+| `Grid.cellSize` | `(2, 1, 1)` | com PPU 16 o tile mede 2 × 1 unidades; `(1, 0.5, 1)` só valeria com PPU 32 |
+| posição do `Grid` | `(0, -0.5, 0)` | a Unity ancora a célula no vértice inferior; `IsoMath` usa o centro |
+| `Tilemap.tileAnchor` | `(-0.5, 0.5, 0)` | faz o pivot *Bottom Left* dos sprites de tile cair no canto do losango |
+| ordenação | `TilemapRenderer.Mode.Individual` + ator com `SpriteSortPoint.Pivot` na mesma camada e ordem dos blocos | o Transparency Sort Axis (0, 1, 0) decide pela altura do pé, e o ator passa atrás de coluna e à frente de prop sem sorting order manual |
 
 ```csharp
 namespace Game.Battle
@@ -377,6 +387,9 @@ unity run . -- -nographics -executeMethod Game.EditorTools.ArtTools.SliceSheets 
 
 unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.CreateProfiles -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.ConfigureProfiles -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.RenderSetupTools.Apply -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.SandboxTools.BuildSandbox -logFile -
+unity run . -- -executeMethod Game.EditorTools.SandboxTools.CaptureReference -logFile -
 
 unity vcs doctor
 ```

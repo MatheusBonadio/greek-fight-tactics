@@ -14,7 +14,9 @@
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.2D.Sprite.Editor",
     "Unity.RenderPipelines.Universal.2D.Runtime",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Game.UI",
+    "Unity.Cinemachine"
   ],
   "includePlatforms": [
     "Editor"

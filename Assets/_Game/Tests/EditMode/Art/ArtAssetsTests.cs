@@ -10,7 +10,7 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 39;
+        private const int PlaceholderPngCount = 43;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
 
