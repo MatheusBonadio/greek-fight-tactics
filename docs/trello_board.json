@@ -293,7 +293,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [ ] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [ ] Congelar input de exploração durante batalha\n- [ ] Saída restaura posição e névoa sem recarregar a cena"
+      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [x] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [x] Congelar input de exploração durante batalha\n- [ ] Saída restaura posição e névoa sem recarregar a cena"
     },
     {
       "title": "[BTL-02] Resolver de batalha",
@@ -313,7 +313,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "**Depende de:** [BTL-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] CIRCULAR: usa o A* com alcance de movimento\n- [x] REFUTAR: jogador escolhe a falácia; acerto causa dano + Plateia, erro gera contragolpe\n- [x] MAIÊUTICA: jogador escolhe a premissa fraca; acerto = dano alto, custo de 2 turnos\n- [ ] CITAR: consome `QuoteItemSO` com efeito fixo\n- [x] CONCEDER: recupera Coerência, perde Plateia\n- [x] RETIRAR-SE: encerra a batalha, aplica penalidade de reputação"
+      "description": "**Depende de:** [BTL-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] CIRCULAR: usa o A* com alcance de movimento\n- [x] REFUTAR: jogador escolhe a falácia; acerto causa dano + Plateia, erro gera contragolpe\n- [x] MAIÊUTICA: jogador escolhe a premissa fraca; acerto = dano alto, custo de 2 turnos\n- [x] CITAR: consome `QuoteItemSO` com efeito fixo\n- [x] CONCEDER: recupera Coerência, perde Plateia\n- [x] RETIRAR-SE: encerra a batalha, aplica penalidade de reputação"
     },
     {
       "title": "[BTL-04] Modificadores posicionais",
@@ -332,7 +332,7 @@
         "Unity / Core",
         "IA / LLM"
       ],
-      "description": "IA de comportamento, não de texto — nada a ver com o LLM.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Árvore de decisão simples por perfil (sofista busca Plateia, filósofo busca Coerência)\n- [ ] Escolha de posição via A*\n- [ ] Dificuldade por ato: Ato I erra de propósito às vezes, Ato II não"
+      "description": "IA de comportamento, não de texto — nada a ver com o LLM.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Árvore de decisão simples por perfil (sofista busca Plateia, filósofo busca Coerência)\n- [x] Escolha de posição via A*\n- [x] Dificuldade por ato: Ato I erra de propósito às vezes, Ato II não"
     },
     {
       "title": "[CLI-03] Comandos de depuração do jogo",
@@ -351,7 +351,7 @@
         "Fase 1 · Entrega acadêmica",
         "QA / Testes"
       ],
-      "description": "**Depende de:** [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] 1000 batalhas simuladas com ações aleatórias — nenhuma exceção\n- [ ] Rodando como teste Edit Mode do Unity Test Framework, não como cena manual — no CI pelo `unity test`, que sai com código 8 se alguma batalha falhar\n- [ ] Nenhuma batalha em loop infinito (limite de 50 turnos)\n- [ ] Relatório de taxa de vitória por adversário para balanceamento"
+      "description": "**Depende de:** [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] 1000 batalhas simuladas com ações aleatórias — nenhuma exceção\n- [x] Rodando como teste Edit Mode do Unity Test Framework, não como cena manual — no CI pelo `unity test`, que sai com código 8 se alguma batalha falhar\n- [x] Nenhuma batalha em loop infinito (limite de 50 turnos)\n- [x] Relatório de taxa de vitória por adversário para balanceamento"
     },
     {
       "title": "[BCK-01] Cloud Function como proxy da OpenAI",
@@ -686,7 +686,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "A tese do jogo virando mecânica. Quando o argumento não tem falácia, o botão simplesmente não acende.\n\n**Depende de:** [BTL-03], [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Argumento com `IsRefutable == false`: REFUTAR fica esmaecido e o realce vermelho não aparece\n- [ ] Tooltip explica: 'não há erro a apontar'\n- [x] CONCEDER passa a recuperar mais Coerência no Ato II\n- [x] MAIÊUTICA ganha alcance maior\n- [ ] Testar que nenhuma batalha do Ato II é invencível"
+      "description": "A tese do jogo virando mecânica. Quando o argumento não tem falácia, o botão simplesmente não acende.\n\n**Depende de:** [BTL-03], [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Argumento com `IsRefutable == false`: REFUTAR fica esmaecido e o realce vermelho não aparece\n- [ ] Tooltip explica: 'não há erro a apontar'\n- [x] CONCEDER passa a recuperar mais Coerência no Ato II\n- [x] MAIÊUTICA ganha alcance maior\n- [x] Testar que nenhuma batalha do Ato II é invencível"
     },
     {
       "title": "[AT2-01] Mapa da Academia",

@@ -49,9 +49,15 @@ namespace Game.Tests.EditMode.Battle
                 audienceMembers);
         }
 
-        public static BattleState CreateWithArgument(Argument argument, Act act = Act.One, Facing opponentFacing = Facing.SouthWest)
+        public static BattleState CreateWithArgument(
+            Argument argument,
+            Act act = Act.One,
+            Facing opponentFacing = Facing.SouthWest,
+            Profile opponentProfile = Profile.Sophist,
+            IEnumerable<int> audienceMembers = null,
+            BattleRules rules = null)
         {
-            var state = Create(act, playerInitiative: 5, opponentInitiative: 10, opponentFacing: opponentFacing);
+            var state = Create(act, opponentProfile, playerInitiative: 5, opponentInitiative: 10, audienceMembers: audienceMembers, rules: rules, opponentFacing: opponentFacing);
             var resolver = new BattleResolver();
             state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, argument), state));
             return state;

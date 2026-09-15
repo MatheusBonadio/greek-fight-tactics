@@ -84,6 +84,8 @@ namespace Game.Battle
 
         public bool IsAudienceMember(int occupantId) => audienceMemberIds.Contains(occupantId);
 
+        public IReadOnlyCollection<string> QuoteIds => quotes.Keys;
+
         public bool TryGetQuote(string id, out QuoteItem quote, out int usesLeft)
         {
             usesLeft = 0;
