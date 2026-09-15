@@ -1,0 +1,70 @@
+{
+    "name": "GridControls",
+    "maps": [
+        {
+            "name": "Grid",
+            "id": "5d1f7c2a-3b0e-4f5a-9c6d-1a2b3c4d5e01",
+            "actions": [
+                {
+                    "name": "Point",
+                    "type": "PassThrough",
+                    "id": "5d1f7c2a-3b0e-4f5a-9c6d-1a2b3c4d5e02",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Navigate",
+                    "type": "Value",
+                    "id": "5d1f7c2a-3b0e-4f5a-9c6d-1a2b3c4d5e03",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Confirm",
+                    "type": "Button",
+                    "id": "5d1f7c2a-3b0e-4f5a-9c6d-1a2b3c4d5e04",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Cancel",
+                    "type": "Button",
+                    "id": "5d1f7c2a-3b0e-4f5a-9c6d-1a2b3c4d5e05",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f01", "path": "<Mouse>/position", "interactions": "", "processors": "", "groups": "", "action": "Point", "isComposite": false, "isPartOfComposite": false },
+                { "name": "WASD", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f02", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": true, "isPartOfComposite": false },
+                { "name": "up", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f03", "path": "<Keyboard>/w", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "down", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f04", "path": "<Keyboard>/s", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "left", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f05", "path": "<Keyboard>/a", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "right", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f06", "path": "<Keyboard>/d", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "Arrows", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f07", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": true, "isPartOfComposite": false },
+                { "name": "up", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f08", "path": "<Keyboard>/upArrow", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "down", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f09", "path": "<Keyboard>/downArrow", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "left", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0a", "path": "<Keyboard>/leftArrow", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "right", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0b", "path": "<Keyboard>/rightArrow", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": true },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0c", "path": "<Gamepad>/dpad", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0d", "path": "<Gamepad>/leftStick", "interactions": "", "processors": "", "groups": "", "action": "Navigate", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0e", "path": "<Mouse>/leftButton", "interactions": "", "processors": "", "groups": "", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f0f", "path": "<Keyboard>/enter", "interactions": "", "processors": "", "groups": "", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f10", "path": "<Keyboard>/space", "interactions": "", "processors": "", "groups": "", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f11", "path": "<Gamepad>/buttonSouth", "interactions": "", "processors": "", "groups": "", "action": "Confirm", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f12", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "", "action": "Cancel", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f13", "path": "<Keyboard>/escape", "interactions": "", "processors": "", "groups": "", "action": "Cancel", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "6e2a8d3b-4c1f-4a6b-8d7e-2b3c4d5e6f14", "path": "<Gamepad>/buttonEast", "interactions": "", "processors": "", "groups": "", "action": "Cancel", "isComposite": false, "isPartOfComposite": false }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

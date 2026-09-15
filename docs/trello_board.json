@@ -172,7 +172,7 @@
         "Unity / Core",
         "UI / UX"
       ],
-      "description": "**Depende de:** [GRD-01], [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Input System: mouse, teclado (WASD/setas) e gamepad no mesmo Action Map\n- [ ] Hover: converter posição do ponteiro em célula\n- [ ] Highlight de seleção com pulso de 500ms\n- [ ] Confirmar / Cancelar mapeados nos três dispositivos"
+      "description": "**Depende de:** [GRD-01], [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Input System: mouse, teclado (WASD/setas) e gamepad no mesmo Action Map\n- [x] Hover: converter posição do ponteiro em célula\n- [x] Highlight de seleção com pulso de 500ms\n- [x] Confirmar / Cancelar mapeados nos três dispositivos"
     },
     {
       "title": "[GRD-04] Cena GridSandbox",
@@ -211,7 +211,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [ ] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [x] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [x] Revelação permanente — não volta a esconder\n- [x] Serializar, recarregar e conferir que a névoa idêntica volta\n- [x] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
+      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [x] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [x] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [x] Revelação permanente — não volta a esconder\n- [x] Serializar, recarregar e conferir que a névoa idêntica volta\n- [x] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
     },
     {
       "title": "[GRD-06] Highlights de alcance",
@@ -293,7 +293,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [x] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [x] Congelar input de exploração durante batalha\n- [ ] Saída restaura posição e névoa sem recarregar a cena"
+      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [x] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [x] Congelar input de exploração durante batalha\n- [x] Saída restaura posição e névoa sem recarregar a cena"
     },
     {
       "title": "[BTL-02] Resolver de batalha",

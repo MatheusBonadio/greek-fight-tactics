@@ -34,6 +34,8 @@ namespace Game.Grid
             SetOccupant(start, actorId);
         }
 
+        public event Action<Coord> CellEntered;
+
         public int ActorId { get; }
 
         public Coord Cell { get; private set; }
@@ -82,6 +84,24 @@ namespace Game.Grid
             pending.Clear();
         }
 
+        public void Teleport(Coord cell, Facing facing)
+        {
+            if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || (tile.IsOccupied && tile.OccupantId != ActorId))
+            {
+                throw new ArgumentException($"Cannot teleport actor {ActorId} to {cell}.", nameof(cell));
+            }
+
+            pending.Clear();
+            IsStepping = false;
+            WasBlocked = false;
+            SetOccupant(Cell, TileData.NoOccupant);
+            SetOccupant(cell, ActorId);
+            Cell = cell;
+            stepOrigin = cell;
+            stepElapsed = SecondsPerCell;
+            Facing = facing;
+        }
+
         public void Advance(float deltaSeconds)
         {
             var remaining = Math.Max(0f, deltaSeconds);
@@ -124,6 +144,7 @@ namespace Game.Grid
             Cell = next;
             stepElapsed = 0f;
             IsStepping = true;
+            CellEntered?.Invoke(next);
         }
 
         private void CompleteStep()
