@@ -84,6 +84,8 @@ namespace Game.Grid
         public const byte ImpassableCost = byte.MaxValue;
         public const int NoOccupant = 0;
 
+        public static readonly TileData OutOfBounds;
+
         public TerrainId Terrain;
         public byte Cost;
         public bool Revealed;
@@ -95,9 +97,12 @@ namespace Game.Grid
 
     public sealed class GridModel
     {
-        public TileData this[Coord cell] { get; set; }
-        public bool TryGet(Coord cell, out TileData tile);
+        public int Width { get; }
+        public int Height { get; }
+        public TileData this[Coord cell] { get; }
         public bool Contains(Coord cell);
+        public bool TryGet(Coord cell, out TileData tile);
+        public bool TrySet(Coord cell, TileData tile);
     }
 
     public static class IsoMath
