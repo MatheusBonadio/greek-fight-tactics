@@ -116,3 +116,11 @@ InitTestScene*.unity*
 # GFT local outputs
 /artifacts/
 /Build/
+
+# Firebase backend
+/functions/node_modules/
+/functions/lib/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/

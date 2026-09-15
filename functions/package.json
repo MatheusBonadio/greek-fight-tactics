@@ -1,0 +1,27 @@
+{
+  "name": "gft-functions",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "sync-content": "node scripts/sync-content.mjs",
+    "build": "npm run sync-content && tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:emulators": "firebase emulators:exec --only firestore,auth --project demo-gft \"vitest run --config vitest.emulators.config.mts\""
+  },
+  "dependencies": {
+    "firebase-admin": "14.4.0",
+    "firebase-functions": "7.3.2",
+    "openai": "7.15.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "@types/node": "22.20.2",
+    "firebase": "12.19.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1"
+  }
+}

@@ -363,7 +363,7 @@
         "IA / LLM",
         "Risco"
       ],
-      "description": "Card mais crítico do projeto em termos de risco financeiro. A Unity fala com a SUA function; só a function fala com a OpenAI.\n\n**Depende de:** [DAT-03] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Firebase Cloud Function (Node/TypeScript), região próxima do público-alvo\n- [ ] Chave da OpenAI em Secret Manager — NUNCA em .env commitado, NUNCA no cliente\n- [ ] Exigir ID token do Firebase Auth: rejeita chamada sem UID válido\n- [ ] Rate limit por UID (ex.: 60 chamadas/hora) com contador no Firestore\n- [ ] Limite de `max_tokens` por chamada (teto duro)\n- [ ] Response format `json_schema` — a OpenAI já devolve estruturado\n- [ ] Validar o JSON contra o schema ANTES de devolver ao cliente\n- [ ] Se o modelo devolver `fallacy_id` desconhecido, tenta 1x e depois retorna 204\n- [ ] Log de custo por chamada\n- [ ] Revisar: a string da chave não aparece em nenhum arquivo dentro de `Assets/`\n- [ ] Teste: descompilar a build IL2CPP e a Web e buscar por `sk-` — zero resultados nas duas\n\n**App Check fica fora da entrega acadêmica.** Windows e Web não têm provedor de atestação válido — desktop não conta como dispositivo, e o SDK Unity não roda no Web. Aqui a proteção é token de Auth + rate limit por UID + teto de orçamento + kill switch, e essa limitação vai registrada na monografia ([ENT-02]). App Check de verdade entra no [BCK-07]."
+      "description": "Card mais crítico do projeto em termos de risco financeiro. A Unity fala com a SUA function; só a function fala com a OpenAI.\n\n**Depende de:** [DAT-03] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [x] Firebase Cloud Function (Node/TypeScript), região próxima do público-alvo\n- [x] Chave da OpenAI em Secret Manager — NUNCA em .env commitado, NUNCA no cliente\n- [x] Exigir ID token do Firebase Auth: rejeita chamada sem UID válido\n- [x] Rate limit por UID (ex.: 60 chamadas/hora) com contador no Firestore\n- [x] Limite de `max_tokens` por chamada (teto duro)\n- [x] Response format `json_schema` — a OpenAI já devolve estruturado\n- [x] Validar o JSON contra o schema ANTES de devolver ao cliente\n- [x] Se o modelo devolver `fallacy_id` desconhecido, tenta 1x e depois retorna 204\n- [x] Log de custo por chamada\n- [x] Revisar: a string da chave não aparece em nenhum arquivo dentro de `Assets/`\n- [ ] Teste: descompilar a build IL2CPP e a Web e buscar por `sk-` — zero resultados nas duas\n\n**App Check fica fora da entrega acadêmica.** Windows e Web não têm provedor de atestação válido — desktop não conta como dispositivo, e o SDK Unity não roda no Web. Aqui a proteção é token de Auth + rate limit por UID + teto de orçamento + kill switch, e essa limitação vai registrada na monografia ([ENT-02]). App Check de verdade entra no [BCK-07]."
     },
     {
       "title": "[BCK-02] Firebase Auth anônima via REST",
@@ -393,7 +393,7 @@
         "Backend",
         "IA / LLM"
       ],
-      "description": "Reduz custo drasticamente: o argumento gerado para um jogador serve para todos.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Coleção `argument_cache/{hash}` onde hash = adversario+falacia+seed\n- [ ] Function consulta o cache antes de chamar a OpenAI\n- [ ] TTL longo (90 dias) — conteúdo não envelhece\n- [ ] Meta: 70% de cache hit depois de 100 sessões"
+      "description": "Reduz custo drasticamente: o argumento gerado para um jogador serve para todos.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Coleção `argument_cache/{hash}` onde hash = adversario+falacia+seed\n- [x] Function consulta o cache antes de chamar a OpenAI\n- [x] TTL longo (90 dias) — conteúdo não envelhece\n- [ ] Meta: 70% de cache hit depois de 100 sessões"
     },
     {
       "title": "[BCK-05] Orçamento e monitoramento",
@@ -403,7 +403,7 @@
         "Backend",
         "Risco"
       ],
-      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [ ] Estimar custo por sessão de 1h e documentar — vira dado da avaliação ([AVA-01])\n- [ ] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [ ] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
+      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [ ] Estimar custo por sessão de 1h e documentar — vira dado da avaliação ([AVA-01])\n- [ ] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [x] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
     },
     {
       "title": "[LLM-01] Cliente da Cloud Function",
@@ -424,7 +424,7 @@
         "IA / LLM",
         "Narrativa"
       ],
-      "description": "Cada personagem precisa soar diferente. O tom é o que o LLM faz melhor — a lógica quem garante é o schema.\n\n**Depende de:** [LLM-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] System prompt por perfil: sofista (ornamentado, confiante) vs filósofo (seco, preciso)\n- [ ] Few-shot com 2 exemplos por falácia\n- [ ] Injetar contexto: nome do adversário, ato, tema do debate, tom desejado\n- [ ] Temperatura por personagem: Thrasybios 0.9, Damaris 0.5, Menexeno 0.3\n- [ ] Proibir no prompt: declarar vencedor, citar regras do jogo, quebrar a 4ª parede\n- [ ] Gerar 50 argumentos por falácia e revisar manualmente\n- [ ] Marcar os bons e promovê-los ao banco de fallback"
+      "description": "Cada personagem precisa soar diferente. O tom é o que o LLM faz melhor — a lógica quem garante é o schema.\n\n**Depende de:** [LLM-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] System prompt por perfil: sofista (ornamentado, confiante) vs filósofo (seco, preciso)\n- [x] Few-shot com 2 exemplos por falácia\n- [x] Injetar contexto: nome do adversário, ato, tema do debate, tom desejado\n- [x] Temperatura por personagem: Thrasybios 0.9, Damaris 0.5, Menexeno 0.3\n- [x] Proibir no prompt: declarar vencedor, citar regras do jogo, quebrar a 4ª parede\n- [ ] Gerar 50 argumentos por falácia e revisar manualmente\n- [ ] Marcar os bons e promovê-los ao banco de fallback"
     },
     {
       "title": "[LLM-03] Cache local no cliente",
@@ -455,7 +455,7 @@
         "IA / LLM",
         "Risco"
       ],
-      "description": "**Depende de:** [BCK-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Moderation endpoint da OpenAI na Cloud Function, antes de devolver\n- [ ] Lista de bloqueio de termos no servidor\n- [ ] Conteúdo reprovado = fallback, com log para revisão"
+      "description": "**Depende de:** [BCK-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Moderation endpoint da OpenAI na Cloud Function, antes de devolver\n- [x] Lista de bloqueio de termos no servidor\n- [x] Conteúdo reprovado = fallback, com log para revisão"
     },
     {
       "title": "[UI-01] Caixa de menu das seis ações",
