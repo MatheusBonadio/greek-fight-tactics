@@ -68,6 +68,74 @@ namespace Game.UI
 
         public Tilemap FogTilemap => fogTilemap;
 
+        public GridCursor Cursor => cursor;
+
+        public ActorView Player => player;
+
+        public bool GizmosVisible
+        {
+            get => gizmos != null && gizmos.DrawGizmos;
+            set
+            {
+                if (gizmos != null)
+                {
+                    gizmos.DrawGizmos = value;
+                }
+            }
+        }
+
+        public string DescribeCell(Coord cell)
+        {
+            if (grid == null || !grid.TryGet(cell, out var tile))
+            {
+                return $"gx {cell.X}  gy {cell.Y}\noutside the grid";
+            }
+
+            var occupant = tile.IsOccupied ? tile.OccupantId.ToString() : "none";
+            return $"gx {cell.X}  gy {cell.Y}\nterrain {tile.Terrain}  cost {tile.Cost}\noccupant {occupant}\nrevealed {tile.Revealed}";
+        }
+
+        public bool TryMovePlayerTo(Coord cell)
+        {
+            if (player == null || !pathFinder.FindPath(grid, player.Walker.Cell, cell, path))
+            {
+                return false;
+            }
+
+            player.Walker.Follow(path);
+            return true;
+        }
+
+        public bool TrySpawnTestActor(Coord cell)
+        {
+            if (actors.Count == 0 || !grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
+            {
+                return false;
+            }
+
+            var template = actors[actors.Count > 1 ? 1 : 0];
+            var clone = Instantiate(template, template.transform.parent);
+            clone.Bind(new GridWalker(grid, nextActorId++, cell));
+            actors.Add(clone);
+            return true;
+        }
+
+        public bool TryRemoveTestActor(Coord cell)
+        {
+            var target = actors.Find(actor => actor != player && actor.Walker != null && actor.Walker.Cell == cell);
+            if (target == null)
+            {
+                return false;
+            }
+
+            var tile = grid[cell];
+            tile.OccupantId = TileData.NoOccupant;
+            grid.TrySet(cell, tile);
+            actors.Remove(target);
+            Destroy(target.gameObject);
+            return true;
+        }
+
         public void ConfigureLayout(int newWidth, int newHeight, TerrainId[] newTerrain, byte[] newCosts, int newFogRevealDepth)
         {
             width = newWidth;
@@ -168,8 +236,15 @@ namespace Game.UI
             actionMap?.Disable();
         }
 
+        private bool IsReady => grid != null && cursor != null && actionMap != null;
+
         private void Update()
         {
+            if (!IsReady)
+            {
+                return;
+            }
+
             ReadPointer();
             ReadNavigation();
 
@@ -194,34 +269,26 @@ namespace Game.UI
 
         private void OnGUI()
         {
-            if (grid == null)
+            if (!IsReady)
             {
                 return;
             }
 
             var cell = cursor.Cell;
-            var tile = grid[cell];
             GUILayout.BeginArea(new Rect(HudMargin, HudMargin, HudWidth, HudHeight), GUI.skin.box);
-            GUILayout.Label($"gx {cell.X}  gy {cell.Y}");
-            GUILayout.Label($"terrain {tile.Terrain}  cost {tile.Cost}");
-            GUILayout.Label($"occupant {(tile.IsOccupied ? tile.OccupantId.ToString() : "none")}");
-            GUILayout.Label($"revealed {tile.Revealed}");
+            GUILayout.Label(DescribeCell(cell));
 
             if (GUILayout.Button("Spawn test actor"))
             {
-                TrySpawnAt(cell);
+                TrySpawnTestActor(cell);
             }
 
             if (GUILayout.Button("Remove test actor"))
             {
-                TryRemoveAt(cell);
+                TryRemoveTestActor(cell);
             }
 
-            if (gizmos != null)
-            {
-                gizmos.DrawGizmos = GUILayout.Toggle(gizmos.DrawGizmos, "Grid gizmos");
-            }
-
+            GizmosVisible = GUILayout.Toggle(GizmosVisible, "Grid gizmos");
             GUILayout.EndArea();
         }
 
@@ -261,41 +328,7 @@ namespace Game.UI
             navigateHeld = true;
         }
 
-        private void MovePlayerToCursor()
-        {
-            if (player != null && pathFinder.FindPath(grid, player.Walker.Cell, cursor.Cell, path))
-            {
-                player.Walker.Follow(path);
-            }
-        }
-
-        private void TrySpawnAt(Coord cell)
-        {
-            if (actors.Count == 0 || !grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
-            {
-                return;
-            }
-
-            var template = actors[actors.Count > 1 ? 1 : 0];
-            var clone = Instantiate(template, template.transform.parent);
-            clone.Bind(new GridWalker(grid, nextActorId++, cell));
-            actors.Add(clone);
-        }
-
-        private void TryRemoveAt(Coord cell)
-        {
-            var target = actors.Find(actor => actor != player && actor.Walker != null && actor.Walker.Cell == cell);
-            if (target == null)
-            {
-                return;
-            }
-
-            var tile = grid[cell];
-            tile.OccupantId = TileData.NoOccupant;
-            grid.TrySet(cell, tile);
-            actors.Remove(target);
-            Destroy(target.gameObject);
-        }
+        private void MovePlayerToCursor() => TryMovePlayerTo(cursor.Cell);
 
         private void RevealInitialArea(GridModel model)
         {
