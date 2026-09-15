@@ -1,0 +1,19 @@
+{
+  "name": "Game.UI",
+  "rootNamespace": "Game.UI",
+  "references": [
+    "Game.Core",
+    "Game.Grid",
+    "Game.Battle",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

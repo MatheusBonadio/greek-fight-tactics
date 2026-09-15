@@ -1,0 +1,902 @@
+{
+  "board_name": "Greek Fight Tactics (GFT)",
+  "board_description": "Tactics isométrico de dialética na Grécia Antiga — Unity 6.6 (URP 2D), Firebase e OpenAI, com instalação, teste, build e automação pelo Unity CLI. Plano em 5 sprints: os Sprints 01 a 03 formam a entrega acadêmica, com ponto de corte no [ENT-01]; os Sprints 04 e 05 transformam a demonstração em produto comercial. Ordem por dependência: todo card Bloqueante fica no mesmo sprint do seu primeiro consumidor, puxado antes dele, ou no sprint imediatamente anterior. Regra permanente: o LLM gera texto, a engine julga a regra. A chave da OpenAI nunca entra no build.",
+  "lists": [
+    "📋 Backlog",
+    "🎯 Sprint Atual",
+    "🚧 Em andamento",
+    "🔍 Revisão",
+    "✅ Concluído"
+  ],
+  "labels": [
+    {
+      "name": "Sprint 01 · Fundação, Grid & Dados",
+      "color": "blue_dark"
+    },
+    {
+      "name": "Sprint 02 · Batalha, Backend & IA",
+      "color": "purple_dark"
+    },
+    {
+      "name": "Sprint 03 · Vertical Slice & Entrega",
+      "color": "green_dark"
+    },
+    {
+      "name": "Sprint 04 · Atos I e II",
+      "color": "orange_dark"
+    },
+    {
+      "name": "Sprint 05 · Tribunal & Lançamento",
+      "color": "red_dark"
+    },
+    {
+      "name": "Fase 1 · Entrega acadêmica",
+      "color": "green_light"
+    },
+    {
+      "name": "Fase 2 · Comercial",
+      "color": "orange_light"
+    },
+    {
+      "name": "Bloqueante",
+      "color": "red"
+    },
+    {
+      "name": "Unity / Core",
+      "color": "blue"
+    },
+    {
+      "name": "Backend",
+      "color": "green"
+    },
+    {
+      "name": "IA / LLM",
+      "color": "orange"
+    },
+    {
+      "name": "Arte",
+      "color": "purple"
+    },
+    {
+      "name": "Narrativa",
+      "color": "yellow"
+    },
+    {
+      "name": "UI / UX",
+      "color": "sky"
+    },
+    {
+      "name": "QA / Testes",
+      "color": "black"
+    },
+    {
+      "name": "Risco",
+      "color": "pink"
+    },
+    {
+      "name": "Milestone",
+      "color": "lime"
+    },
+    {
+      "name": "Documentação",
+      "color": "lime_dark"
+    }
+  ],
+  "cards": [
+    {
+      "title": "[SET-01] Setup do projeto Unity",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "Fixar versão e estrutura antes de escrever a primeira linha. Mudar isso depois custa dias.\n\n**Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Unity CLI instalado (`winget install Unity.CLI`) e versão registrada no README\n- [x] Editor 6.6 (`6000.6.x`) instalado por `unity install` com os módulos de Windows e Web — IDs conferidos em `unity modules list`\n- [x] Projeto criado por `unity projects create` com o template Universal 2D\n- [x] Patch exato do 6.6 fixado no README e no `ProjectVersion.txt` — nenhum upgrade até a entrega acadêmica\n- [ ] Estrutura `Assets/_Game/{Art,Code,Data,Scenes,Prefabs,UI,Audio}`\n- [x] Assembly Definitions: `Game.Core, Game.Grid, Game.Battle, Game.Net, Game.UI`\n- [x] Active Input Handling = Input System Package, Input Manager legado desligado\n- [ ] Enter Play Mode sem domain reload (padrão de projeto novo no 6.6): estado estático resetado com `[AutoStaticsCleanup]`, e o analyzer de autostatics ligado\n- [ ] Build Profiles criados: Windows Development, Windows Release e Web\n- [ ] Repositório criado por `unity vcs setup`: `.gitignore` da Unity e primeiro commit no remoto\n- [x] Git LFS para `*.png *.wav *.ogg *.aseprite`, e `unity vcs doctor` sem pendência de LFS ou ignore\n- [x] `unity vcs merge-setup` configurando o UnityYAMLMerge para cenas e prefabs\n- [x] `unity vcs hooks` instalado: checagem de integridade do projeto antes de cada commit\n- [x] Force Text em Asset Serialization + Visible Meta Files\n- [ ] Branch main protegida, trabalho em `feature/*`\n\n**Por que 6.6 e não 6.3 LTS.** O 6.6 é *supported update*: recebe correções só até sair a versão seguinte, enquanto o 6.3 LTS tem suporte até dezembro de 2027. Para um trabalho acadêmico com prazo fechado isso é aceitável se a versão for congelada no início — o risco que sobra é um bug do motor sem patch. Antes do lançamento comercial, o [QA-04] avalia migrar para o LTS vigente.\n\n**Contexto do Sprint 01.** Fundação e os primeiros consumidores do grid no mesmo sprint. O `GridModel` é o maior bloqueante — movimento, névoa, batalha e pathfinding dependem dele —, e o schema do argumento ([DAT-03]) fecha aqui porque é o contrato dos dois consumidores do Sprint 02: a batalha ([BTL-02]) e o backend ([BCK-01]). O Unity CLI entra antes da primeira linha de gameplay: a partir do [CLI-02], nenhum card fecha sem `unity test` e `unity build` verdes. ~47 dias-pessoa."
+    },
+    {
+      "title": "[CLI-01] Unity CLI, pacote Pipeline e MCP",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "Risco"
+      ],
+      "description": "Toda operação repetível do projeto — testar, buildar, inspecionar o Editor — passa pelo `unity` no terminal. É o que deixa teste e build reproduzíveis, e o que permite a um agente de IA agir no Editor e verificar o resultado.\n\n**Depende de:** [SET-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] `unity auth login` e `unity auth status` confirmando a conta; licença ativa em `unity license`\n- [ ] `unity doctor` sem falha na máquina de desenvolvimento\n- [ ] `unity editors default` apontando para o patch congelado no [SET-01]\n- [ ] Pacote `com.unity.pipeline` instalado com `unity pipeline install`; `unity status` mostra o Editor conectado e `unity command` lista os comandos\n- [ ] Scripts `tools/test.ps1` e `tools/build.ps1` chamando `unity test` e `unity build` com `--format json` — o que o CI roda, roda igual na máquina local\n- [ ] Scripts tratam o exit code: `8` = teste falhou, não reintentar; `6` ou `7` = falha de operação ou de serviço, reintentar 1x\n- [ ] `unity mcp` registrado no Claude Code e `unity skill` instalado\n- [ ] Atualização do CLI só por `unity self-update` deliberado, com `UNITY_NO_UPDATE_CHECK` ligado no CI\n- [ ] Plano B testado: o mesmo teste e a mesma build pelo `Unity.exe -batchmode` com `-runTests` e `-executeMethod`\n\n**Por que é Risco.** O Unity CLI e o `com.unity.pipeline` estão em beta. O ganho compensa, mas nenhum fluxo pode depender só deles: o plano B pelos argumentos de linha de comando do Editor fica testado desde o primeiro sprint.\n\n**`unity command eval` é execução remota de código.** Roda C# arbitrário no Editor, protegido por token. Fica restrito à máquina local; o token nunca vai para o repositório nem para o CI."
+    },
+    {
+      "title": "[SET-02] Pixel Perfect e presets de import",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "Arte"
+      ],
+      "description": "Se isso ficar errado, TODA a arte importada depois vai tremer e você vai reimportar tudo.\n\n**Depende de:** [SET-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Pixel Perfect Camera do URP, Reference Resolution 224x224 — já vem no template Universal 2D; o pacote 2D Pixel Perfect avulso é só do Built-in e não deve ser instalado\n- [ ] Assets Pixels Per Unit = 16\n- [ ] Upscale Render Texture ligado\n- [ ] Crop Frame X e Y ligados\n- [ ] Efeito de tela customizado, se houver, só por Render Graph — o Compatibility Mode do URP foi removido no 6.4\n- [ ] Teste: mover a câmera 1 unidade e confirmar zero tremor\n- [ ] Texture Type Sprite, Filter Point, Compression None, PPU 16, Mesh Full Rect\n- [ ] Salvar como Preset e definir como default em Project Settings > Preset Manager\n- [ ] Confirmar que um PNG novo já entra com as configurações certas"
+    },
+    {
+      "title": "[ART-01] Importar placeholders e fatiar sheets",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "Arte"
+      ],
+      "description": "Os placeholders já estão em RGB555 e nas dimensões finais — trocar pela arte real depois não quebra referência.\n\n**Depende de:** [SET-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Copiar o pacote de placeholders para `Assets/_Game/Art/Placeholder`\n- [ ] Sprite Mode = Multiple nas 7 folhas de personagem\n- [ ] Slice > Grid By Cell Size 24x32\n- [ ] Pivot Custom (0.5, 0.0625) — pés na base\n- [ ] Tiles de chão: pivot Bottom Left\n- [ ] Animator Controller base com estados idle / walk / acao\n- [ ] TODAS as curvas em modo Constant (nunca Linear)\n- [ ] Blend por direção usando parâmetros `dirX`, `dirY`"
+    },
+    {
+      "title": "[SET-03] Definition of Done do projeto",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "QA / Testes"
+      ],
+      "description": "Regra única para fechar card. Sem isso o board vira lista de desejos.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Compila sem warning novo\n- [ ] Roda no Editor e num build standalone\n- [ ] Tem teste automatizado OU passo de teste manual escrito no card\n- [ ] Não quebrou o save existente\n- [ ] Card movido para Concluído só depois do check verde do CI ([CLI-02]): `unity test` e `unity build`\n\n**Dois combinados do board.** Card travado por dependência externa fica na coluna em que está, com o motivo num comentário; se ficar travado mais de 3 dias, o sprint é replanejado — não vale esperar. E só vai para ✅ Concluído o que passou por esta régua.\n\n**A label *Bloqueante* não quer dizer travado.** Marca o card de que outros dependem — é o primeiro a ser puxado dentro do sprint."
+    },
+    {
+      "title": "[CLI-02] Integração contínua com Unity CLI",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "QA / Testes"
+      ],
+      "description": "A Definition of Done ([SET-03]) exige build verde. Sem CI, \"verde\" é o que roda na máquina de quem fechou o card.\n\n**Depende de:** [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Workflow de CI em runner Windows (GitHub Actions ou o CI do host do repositório)\n- [ ] Job instala o Editor por `unity install` com a mesma versão do `ProjectVersion.txt`\n- [ ] Autenticação por service account: `UNITY_SERVICE_ACCOUNT_ID` e `UNITY_SERVICE_ACCOUNT_SECRET` em secrets — nunca conta pessoal\n- [ ] `unity test` em Edit Mode e Play Mode a cada PR para a `main`, com `--format github` para falha virar anotação no PR\n- [ ] `unity build` do Build Profile Windows Development a cada merge na `main`, com o artefato anexado ao run\n- [ ] Cache da pasta `Library` com a chave gerada por `unity cache`\n- [ ] `UNITY_NON_INTERACTIVE` e `UNITY_BUILD_TIMEOUT` definidos — nenhum job fica pendurado num prompt\n- [ ] Branch `main` exige o check verde para merge"
+    },
+    {
+      "title": "[GRD-01] GridModel e TileData",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "Fonte de verdade da lógica. O Tilemap da Unity é APENAS render — nunca consulte o Tilemap para decidir regra.\n\n**Depende de:** [SET-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] `struct TileData { TerrainId Terrain; byte Cost; bool Revealed; int OccupantId; }`\n- [ ] `class GridModel` com `TileData[,]` + largura/altura + bounds check\n- [ ] `GridToWorld(cell) => ((cell.X - cell.Y) * 16f / 16f, (cell.X + cell.Y) * 8f / 16f)` em unidades\n- [ ] `WorldToGrid` inverso, com arredondamento correto nas bordas do losango\n- [ ] `OccupantId` é id do domínio, nunca `GetInstanceID()` — o id inteiro de objeto deixou de compilar no 6.5, substituído por `EntityId`\n- [ ] Teste Edit Mode (Unity Test Framework): ida e volta em 10.000 coordenadas aleatórias, rodando por `unity test` local e no CI\n- [ ] Teste de borda: células fora do grid retornam inválido, não exceção\n- [ ] Gizmos no editor desenhando o losango de cada célula"
+    },
+    {
+      "title": "[GRD-02] Render isométrico e ordenação de profundidade",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "Risco"
+      ],
+      "description": "Ordenação errada em isométrico é o bug que mais consome tempo em projetos assim. Resolva aqui, com casos difíceis.\n\n**Depende de:** [GRD-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Grid component: Isometric Z as Y, Cell Size (1, 0.5, 1)\n- [ ] `TilemapRenderer` em modo Individual\n- [ ] Transparency Sort Mode = Custom Axis (0, 1, 0) no asset 2D Renderer Data — com o 2D Renderer, a configuração de Project Settings é ignorada\n- [ ] `sortingOrder = -(cell.X + cell.Y) * IsoMath.SortingStep` para props e atores (deixa folga para sub-ordenação)\n- [ ] Caso difícil validado: Prop que transborda a célula (oliveira 48x56) na frente e atrás de um ator\n- [ ] Caso difícil validado: Três atores em células adjacentes na diagonal\n- [ ] Caso difícil validado: Ator atrás de coluna de 56px de altura\n- [ ] Caso difícil validado: Bloco com altura ocupando visualmente 2 células"
+    },
+    {
+      "title": "[GRD-03] Cursor, seleção e input",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "UI / UX"
+      ],
+      "description": "**Depende de:** [GRD-01], [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Input System: mouse, teclado (WASD/setas) e gamepad no mesmo Action Map\n- [ ] Hover: converter posição do ponteiro em célula\n- [ ] Highlight de seleção com pulso de 500ms\n- [ ] Confirmar / Cancelar mapeados nos três dispositivos"
+    },
+    {
+      "title": "[GRD-04] Cena GridSandbox",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "QA / Testes"
+      ],
+      "description": "Cena de teste permanente. Todo sistema novo de grid é validado aqui antes de ir para mapa real.\n\n**Depende de:** [GRD-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Mapa 12x12 usando todos os tiles de chão e blocos\n- [ ] HUD de debug: gx, gy, terreno e ocupante sob o cursor\n- [ ] Botões para spawnar/remover atores de teste\n- [ ] Toggle de gizmos do grid\n- [ ] `unity command screenshot` gera a imagem de referência do mapa 12x12 — base de comparação para mudanças de render\n- [ ] Módulos Tilemap e 2D Graphics do Profiler (novos no 6.6) usados para medir o custo do mapa"
+    },
+    {
+      "title": "[GRD-05] A* na grade isométrica",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "Usado por movimento, alcance de ação e IA do adversário. Três consumidores — vale caprichar.\n\n**Depende de:** [GRD-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Vizinhança de 4 direções (sem diagonal — mantém a leitura isométrica limpa)\n- [ ] Custo por terreno lido de `TileData.Cost`\n- [ ] Bloqueio por ocupante e por `Cost == TileData.ImpassableCost`\n- [ ] Busca limitada por alcance (retorna todas as células a custo <= N)\n- [ ] Pool de nós reutilizável — zero alocação por chamada\n- [ ] Benchmark com Performance Testing (core no 6.6, `Unity.PerformanceTesting`): grid 100x100, caminho longo, abaixo de 5ms\n- [ ] Teste: sem caminho possível retorna lista vazia, não trava"
+    },
+    {
+      "title": "[EXP-01] Movimento animado do ator",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core"
+      ],
+      "description": "**Depende de:** [GRD-05], [ART-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] 250ms por célula, interpolação LINEAR entre centros (sem easing — treme o pixel)\n- [ ] Fila de células do caminho, cancelável\n- [ ] Troca automática de direção SE/SW/NE/NW conforme o vetor do passo\n- [ ] Espelhamento em código para SW e NW (a sheet só tem SE e NE reais)\n- [ ] Atualizar `TileData.OccupantId` na saída e na entrada da célula"
+    },
+    {
+      "title": "[EXP-02] Névoa de guerra",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "Bloqueante do save ([BCK-03]) — o formato do bitmask precisa estar decidido antes do Firestore.\n\n**Depende de:** [EXP-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Tilemap sobreposto em sorting layer acima do chão\n- [ ] Revelação por raio (padrão 3 células) ao entrar numa célula\n- [ ] Bitmask serializável: um bit por célula, byte[] compacto\n- [ ] 4 tiles de borda (NE/NW/SE/SW) para transição em dithering\n- [ ] Revelação permanente — não volta a esconder\n- [ ] Serializar, recarregar e conferir que a névoa idêntica volta\n- [ ] Mapa 64x64: tamanho do bitmask abaixo de 1KB"
+    },
+    {
+      "title": "[GRD-06] Highlights de alcance",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "UI / UX"
+      ],
+      "description": "**Depende de:** [GRD-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] `hl_move` alimentado pelo A* com limite de alcance\n- [ ] `hl_refute` e `hl_maieutics` com alcance fixo em formato de losango\n- [ ] Limpeza de realces ao trocar de ação\n- [ ] Nunca desenhar realce sobre célula em névoa"
+    },
+    {
+      "title": "[EXP-03] Câmera de exploração",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core"
+      ],
+      "description": "**Depende de:** [EXP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Cinemachine (pacote core no 6.6) seguindo o ator com leve suavização e a extensão Pixel Perfect, SEMPRE arredondando para pixel inteiro\n- [ ] Clamp nos limites do mapa\n- [ ] Zoom de transição para batalha (preparar o hook, usar no [BTL-01])"
+    },
+    {
+      "title": "[DAT-01] ScriptableObjects do domínio",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Todo conteúdo do jogo vira dado editável, não código. Permite balancear sem recompilar.\n\n**Depende de:** [SET-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] `FallacySO`: id, nome_pt, descricao, dica_jogador, icone, categoria(informal/formal/paradoxo)\n- [ ] `OpponentSO`: nome, sheet, coerencia_max, plateia_inicial, pool de falácias, ato, perfil(sofista/filosofo)\n- [ ] `ArgumentSO`: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [ ] `QuoteItemSO`: nome, efeito, usos\n- [ ] `AbilitySO`: para Inversão e Escuta (ramificação Damaris)\n- [ ] Tabelas por id (falácias, custo de terreno) como `Dictionary` serializado direto no Inspector — nativo no 6.6, sem listas paralelas de wrapper\n- [ ] Analyzer de regras de serialização (6.5) sem aviso nos SOs"
+    },
+    {
+      "title": "[DAT-02] Catálogo de 20 falácias",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Narrativa",
+        "Arte"
+      ],
+      "description": "Este catálogo é o vocabulário inteiro do jogo. Fechar agora evita retrabalho de conteúdo depois.\n\n**Depende de:** [DAT-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Informais (Ato I): `ad_hominem`, `straw_man`, `false_dilemma`, `appeal_to_authority`, `appeal_to_ignorance`\n- [ ] Informais (Ato I): `hasty_generalization`, `slippery_slope`, `appeal_to_emotion`, `equivocation`, `begging_the_question`\n- [ ] Formais: `affirming_the_consequent`, `denying_the_antecedent`, `undistributed_middle`\n- [ ] Formais: `four_terms`, `invalid_disjunctive_syllogism`\n- [ ] Paradoxos (Ato II, `fallacy_id = null`): `zeno_tortoise`, `liar`, `sorites`, `ship_of_theseus`, `flux_vs_permanence`\n- [ ] Paradoxos marcados com `IsRefutable == false` — é o que desliga o botão REFUTAR no Ato II\n- [ ] Ícone 16x16 placeholder para cada uma das 20"
+    },
+    {
+      "title": "[DAT-03] Contrato JSON do argumento",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "IA / LLM",
+        "Backend"
+      ],
+      "description": "O LLM gera, a engine julga. Este schema é a fronteira entre os dois — e a única coisa que a IA pode dizer.\n\n**Depende de:** [DAT-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Documentar o JSON: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [ ] Classe C# serializável + Newtonsoft.Json (`com.unity.nuget.newtonsoft-json`) — `JsonUtility` não lida com `Dictionary` nem tipos anuláveis\n- [ ] Validação: rejeitar `fallacy_id` que não existe no catálogo\n- [ ] Validação: `weak_premise` precisa ser índice válido de `premises[]`\n- [ ] Validação: fala entre 40 e 300 caracteres\n- [ ] Payload inválido = descarta e usa fallback, nunca propaga para o resolver"
+    },
+    {
+      "title": "[DAT-04] Banco de fallback escrito à mão",
+      "labels": [
+        "Sprint 01 · Fundação, Grid & Dados",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Narrativa"
+      ],
+      "description": "O jogo precisa ser 100% jogável sem rede e sem gastar um token. Isto não é opcional.\n\n**Depende de:** [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Mínimo 3 argumentos escritos à mão por falácia = 60 textos\n- [ ] Tom coerente com cada perfil de adversário\n- [ ] Armazenados como `TextAsset` JSON referenciados por um ScriptableObject — sem pasta `Resources/`, que a própria Unity desaconselha; carrega offline do mesmo jeito\n- [ ] Loader com seleção aleatória sem repetição imediata"
+    },
+    {
+      "title": "[DAT-05] Editor tool de argumentos",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "QA / Testes"
+      ],
+      "description": "**Depende de:** [DAT-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Janela custom que lista falácias e argumentos\n- [ ] Botão para validar um JSON colado contra o schema\n- [ ] Preview de como o argumento aparece na caixa de diálogo\n- [ ] Mesma validação exposta como comando do [CLI-03] (`validate_argument <file>`): valida o JSON sem abrir a janela\n\n**Contexto do Sprint 02.** Batalha e rede no mesmo sprint, mas em sequência: a batalha fecha 100% offline, só com o fallback do [DAT-04], antes do primeiro card de rede. Assim, quando algo falhar na integração, é rede — não regra de jogo. A chave da OpenAI nunca vai no build: todo tráfego passa pela Cloud Function, e o cliente só substitui o texto do fallback. Os comandos do [CLI-03] entram assim que o resolver existe, para montar estados de batalha pelo terminal. ~53 dias-pessoa."
+    },
+    {
+      "title": "[BTL-01] GameStateMachine Exploration ↔ Battle",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [ ] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [ ] Congelar input de exploração durante batalha\n- [ ] Saída restaura posição e névoa sem recarregar a cena"
+    },
+    {
+      "title": "[BTL-02] Resolver de batalha",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "O juiz. Determinístico, testável, sem dependência de rede.\n\n**Depende de:** [BTL-01], [DAT-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Barras Coerência (HP) e Plateia (win condition) por combatente\n- [ ] Fila de turnos por iniciativa, com preview dos próximos 3\n- [ ] Vitória: Coerência do oponente = 0 OU Plateia = 100%\n- [ ] Derrota: Coerência do jogador = 0\n- [ ] Log estruturado de cada resolução (essencial para debugar balanceamento)\n- [ ] Resolver num Assembly Definition com No Engine References: C# puro, testável em Edit Mode sem cena"
+    },
+    {
+      "title": "[BTL-03] As seis ações",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "**Depende de:** [BTL-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] CIRCULAR: usa o A* com alcance de movimento\n- [ ] REFUTAR: jogador escolhe a falácia; acerto causa dano + Plateia, erro gera contragolpe\n- [ ] MAIÊUTICA: jogador escolhe a premissa fraca; acerto = dano alto, custo de 2 turnos\n- [ ] CITAR: consome `QuoteItemSO` com efeito fixo\n- [ ] CONCEDER: recupera Coerência, perde Plateia\n- [ ] RETIRAR-SE: encerra a batalha, aplica penalidade de reputação"
+    },
+    {
+      "title": "[BTL-04] Modificadores posicionais",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core"
+      ],
+      "description": "É o que faz a grade importar. Sem isso, o combate poderia ser um menu sem mapa.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Bônus de Plateia por adjacência a NPCs cidadãos\n- [ ] Penalidade de Coerência se encurralado (3+ células adjacentes bloqueadas)\n- [ ] Bônus de Refutação atacando pelo lado oposto ao que o oponente encara\n- [ ] Tiles especiais (`floor_diagram` na Academia) com modificador próprio"
+    },
+    {
+      "title": "[BTL-05] IA do adversário",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "IA / LLM"
+      ],
+      "description": "IA de comportamento, não de texto — nada a ver com o LLM.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Árvore de decisão simples por perfil (sofista busca Plateia, filósofo busca Coerência)\n- [ ] Escolha de posição via A*\n- [ ] Dificuldade por ato: Ato I erra de propósito às vezes, Ato II não"
+    },
+    {
+      "title": "[CLI-03] Comandos de depuração do jogo",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "QA / Testes"
+      ],
+      "description": "O jogo expõe ao terminal as operações que QA e o agente de IA repetem dezenas de vezes. Chegar num estado de teste deixa de exigir clicar por menus.\n\n**Depende de:** [BTL-02], [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Comandos marcados com `[CliCommand]` num assembly `Game.DevCommands` que só compila no Editor e em Development Build\n- [ ] `grid_spawn` e `grid_clear`: spawna e remove atores na GridSandbox\n- [ ] `battle_start <opponent>` e `battle_simulate <n>`: inicia batalha e roda N batalhas simuladas, devolvendo o log do resolver\n- [ ] `save_dump` e `save_load <file>`: inspeciona e carrega saves de teste\n- [ ] `set_flag <name> <value>`: pula para qualquer ponto da narrativa\n- [ ] `validate_argument <file>`: mesma validação do [DAT-05]\n- [ ] Todo comando devolve JSON — quem consome é script ou agente, não pessoa\n- [ ] `unity list` mostra todos os comandos com o schema de parâmetros"
+    },
+    {
+      "title": "[QA-01] Teste de estresse do resolver",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "QA / Testes"
+      ],
+      "description": "**Depende de:** [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] 1000 batalhas simuladas com ações aleatórias — nenhuma exceção\n- [ ] Rodando como teste Edit Mode do Unity Test Framework, não como cena manual — no CI pelo `unity test`, que sai com código 8 se alguma batalha falhar\n- [ ] Nenhuma batalha em loop infinito (limite de 50 turnos)\n- [ ] Relatório de taxa de vitória por adversário para balanceamento"
+    },
+    {
+      "title": "[BCK-01] Cloud Function como proxy da OpenAI",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Backend",
+        "IA / LLM",
+        "Risco"
+      ],
+      "description": "Card mais crítico do projeto em termos de risco financeiro. A Unity fala com a SUA function; só a function fala com a OpenAI.\n\n**Depende de:** [DAT-03] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Firebase Cloud Function (Node/TypeScript), região próxima do público-alvo\n- [ ] Chave da OpenAI em Secret Manager — NUNCA em .env commitado, NUNCA no cliente\n- [ ] Exigir ID token do Firebase Auth: rejeita chamada sem UID válido\n- [ ] Rate limit por UID (ex.: 60 chamadas/hora) com contador no Firestore\n- [ ] Limite de `max_tokens` por chamada (teto duro)\n- [ ] Response format `json_schema` — a OpenAI já devolve estruturado\n- [ ] Validar o JSON contra o schema ANTES de devolver ao cliente\n- [ ] Se o modelo devolver `fallacy_id` desconhecido, tenta 1x e depois retorna 204\n- [ ] Log de custo por chamada\n- [ ] Revisar: a string da chave não aparece em nenhum arquivo dentro de `Assets/`\n- [ ] Teste: descompilar a build IL2CPP e a Web e buscar por `sk-` — zero resultados nas duas\n\n**App Check fica fora da entrega acadêmica.** Windows e Web não têm provedor de atestação válido — desktop não conta como dispositivo, e o SDK Unity não roda no Web. Aqui a proteção é token de Auth + rate limit por UID + teto de orçamento + kill switch, e essa limitação vai registrada na monografia ([ENT-02]). App Check de verdade entra no [BCK-07]."
+    },
+    {
+      "title": "[BCK-02] Firebase Auth anônima via REST",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Backend"
+      ],
+      "description": "UID é a base do rate limit, do save e do cache. Vem antes de tudo que toca rede.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Auth pela REST API do Identity Toolkit com `UnityWebRequest` + `Awaitable` — o Firebase Unity SDK só é suportado em Android e iOS; no desktop é beta para desenvolvimento e no Web não existe\n- [ ] Sign-in anônimo no boot; refresh token persistido localmente e ID token renovado antes de expirar\n- [ ] O mesmo código de rede roda no Windows e no Web — é o que torna possível a build Web da banca"
+    },
+    {
+      "title": "[BCK-03] Firestore: modelo de save",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Backend"
+      ],
+      "description": "Offline-first: salva local primeiro, sincroniza quando houver rede. Nunca deixe o jogador esperando o Firestore.\n\n**Depende de:** [BCK-02], [EXP-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] `saves/{uid}`: `actFlag`, `fogBitmask` (base64), `damarisBranch`, `reputation`, `inventory`, `position`, `timestamp`\n- [ ] `progress/{uid}/duels/{id}`: vencido, como venceu (refutar/maieutica/conceder)\n- [ ] Regras de segurança: `request.auth.uid == resource.id`, leitura e escrita\n- [ ] Leitura e escrita pela REST API do Firestore, autenticadas com o ID token do [BCK-02]\n- [ ] Save local em arquivo sob `Application.persistentDataPath` como fonte primária — no Web ele fica em IndexedDB; confirmar que sobrevive a fechar a aba\n- [ ] Push para Firestore em background, com retry\n- [ ] Resolução de conflito: timestamp mais recente vence\n- [ ] Teste: jogar 20 min em modo avião, reconectar e confirmar sync"
+    },
+    {
+      "title": "[BCK-04] Cache compartilhado de argumentos",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Backend",
+        "IA / LLM"
+      ],
+      "description": "Reduz custo drasticamente: o argumento gerado para um jogador serve para todos.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Coleção `argument_cache/{hash}` onde hash = adversario+falacia+seed\n- [ ] Function consulta o cache antes de chamar a OpenAI\n- [ ] TTL longo (90 dias) — conteúdo não envelhece\n- [ ] Meta: 70% de cache hit depois de 100 sessões"
+    },
+    {
+      "title": "[BCK-05] Orçamento e monitoramento",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Backend",
+        "Risco"
+      ],
+      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [ ] Estimar custo por sessão de 1h e documentar — vira dado da avaliação ([AVA-01])\n- [ ] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [ ] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
+    },
+    {
+      "title": "[LLM-01] Cliente da Cloud Function",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "IA / LLM"
+      ],
+      "description": "**Depende de:** [BCK-01], [DAT-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] `UnityWebRequest` com `Awaitable`, nunca bloqueia o turno; cancelado por `destroyCancellationToken` ao sair da batalha\n- [ ] Timeout de 2 segundos\n- [ ] 1 retry com backoff, depois desiste\n- [ ] Falha ou timeout = fallback local, silencioso para o jogador\n- [ ] Pré-aquecer: buscar os argumentos do próximo adversário ao entrar no mapa"
+    },
+    {
+      "title": "[LLM-02] Prompt engineering dos adversários",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "IA / LLM",
+        "Narrativa"
+      ],
+      "description": "Cada personagem precisa soar diferente. O tom é o que o LLM faz melhor — a lógica quem garante é o schema.\n\n**Depende de:** [LLM-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] System prompt por perfil: sofista (ornamentado, confiante) vs filósofo (seco, preciso)\n- [ ] Few-shot com 2 exemplos por falácia\n- [ ] Injetar contexto: nome do adversário, ato, tema do debate, tom desejado\n- [ ] Temperatura por personagem: Thrasybios 0.9, Damaris 0.5, Menexeno 0.3\n- [ ] Proibir no prompt: declarar vencedor, citar regras do jogo, quebrar a 4ª parede\n- [ ] Gerar 50 argumentos por falácia e revisar manualmente\n- [ ] Marcar os bons e promovê-los ao banco de fallback"
+    },
+    {
+      "title": "[LLM-03] Cache local no cliente",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "IA / LLM"
+      ],
+      "description": "**Depende de:** [LLM-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] LRU em disco, chave = hash do pedido\n- [ ] Limite de tamanho (ex.: 5MB) com descarte do mais antigo\n- [ ] Carregar no boot, salvar em background"
+    },
+    {
+      "title": "[QA-02] Teste de modo avião",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "QA / Testes",
+        "Risco"
+      ],
+      "description": "Critério de aceite não-negociável: o jogo precisa ser completável sem internet.\n\n**Depende de:** [LLM-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Tudo que já existe jogável com Wi-Fi desligado — reexecutado no [ENT-01] com o conteúdo final da entrega\n- [ ] Nenhum diálogo vazio, nenhum travamento, nenhum popup de erro\n- [ ] Tempo de turno idêntico ao modo online (sem espera de timeout visível)\n- [ ] Save funciona e sincroniza ao reconectar"
+    },
+    {
+      "title": "[LLM-04] Moderação de conteúdo",
+      "labels": [
+        "Sprint 02 · Batalha, Backend & IA",
+        "Fase 1 · Entrega acadêmica",
+        "IA / LLM",
+        "Risco"
+      ],
+      "description": "**Depende de:** [BCK-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Moderation endpoint da OpenAI na Cloud Function, antes de devolver\n- [ ] Lista de bloqueio de termos no servidor\n- [ ] Conteúdo reprovado = fallback, com log para revisão"
+    },
+    {
+      "title": "[UI-01] Caixa de menu das seis ações",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX"
+      ],
+      "description": "Replicar o layout do mockup: caixa vertical, cursor triangular, cantos vazados.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] 6 ações com cursor navegável por teclado/gamepad/mouse\n- [ ] Ação indisponível aparece esmaecida com motivo no tooltip\n- [ ] REFUTAR desabilitado quando o argumento tem `fallacy_id null` (prepara o Ato II)\n- [ ] Submenu de seleção de falácia e de premissa\n\n**uGUI + TextMesh Pro, não UI Toolkit.** Um Canvas em Screen Space – Camera é desenhado pela mesma câmera da Pixel Perfect Camera e herda o upscale em pixel inteiro; o UI Toolkit desenha na resolução nativa da tela e só ficaria pixel perfect com render texture própria. A comparação oficial de sistemas de UI da Unity também aponta uGUI para UI de runtime.\n\n**Contexto do Sprint 03.** **Ponto de corte.** Primeiro a build que alguém de fora joga do início ao fim de um trecho ([REL-01]); depois, com o que o playtest apontou corrigido, os cinco duelos, as métricas e a build de entrega ([ENT-01]). O vertical slice fica no meio do sprint, não no fim: se algo estiver estruturalmente errado, ainda sobra metade do sprint antes da banca. Depois dele o projeto está completo como demonstração; tudo a partir do Sprint 04 é incremento comercial. ~53 dias-pessoa."
+    },
+    {
+      "title": "[UI-02] Barras de Coerência e Plateia",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX"
+      ],
+      "description": "**Depende de:** [BTL-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Animação de drenagem em ~400ms, não instantânea\n- [ ] Flash branco de 1 frame no dano (efeito 16-bit clássico)\n- [ ] Barra da Plateia bidirecional (puxa para o lado de quem convence)\n- [ ] Aviso visual quando Coerência abaixo de 25%"
+    },
+    {
+      "title": "[UI-03] Caixa de diálogo e fonte PT-BR",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX",
+        "Risco"
+      ],
+      "description": "A acentuação em fonte bitmap é uma armadilha clássica. Teste antes de fechar a fonte.\n\n**Depende de:** [DAT-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Typewriter com velocidade ajustável e skip\n- [ ] Quebra de linha automática respeitando largura de 208px\n- [ ] Retrato + nome do falante\n- [ ] Fonte bitmap de 8px como Font Asset do TextMesh Pro, atlas com filtro Point e sem compressão\n- [ ] Testar: á é í ó ú â ê ô ã õ à ç Ç Ã Õ\n- [ ] Testar aspas, travessão (—) e reticências\n- [ ] Fallback visível se um glifo faltar (não silencioso)"
+    },
+    {
+      "title": "[UI-04] Ícones de falácia e ajuda",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX",
+        "Arte"
+      ],
+      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [ ] Compêndio consultável com as 20 falácias desbloqueadas\n- [ ] Dica opcional (modo assistido) destacando a premissa fraca"
+    },
+    {
+      "title": "[UI-05] Menus de sistema",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX"
+      ],
+      "description": "**Depende de:** [BCK-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Menu principal, pausa, opções\n- [ ] Opções: volume, velocidade de texto, modo assistido\n- [ ] Save automático em slot único, com Continuar no menu principal\n- [ ] Tela de créditos com as licenças de fontes e assets usados"
+    },
+    {
+      "title": "[AT1-01] Mapa da Oficina (Cerâmico)",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Beat I.1. Tutorial de movimento e névoa, sem combate.\n\n**Depende de:** [UI-03], [EXP-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Layout 16x16 com forno, torno, pilhas de ânfora\n- [ ] Tutorial guiado de movimento e revelação de névoa\n- [ ] Diálogo com Aristeu (mãos com artrite visíveis no retrato)\n- [ ] Gatilho de saída para a Ágora"
+    },
+    {
+      "title": "[AT1-02] Mapa da Ágora",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Beat I.2. O hub do Ato I.\n\n**Depende de:** [AT1-01] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Layout 32x32 com colunas, bancas, herma, oliveiras, fonte\n- [ ] Névoa revelando o mercado gradualmente\n- [ ] NPCs cidadãos com as 12 variantes modulares\n- [ ] 5 pontos de interesse trancados (os duelos do [AT1-05])"
+    },
+    {
+      "title": "[AT1-03] Batalha tutorial contra Thrasybios",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Beat I.2/I.3. Uma falácia (equivocação), vitória garantida.\n\n**Depende de:** [AT1-02], [UI-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Batalha roteirizada ensinando REFUTAR passo a passo\n- [ ] Cena I.3: a plateia ri DELA, não com ela\n- [ ] Oferta de aulas pagas (escolha registrada para o epílogo)"
+    },
+    {
+      "title": "[AT1-04] Cena de Menexeno",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Narrativa"
+      ],
+      "description": "Beat I.4. Estabelece o mentor e a regra que ele impõe.\n\n**Depende de:** [AT1-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Encontro na porta da oficina\n- [ ] A condição: nunca aceitar dinheiro por uma pergunta\n- [ ] Plantar a pista do twist (ele evita falar do passado)\n- [ ] Desbloqueia MAIÊUTICA no menu\n- [ ] Cena montada em Timeline (pacote core no 6.6)"
+    },
+    {
+      "title": "[REL-01] Build do vertical slice (milestone)",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Milestone",
+        "QA / Testes"
+      ],
+      "description": "**Depende de:** [AT1-04], [QA-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Builds geradas por `unity build` a partir dos Build Profiles Windows e Web, o mesmo comando local e no CI — WebGL 2 como padrão, WebGPU (fora de experimental desde o 6.6) testado como alternativa\n- [ ] Jogável do boot ao fim do beat I.4 sem crash\n- [ ] Testar online e em modo avião\n- [ ] Playtest com 3 pessoas de fora, gravando a sessão\n- [ ] Anotar TODA dúvida do jogador — cada uma é um problema de UI"
+    },
+    {
+      "title": "[AT1-05] Os cinco duelos de bairro",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Narrativa",
+        "Unity / Core"
+      ],
+      "description": "Beat I.5. Cada um ensina uma família de falácia.\n\n**Depende de:** [REL-01] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, o cambista (Stoa) — falso dilema\n- [ ] Phaidra, a adivinha (Templo de Hefesto) — apelo à ignorância\n- [ ] Kritolaos, o político menor (Pnyx) — ad hominem\n- [ ] Simo, o ator (Teatro) — espantalho\n- [ ] Bátilo, o pescador (Porto) — generalização apressada\n- [ ] Bátilo é vencível por MAIÊUTICA sem humilhação — teste moral opcional"
+    },
+    {
+      "title": "[AVA-01] Métricas da IA para a monografia",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "IA / LLM",
+        "QA / Testes"
+      ],
+      "description": "A tese do projeto é que o LLM pode gerar o texto enquanto a engine garante a regra. Este card transforma a tese em número.\n\n**Depende de:** [BCK-05], [LLM-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Registro por chamada: latência, tokens, custo, cache hit, resultado da validação do schema e motivo do fallback\n- [ ] Taxa de JSON rejeitado pelo schema e de `fallacy_id` desconhecido, antes e depois do retry\n- [ ] Latência p50/p95 no cliente, e quantas vezes o timeout de 2s acionou o fallback\n- [ ] Custo por sessão de 1h e evolução do cache hit ao longo das sessões de playtest\n- [ ] Moderação: quantidade reprovada, com os casos revisados à mão\n- [ ] Exportação em CSV para as tabelas e gráficos da monografia\n- [ ] Nenhum texto gerado nem UID no export — só agregados e ids anônimos"
+    },
+    {
+      "title": "[AVA-02] Playtest com usuários e questionário",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "QA / Testes",
+        "UI / UX"
+      ],
+      "description": "O playtest do vertical slice tinha 3 pessoas para achar problema de UI. Aqui a amostra existe para medir.\n\n**Depende de:** [REL-01], [AT1-05] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Protocolo escrito: tarefas, duração da sessão e o que é observado\n- [ ] Questionário padronizado (ex.: GEQ para experiência, SUS para usabilidade) + perguntas sobre aprender a identificar falácias\n- [ ] Confirmar com o orientador se a pesquisa precisa passar pelo Comitê de Ética (CEP) antes de recrutar\n- [ ] TCLE por participante; respostas anonimizadas\n- [ ] Resultados tabulados e cruzados com as métricas do [AVA-01]\n\n**Comparação opcional:** metade dos participantes com a IA ligada e metade só com o fallback escrito à mão. Mede se o texto gerado muda a percepção dos argumentos — é a pergunta que a banca tende a fazer."
+    },
+    {
+      "title": "[ENT-02] Documentação técnica para a monografia",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Documentação"
+      ],
+      "description": "O que a banca precisa ler para entender por que o jogo foi construído assim.\n\n**Depende de:** [AVA-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Diagrama de arquitetura: Unity ↔ Cloud Function ↔ OpenAI e Firestore, com a fronteira do schema marcada\n- [ ] Decisões registradas com motivo: Unity 6.6 congelado, REST em vez do SDK do Firebase, resolver sem dependência de rede, uGUI em vez de UI Toolkit, Unity CLI como interface única de teste e build\n- [ ] Modelo de dados do save e do cache compartilhado\n- [ ] Limitações assumidas: sem App Check em Windows e Web, arte placeholder, conteúdo só até os duelos do Ato I, Unity CLI e pacote Pipeline ainda em beta\n- [ ] Trabalhos futuros apontando os cards da fase comercial"
+    },
+    {
+      "title": "[ENT-01] Entrega acadêmica: build e roteiro da banca (ponto de corte)",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Milestone",
+        "QA / Testes"
+      ],
+      "description": "**Ponto de corte do projeto.** Com este card fechado o jogo demonstra tudo que o trabalho propõe: tactics isométrico sobre grade própria, argumentos gerados por LLM e julgados por regra determinística, chave protegida no servidor e jogo completo sem rede. O que vem depois é produto, não demonstração.\n\n**Depende de:** [AVA-02], [ENT-02], [QA-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Build Windows e build Web publicada (ex.: itch.io restrito ou Firebase Hosting) com o conteúdo da entrega\n- [ ] Reexecutar o [QA-02] com o conteúdo final: tudo jogável em modo avião\n- [ ] Roteiro de demonstração de ~10 min: exploração, batalha com REFUTAR e MAIÊUTICA, argumento gerado ao vivo e o kill switch desligando a IA sem quebrar a partida\n- [ ] Vídeo de backup da demonstração, caso a rede da apresentação falhe\n- [ ] Repositório com tag da versão entregue e README de como compilar pelo Unity CLI (`unity install`, `unity test`, `unity build`) e pelo plano B em batch mode\n- [ ] Chave da OpenAI rotacionada ou com teto reduzido depois da banca"
+    },
+    {
+      "title": "[AT1-06] A cobrança e a pressão sobre Aristeu",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa"
+      ],
+      "description": "Beat I.6. Consequência material da vitória.\n\n**Depende de:** [AT1-05] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Thrasybios espalha a acusação de impiedade (asebeia)\n- [ ] Clientes somem da oficina — mudança visível no mapa\n- [ ] Aristeu começa a vender ferramentas\n- [ ] Timer narrativo: pressão cresce a cada duelo concluído\n\n**Contexto do Sprint 04.** **Início da fase comercial.** Fecha o Ato I e constrói o Ato II inteiro. A mudança de regra do [BTL-06] bloqueia todos os duelos de paradoxo: puxe-a em paralelo com o fim do Ato I, não depois. A trilha de arte começa aqui, em paralelo, e pode ser terceirizada: os placeholders já têm dimensão e paleta finais, então a troca é substituição de arquivo com o mesmo nome. ~45 dias-pessoa de código e conteúdo, mais ~19 de arte na trilha paralela."
+    },
+    {
+      "title": "[AT1-07] Ramificação Damaris",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Bloqueante",
+        "Narrativa",
+        "Unity / Core"
+      ],
+      "description": "Beat I.7. Bloqueante do Ato II — a escolha aqui decide a traição no Tribunal. O flag precisa estar no save desde já.\n\n**Depende de:** [AT1-06], [BCK-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Cena de oferta com as duas opções\n- [ ] Aceitar: habilidade Inversão + 200 dracmas + Menexeno some por 3 dias\n- [ ] Recusar: habilidade Escuta + respeito de Menexeno\n- [ ] Gravar `damarisBranch` no save (Firestore + local)\n- [ ] Testar: os dois ramos carregam corretamente num save antigo\n\n**Bloqueante a um sprint do consumidor.** O [TRB-01] usa este flag no Sprint 05. O flag vai para o save já aqui, com teste de carregamento de save antigo, para que o Tribunal nasça testável."
+    },
+    {
+      "title": "[AT1-08] Boss: Thrasybios em três fases",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa",
+        "Unity / Core"
+      ],
+      "description": "Beat I.8. O clímax do ato.\n\n**Depende de:** [AT1-07] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Fase 1 — ataque pessoal: contra-atacar com CONCEDER\n- [ ] Fase 2 — falso dilema: contra-atacar com REFUTAR apontando a terceira via\n- [ ] Fase 3 — apelo ao medo político: só MAIÊUTICA funciona\n- [ ] Cada fase muda a música e a postura do sprite\n- [ ] Derrota não é game over: repetir com diálogo diferente"
+    },
+    {
+      "title": "[AT1-09] O twist e o portão do Ato II",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa"
+      ],
+      "description": "Beats I.9 e I.10.\n\n**Depende de:** [AT1-08] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Cena do arquivo do tribunal — a lista de jurados\n- [ ] Revelação: Menexeno votou pela condenação de Sócrates\n- [ ] Entrega do selo de bronze\n- [ ] `ActFlag = 2`, estrada para a Academia sai da névoa\n- [ ] Testar que áreas do Ato II ficam INACESSÍVEIS com `ActFlag = 1`"
+    },
+    {
+      "title": "[UI-07] Menus de sistema completos",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "UI / UX"
+      ],
+      "description": "O que o [UI-05] deixou de fora de propósito: com três atos, um slot só deixa de bastar.\n\n**Depende de:** [UI-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Save/Load com 3 slots\n- [ ] Confirmação antes de sobrescrever um slot\n- [ ] Resumo por slot: ato, local e tempo de jogo"
+    },
+    {
+      "title": "[ART-02] Pipeline de arte e ferramentas",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "Automatizar a quantização agora evita inconsistência entre sprites gerados em sessões diferentes.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Aseprite com `art/palette/snes.gpl` carregada como padrão\n- [ ] Script de quantização em lote (Python/PIL) contra a paleta, dithering OFF\n- [ ] Script de verificação: falha se um PNG passar de 16 cores\n- [ ] Script de teste de encaixe: cola 4 cópias do tile e exporta preview\n- [ ] Script de quantização recebe uma pasta de PNGs brutos\n- [ ] Redimensionamento Nearest Neighbor para a dimensão exata\n- [ ] Relatório de contagem de cores por arquivo\n\n**Absorveu o card \"Script de quantização em lote\"** da trilha de arte paralela. Os dois descreviam o mesmo script — manter os dois faria o critério ser cumprido num card e continuar aberto no outro."
+    },
+    {
+      "title": "[ART-03] Bíblia visual e referências",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "Fechar a direção antes de gerar volume.\n\n**Critérios de aceitação:**\n- [ ] Painel de referência de cerâmica de figuras vermelhas\n- [ ] Definir contraste de iluminação (canto superior esquerdo)\n- [ ] Escolher 3 sprites-piloto e aprovar antes do resto"
+    },
+    {
+      "title": "[ART-04] Template de prompt validado",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Arte",
+        "IA / LLM"
+      ],
+      "description": "Ver seção 9 do GDD.\n\n**Critérios de aceitação:**\n- [ ] Testar o template com 3 geradores diferentes\n- [ ] Documentar qual deu melhor resultado por tipo de asset\n- [ ] Fixar os negativos obrigatórios"
+    },
+    {
+      "title": "[BTL-06] Modo paradoxo: REFUTAR desabilitado",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Bloqueante",
+        "Unity / Core"
+      ],
+      "description": "A tese do jogo virando mecânica. Quando o argumento não tem falácia, o botão simplesmente não acende.\n\n**Depende de:** [BTL-03], [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Argumento com `IsRefutable == false`: REFUTAR fica esmaecido e o realce vermelho não aparece\n- [ ] Tooltip explica: 'não há erro a apontar'\n- [ ] CONCEDER passa a recuperar mais Coerência no Ato II\n- [ ] MAIÊUTICA ganha alcance maior\n- [ ] Testar que nenhuma batalha do Ato II é invencível"
+    },
+    {
+      "title": "[AT2-01] Mapa da Academia",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "**Depende de:** [BTL-06] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Jardim de oliveiras, pórtico jônico (diferente da dórica da Ágora)\n- [ ] Salas com `floor_diagram` e modificador posicional próprio\n- [ ] Estantes de rolos\n- [ ] Kleia entra como convidada, não aluna — NPCs reagem a isso"
+    },
+    {
+      "title": "[AT2-02] Os cinco duelos de paradoxo",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa",
+        "Unity / Core"
+      ],
+      "description": "Beat II.3.\n\n**Depende de:** [AT2-01] · **Estimativa:** 7 dias\n\n**Critérios de aceitação:**\n- [ ] Zenão — Aquiles e a tartaruga: conceder 2x, depois maiêutica no 'infinito'\n- [ ] Eubúlides — o Mentiroso: só CONCEDER preserva Coerência\n- [ ] Aglaofonte — o Sorites: maiêutica na vagueza\n- [ ] Irmãos Dídimos — Navio de Teseu: batalha dupla com condições opostas\n- [ ] Heráclito & Parmênides (espectros): perder para um é vencer o outro"
+    },
+    {
+      "title": "[AT2-03] Eudoro e o confronto com Menexeno",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa"
+      ],
+      "description": "Beats II.1 e II.2.\n\n**Depende de:** [AT2-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Primeira derrota contra Eudoro (roteirizada, ensina o modo paradoxo)\n- [ ] Confronto no jardim: Menexeno confessa o voto\n- [ ] Arco de Eudoro: de desdém a aliado"
+    },
+    {
+      "title": "[AT2-04] A batalha imperdível de Damaris",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Bloqueante",
+        "Narrativa",
+        "Unity / Core",
+        "Risco"
+      ],
+      "description": "Beat II.4. Derrota roteirizada — mas a FORMA da derrota muda o diálogo e os finais disponíveis.\n\n**Depende de:** [AT2-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Derrota garantida independentemente da jogada\n- [ ] Registrar COMO perdeu: coerência zerada por contradição vs conceder até o fim\n- [ ] Diálogo pós-derrota diferente para cada caso\n- [ ] Cuidado de UX: o jogador não pode sentir que o jogo trapaceou — telegrafar\n- [ ] Playtest específico deste card: perguntar se pareceu injusto"
+    },
+    {
+      "title": "[AT2-05] Delfos e a Pítia",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Narrativa",
+        "Unity / Core",
+        "Arte"
+      ],
+      "description": "Beat II.5. Única batalha vencida por admitir ignorância.\n\n**Depende de:** [AT2-04] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Mapa de montanha: rocha, neve com sombra azul-fria, fenda\n- [ ] Vapor animado em 6 frames\n- [ ] Regra especial: cada REFUTAR reflete contra a própria Coerência\n- [ ] Vitória só por CONCEDER na janela correta\n- [ ] A Pítia não caminha — só idle, falar e transe (8 frames)"
+    },
+    {
+      "title": "[ART-05] Sprites finais dos 7 personagens",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "Gerar, quantizar e substituir. SW e NW são espelhos — só metade das direções precisa ser gerada.\n\n**Depende de:** [REL-01] · **Estimativa:** 10 dias\n\n**Critérios de aceitação:**\n- [ ] Kleia, Menexeno, Thrasybios, Damaris, Eudoro, Pítia, Cidadão modular\n- [ ] Gerar SE e NE apenas; espelhar SW e NW em código\n- [ ] Quantizar contra `art/palette/snes.gpl`, dithering OFF\n- [ ] Verificar máximo 15 cores + transparente\n- [ ] Substituir mantendo o mesmo nome de arquivo — zero referência quebrada"
+    },
+    {
+      "title": "[ART-07] As doze animações por debatedor",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "**Depende de:** [ART-05] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] idle(2), idle_respiro(4), walk(4), falar(3)\n- [ ] refutar(5), maieutica(6), conceder(4), citar(4)\n- [ ] dano_coerencia(3), derrota(6), vitoria(4), pensar(3)\n- [ ] Todas as curvas em Constant no Animator\n- [ ] Flash de dano: paleta inteira vira `marble_light` por 1 frame, via Shader Graph no material do sprite — sem pass de tela"
+    },
+    {
+      "title": "[UI-06] Medidor de 501 jurados",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "UI / UX",
+        "Unity / Core"
+      ],
+      "description": "A barra de Plateia vira 501 votos explícitos. É o clímax visual do jogo.\n\n**Depende de:** [UI-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] 200x16px, 1 pixel por jurado (agrupado visualmente)\n- [ ] Contagem animada voto a voto no desfecho\n- [ ] Destaque no voto de Menexeno, sempre o último\n- [ ] Números de referência: 340 absolvição sofista, 261 condenação, 281 mestra\n\n**Contexto do Sprint 05.** Tribunal e os três finais fecham a narrativa; tiles, retratos e áudio terminam na trilha de arte; depois vêm QA completo, endurecimento do backend para tráfego real, localização e loja. O [QA-03] só começa com o áudio ([SND-01]) integrado — é o caminho crítico do sprint. ~47 dias-pessoa de código e conteúdo, mais ~23 de arte e áudio na trilha paralela."
+    },
+    {
+      "title": "[TRB-01] Julgamento com traição condicional",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Bloqueante",
+        "Narrativa",
+        "Unity / Core"
+      ],
+      "description": "Beat II.6. Lê `damarisBranch` do [AT1-07].\n\n**Depende de:** [UI-06], [AT1-07] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Thrasybios como acusador, 3 argumentos escalando\n- [ ] Se `damarisBranch=Accepted`: ela trai no turno 3\n- [ ] Se `damarisBranch=Refused`: ela defende de verdade e perde reputação\n- [ ] Menexeno entre os jurados, reagindo em silêncio\n- [ ] Testar os dois ramos com saves separados, carregados pelo `save_load` do [CLI-03]"
+    },
+    {
+      "title": "[TRB-02] Os três finais",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Bloqueante",
+        "Narrativa"
+      ],
+      "description": "Beat II.7. A ação do turno final decide o desfecho.\n\n**Depende de:** [TRB-01] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] REFUTAR → O Sofista: absolvida por 340, escola paga, Menexeno não a olha\n- [ ] CONCEDER → O Filósofo: exílio por 261, Menexeno larga tudo e vai junto\n- [ ] MAIÊUTICA → A Mestra: 281 votos, obscuridade, escola gratuita no Cerâmico\n- [ ] Epílogo com texto variável por escolhas menores (Bátilo, aulas pagas, reputação)\n- [ ] Tela de resumo das escolhas ao final"
+    },
+    {
+      "title": "[TRB-03] Pós-jogo",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "**Depende de:** [TRB-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Save de fim de jogo separado (não sobrescreve)\n- [ ] Compêndio completo das 20 falácias desbloqueado\n- [ ] Galeria de personagens\n- [ ] New Game+ opcional mantendo o compêndio"
+    },
+    {
+      "title": "[ART-06] Tiles finais por mapa",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "**Depende de:** [ART-05] · **Estimativa:** 10 dias\n\n**Critérios de aceitação:**\n- [ ] Cerâmico: 7 tiles + forno animado + torno animado\n- [ ] Ágora: 11 tiles incluindo mosaico meandro (desenhar como conjunto de 4)\n- [ ] Academia: 7 tiles incluindo `floor_diagram`\n- [ ] Delfos: 7 tiles + vapor de 6 frames\n- [ ] Rodar o script de teste de encaixe em TODOS\n- [ ] `unity command screenshot` de cada mapa antes e depois da troca, comparados lado a lado"
+    },
+    {
+      "title": "[ART-08] Retratos e UI final",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Arte",
+        "UI / UX"
+      ],
+      "description": "**Depende de:** [ART-05] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Retrato 40x40 por personagem, com 2 expressões (neutra, abalada)\n- [ ] Aristeu com as mãos deformadas visíveis\n- [ ] 20 ícones de falácia finais\n- [ ] Caixas de menu e diálogo finais"
+    },
+    {
+      "title": "[SND-01] Áudio",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Arte"
+      ],
+      "description": "**Depende de:** [ART-06] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] Trilha por área: Cerâmico, Ágora, Academia, Delfos, Tribunal\n- [ ] Tema de batalha com variação por perfil (sofista/filósofo)\n- [ ] SFX: cursor, confirmar, refutar, dano, vitória, derrota\n- [ ] Voz-blip por personagem (tom diferente por sprite), estilo 16-bit\n- [ ] Mixer com bus separado para música/SFX/UI"
+    },
+    {
+      "title": "[QA-03] Passe de QA completo",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "QA / Testes"
+      ],
+      "description": "**Depende de:** [SND-01] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Playthrough completo dos 3 finais\n- [ ] Playthrough com `damarisBranch` aceito e recusado\n- [ ] Modo avião do início ao fim\n- [ ] Save/load em cada beat narrativo\n- [ ] Sequência quebrada: tentar burlar `ActFlag` por todos os caminhos\n- [ ] Estados de teste montados pelos comandos do [CLI-03] (`set_flag`, `save_load`) numa Development Build\n- [ ] Teste de resolução: 720p, 1080p, 1440p, ultrawide"
+    },
+    {
+      "title": "[QA-04] Performance e build",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Unity / Core",
+        "QA / Testes"
+      ],
+      "description": "**Depende de:** [QA-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] 60fps estável no mapa maior (Ágora 32x32) com 20 NPCs\n- [ ] Tempo de boot abaixo de 5s\n- [ ] Tamanho do build documentado com a Build Analysis window (6.6)\n- [ ] Módulos instalados por `unity install-modules` e builds por `unity build` para Windows, Linux, macOS só Apple Silicon (Intel depreciado no 6.6) e Web — o Web é viável porque a rede é REST, não o SDK\n- [ ] Testar build de release (não só Development)\n- [ ] Build de release sem o runtime do `com.unity.pipeline`: `unity status` não enxerga o jogo e nenhum comando do [CLI-03] está no binário\n- [ ] Avaliar migrar do 6.6 para o LTS vigente (`unity install lts`) antes do release, com o CI verde, com playthrough completo depois da migração"
+    },
+    {
+      "title": "[BCK-06] Custo operacional em produção",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Backend",
+        "Risco"
+      ],
+      "description": "**Depende de:** [QA-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Recalcular custo por jogador com cache hit real\n- [ ] Confirmar rate limit funcionando sob carga simulada\n- [ ] Kill switch testado: desligar a flag do servidor e confirmar o fallback sem build nova\n- [ ] Plano para o dia em que a chave da OpenAI for rotacionada"
+    },
+    {
+      "title": "[BCK-07] App Check e contas permanentes",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Backend",
+        "Risco"
+      ],
+      "description": "Na entrega acadêmica o endpoint é protegido por Auth, rate limit e orçamento. Em produção isso não basta: um token anônimo não custa nada para criar.\n\n**Depende de:** [BCK-01], [BCK-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Web: App Check com reCAPTCHA Enterprise por bridge JavaScript (`.jslib`), já que o SDK Unity não roda no Web\n- [ ] Desktop: provedor customizado de App Check — ex.: a function valida o ticket de sessão da loja e emite o token\n- [ ] Debug provider só em build Development, nunca na de release\n- [ ] Function passa a recusar chamada sem token de App Check\n- [ ] Vincular a conta anônima a um login permanente sem perder o save — opcional, não bloqueia o jogo\n- [ ] Cota de criação de contas por IP revisada no Firebase Auth"
+    },
+    {
+      "title": "[REL-02] Localização",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Narrativa"
+      ],
+      "description": "**Depende de:** [QA-03] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Pacote Localization da Unity: String Tables com todas as strings\n- [ ] PT-BR como base, EN como segunda\n- [ ] Prompts do LLM com parâmetro de idioma\n- [ ] Fallbacks escritos nos dois idiomas\n- [ ] Testar overflow de texto em EN (geralmente mais curto) e vice-versa\n- [ ] Seletor de idioma no menu de opções"
+    },
+    {
+      "title": "[REL-03] Lançamento",
+      "labels": [
+        "Sprint 05 · Tribunal & Lançamento",
+        "Fase 2 · Comercial",
+        "Milestone"
+      ],
+      "description": "**Depende de:** [BCK-06], [REL-02] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] Página de loja (Steam/itch) com capa, screenshots, GIF\n- [ ] Trailer de 60s\n- [ ] Demo pública derivada da build da entrega acadêmica ([ENT-01])\n- [ ] Checklist legal: créditos de fontes, licenças de áudio, política de privacidade (coleta de UID)\n- [ ] Termos sobre uso de IA generativa, se a loja exigir declaração"
+    },
+    {
+      "title": "[EVO-01] Modo Ágora Livre (ideia — fora do escopo)",
+      "labels": [
+        "Narrativa"
+      ],
+      "description": "Duelos infinitos com adversários gerados por IA.\n\n**Não será executado neste plano** — registra uma direção possível depois do lançamento.\n\n**Notas:**\n- Ranking de plateia\n- Adversários com nome e perfil gerados\n- Usar cache agressivo para não estourar custo"
+    },
+    {
+      "title": "[EVO-03] Port mobile (ideia — fora do escopo)",
+      "labels": [
+        "Unity / Core"
+      ],
+      "description": "**Não será executado neste plano** — registra uma direção possível depois do lançamento.\n\n**Notas:**\n- Input touch para grade isométrica\n- UI 224x224 em tela alta\n- Custo de IA por usuário muda bastante\n\n**Se sair do papel:** o Android exige API 26 como mínimo desde o Unity 6.5, e no mobile o Firebase Unity SDK nativo volta a ser opção — com App Check de verdade por Play Integrity e DeviceCheck."
+    }
+  ]
+}

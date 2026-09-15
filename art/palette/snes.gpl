@@ -1,0 +1,37 @@
+GIMP Palette
+Name: Grecia SNES RGB555
+Columns: 8
+#
+  8   8  16	outline
+ 16  24  40	outline_blue
+248 248 240	marble_light
+216 216 200	marble_mid
+168 168 160	marble_shade
+120 120 128	marble_dark
+248 192 112	ochre_light
+216 144  56	ochre_mid
+160  88  40	ochre_shade
+104  48  24	ochre_dark
+ 72 200 224	aegean_light
+ 40 144 192	aegean_mid
+ 24  96 136	aegean_shade
+ 16  48  80	aegean_dark
+168 200  88	olive_light
+120 152  56	olive_mid
+ 72 104  32	olive_shade
+248 120  88	red_light
+192  56  40	red_mid
+120  24  32	red_dark
+192 120 224	purple_light
+136  56 160	purple_mid
+ 80  24 104	purple_dark
+248 224  88	gold_light
+216 168  24	gold_mid
+144  96   8	gold_dark
+248 208 168	skin_light
+216 160 120	skin_mid
+168 112  72	skin_shade
+ 56  40  40	hair_dark
+ 96  64  48	hair_mid
+ 24  24  40	ui_background
+248 248 240	ui_border
