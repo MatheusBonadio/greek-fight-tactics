@@ -303,7 +303,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "O juiz. Determinístico, testável, sem dependência de rede.\n\n**Depende de:** [BTL-01], [DAT-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Barras Coerência (HP) e Plateia (win condition) por combatente\n- [ ] Fila de turnos por iniciativa, com preview dos próximos 3\n- [ ] Vitória: Coerência do oponente = 0 OU Plateia = 100%\n- [ ] Derrota: Coerência do jogador = 0\n- [ ] Log estruturado de cada resolução (essencial para debugar balanceamento)\n- [ ] Resolver num Assembly Definition com No Engine References: C# puro, testável em Edit Mode sem cena"
+      "description": "O juiz. Determinístico, testável, sem dependência de rede.\n\n**Depende de:** [BTL-01], [DAT-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Barras Coerência (HP) e Plateia (win condition) por combatente\n- [x] Fila de turnos por iniciativa, com preview dos próximos 3\n- [x] Vitória: Coerência do oponente = 0 OU Plateia = 100%\n- [x] Derrota: Coerência do jogador = 0\n- [x] Log estruturado de cada resolução (essencial para debugar balanceamento)\n- [x] Resolver num Assembly Definition com No Engine References: C# puro, testável em Edit Mode sem cena"
     },
     {
       "title": "[BTL-03] As seis ações",
@@ -313,7 +313,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "**Depende de:** [BTL-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] CIRCULAR: usa o A* com alcance de movimento\n- [ ] REFUTAR: jogador escolhe a falácia; acerto causa dano + Plateia, erro gera contragolpe\n- [ ] MAIÊUTICA: jogador escolhe a premissa fraca; acerto = dano alto, custo de 2 turnos\n- [ ] CITAR: consome `QuoteItemSO` com efeito fixo\n- [ ] CONCEDER: recupera Coerência, perde Plateia\n- [ ] RETIRAR-SE: encerra a batalha, aplica penalidade de reputação"
+      "description": "**Depende de:** [BTL-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] CIRCULAR: usa o A* com alcance de movimento\n- [x] REFUTAR: jogador escolhe a falácia; acerto causa dano + Plateia, erro gera contragolpe\n- [x] MAIÊUTICA: jogador escolhe a premissa fraca; acerto = dano alto, custo de 2 turnos\n- [ ] CITAR: consome `QuoteItemSO` com efeito fixo\n- [x] CONCEDER: recupera Coerência, perde Plateia\n- [x] RETIRAR-SE: encerra a batalha, aplica penalidade de reputação"
     },
     {
       "title": "[BTL-04] Modificadores posicionais",
@@ -322,7 +322,7 @@
         "Fase 1 · Entrega acadêmica",
         "Unity / Core"
       ],
-      "description": "É o que faz a grade importar. Sem isso, o combate poderia ser um menu sem mapa.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Bônus de Plateia por adjacência a NPCs cidadãos\n- [ ] Penalidade de Coerência se encurralado (3+ células adjacentes bloqueadas)\n- [ ] Bônus de Refutação atacando pelo lado oposto ao que o oponente encara\n- [ ] Tiles especiais (`floor_diagram` na Academia) com modificador próprio"
+      "description": "É o que faz a grade importar. Sem isso, o combate poderia ser um menu sem mapa.\n\n**Depende de:** [BTL-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Bônus de Plateia por adjacência a NPCs cidadãos\n- [x] Penalidade de Coerência se encurralado (3+ células adjacentes bloqueadas)\n- [x] Bônus de Refutação atacando pelo lado oposto ao que o oponente encara\n- [x] Tiles especiais (`floor_diagram` na Academia) com modificador próprio"
     },
     {
       "title": "[BTL-05] IA do adversário",
@@ -686,7 +686,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "A tese do jogo virando mecânica. Quando o argumento não tem falácia, o botão simplesmente não acende.\n\n**Depende de:** [BTL-03], [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Argumento com `IsRefutable == false`: REFUTAR fica esmaecido e o realce vermelho não aparece\n- [ ] Tooltip explica: 'não há erro a apontar'\n- [ ] CONCEDER passa a recuperar mais Coerência no Ato II\n- [ ] MAIÊUTICA ganha alcance maior\n- [ ] Testar que nenhuma batalha do Ato II é invencível"
+      "description": "A tese do jogo virando mecânica. Quando o argumento não tem falácia, o botão simplesmente não acende.\n\n**Depende de:** [BTL-03], [DAT-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Argumento com `IsRefutable == false`: REFUTAR fica esmaecido e o realce vermelho não aparece\n- [ ] Tooltip explica: 'não há erro a apontar'\n- [x] CONCEDER passa a recuperar mais Coerência no Ato II\n- [x] MAIÊUTICA ganha alcance maior\n- [ ] Testar que nenhuma batalha do Ato II é invencível"
     },
     {
       "title": "[AT2-01] Mapa da Academia",

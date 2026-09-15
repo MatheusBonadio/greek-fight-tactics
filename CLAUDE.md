@@ -82,7 +82,7 @@ namespace Game.Core
 
     public enum TerrainId { Marble, OchreMarble, Dirt, Grass, Stone, Water, Diagram, Snow, Rift }
     public enum Profile { Sophist, Philosopher }
-    public enum ActionId { Circulate, Refute, Maieutics, Quote, Concede, Withdraw }
+    public enum ActionId { Circulate, Refute, Maieutics, Quote, Concede, Withdraw, Argue }
     public enum Act { One = 1, Two = 2 }
     public enum FallacyCategory { Informal, Formal, Paradox }
 
@@ -177,28 +177,51 @@ namespace Game.Battle
 {
     public readonly struct Play
     {
+        public readonly int ActorId;
         public readonly ActionId Action;
-        public readonly Coord Target;
+        public readonly int TargetId;
+        public readonly Coord Destination;
         public readonly string ChosenFallacyId;
         public readonly int ChosenPremise;
+        public readonly string QuoteId;
+        public readonly Argument? PresentedArgument;
+
+        public static Play Circulate(int actorId, Coord destination);
+        public static Play Refute(int actorId, int targetId, string chosenFallacyId);
+        public static Play Maieutics(int actorId, int targetId, int chosenPremise);
+        public static Play Quote(int actorId, string quoteId);
+        public static Play Concede(int actorId);
+        public static Play Withdraw(int actorId);
+        public static Play Argue(int actorId, int targetId, Argument argument);
     }
 
-    public readonly struct Outcome
+    public sealed class Outcome
     {
-        public readonly int CoherenceDamage;
-        public readonly int AudienceDelta;
-        public readonly bool Counterattack;
-        public readonly string LogId;
+        public RejectionReason Rejection { get; }
+        public bool Hit { get; }
+        public bool Counterattack { get; }
+        public int ActorCoherenceDelta { get; }
+        public int TargetCoherenceDelta { get; }
+        public int PlayerAudienceDelta { get; }
+        public IReadOnlyList<Coord> Path { get; }
+        public int TurnCost { get; }
     }
 
     public sealed class BattleResolver
     {
-        public Outcome Resolve(in Play play, in BattleState state);
+        public Outcome Resolve(in Play play, BattleState state);
+    }
+
+    public sealed class BattleState
+    {
+        public void Apply(Outcome outcome);
     }
 }
 ```
 
-`FallacyId == null` é o paradoxo do Ato II. `ChosenFallacyId` só vale para `Refute`; `ChosenPremise`, só para `Maieutics`.
+`FallacyId == null` é o paradoxo do Ato II. `Argue` é a ação exclusiva do oponente: é assim que ele apresenta o `Argument` que o jogador responde com `Refute` ou `Maieutics`. Jogada inválida (fora de alcance, fora do turno, refutar paradoxo) volta como `Outcome` rejeitado — `Apply` registra no log e não gasta o turno.
+
+A Plateia soma zero: `PlayerAudience` vai de 0 a 100 e a do oponente é o complemento. Todo número de balanceamento (dano, alcance, bônus posicional, limite de 50 turnos) mora em `BattleRules`, nunca espalhado pelo resolver.
 
 ---
 

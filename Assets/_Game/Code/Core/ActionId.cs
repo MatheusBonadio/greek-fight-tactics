@@ -7,6 +7,7 @@ namespace Game.Core
         Maieutics,
         Quote,
         Concede,
-        Withdraw
+        Withdraw,
+        Argue
     }
 }
