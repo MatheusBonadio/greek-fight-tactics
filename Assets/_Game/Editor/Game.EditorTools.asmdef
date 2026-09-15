@@ -12,7 +12,9 @@
     "Unity.RenderPipelines.Universal.2D.Runtime",
     "Game.UI",
     "Unity.Cinemachine",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.TextMeshPro",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [
     "Editor"

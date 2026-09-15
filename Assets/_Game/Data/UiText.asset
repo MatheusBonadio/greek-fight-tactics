@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c947b996cc328349891005de4e06b60, type: 3}
+  m_Name: UiText
+  m_EditorClassIdentifier: Game.Content::Game.Content.UiTextSO
+  entries:
+  - key: action.circulate
+    value: CIRCULAR
+  - key: action.refute
+    value: REFUTAR
+  - key: action.maieutics
+    value: "MAI\xCAUTICA"
+  - key: action.quote
+    value: CITAR
+  - key: action.concede
+    value: CONCEDER
+  - key: action.withdraw
+    value: RETIRAR-SE
+  - key: menu.choose_fallacy
+    value: "Qual fal\xE1cia?"
+  - key: menu.choose_premise
+    value: Qual premissa?
+  - key: rejection.battle_over
+    value: "O debate j\xE1 terminou."
+  - key: rejection.unknown_actor
+    value: "Ningu\xE9m para agir agora."
+  - key: rejection.not_actors_turn
+    value: "Ainda n\xE3o \xE9 a sua vez."
+  - key: rejection.action_not_allowed
+    value: "Isso n\xE3o cabe neste momento."
+  - key: rejection.unknown_target
+    value: "N\xE3o h\xE1 com quem debater."
+  - key: rejection.target_out_of_range
+    value: "O advers\xE1rio est\xE1 longe demais."
+  - key: rejection.destination_unreachable
+    value: "N\xE3o h\xE1 para onde circular."
+  - key: rejection.no_argument_to_answer
+    value: "Ele ainda n\xE3o argumentou."
+  - key: rejection.argument_not_refutable
+    value: "N\xE3o h\xE1 fal\xE1cia aqui. S\xF3 perguntas."
+  - key: rejection.invalid_premise
+    value: "Essa premissa n\xE3o existe."
+  - key: rejection.no_quote_uses
+    value: Nenhum pergaminho restante.
+  - key: rejection.missing_argument
+    value: Falta um argumento para responder.

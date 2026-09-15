@@ -17,7 +17,9 @@
     "Unity.InputSystem",
     "Game.UI",
     "Unity.Cinemachine",
-    "Game.DevCommands"
+    "Game.DevCommands",
+    "Unity.TextMeshPro",
+    "UnityEngine.UI"
   ],
   "includePlatforms": [
     "Editor"

@@ -17,8 +17,10 @@ namespace Game.EditorTools
         public const string CatalogPath = "Assets/_Game/Data/FallacyCatalog.asset";
         public const string TerrainCostTablePath = "Assets/_Game/Data/TerrainCostTable.asset";
         public const string FallbackLibraryPath = "Assets/_Game/Data/FallbackLibrary.asset";
+        public const string UiTextPath = "Assets/_Game/Data/UiText.asset";
         public const string FallacySourcePath = "Assets/_Game/Data/Source/fallacies.json";
         public const string TerrainCostSourcePath = "Assets/_Game/Data/Source/terrain_costs.json";
+        public const string UiTextSourcePath = "Assets/_Game/Data/Source/ui_text.json";
         public const string FallbackFolder = "Assets/_Game/Data/Fallback";
         public const string FallacyFolder = "Assets/_Game/Data/Fallacies";
         public const string IconFolder = "Assets/_Game/Art/Icons/Fallacies";
@@ -38,10 +40,22 @@ namespace Game.EditorTools
             terrainCosts.SetCosts(JsonConvert.DeserializeObject<Dictionary<TerrainId, byte>>(File.ReadAllText(TerrainCostSourcePath)));
             EditorUtility.SetDirty(terrainCosts);
 
+            var uiTextCount = RegenerateUiText();
             var fallbackCount = RegenerateFallbackLibrary(fallacies);
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table and {fallbackCount} fallback arguments");
+            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts and {fallbackCount} fallback arguments");
+        }
+
+        private static int RegenerateUiText()
+        {
+            var entries = JObject.Parse(File.ReadAllText(UiTextSourcePath))["entries"]?.ToObject<Dictionary<string, string>>()
+                ?? throw new InvalidOperationException($"{UiTextSourcePath} has no entries");
+
+            var uiText = AssetFolders.LoadOrCreate<UiTextSO>(UiTextPath);
+            uiText.SetEntries(entries);
+            EditorUtility.SetDirty(uiText);
+            return entries.Count;
         }
 
         private static List<FallacySO> RegenerateFallacies()

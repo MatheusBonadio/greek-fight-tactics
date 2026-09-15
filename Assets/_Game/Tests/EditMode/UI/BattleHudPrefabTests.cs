@@ -1,0 +1,82 @@
+using System.Linq;
+using Game.Battle;
+using Game.Content;
+using Game.Core;
+using Game.EditorTools;
+using Game.UI;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace Game.Tests.EditMode.UI
+{
+    public sealed class BattleHudPrefabTests
+    {
+        private const int MaxNavigationSteps = 32;
+
+        private GameObject host;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (host != null)
+            {
+                Object.DestroyImmediate(host);
+            }
+        }
+
+        [Test]
+        public void Prefab_WiresBarsMenuInputAndACameraCanvas()
+        {
+            var hud = InstantiateHud();
+
+            Assert.AreEqual((int)RenderMode.ScreenSpaceCamera, new SerializedObject(hud.Canvas).FindProperty("m_RenderMode").intValue);
+            Assert.IsNotNull(hud.PlayerCoherence);
+            Assert.IsNotNull(hud.OpponentCoherence);
+            Assert.IsNotNull(hud.Audience);
+            Assert.AreEqual(6, hud.Menu.ActionRows.Count);
+            Assert.IsTrue(hud.Menu.ActionRows.All(row => row.GetComponent<MenuRowPointer>() != null));
+            Assert.IsNotNull(host.GetComponent<BattleMenuInput>().Controls);
+        }
+
+        [Test]
+        public void RefutingTheRightFallacy_DrainsTheOpponentBarThroughTheHud()
+        {
+            var hud = InstantiateHud();
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "a", "b" }, 1, ArgumentTones.Mocking)), state));
+            var controller = new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds);
+            hud.Bind(state, controller);
+            BattleMenuChoice? chosen = null;
+            hud.Menu.ChoiceMade += choice => chosen = choice;
+
+            Assert.AreEqual("CIRCULAR", hud.Menu.ActionRows[0].text);
+            hud.Menu.HandleNavigate(Vector2.down);
+            hud.Menu.HandleConfirm();
+            for (var step = 0; step < MaxNavigationSteps && controller.SubmenuOptions[controller.SubmenuCursor] != "ad_hominem"; step++)
+            {
+                hud.Menu.HandleNavigate(Vector2.down);
+            }
+
+            hud.Menu.HandleConfirm();
+            Assert.IsTrue(chosen.HasValue);
+
+            state.Apply(resolver.Resolve(Play.Refute(BattleArena.PlayerId, BattleArena.OpponentId, chosen.Value.FallacyId), state));
+            hud.Sync();
+
+            Assert.Less(hud.OpponentCoherence.Bar.Target, BattleArena.OpponentMaxCoherence);
+            Assert.IsTrue(hud.OpponentCoherence.Bar.IsAnimating);
+            Assert.AreEqual(state.PlayerAudience, hud.Audience.Meter.TargetPlayerShare);
+        }
+
+        private BattleHud InstantiateHud()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.HudPrefabPath);
+            Assert.IsNotNull(prefab, $"run BattleHudTools.BuildHud to create {BattleHudTools.HudPrefabPath}");
+            host = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            return host.GetComponent<BattleHud>();
+        }
+    }
+}

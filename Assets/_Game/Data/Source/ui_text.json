@@ -1,0 +1,24 @@
+{
+  "entries": {
+    "action.circulate": "CIRCULAR",
+    "action.refute": "REFUTAR",
+    "action.maieutics": "MAIÊUTICA",
+    "action.quote": "CITAR",
+    "action.concede": "CONCEDER",
+    "action.withdraw": "RETIRAR-SE",
+    "menu.choose_fallacy": "Qual falácia?",
+    "menu.choose_premise": "Qual premissa?",
+    "rejection.battle_over": "O debate já terminou.",
+    "rejection.unknown_actor": "Ninguém para agir agora.",
+    "rejection.not_actors_turn": "Ainda não é a sua vez.",
+    "rejection.action_not_allowed": "Isso não cabe neste momento.",
+    "rejection.unknown_target": "Não há com quem debater.",
+    "rejection.target_out_of_range": "O adversário está longe demais.",
+    "rejection.destination_unreachable": "Não há para onde circular.",
+    "rejection.no_argument_to_answer": "Ele ainda não argumentou.",
+    "rejection.argument_not_refutable": "Não há falácia aqui. Só perguntas.",
+    "rejection.invalid_premise": "Essa premissa não existe.",
+    "rejection.no_quote_uses": "Nenhum pergaminho restante.",
+    "rejection.missing_argument": "Falta um argumento para responder."
+  }
+}

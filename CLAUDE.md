@@ -425,9 +425,18 @@ unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.Con
 unity run . -- -nographics -executeMethod Game.EditorTools.RenderSetupTools.Apply -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.SandboxTools.BuildSandbox -logFile -
 unity run . -- -executeMethod Game.EditorTools.SandboxTools.CaptureReference -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.UiTools.ImportTextMeshProEssentials -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.BattleHudTools.BuildHud -logFile -
 
 unity vcs doctor
 ```
+
+**UI de batalha (uGUI + TextMesh Pro).**
+- **`UiTools.ImportTextMeshProEssentials`:** extrai o `TMP Essential Resources.unitypackage` do pacote `com.unity.ugui` direto para `Assets/TextMesh Pro`, preservando os GUIDs. `AssetDatabase.ImportPackage` só agenda a importação, e o batch sai antes de ela rodar.
+- **Fonte:** a fonte atual é a LiberationSans padrão do TMP, provisória até existir uma fonte bitmap PT-BR de 8 px licenciada (UI-03 #4). Todo label nasce de `TMP_Settings.defaultFontAsset`, então a troca acontece num lugar só.
+- **`BattleHudTools.BuildHud`:** gera `Assets/_Game/Prefabs/UI/BattleHud.prefab`, com Canvas *Screen Space – Camera* em referência 224×224, barras, plateia e menu. Rode `DataTools.Regenerate` antes. `canvas.renderMode` lê `ScreenSpaceOverlay` enquanto não há câmera, e ela só é atribuída no `Awake`; para conferir o valor salvo, use `m_RenderMode` via `SerializedObject`.
+- **Rótulos e mensagens:** rótulos das ações e motivos de ação indisponível vêm de `Assets/_Game/Data/Source/ui_text.json`, gerado como `UiTextSO`. As chaves são `action.<acao>` e `rejection.<motivo>` em snake case (`UiTextKeys`), e uma chave ausente aparece como `#chave`, nunca como texto vazio.
+- **Menu:** `BattleMenuController` é puro (raiz, submenu de falácia, submenu de premissa). As views só desenham. Teclado e gamepad entram por `BattleMenuInput`, e o mouse entra por `MenuRowPointer`. O clique do mouse na ação `Confirm` é ignorado, para não confirmar duas vezes.
 
 No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
 
