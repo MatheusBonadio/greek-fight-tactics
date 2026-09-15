@@ -121,15 +121,17 @@ namespace Game.Grid
 
     public sealed class PathFinder
     {
-        public IReadOnlyList<Coord> FindPath(GridModel grid, Coord from, Coord to);
-        public IReadOnlyList<Coord> Reachable(GridModel grid, Coord from, int maxCost);
+        public bool FindPath(GridModel grid, Coord from, Coord to, List<Coord> path);
+        public void Reachable(GridModel grid, Coord from, int maxCost, List<Coord> cells);
     }
 
     public sealed class FogOfWar
     {
-        public void Reveal(Coord center, int radius);
+        public const int DefaultRevealRadius = 3;
+        public FogOfWar(GridModel grid);
+        public int Reveal(Coord center, int radius = DefaultRevealRadius);
         public byte[] ToBitmask();
-        public void LoadBitmask(byte[] bitmask);
+        public bool TryLoadBitmask(byte[] bitmask);
     }
 }
 ```

@@ -192,7 +192,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Usado por movimento, alcance de ação e IA do adversário. Três consumidores — vale caprichar.\n\n**Depende de:** [GRD-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Vizinhança de 4 direções (sem diagonal — mantém a leitura isométrica limpa)\n- [ ] Custo por terreno lido de `TileData.Cost`\n- [ ] Bloqueio por ocupante e por `Cost == TileData.ImpassableCost`\n- [ ] Busca limitada por alcance (retorna todas as células a custo <= N)\n- [ ] Pool de nós reutilizável — zero alocação por chamada\n- [ ] Benchmark com Performance Testing (core no 6.6, `Unity.PerformanceTesting`): grid 100x100, caminho longo, abaixo de 5ms\n- [ ] Teste: sem caminho possível retorna lista vazia, não trava"
+      "description": "Usado por movimento, alcance de ação e IA do adversário. Três consumidores — vale caprichar.\n\n**Depende de:** [GRD-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Vizinhança de 4 direções (sem diagonal — mantém a leitura isométrica limpa)\n- [x] Custo por terreno lido de `TileData.Cost`\n- [x] Bloqueio por ocupante e por `Cost == TileData.ImpassableCost`\n- [x] Busca limitada por alcance (retorna todas as células a custo <= N)\n- [x] Pool de nós reutilizável — zero alocação por chamada\n- [x] Benchmark com Performance Testing (core no 6.6, `Unity.PerformanceTesting`): grid 100x100, caminho longo, abaixo de 5ms\n- [x] Teste: sem caminho possível retorna lista vazia, não trava"
     },
     {
       "title": "[EXP-01] Movimento animado do ator",
