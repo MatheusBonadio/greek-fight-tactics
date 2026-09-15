@@ -23,6 +23,8 @@ namespace Game.UI
         [SerializeField] private FallacyCatalogSO catalog;
         [SerializeField] private Color availableColor = new Color32(248, 248, 240, 255);
         [SerializeField] private Color unavailableColor = new Color32(120, 120, 128, 255);
+        [SerializeField] private Color hintColor = new Color32(248, 224, 88, 255);
+        [SerializeField] private bool assistedMode;
 
         private float blinkClock;
 
@@ -46,9 +48,21 @@ namespace Game.UI
 
         public Color AvailableColor => availableColor;
 
+        public Color HintColor => hintColor;
+
         public int SubmenuWindowStart { get; private set; }
 
         public bool CursorVisible { get; private set; } = true;
+
+        public bool AssistedMode
+        {
+            get => assistedMode;
+            set
+            {
+                assistedMode = value;
+                Render();
+            }
+        }
 
         public static int WindowStart(int cursor, int count, int visible) =>
             count <= visible ? 0 : Mathf.Clamp(cursor - visible + 1, 0, count - visible);
@@ -119,7 +133,7 @@ namespace Game.UI
 
         public void HandlePoint(BattleMenuLayer layer, int row)
         {
-            if (Controller == null || layer != Controller.Layer)
+            if (Controller == null || !SameLayer(layer))
             {
                 return;
             }
@@ -130,7 +144,7 @@ namespace Game.UI
 
         public void HandleClick(BattleMenuLayer layer, int row)
         {
-            if (Controller == null || layer != Controller.Layer)
+            if (Controller == null || !SameLayer(layer))
             {
                 return;
             }
@@ -171,6 +185,9 @@ namespace Game.UI
             Advance(Time.unscaledDeltaTime);
         }
 
+        private bool SameLayer(BattleMenuLayer layer) =>
+            layer == BattleMenuLayer.Actions ? Controller.Layer == BattleMenuLayer.Actions : Controller.Layer != BattleMenuLayer.Actions;
+
         private void RestartBlink()
         {
             blinkClock = 0f;
@@ -205,6 +222,7 @@ namespace Game.UI
             submenuTitle.text = text.Get(Controller.Layer == BattleMenuLayer.Fallacies ? UiTextKeys.ChooseFallacy : UiTextKeys.ChoosePremise);
 
             var options = Controller.SubmenuOptions;
+            var highlighted = Controller.HighlightedPremise(assistedMode);
             SubmenuWindowStart = WindowStart(Controller.SubmenuCursor, options.Count, submenuRows.Length);
             for (var row = 0; row < submenuRows.Length; row++)
             {
@@ -214,7 +232,7 @@ namespace Game.UI
                 if (used)
                 {
                     submenuRows[row].text = OptionLabel(options[optionIndex]);
-                    submenuRows[row].color = availableColor;
+                    submenuRows[row].color = optionIndex == highlighted ? hintColor : availableColor;
                 }
             }
 

@@ -40,6 +40,8 @@ namespace Game.UI
 
         public ActionMenuEntry Selected => entries[CursorIndex];
 
+        public Argument? CurrentArgument => state.CurrentArgument;
+
         public void Refresh()
         {
             entries.Clear();

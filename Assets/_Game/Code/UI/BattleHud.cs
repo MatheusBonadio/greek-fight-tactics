@@ -11,6 +11,7 @@ namespace Game.UI
         [SerializeField] private BarView opponentCoherence;
         [SerializeField] private AudienceMeterView audience;
         [SerializeField] private ActionMenuView menu;
+        [SerializeField] private DialogueBoxView dialogue;
 
         public Canvas Canvas => canvas;
 
@@ -22,15 +23,18 @@ namespace Game.UI
 
         public ActionMenuView Menu => menu;
 
+        public DialogueBoxView Dialogue => dialogue;
+
         public BattleState State { get; private set; }
 
-        public void Configure(Canvas hudCanvas, BarView player, BarView opponent, AudienceMeterView audienceMeter, ActionMenuView actionMenu)
+        public void Configure(Canvas hudCanvas, BarView player, BarView opponent, AudienceMeterView audienceMeter, ActionMenuView actionMenu, DialogueBoxView dialogueBox)
         {
             canvas = hudCanvas;
             playerCoherence = player;
             opponentCoherence = opponent;
             audience = audienceMeter;
             menu = actionMenu;
+            dialogue = dialogueBox;
         }
 
         public void Bind(BattleState state, BattleMenuController controller)

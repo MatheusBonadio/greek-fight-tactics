@@ -437,6 +437,12 @@ unity vcs doctor
 - **`BattleHudTools.BuildHud`:** gera `Assets/_Game/Prefabs/UI/BattleHud.prefab`, com Canvas *Screen Space – Camera* em referência 224×224, barras, plateia e menu. Rode `DataTools.Regenerate` antes. `canvas.renderMode` lê `ScreenSpaceOverlay` enquanto não há câmera, e ela só é atribuída no `Awake`; para conferir o valor salvo, use `m_RenderMode` via `SerializedObject`.
 - **Rótulos e mensagens:** rótulos das ações e motivos de ação indisponível vêm de `Assets/_Game/Data/Source/ui_text.json`, gerado como `UiTextSO`. As chaves são `action.<acao>` e `rejection.<motivo>` em snake case (`UiTextKeys`), e uma chave ausente aparece como `#chave`, nunca como texto vazio.
 - **Menu:** `BattleMenuController` é puro (raiz, submenu de falácia, submenu de premissa). As views só desenham. Teclado e gamepad entram por `BattleMenuInput`, e o mouse entra por `MenuRowPointer`. O clique do mouse na ação `Confirm` é ignorado, para não confirmar duas vezes.
+- **Caixa de diálogo:** `DialogueBoxView` fica no HUD, com caixa de 208×48, retrato 40×40 e nome do falante. A quebra de linha e a paginação usam `TextOverflowModes.Page` do TMP, então a largura real em pixels vale mais que a contagem de caracteres do `DialogueText`. O `Typewriter` revela a página atual. `Confirm` completa a página, depois avança, e na última fecha e dispara `Finished`.
+- **Glifo ausente:** o TMP troca o caractere por `TMP_Settings.missingGlyphCharacter` ou, se ele for 0, por □ (U+25A1), e registra aviso. Um teste garante que a fonte padrão tem esse glifo e cobre `á é í ó ú â ê ô ã õ à ç Ç Ã Õ`, aspas, travessão e reticências.
+- **Compêndio:** `Assets/_Game/Prefabs/UI/Compendium.prefab` mostra só as falácias desbloqueadas de `FallacyCompendium`, com nome, descrição, dica e ícone vindos do catálogo, e um contador vindo de `ui_text.json`.
+- **Ícone de falácia revelada:** `FallacyRevealView.Attach(actor)` coloca o ícone de 16×16 sobre a cabeça do ator, 2,5 unidades acima do pivot, na mesma camada e com ordem +100.
+- **Modo assistido:** `ActionMenuView.AssistedMode` pinta de dourado a premissa fraca no submenu de maiêutica.
+- **Testes:** `TextMeshProUGUI` só gera malha dentro de um `Canvas`. Teste EditMode que lê `textInfo` precisa pôr o label sob um `Canvas`, senão `characterCount` fica 0.
 
 No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
 

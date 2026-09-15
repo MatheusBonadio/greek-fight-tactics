@@ -483,7 +483,7 @@
         "UI / UX",
         "Risco"
       ],
-      "description": "A acentuação em fonte bitmap é uma armadilha clássica. Teste antes de fechar a fonte.\n\n**Depende de:** [DAT-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Typewriter com velocidade ajustável e skip\n- [ ] Quebra de linha automática respeitando largura de 208px\n- [ ] Retrato + nome do falante\n- [ ] Fonte bitmap de 8px como Font Asset do TextMesh Pro, atlas com filtro Point e sem compressão\n- [ ] Testar: á é í ó ú â ê ô ã õ à ç Ç Ã Õ\n- [ ] Testar aspas, travessão (—) e reticências\n- [ ] Fallback visível se um glifo faltar (não silencioso)"
+      "description": "A acentuação em fonte bitmap é uma armadilha clássica. Teste antes de fechar a fonte.\n\n**Depende de:** [DAT-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Typewriter com velocidade ajustável e skip\n- [x] Quebra de linha automática respeitando largura de 208px\n- [x] Retrato + nome do falante\n- [ ] Fonte bitmap de 8px como Font Asset do TextMesh Pro, atlas com filtro Point e sem compressão\n- [x] Testar: á é í ó ú â ê ô ã õ à ç Ç Ã Õ\n- [x] Testar aspas, travessão (—) e reticências\n- [x] Fallback visível se um glifo faltar (não silencioso)"
     },
     {
       "title": "[UI-04] Ícones de falácia e ajuda",
@@ -493,7 +493,7 @@
         "UI / UX",
         "Arte"
       ],
-      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [ ] Compêndio consultável com as 20 falácias desbloqueadas\n- [ ] Dica opcional (modo assistido) destacando a premissa fraca"
+      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [x] Compêndio consultável com as 20 falácias desbloqueadas\n- [x] Dica opcional (modo assistido) destacando a premissa fraca"
     },
     {
       "title": "[UI-05] Menus de sistema",

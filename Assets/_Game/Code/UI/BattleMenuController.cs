@@ -49,6 +49,9 @@ namespace Game.UI
 
         public RejectionReason SelectedReason => Actions.Selected.Reason;
 
+        public int? HighlightedPremise(bool assistedMode) =>
+            Layer == BattleMenuLayer.Premises ? FallacyCompendium.WeakPremiseToHighlight(Actions.CurrentArgument, assistedMode) : null;
+
         public void Navigate(int delta)
         {
             if (Layer == BattleMenuLayer.Actions)

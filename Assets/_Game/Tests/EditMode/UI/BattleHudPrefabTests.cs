@@ -37,6 +37,31 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(6, hud.Menu.ActionRows.Count);
             Assert.IsTrue(hud.Menu.ActionRows.All(row => row.GetComponent<MenuRowPointer>() != null));
             Assert.IsNotNull(host.GetComponent<BattleMenuInput>().Controls);
+            Assert.IsNotNull(hud.Dialogue);
+            Assert.IsFalse(hud.Dialogue.IsOpen);
+        }
+
+        [Test]
+        public void CompendiumPrefab_WiresTheViewAndInput()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.CompendiumPrefabPath);
+            Assert.IsNotNull(prefab, $"run BattleHudTools.BuildHud to create {BattleHudTools.CompendiumPrefabPath}");
+
+            host = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            var view = host.GetComponent<CompendiumView>();
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var compendium = new FallacyCompendium(catalog.All.Select(fallacy => fallacy.Id));
+            foreach (var fallacy in catalog.All)
+            {
+                compendium.Unlock(fallacy.Id);
+            }
+
+            view.Bind(compendium);
+
+            Assert.IsNotNull(host.GetComponent<CompendiumInput>().Controls);
+            Assert.AreEqual(BattleHudTools.CompendiumRows, view.Rows.Count);
+            Assert.IsTrue(view.Icon.enabled);
+            StringAssert.StartsWith($"{catalog.Count}/{catalog.Count}", view.Counter.text);
         }
 
         [Test]

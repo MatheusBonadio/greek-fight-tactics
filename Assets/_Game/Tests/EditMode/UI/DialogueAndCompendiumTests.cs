@@ -1,0 +1,271 @@
+using System.Linq;
+using Game.Battle;
+using Game.Content;
+using Game.Core;
+using Game.EditorTools;
+using Game.UI;
+using NUnit.Framework;
+using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Game.Tests.EditMode.UI
+{
+    public sealed class DialogueAndCompendiumTests
+    {
+        private const string LongSpeech =
+            "Você fala da justiça como quem fala do barro: sabe moldar, mas não sabe dizer o que é. Se a justiça é dar a cada um o que lhe é devido, então devemos devolver a espada ao amigo que enlouqueceu? Responda devagar, porque a ágora inteira está ouvindo e ninguém aqui esquece uma resposta apressada.";
+
+        private GameObject host;
+        private Texture2D texture;
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (host != null)
+            {
+                Object.DestroyImmediate(host);
+            }
+
+            if (texture != null)
+            {
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        public void DialogueBox_WrapsEveryLineInsideTheBoxWidth()
+        {
+            var view = CreateDialogue();
+
+            view.Show(new DialogueLine("Menexeno", null, LongSpeech));
+
+            var info = view.Body.textInfo;
+            Assert.Greater(info.lineCount, 1);
+            for (var line = 0; line < info.lineCount; line++)
+            {
+                Assert.LessOrEqual(info.lineInfo[line].width, DialogueBoxView.BoxPixelWidth);
+            }
+        }
+
+        [Test]
+        public void DialogueBox_TypesAtTheConfiguredSpeedSkipsAndPagesUntilFinished()
+        {
+            var view = CreateDialogue();
+            var finished = false;
+            view.Finished += () => finished = true;
+            view.CharactersPerSecond = 10f;
+
+            view.Show(new DialogueLine("Menexeno", null, LongSpeech));
+            Assert.Greater(view.PageCount, 1);
+            Assert.AreEqual(0, view.Body.maxVisibleCharacters);
+
+            view.Advance(0.35f);
+            Assert.AreEqual(3, view.Body.maxVisibleCharacters);
+
+            view.Confirm();
+            Assert.IsTrue(view.IsPageComplete);
+            Assert.AreEqual(1, view.Page);
+
+            view.Confirm();
+            Assert.AreEqual(2, view.Page);
+            Assert.IsFalse(view.IsPageComplete);
+
+            for (var step = 0; step < 4 * view.PageCount && view.IsOpen; step++)
+            {
+                view.Confirm();
+            }
+
+            Assert.IsTrue(finished);
+            Assert.IsFalse(view.IsOpen);
+        }
+
+        [Test]
+        public void DialogueBox_ShowsTheSpeakerNameAndHidesTheFrameWithoutAPortrait()
+        {
+            var view = CreateDialogue();
+            texture = new Texture2D(32, 32);
+            var sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 16f);
+
+            view.Show(new DialogueLine("Damaris", sprite, "Eu ouvi tudo, e não concordo com nada."));
+            Assert.AreEqual("Damaris", view.SpeakerLabel.text);
+            Assert.AreEqual(sprite, view.Portrait.sprite);
+            Assert.IsTrue(view.PortraitFrame.activeSelf);
+
+            view.Show(new DialogueLine("Plateia", null, "Risos na ágora."));
+            Assert.IsFalse(view.PortraitFrame.activeSelf);
+            Object.DestroyImmediate(sprite);
+        }
+
+        [TestCase("á é í ó ú â ê ô ã õ à ç Ç Ã Õ")]
+        [TestCase("\"retas\" “curvas” ‘simples’ — travessão… reticências...")]
+        public void DefaultFont_CoversPortugueseAccentsQuotesDashAndEllipsis(string sample)
+        {
+            var font = TMP_Settings.defaultFontAsset;
+            Assert.IsNotNull(font);
+
+            var covered = font.HasCharacters(sample, out uint[] missing, true, true);
+
+            Assert.IsTrue(covered, $"missing glyphs: {string.Join(", ", (missing ?? new uint[0]).Select(code => $"U+{code:X4}"))}");
+        }
+
+        [Test]
+        public void MissingGlyph_IsReplacedByAVisibleSquareInsteadOfDisappearing()
+        {
+            var font = TMP_Settings.defaultFontAsset;
+            var replacement = TMP_Settings.missingGlyphCharacter == 0 ? '□' : (char)TMP_Settings.missingGlyphCharacter;
+            Assert.IsFalse(TMP_Settings.warningsDisabled);
+            Assert.IsTrue(font.HasCharacter(replacement, true, true), "the replacement glyph must exist so a missing character stays visible");
+
+            host = new GameObject("canvas", typeof(RectTransform));
+            host.AddComponent<Canvas>();
+            var label = Child<TextMeshProUGUI>("label");
+            label.font = font;
+            label.text = "a漢b";
+            label.ForceMeshUpdate();
+
+            Assert.AreEqual(3, label.textInfo.characterCount);
+            Assert.AreEqual(replacement, label.textInfo.characterInfo[1].character);
+            Assert.IsTrue(label.textInfo.characterInfo[1].isVisible);
+        }
+
+        [Test]
+        public void FallacyReveal_FloatsTheIconAboveTheActorHead()
+        {
+            host = new GameObject("actor");
+            var actorRenderer = host.AddComponent<SpriteRenderer>();
+            actorRenderer.sortingOrder = 5;
+            var actor = host.AddComponent<ActorView>();
+            actor.Configure(Vector2Int.zero, Game.Grid.Facing.SouthEast, actorRenderer, null);
+            var catalog = Catalog();
+
+            var reveal = FallacyRevealView.Attach(actor);
+
+            Assert.AreEqual(FallacyRevealView.IconOffsetUnits, reveal.transform.localPosition.y, 0.0001f);
+            Assert.AreEqual(5 + FallacyRevealView.SortingOrderAboveActor, reveal.IconRenderer.sortingOrder);
+            Assert.IsFalse(reveal.IsRevealed);
+
+            Assert.IsTrue(catalog.TryGet("ad_hominem", out var fallacy));
+            reveal.Reveal(fallacy);
+            Assert.IsTrue(reveal.IsRevealed);
+            Assert.AreEqual(fallacy.Icon, reveal.IconRenderer.sprite);
+            Assert.AreEqual(16f, fallacy.Icon.rect.width);
+            Assert.AreEqual("ad_hominem", reveal.RevealedFallacyId);
+
+            reveal.Hide();
+            Assert.IsFalse(reveal.IsRevealed);
+        }
+
+        [Test]
+        public void Compendium_ListsUnlockedFallaciesWithDescriptionHintAndIcon()
+        {
+            var catalog = Catalog();
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            var view = CreateCompendium(catalog, uiText);
+            var compendium = new FallacyCompendium(catalog.All.Select(fallacy => fallacy.Id));
+
+            view.Bind(compendium);
+            Assert.AreEqual(uiText.Get(CompendiumView.EmptyKey), view.Title.text);
+            Assert.AreEqual(string.Format(uiText.Get(CompendiumView.CounterKey), 0, catalog.Count), view.Counter.text);
+            Assert.IsFalse(view.Icon.enabled);
+
+            compendium.Unlock("straw_man");
+            compendium.Unlock("ad_hominem");
+            view.Render();
+
+            var first = compendium.UnlockedIds[0];
+            Assert.IsTrue(catalog.TryGet(compendium.UnlockedIds[1], out var second));
+            view.HandleNavigate(Vector2.down);
+
+            Assert.AreEqual(second.DisplayName, view.Title.text);
+            Assert.AreEqual(second.Description, view.Description.text);
+            Assert.AreEqual(second.PlayerHint, view.Hint.text);
+            Assert.AreEqual(second.Icon, view.Icon.sprite);
+            Assert.IsTrue(catalog.TryGet(first, out var firstFallacy));
+            Assert.AreEqual(firstFallacy.DisplayName, view.Rows[0].text);
+            Assert.IsFalse(view.Rows[2].gameObject.activeSelf);
+            StringAssert.StartsWith($"2/{catalog.Count}", view.Counter.text);
+        }
+
+        [Test]
+        public void AssistedMode_HighlightsTheWeakPremiseInTheMaieuticsSubmenu()
+        {
+            var catalog = Catalog();
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            host = new GameObject("menu", typeof(RectTransform));
+            var rows = Enumerable.Range(0, 6).Select(index => Child<TextMeshProUGUI>($"action{index}")).Cast<TMP_Text>().ToArray();
+            var options = Enumerable.Range(0, 5).Select(index => Child<TextMeshProUGUI>($"option{index}")).Cast<TMP_Text>().ToArray();
+            var panel = new GameObject("panel", typeof(RectTransform));
+            panel.transform.SetParent(host.transform, false);
+            var view = host.AddComponent<ActionMenuView>();
+            view.Configure(rows, null, Child<TextMeshProUGUI>("reason"), panel, Child<TextMeshProUGUI>("title"), options, null, uiText, catalog);
+
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "Kleia é do Cerâmico", "Oleiros não entendem de justiça" }, 1, ArgumentTones.Mocking)), state));
+            view.Bind(new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds));
+
+            view.HandlePoint(BattleMenuLayer.Actions, 2);
+            view.HandleConfirm();
+            Assert.AreEqual(view.AvailableColor, options[1].color);
+
+            view.AssistedMode = true;
+            Assert.AreEqual(view.HintColor, options[1].color);
+            Assert.AreEqual(view.AvailableColor, options[0].color);
+        }
+
+        private DialogueBoxView CreateDialogue()
+        {
+            host = new GameObject("dialogue", typeof(RectTransform));
+            host.AddComponent<Canvas>();
+            var box = new GameObject("box", typeof(RectTransform));
+            box.transform.SetParent(host.transform, false);
+            var body = Child<TextMeshProUGUI>("body", box.transform);
+            body.rectTransform.sizeDelta = new Vector2(DialogueBoxView.BoxPixelWidth - 2 * BattleHudTools.DialoguePadding, BattleHudTools.DialogueHeight - BattleHudTools.DialoguePadding);
+            body.font = TMP_Settings.defaultFontAsset;
+            body.fontSize = BattleHudTools.FontSize;
+            body.textWrappingMode = TextWrappingModes.Normal;
+            var frame = new GameObject("frame", typeof(RectTransform));
+            frame.transform.SetParent(host.transform, false);
+            var portrait = frame.AddComponent<Image>();
+
+            var view = host.AddComponent<DialogueBoxView>();
+            view.Configure(box, body, Child<TextMeshProUGUI>("speaker"), portrait, frame);
+            return view;
+        }
+
+        private CompendiumView CreateCompendium(FallacyCatalogSO catalog, UiTextSO uiText)
+        {
+            host = new GameObject("compendium", typeof(RectTransform));
+            var rows = Enumerable.Range(0, 4).Select(index => Child<TextMeshProUGUI>($"row{index}")).Cast<TMP_Text>().ToArray();
+            var view = host.AddComponent<CompendiumView>();
+            view.Configure(
+                Child<TextMeshProUGUI>("header"),
+                rows,
+                Child<Image>("cursor").rectTransform,
+                Child<TextMeshProUGUI>("title"),
+                Child<TextMeshProUGUI>("description"),
+                Child<TextMeshProUGUI>("hint"),
+                Child<TextMeshProUGUI>("counter"),
+                Child<Image>("icon"),
+                catalog,
+                uiText);
+            return view;
+        }
+
+        private T Child<T>(string name, Transform parent = null) where T : Component
+        {
+            var child = new GameObject(name, typeof(RectTransform));
+            child.transform.SetParent(parent ? parent : host.transform, false);
+            return child.AddComponent<T>();
+        }
+
+        private static FallacyCatalogSO Catalog()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            Assert.IsNotNull(catalog);
+            return catalog;
+        }
+    }
+}

@@ -25,6 +25,12 @@ MonoBehaviour:
     value: CONCEDER
   - key: action.withdraw
     value: RETIRAR-SE
+  - key: compendium.title
+    value: "COMP\xCANDIO DE FAL\xC1CIAS"
+  - key: compendium.counter
+    value: '{0}/{1} descobertas'
+  - key: compendium.empty
+    value: "Nenhuma fal\xE1cia descoberta ainda."
   - key: menu.choose_fallacy
     value: "Qual fal\xE1cia?"
   - key: menu.choose_premise
