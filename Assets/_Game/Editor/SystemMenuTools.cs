@@ -74,14 +74,12 @@ namespace Game.EditorTools
             var uiText = Load<UiTextSO>(DataTools.UiTextPath);
             var controls = Load<InputActionAsset>(SandboxTools.ControlsPath);
 
-            var rig = (GameObject)PrefabUtility.InstantiatePrefab(Load<GameObject>(RenderSetupTools.CameraRigPrefabPath));
-            var camera = rig.GetComponentInChildren<Camera>();
+            PrefabUtility.InstantiatePrefab(Load<GameObject>(RenderSetupTools.CameraRigPrefabPath));
             CreateEventSystem();
             var services = SandboxTools.CreateGameServices();
 
             var root = new GameObject("MainMenu", typeof(RectTransform));
-            var canvas = ConfigureCanvas(root);
-            canvas.worldCamera = camera;
+            ConfigureCanvas(root);
             CreateImage(root.transform, "Background", null, Center, Vector2.zero, new Vector2(BattleHudTools.CanvasReference, BattleHudTools.CanvasReference), TrackColor);
             var title = CreateLabel(root.transform, "Title", TopCenter, new Vector2(0f, -40f), new Vector2(BattleHudTools.ReasonWidth, 16f), TextAlignmentOptions.Center);
             title.color = AccentColor;

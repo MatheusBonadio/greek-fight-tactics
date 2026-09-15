@@ -30,7 +30,7 @@ namespace Game.Tests.EditMode.UI
         {
             var hud = InstantiateHud();
 
-            Assert.AreEqual((int)RenderMode.ScreenSpaceCamera, new SerializedObject(hud.Canvas).FindProperty("m_RenderMode").intValue);
+            Assert.AreEqual(RenderMode.ScreenSpaceOverlay, hud.Canvas.renderMode);
             Assert.IsNotNull(hud.PlayerCoherence);
             Assert.IsNotNull(hud.OpponentCoherence);
             Assert.IsNotNull(hud.Audience);

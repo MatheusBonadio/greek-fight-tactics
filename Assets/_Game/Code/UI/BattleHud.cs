@@ -91,14 +91,6 @@ namespace Game.UI
             menu.Render();
         }
 
-        private void Awake()
-        {
-            if (canvas && !canvas.worldCamera)
-            {
-                canvas.worldCamera = Camera.main;
-            }
-        }
-
         private void OnDestroy()
         {
             if (menu)

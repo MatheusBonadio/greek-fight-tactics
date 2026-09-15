@@ -28,8 +28,7 @@ namespace Game.EditorTools
         public static Canvas ConfigureCanvas(GameObject root)
         {
             var canvas = root.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.planeDistance = 1f;
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.pixelPerfect = true;
 
             var scaler = root.AddComponent<CanvasScaler>();

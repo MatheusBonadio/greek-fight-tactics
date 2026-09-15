@@ -119,12 +119,6 @@ namespace Game.UI
             {
                 services = FindAnyObjectByType<GameServices>();
             }
-
-            var canvas = GetComponent<Canvas>();
-            if (canvas && !canvas.worldCamera)
-            {
-                canvas.worldCamera = Camera.main;
-            }
         }
 
         private void OnEnable()
