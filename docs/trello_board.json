@@ -373,7 +373,7 @@
         "Bloqueante",
         "Backend"
       ],
-      "description": "UID é a base do rate limit, do save e do cache. Vem antes de tudo que toca rede.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Auth pela REST API do Identity Toolkit com `UnityWebRequest` + `Awaitable` — o Firebase Unity SDK só é suportado em Android e iOS; no desktop é beta para desenvolvimento e no Web não existe\n- [ ] Sign-in anônimo no boot; refresh token persistido localmente e ID token renovado antes de expirar\n- [x] O mesmo código de rede roda no Windows e no Web — é o que torna possível a build Web da banca"
+      "description": "UID é a base do rate limit, do save e do cache. Vem antes de tudo que toca rede.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Auth pela REST API do Identity Toolkit com `UnityWebRequest` + `Awaitable` — o Firebase Unity SDK só é suportado em Android e iOS; no desktop é beta para desenvolvimento e no Web não existe\n- [x] Sign-in anônimo no boot; refresh token persistido localmente e ID token renovado antes de expirar\n- [x] O mesmo código de rede roda no Windows e no Web — é o que torna possível a build Web da banca"
     },
     {
       "title": "[BCK-03] Firestore: modelo de save",
@@ -434,7 +434,7 @@
         "Unity / Core",
         "IA / LLM"
       ],
-      "description": "**Depende de:** [LLM-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] LRU em disco, chave = hash do pedido\n- [x] Limite de tamanho (ex.: 5MB) com descarte do mais antigo\n- [ ] Carregar no boot, salvar em background"
+      "description": "**Depende de:** [LLM-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] LRU em disco, chave = hash do pedido\n- [x] Limite de tamanho (ex.: 5MB) com descarte do mais antigo\n- [x] Carregar no boot, salvar em background"
     },
     {
       "title": "[QA-02] Teste de modo avião",

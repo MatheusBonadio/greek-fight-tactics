@@ -101,6 +101,20 @@ namespace Game.Tests.EditMode.Net
         }
 
         [Test]
+        public void WithoutAClient_PrewarmIsSkippedAndTheFallbackServes()
+        {
+            var validator = Validator();
+            var source = new PrewarmedArgumentSource(null, cache, validator, new FallbackArgumentLibrary(library, validator, Seed), Seed);
+            source.Register(OpponentDebaterId, new OpponentContext("thrasybios", "Thrasybios", Profile.Sophist, Act.One, new[] { "false_dilemma" }));
+
+            Assert.IsFalse(source.IsOnline);
+            Assert.AreEqual(0, Run(source.PrewarmAsync(OpponentDebaterId, 3, CancellationToken.None)));
+            Assert.IsEmpty(transport.Requests);
+            Assert.IsTrue(source.TryNext(opponent, out var argument));
+            Assert.AreEqual("ad_hominem", argument.FallacyId);
+        }
+
+        [Test]
         public void RequestCacheKey_MatchesTheServerCacheKey()
         {
             var request = new ArgumentRequest("thrasybios", "Thrasybios", Profile.Sophist, Act.One, "ad_hominem", 7);

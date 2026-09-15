@@ -21,12 +21,14 @@ namespace Game.Net
 
         public PrewarmedArgumentSource(ArgumentServiceClient client, ArgumentDiskCache cache, ArgumentValidator validator, FallbackArgumentLibrary fallback, int seed)
         {
-            this.client = client ?? throw new ArgumentNullException(nameof(client));
+            this.client = client;
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
             this.validator = validator ?? throw new ArgumentNullException(nameof(validator));
             this.fallback = fallback ?? throw new ArgumentNullException(nameof(fallback));
             random = new Random(seed);
         }
+
+        public bool IsOnline => client != null;
 
         public void Register(int debaterId, OpponentContext opponent)
         {
@@ -41,7 +43,7 @@ namespace Game.Net
 
         public async Task<int> PrewarmAsync(int debaterId, int count, CancellationToken cancellation)
         {
-            if (!opponents.TryGetValue(debaterId, out var opponent) || opponent.CatalogIds.Count == 0)
+            if (client == null || !opponents.TryGetValue(debaterId, out var opponent) || opponent.CatalogIds.Count == 0)
             {
                 return 0;
             }

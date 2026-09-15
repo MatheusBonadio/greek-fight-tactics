@@ -6,6 +6,9 @@
     "UnityEditor.TestRunner",
     "Game.Core",
     "Game.Grid",
+    "Game.Battle",
+    "Game.Content",
+    "Game.Net",
     "Game.UI",
     "Game.DevCommands"
   ],

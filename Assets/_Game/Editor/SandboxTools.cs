@@ -23,6 +23,7 @@ namespace Game.EditorTools
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
+        public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
         public const string FogSortingLayer = "Fog";
         public const string FloorTilemapName = "Floor";
@@ -261,12 +262,31 @@ namespace Game.EditorTools
             controller.PaintFogPreview();
 
             CreateCamera(actors[0].transform);
+            CreateGameServices();
 
             AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
             {
                 throw new InvalidOperationException($"could not save {ScenePath}");
             }
+        }
+
+        private static void CreateGameServices()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath)
+                ?? throw new InvalidOperationException($"missing {DataTools.CatalogPath}; run DataTools.Regenerate first");
+            var fallback = AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath)
+                ?? throw new InvalidOperationException($"missing {DataTools.FallbackLibraryPath}; run DataTools.Regenerate first");
+
+            var network = AssetDatabase.LoadAssetAtPath<Game.Content.NetworkConfigSO>(NetworkConfigPath);
+            if (network == null)
+            {
+                network = ScriptableObject.CreateInstance<Game.Content.NetworkConfigSO>();
+                AssetDatabase.CreateAsset(network, NetworkConfigPath);
+                AssetDatabase.SaveAssets();
+            }
+
+            new GameObject(nameof(GameServices)).AddComponent<GameServices>().Configure(network, catalog, fallback, null);
         }
 
         private static Tilemap CreateTilemap(GameObject gridObject, string name, string sortingLayer, int sortingOrder)
