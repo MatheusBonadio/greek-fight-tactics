@@ -33,8 +33,8 @@ namespace Game.EditorTools
         public const int CompendiumRows = 12;
         public const int RowHeight = 12;
         public const int RowInset = 18;
-        public const int FontSize = 8;
-        public const int MinFontSize = 5;
+        public const int FontSize = 6;
+        public const int MinFontSize = 4;
         public const int ReasonWidth = 208;
 
         public static void BuildHud() => BatchRunner.Run(BuildHudPrefabs);

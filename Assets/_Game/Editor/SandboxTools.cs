@@ -30,15 +30,18 @@ namespace Game.EditorTools
         public const string FogSortingLayer = "Fog";
         public const string FloorTilemapName = "Floor";
         public const string HighlightTilemapName = "Highlight";
+        public const string RangeTilemapName = "Range";
         public const string BlocksTilemapName = "Blocks";
         public const string FogTilemapName = "Fog";
         public const int Size = 12;
         public const int FloorSortingOrder = -20;
+        public const int RangeSortingOrder = -15;
         public const int HighlightSortingOrder = -10;
         public const int ActorSortingOrder = 0;
         public const int FogRevealDepth = 18;
         public const byte BlockedCost = TileData.ImpassableCost;
         public const byte StoneCost = 2;
+        public const float BlockSortLift = 0.25f;
         public const float ExplorationOrthographicSize = 7f;
         public const float BattleOrthographicSize = 5f;
         public const int CaptureWidth = 1216;
@@ -214,6 +217,7 @@ namespace Game.EditorTools
             unityGrid.cellSize = CellSize;
 
             var floor = CreateTilemap(gridObject, FloorTilemapName, SortingLayer.IDToName(0), FloorSortingOrder);
+            var range = CreateTilemap(gridObject, RangeTilemapName, SortingLayer.IDToName(0), RangeSortingOrder);
             var highlight = CreateTilemap(gridObject, HighlightTilemapName, SortingLayer.IDToName(0), HighlightSortingOrder);
             var blocks = CreateTilemap(gridObject, BlocksTilemapName, SortingLayer.IDToName(0), ActorSortingOrder);
             var fog = CreateTilemap(gridObject, FogTilemapName, FogSortingLayer, 0);
@@ -236,6 +240,7 @@ namespace Game.EditorTools
                 }
             }
 
+            blocks.transform.localPosition = new Vector3(0f, 0f, BlockSortLift / RenderSetupTools.TransparencySortAxis.z);
             foreach (var block in Blocks)
             {
                 blocks.SetTile(new Vector3Int(block.X, block.Y, 0), tiles[block.Tile]);
@@ -263,7 +268,9 @@ namespace Game.EditorTools
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
-            CreateBattleDirector(controller, actors, explorationCamera);
+            var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
+            rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
+            CreateBattleDirector(controller, actors, explorationCamera).ConfigureRange(rangeView);
 
             AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -333,7 +340,7 @@ namespace Game.EditorTools
             return views;
         }
 
-        private static void CreateBattleDirector(GridSandboxController controller, List<ActorView> actors, ExplorationCamera explorationCamera)
+        private static SandboxBattleDirector CreateBattleDirector(GridSandboxController controller, List<ActorView> actors, ExplorationCamera explorationCamera)
         {
             var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.HudPrefabPath)
                 ?? throw new InvalidOperationException($"missing {BattleHudTools.HudPrefabPath}; run BattleHudTools.BuildHud first");
@@ -350,7 +357,8 @@ namespace Game.EditorTools
                 .Select(pair => actors[pair.index])
                 .ToList();
 
-            new GameObject(nameof(SandboxBattleDirector)).AddComponent<SandboxBattleDirector>().Configure(
+            var director = new GameObject(nameof(SandboxBattleDirector)).AddComponent<SandboxBattleDirector>();
+            director.Configure(
                 controller,
                 actors[opponentIndex],
                 audience,
@@ -360,6 +368,7 @@ namespace Game.EditorTools
                 AssetDatabase.LoadAssetAtPath<Game.Content.UiTextSO>(DataTools.UiTextPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
+            return director;
         }
 
         private static ExplorationCamera CreateCamera(Transform followTarget)

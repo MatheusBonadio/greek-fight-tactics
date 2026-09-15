@@ -12,7 +12,7 @@ namespace Game.EditorTools
         public const int ReferenceResolution = 224;
         public const int AssetsPixelsPerUnit = PixelArtImporter.PixelsPerUnit;
         public const float CameraDepth = -10f;
-        public static readonly Vector3 TransparencySortAxis = new(0f, 1f, 0f);
+        public static readonly Vector3 TransparencySortAxis = new(0f, 1f, -1f);
 
         public const string MainCameraTag = "MainCamera";
 

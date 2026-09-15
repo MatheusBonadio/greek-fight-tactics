@@ -1,4 +1,5 @@
 using System.Linq;
+using Game.Core;
 using Game.EditorTools;
 using Game.Grid;
 using Game.UI;
@@ -60,8 +61,29 @@ namespace Game.Tests.EditMode.UI
         {
             var renderers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<TilemapRenderer>()).ToList();
 
-            Assert.AreEqual(4, renderers.Count);
+            Assert.AreEqual(5, renderers.Count);
             Assert.IsTrue(renderers.All(renderer => renderer.mode == TilemapRenderer.Mode.Individual));
+        }
+
+        [Test]
+        public void Blocks_SortBehindActorsBesideThemAndInFrontOfActorsBehindThem()
+        {
+            var blocks = Tilemap(SandboxTools.BlocksTilemapName);
+            var block = new Coord(6, 6);
+
+            Assert.AreEqual(0f, blocks.transform.localPosition.y, 1e-4f);
+            Assert.AreEqual(SandboxTools.BlockSortLift, blocks.transform.localPosition.z * RenderSetupTools.TransparencySortAxis.z, 1e-4f);
+
+            var blockSortY = IsoMath.GridToWorld(block).y - IsoMath.CellHeight + SandboxTools.BlockSortLift;
+            foreach (var front in new[] { new Coord(5, 6), new Coord(6, 5), new Coord(5, 5) })
+            {
+                Assert.Less(IsoMath.GridToWorld(front).y, blockSortY, $"actor at {front} must be drawn in front of the block");
+            }
+
+            foreach (var back in new[] { new Coord(7, 6), new Coord(6, 7), new Coord(7, 7) })
+            {
+                Assert.Greater(IsoMath.GridToWorld(back).y, blockSortY, $"actor at {back} must be drawn behind the block");
+            }
         }
 
         [Test]

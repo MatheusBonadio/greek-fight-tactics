@@ -5,6 +5,7 @@ using System.Linq;
 using Game.Battle;
 using Game.Content;
 using Game.Core;
+using Game.Grid;
 using Game.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,8 +38,10 @@ namespace Game.UI
         [SerializeField] private FallbackLibrarySO fallbackLibrary;
         [SerializeField] private int aggroRadius = AggroRule.DefaultRadius;
         [SerializeField] private float thinkSeconds = DefaultThinkSeconds;
+        [SerializeField] private RangeHighlightView rangeView;
 
         private GameServices services;
+        private RangeHighlighter highlighter;
         private PauseMenuController pause;
         private BattleMenuInput menuInput;
         private InputAction confirmAction;
@@ -64,6 +67,8 @@ namespace Game.UI
         public ActorView OpponentActor => opponentActor;
 
         public OpponentSO Opponent => opponent;
+
+        public RangeHighlightView RangeView => rangeView;
 
         public bool AutosaveEnabled { get; set; } = true;
 
@@ -97,6 +102,11 @@ namespace Game.UI
             text = uiText;
             catalog = fallacies;
             fallbackLibrary = fallbacks;
+        }
+
+        public void ConfigureRange(RangeHighlightView view)
+        {
+            rangeView = view;
         }
 
         public void StartBattle()
@@ -149,6 +159,12 @@ namespace Game.UI
             menuInput = hud.GetComponent<BattleMenuInput>();
             menuInput.enabled = false;
             hud.Menu.ChoiceMade += OnChoiceMade;
+
+            highlighter = new RangeHighlighter(Session.State.Grid, new PathFinder());
+            if (rangeView)
+            {
+                rangeView.Bind(highlighter);
+            }
 
             reveal ??= FallacyRevealView.Attach(opponentActor);
             reveal.Hide();
@@ -298,10 +314,12 @@ namespace Game.UI
                 Phase = BattleFlowPhase.PlayerChoosing;
                 controller.Refresh();
                 hud.Menu.Render();
+                hud.BindPreview(highlighter);
                 menuInput.enabled = true;
                 return;
             }
 
+            HideRange();
             menuInput.enabled = false;
             thinkTimer = thinkSeconds;
             Phase = BattleFlowPhase.OpponentThinking;
@@ -315,6 +333,7 @@ namespace Game.UI
             }
 
             menuInput.enabled = false;
+            HideRange();
             var outcome = Session.PlayChoice(choice);
             if (outcome.IsRejected)
             {
@@ -364,6 +383,12 @@ namespace Game.UI
             Speak();
         }
 
+        private void HideRange()
+        {
+            hud.BindPreview(null);
+            highlighter?.Clear();
+        }
+
         private void ShowLine(string speaker, string body, Action continuation)
         {
             Phase = BattleFlowPhase.Dialogue;
@@ -383,6 +408,13 @@ namespace Game.UI
         private void FinishBattle()
         {
             hud.Menu.ChoiceMade -= OnChoiceMade;
+            HideRange();
+            if (rangeView)
+            {
+                rangeView.Bind(null);
+            }
+
+            highlighter = null;
             hud.gameObject.SetActive(false);
             reveal?.Hide();
 

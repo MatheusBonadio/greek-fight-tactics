@@ -60,6 +60,8 @@ namespace Game.Tests.PlayMode
 
             var deadline = Time.realtimeSinceStartup + BattleTimeoutSeconds;
             var sawPlayerTurn = false;
+            var sawRange = false;
+            Assert.IsNotNull(director.RangeView, "GridSandbox scene must wire the range highlight view");
             while (director.Phase != BattleFlowPhase.Exploring && Time.realtimeSinceStartup < deadline)
             {
                 if (director.Phase == BattleFlowPhase.Dialogue)
@@ -69,6 +71,7 @@ namespace Game.Tests.PlayMode
                 else if (director.Phase == BattleFlowPhase.PlayerChoosing)
                 {
                     sawPlayerTurn = true;
+                    sawRange |= director.RangeView.PaintedCount > 0;
                     director.SubmitChoice(PickChoice(director.Session));
                 }
 
@@ -77,6 +80,8 @@ namespace Game.Tests.PlayMode
 
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "the battle did not finish in time");
             Assert.IsTrue(sawPlayerTurn);
+            Assert.IsTrue(sawRange, "the selected action range was never painted on the floor");
+            Assert.AreEqual(0, director.RangeView.PaintedCount);
             Assert.AreNotEqual(BattleStatus.Ongoing, director.LastResult);
             Assert.AreEqual(GameMode.Exploration, director.StateMachine.Mode);
             Assert.IsFalse(director.Hud.gameObject.activeSelf);

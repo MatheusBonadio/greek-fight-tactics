@@ -180,7 +180,8 @@ Tile 32×16 com PPU 16 é um losango de 2 × 1 unidades; `CellWidth`/`CellHeight
 | `Grid.cellSize` | `(2, 1, 1)` | com PPU 16 o tile mede 2 × 1 unidades; `(1, 0.5, 1)` só valeria com PPU 32 |
 | posição do `Grid` | `(0, -0.5, 0)` | a Unity ancora a célula no vértice inferior; `IsoMath` usa o centro |
 | `Tilemap.tileAnchor` | `(-0.5, 0.5, 0)` | faz o pivot *Bottom Left* dos sprites de tile cair no canto do losango |
-| ordenação | `TilemapRenderer.Mode.Individual` + ator com `SpriteSortPoint.Pivot` na mesma camada e ordem dos blocos | o Transparency Sort Axis (0, 1, 0) decide pela altura do pé, e o ator passa atrás de coluna e à frente de prop sem sorting order manual |
+| ordenação | `TilemapRenderer.Mode.Individual` + ator com `SpriteSortPoint.Pivot` na mesma camada e ordem dos blocos | o Transparency Sort Axis (0, 1, -1) decide pela altura do pé (o Z fica em 0 para tudo, exceto os blocos), e o ator passa atrás de coluna e à frente de prop sem sorting order manual |
+| tilemap `Blocks` | Transparency Sort Axis `(0, 1, -1)` e posição local `(0, 0, -BlockSortLift)`, com `BlockSortLift = 0.25` | o tile ordena pelo vértice de baixo do losango e o ator pelo centro da célula; sem o ajuste, o ator nas células da frente à esquerda e à direita empata com o bloco e aparece atrás dele. Com câmera ortográfica o Z não move o desenho, só o ponto de ordenação. Deslocar Y e compensar com a matriz do tile não funciona: a matriz também entra na ordenação |
 
 ```csharp
 namespace Game.Battle
@@ -272,7 +273,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
   - **Grid da batalha:** `BattleSession` roda o duelo numa cópia do grid da exploração, porque o `BattleState` exige células livres e os walkers já as ocupam. Os movimentos voltam para os walkers pelo `Outcome.Path`.
   - **CIRCULAR:** por enquanto vai para a célula alcançável mais próxima do oponente.
   - **Dados:** o Thrasybios vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id`, e as falas vêm de `battle.*` em `ui_text.json`.
-- **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar".
+- **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar". Na sandbox, o `RangeHighlightView` pinta essas células no tilemap `Range` (entre o chão e o cursor) com `hl_move`, `hl_refute` e `hl_maieutics`, só enquanto o jogador escolhe; o diretor limpa o realce no turno do oponente e ao sair da batalha.
 - **Oferta de Damaris:** `DamarisOffer.Apply` grava a escolha no save uma única vez.
   - Aceitar dá a flag `ability_inversion`, soma 200 em `drachmas` e grava `menexeno_absent_days`.
   - Recusar dá `ability_listening` e `menexeno_respect`.
@@ -418,7 +419,7 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
 - `PixelArtImporter` (`AssetPostprocessor`, porque Preset Manager exige Inspector) vale para tudo sob `/_Game/Art/`: Sprite, Point, sem compressão, PPU 16, sem mipmap, Full Rect. O modo é **sempre explícito** — `Multiple` só para `*_sheet.png`, `Single` para o resto —, porque o template 2D importa sprite novo como `Multiple` e aí o pivot definido no importer é ignorado. Tudo sob `/tiles/` recebe pivot `BottomLeft`.
 - Folhas 96×128 fatiadas em células 24×32 (`<personagem>_<se|sw|ne|nw>_<coluna>`) com pivot `(0.5, 0.0625)` por `ISpriteEditorDataProvider`, preservando o `spriteID` de cada célula entre regenerações.
 - Um Animator Controller por personagem em `Assets/_Game/Art/Placeholder/Animations/`, com estados `idle`, `walk` e `action`, cada um um blend tree 2D por `dirX`/`dirY`. Os clipes só trocam sprite (curva de referência de objeto, sem interpolação); curvas numéricas, quando existirem, usam tangentes `Constant`.
-- `Game.EditorTools.RenderSetupTools.Apply` gera `Assets/_Game/Prefabs/Camera/PixelPerfectCameraRig.prefab` (URP `PixelPerfectCamera`, referência 224×224, PPU 16, *Upscale Render Texture*, *Crop Frame* X/Y) e põe o `Renderer2D.asset` em Transparency Sort *Custom Axis* (0, 1, 0).
+- `Game.EditorTools.RenderSetupTools.Apply` gera `Assets/_Game/Prefabs/Camera/PixelPerfectCameraRig.prefab` (URP `PixelPerfectCamera`, referência 224×224, PPU 16, *Upscale Render Texture*, *Crop Frame* X/Y) e põe o `Renderer2D.asset` em Transparency Sort *Custom Axis* (0, 1, -1).
 - Tile de chão contorna só as bordas de cima; a de baixo é desenhada pelo vizinho da frente, e contorno nas quatro bordas vira linha dupla na junção. `ArtTools.RegenerateAll` roda `FloorTileSeams.ApplyToSourceFloors` antes de copiar, e um teste EditMode garante que nenhum chão em `art/` tem contorno na metade de baixo.
 - Trocar o modo de import de uma textura muda o fileID do sprite. Depois de mexer no importer, rode `ArtTools.SliceSheets` **e** `DataTools.Regenerate`, que religa os ícones dos `FallacySO`.
 
@@ -461,7 +462,7 @@ unity vcs doctor
   - O Font Asset é raster (sem anti-aliasing), com atlas 512 em filtro Point, e é congelado como estático depois de gravar latim básico e acentos do português, para a build não descartar o atlas.
   - A LiberationSans fica como fallback, porque é ela que tem o □ de glifo ausente.
   - A ferramenta define a fonte como `TMP_Settings.defaultFontAsset`, e todo label nasce dela. Rode antes de `BattleHudTools.BuildHud`.
-  - A fonte é monoespaçada e larga (8 px por caractere no tamanho 8). Por isso, labels de uma linha usam auto size de 5 a 8 em vez de truncar.
+  - A fonte é monoespaçada e larga (um caractere mede a largura do tamanho). O tamanho padrão é 6 (`BattleHudTools.FontSize`), e labels de uma linha usam auto size de 4 a 6 em vez de truncar.
 - **`BattleHudTools.BuildHud`:** gera `Assets/_Game/Prefabs/UI/BattleHud.prefab`, com Canvas *Screen Space – Overlay* e `CanvasScaler` de referência 224×224, barras, plateia e menu. Rode `DataTools.Regenerate` antes. Não use *Screen Space – Camera*: com a `PixelPerfectCamera` em *Upscale Render Texture*, a UI é desenhada na render texture de 224×224 e o texto de 8 px sai ilegível depois de ampliado. Em Overlay o layout escala junto e o TextMesh Pro rasteriza na resolução da tela.
 - **Rótulos e mensagens:** rótulos das ações e motivos de ação indisponível vêm de `Assets/_Game/Data/Source/ui_text.json`, gerado como `UiTextSO`. As chaves são `action.<acao>` e `rejection.<motivo>` em snake case (`UiTextKeys`), e uma chave ausente aparece como `#chave`, nunca como texto vazio.
 - **Menu:** `BattleMenuController` é puro (raiz, submenu de falácia, submenu de premissa). As views só desenham. Teclado e gamepad entram por `BattleMenuInput`, e o mouse entra por `MenuRowPointer`. O clique do mouse na ação `Confirm` é ignorado, para não confirmar duas vezes.
