@@ -283,7 +283,7 @@
         "Unity / Core",
         "QA / Testes"
       ],
-      "description": "**Depende de:** [DAT-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Janela custom que lista falácias e argumentos\n- [ ] Botão para validar um JSON colado contra o schema\n- [ ] Preview de como o argumento aparece na caixa de diálogo\n- [ ] Mesma validação exposta como comando do [CLI-03] (`validate_argument <file>`): valida o JSON sem abrir a janela\n\n**Contexto do Sprint 02.** Batalha e rede no mesmo sprint, mas em sequência: a batalha fecha 100% offline, só com o fallback do [DAT-04], antes do primeiro card de rede. Assim, quando algo falhar na integração, é rede — não regra de jogo. A chave da OpenAI nunca vai no build: todo tráfego passa pela Cloud Function, e o cliente só substitui o texto do fallback. Os comandos do [CLI-03] entram assim que o resolver existe, para montar estados de batalha pelo terminal. ~53 dias-pessoa."
+      "description": "**Depende de:** [DAT-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Janela custom que lista falácias e argumentos\n- [x] Botão para validar um JSON colado contra o schema\n- [x] Preview de como o argumento aparece na caixa de diálogo\n- [x] Mesma validação exposta como comando do [CLI-03] (`validate_argument <file>`): valida o JSON sem abrir a janela\n\n**Contexto do Sprint 02.** Batalha e rede no mesmo sprint, mas em sequência: a batalha fecha 100% offline, só com o fallback do [DAT-04], antes do primeiro card de rede. Assim, quando algo falhar na integração, é rede — não regra de jogo. A chave da OpenAI nunca vai no build: todo tráfego passa pela Cloud Function, e o cliente só substitui o texto do fallback. Os comandos do [CLI-03] entram assim que o resolver existe, para montar estados de batalha pelo terminal. ~53 dias-pessoa."
     },
     {
       "title": "[BTL-01] GameStateMachine Exploration ↔ Battle",
@@ -293,7 +293,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [x] Trigger de entrada: raio de aggro do adversário\n- [ ] Transição de câmera com zoom (hook do [EXP-03])\n- [x] Congelar input de exploração durante batalha\n- [x] Saída restaura posição e névoa sem recarregar a cena"
+      "description": "Mesma cena, sem load. Isso é o que dá a sensação de 'tactics dentro do mundo'.\n\n**Depende de:** [EXP-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Enum: Exploration, BattleIntro, BattleTurn, BattleResolve, BattleOutro, Dialogue, Paused\n- [x] Trigger de entrada: raio de aggro do adversário\n- [x] Transição de câmera com zoom (hook do [EXP-03])\n- [x] Congelar input de exploração durante batalha\n- [x] Saída restaura posição e névoa sem recarregar a cena"
     },
     {
       "title": "[BTL-02] Resolver de batalha",
@@ -342,7 +342,7 @@
         "Unity / Core",
         "QA / Testes"
       ],
-      "description": "O jogo expõe ao terminal as operações que QA e o agente de IA repetem dezenas de vezes. Chegar num estado de teste deixa de exigir clicar por menus.\n\n**Depende de:** [BTL-02], [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Comandos marcados com `[CliCommand]` num assembly `Game.DevCommands` que só compila no Editor e em Development Build\n- [ ] `grid_spawn` e `grid_clear`: spawna e remove atores na GridSandbox\n- [ ] `battle_start <opponent>` e `battle_simulate <n>`: inicia batalha e roda N batalhas simuladas, devolvendo o log do resolver\n- [ ] `save_dump` e `save_load <file>`: inspeciona e carrega saves de teste\n- [ ] `set_flag <name> <value>`: pula para qualquer ponto da narrativa\n- [ ] `validate_argument <file>`: mesma validação do [DAT-05]\n- [ ] Todo comando devolve JSON — quem consome é script ou agente, não pessoa\n- [ ] `unity list` mostra todos os comandos com o schema de parâmetros"
+      "description": "O jogo expõe ao terminal as operações que QA e o agente de IA repetem dezenas de vezes. Chegar num estado de teste deixa de exigir clicar por menus.\n\n**Depende de:** [BTL-02], [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Comandos marcados com `[CliCommand]` num assembly `Game.DevCommands` que só compila no Editor e em Development Build\n- [x] `grid_spawn` e `grid_clear`: spawna e remove atores na GridSandbox\n- [x] `battle_start <opponent>` e `battle_simulate <n>`: inicia batalha e roda N batalhas simuladas, devolvendo o log do resolver\n- [ ] `save_dump` e `save_load <file>`: inspeciona e carrega saves de teste\n- [ ] `set_flag <name> <value>`: pula para qualquer ponto da narrativa\n- [x] `validate_argument <file>`: mesma validação do [DAT-05]\n- [x] Todo comando devolve JSON — quem consome é script ou agente, não pessoa\n- [ ] `unity list` mostra todos os comandos com o schema de parâmetros"
     },
     {
       "title": "[QA-01] Teste de estresse do resolver",
@@ -434,7 +434,7 @@
         "Unity / Core",
         "IA / LLM"
       ],
-      "description": "**Depende de:** [LLM-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] LRU em disco, chave = hash do pedido\n- [ ] Limite de tamanho (ex.: 5MB) com descarte do mais antigo\n- [ ] Carregar no boot, salvar em background"
+      "description": "**Depende de:** [LLM-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] LRU em disco, chave = hash do pedido\n- [x] Limite de tamanho (ex.: 5MB) com descarte do mais antigo\n- [ ] Carregar no boot, salvar em background"
     },
     {
       "title": "[QA-02] Teste de modo avião",

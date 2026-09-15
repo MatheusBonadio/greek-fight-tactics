@@ -16,7 +16,8 @@
     "Unity.RenderPipelines.Universal.2D.Runtime",
     "Unity.InputSystem",
     "Game.UI",
-    "Unity.Cinemachine"
+    "Unity.Cinemachine",
+    "Game.DevCommands"
   ],
   "includePlatforms": [
     "Editor"

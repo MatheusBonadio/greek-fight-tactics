@@ -120,6 +120,17 @@ namespace Game.UI
             return true;
         }
 
+        public int ClearTestActors()
+        {
+            var spawned = actors.FindAll(actor => actor.Walker != null && actor.Walker.ActorId >= FirstSpawnedActorId);
+            foreach (var actor in spawned)
+            {
+                TryRemoveTestActor(actor.Walker.Cell);
+            }
+
+            return spawned.Count;
+        }
+
         public bool TryRemoveTestActor(Coord cell)
         {
             var target = actors.Find(actor => actor != player && actor.Walker != null && actor.Walker.Cell == cell);

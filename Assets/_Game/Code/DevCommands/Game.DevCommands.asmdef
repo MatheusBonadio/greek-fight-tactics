@@ -1,0 +1,24 @@
+{
+  "name": "Game.DevCommands",
+  "rootNamespace": "Game.DevCommands",
+  "references": [
+    "Game.Core",
+    "Game.Grid",
+    "Game.Battle",
+    "Game.Content",
+    "Game.Net",
+    "Game.UI",
+    "Unity.Pipeline"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_EDITOR || DEVELOPMENT_BUILD"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
