@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: invalid_disjunctive_syllogism
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: invalid_disjunctive_syllogism
+  displayName: "Silogismo disjuntivo inv\xE1lido"
+  description: "De \"A ou B\" e \"A\", conclui \"n\xE3o B\", quando os dois podiam ser verdade."
+  playerHint: "Esse \"ou\" exclu\xEDa mesmo a outra op\xE7\xE3o?"
+  icon: {fileID: -3530607828720211120, guid: 5361ef9db1739844a9ecce7c4bd1af5f, type: 3}
+  category: 1

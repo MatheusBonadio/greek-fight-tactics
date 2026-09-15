@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Ninguém jamais provou que Hefesto não abençoa este amuleto. Portanto ele abençoa, e custa apenas duas dracmas.",
+    "fallacy_id": "appeal_to_ignorance",
+    "premises": ["Ninguém provou que o amuleto não é abençoado", "O que ninguém refutou é verdadeiro"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  },
+  {
+    "speech": "Você não consegue provar que eu menti sobre o oráculo. Então tudo o que eu disse sobre ele só pode ser verdade.",
+    "fallacy_id": "appeal_to_ignorance",
+    "premises": ["Não há prova de que eu menti", "Sem prova de mentira, a fala é verdadeira"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Nenhum médico explicou por que a peste parou. Logo, foram as minhas preces que a detiveram, e ninguém pode negar isso.",
+    "fallacy_id": "appeal_to_ignorance",
+    "premises": ["A causa do fim da peste é desconhecida", "Uma causa desconhecida prova a minha explicação"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  }
+]

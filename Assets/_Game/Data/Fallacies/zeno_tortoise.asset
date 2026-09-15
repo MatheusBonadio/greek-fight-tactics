@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: zeno_tortoise
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: zeno_tortoise
+  displayName: Aquiles e a tartaruga
+  description: "Uma soma infinita de dist\xE2ncias parece impedir qualquer movimento."
+  playerHint: "N\xE3o h\xE1 erro a apontar. Pergunte o que \"infinito\" quer dizer aqui."
+  icon: {fileID: -7349099783971384677, guid: 12042b96ab0805c4da92e4b08cd2c6fa, type: 3}
+  category: 2

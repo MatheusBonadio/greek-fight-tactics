@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: ship_of_theseus
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: ship_of_theseus
+  displayName: O navio de Teseu
+  description: "Trocadas todas as t\xE1buas, ainda \xE9 o mesmo navio?"
+  playerHint: "N\xE3o h\xE1 erro a apontar. O que define \"o mesmo\"?"
+  icon: {fileID: 8223433594430462551, guid: 76e445dc6b9d8854d9fa470d350d2192, type: 3}
+  category: 2

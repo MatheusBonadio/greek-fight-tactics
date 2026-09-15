@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Um grão de areia não é um monte. Somar um grão ao que não é monte não faz um monte. Então nunca existiu monte algum?",
+    "fallacy_id": null,
+    "premises": ["Um grão não é um monte", "Um grão a mais nunca faz a diferença"],
+    "weak_premise": 1,
+    "tone": "curious"
+  },
+  {
+    "speech": "Um homem com cem mil fios de cabelo não é calvo. Tire um fio, e ele continua não sendo. Quando, então, ele fica calvo?",
+    "fallacy_id": null,
+    "premises": ["Quem tem muitos fios não é calvo", "Perder um único fio não muda nada"],
+    "weak_premise": 1,
+    "tone": "calm"
+  },
+  {
+    "speech": "Um óbolo não faz ninguém rico. Um óbolo a mais também não. Então nem o homem mais rico de Atenas é rico de verdade?",
+    "fallacy_id": null,
+    "premises": ["Um óbolo não enriquece ninguém", "Somar um óbolo nunca torna alguém rico"],
+    "weak_premise": 1,
+    "tone": "melancholic"
+  }
+]

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: flux_vs_permanence
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: flux_vs_permanence
+  displayName: Tudo flui e nada muda
+  description: "Her\xE1clito e Parm\xEAnides n\xE3o podem estar ambos certos, e cada um parece estar."
+  playerHint: "N\xE3o h\xE1 erro a apontar. Talvez seja preciso perder para um deles."
+  icon: {fileID: 3167836915034867874, guid: 95dc43f914fc05145bb91c4053e4b653, type: 3}
+  category: 2

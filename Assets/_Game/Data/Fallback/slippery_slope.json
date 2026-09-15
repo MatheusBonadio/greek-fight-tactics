@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Se deixarmos uma menina fazer perguntas hoje, amanhã os escravos exigirão votar, e depois Atenas cairá nas mãos dos bárbaros.",
+    "fallacy_id": "slippery_slope",
+    "premises": ["Uma menina faz perguntas na ágora", "Cada concessão leva sempre à seguinte, até a ruína"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Se eu baixar a taxa para você, todos vão querer desconto, o balcão vai falir e a cidade inteira ficará sem moeda.",
+    "fallacy_id": "slippery_slope",
+    "premises": ["Um desconto seria concedido", "Um único desconto leva a cidade à falência"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  },
+  {
+    "speech": "Perdoem a dívida de Aristeu e logo ninguém mais pagará nada. Em um ano, não haverá comércio algum no Cerâmico.",
+    "fallacy_id": "slippery_slope",
+    "premises": ["Uma dívida seria perdoada", "Um perdão faz todos deixarem de pagar"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  }
+]

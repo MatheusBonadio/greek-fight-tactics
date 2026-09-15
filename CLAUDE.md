@@ -15,16 +15,25 @@ Tactics isométrico de dialética (Atenas, 402 a.C.). Unity 6.6 (`6000.6.0f1`) 2
 ## Camadas
 
 ```
-Game.UI ──────▶ Game.Battle ──▶ Game.Grid ──▶ Game.Core
-                     │                            ▲
-                     └──────▶ Game.Net ───────────┘
+Game.UI ─┬─▶ Game.Battle ─────────────▶ Game.Grid ──▶ Game.Core
+         │                                  ▲             ▲
+         └─▶ Game.Net ──▶ Game.Content ─────┴─────────────┘
 ```
 
-A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Battle`; `Game.Battle` não conhece `Game.UI`. Cada camada é um Assembly Definition com o mesmo nome.
+A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Battle`; `Game.Battle` não conhece `Game.Net` nem `Game.UI`. Cada camada é um Assembly Definition com o mesmo nome.
 
-**`Game.Core`, `Game.Grid` e `Game.Battle` não referenciam `UnityEngine`** além de tipos matemáticos. Não é purismo: é o que torna a suíte inteira executável em EditMode headless, em segundos. Como tudo roda por CLI, um resolver que precisa de `MonoBehaviour` para ser testado é um resolver que não vai ser testado.
+| Camada | Conteúdo | Unity |
+|---|---|---|
+| `Game.Core` | `Coord`, enums, `Argument`, `ArgumentValidator`, `ArgumentTones`, `FallbackArgumentPicker` | No Engine References |
+| `Game.Grid` | `GridModel`, `IsoMath`, `PathFinder`, `FogOfWar` | só `Vector2` |
+| `Game.Battle` | resolver, estado e ações | No Engine References |
+| `Game.Content` | ScriptableObjects e tabelas por id | `ScriptableObject` |
+| `Game.Net` | JSON (Newtonsoft), fallback, cliente da Cloud Function | I/O |
+| `Game.UI` | `MonoBehaviour`, views, input | tudo |
 
-`Game.Net` e `Game.UI` são as únicas camadas que tocam `MonoBehaviour`, corrotinas e I/O.
+**Core, Grid e Battle não dependem da Unity** além de tipos matemáticos. Não é purismo: é o que torna a suíte inteira executável em EditMode headless, em segundos. Como tudo roda por CLI, um resolver que precisa de `MonoBehaviour` para ser testado é um resolver que não vai ser testado.
+
+O contrato do argumento mora em `Game.Core` porque é a fronteira entre duas camadas que não se conhecem: `Game.Net` produz `Argument`, `Game.Battle` consome.
 
 ---
 
@@ -54,7 +63,7 @@ Nunca consulte `Tilemap` para decidir regra. Ocupação, custo, transponibilidad
 
 ### 5. O jogo é completável offline
 
-Cada `fallacy_id` tem no mínimo 3 argumentos escritos à mão em `Resources/Fallback/`. Timeout de 2 s, 1 retry, falha silenciosa — o jogador nunca espera nem vê erro. Modo avião faz parte do critério de aceite de todo card que toca rede.
+Cada entrada do catálogo tem no mínimo 3 argumentos escritos à mão em `Assets/_Game/Data/Fallback/{id}.json`, referenciados como `TextAsset` pelo `FallbackLibrarySO` — sem pasta `Resources/`. Timeout de 2 s, 1 retry, falha silenciosa — o jogador nunca espera nem vê erro. Modo avião faz parte do critério de aceite de todo card que toca rede.
 
 ---
 
@@ -73,6 +82,29 @@ namespace Game.Core
     public enum Profile { Sophist, Philosopher }
     public enum ActionId { Circulate, Refute, Maieutics, Quote, Concede, Withdraw }
     public enum Act { One = 1, Two = 2 }
+    public enum FallacyCategory { Informal, Formal, Paradox }
+
+    public readonly struct Argument
+    {
+        public readonly string Speech;
+        public readonly string FallacyId;
+        public readonly IReadOnlyList<string> Premises;
+        public readonly int WeakPremise;
+        public readonly string Tone;
+
+        public Argument(string speech, string fallacyId, IEnumerable<string> premises, int weakPremise, string tone);
+
+        public bool IsRefutable => FallacyId != null;
+    }
+
+    public sealed class ArgumentValidator
+    {
+        public const int MinSpeechLength = 40;
+        public const int MaxSpeechLength = 300;
+
+        public ArgumentValidator(IEnumerable<string> refutableFallacyIds);
+        public ArgumentViolation Validate(in Argument argument);
+    }
 }
 ```
 
@@ -141,17 +173,6 @@ Tile 32×16 com PPU 16 dá célula de 1,0 × 0,5 unidades. Na Unity o eixo Y cre
 ```csharp
 namespace Game.Battle
 {
-    public readonly struct Argument
-    {
-        public readonly string Speech;
-        public readonly string FallacyId;
-        public readonly string[] Premises;
-        public readonly int WeakPremise;
-        public readonly string Tone;
-
-        public bool IsRefutable => FallacyId != null;
-    }
-
     public readonly struct Play
     {
         public readonly ActionId Action;
@@ -227,7 +248,7 @@ Montagem em `Game.Net`:
 ```csharp
 IArgumentProvider provider = new CachedArgumentProvider(
     primary: new RemoteArgumentProvider(cloudFunctionClient, timeout: TimeSpan.FromSeconds(2), retries: 1),
-    fallback: new LocalArgumentProvider(Resources.LoadAll<ArgumentSO>("Fallback")));
+    fallback: new LocalArgumentProvider(new FallbackArgumentLibrary(fallbackLibrary, validator, seed)));
 ```
 
 `RemoteArgumentProvider` nunca lança para o chamador — timeout, 4xx, 5xx e payload inválido viram "não consegui", e o decorator cai na reserva. O turno jamais bloqueia esperando rede.
@@ -246,7 +267,7 @@ IArgumentProvider provider = new CachedArgumentProvider(
 }
 ```
 
-`fallacy_id` existe no catálogo (ou é `null` num paradoxo), `weak_premise` é índice válido de `premises`, `speech` tem entre 40 e 300 caracteres. Chaves e valores de enum em inglês; `speech` e `premises` em português, porque são texto de jogo. O cliente revalida por garantia, mas a fronteira de confiança é o servidor.
+`fallacy_id` é uma falácia refutável do catálogo (ou `null` num paradoxo), `weak_premise` é índice válido de `premises`, `speech` tem entre 40 e 300 caracteres e `tone` pertence a `ArgumentTones`. Chaves e valores de enum em inglês; `speech` e `premises` em português, porque são texto de jogo. O schema formal está em `docs/argument.schema.json`, e um teste EditMode garante que ele bate com o catálogo. O cliente revalida com `ArgumentValidator` por garantia, mas a fronteira de confiança é o servidor.
 
 ---
 
@@ -279,15 +300,22 @@ Conteúdo é ScriptableObject em `Assets/_Game/Data/`, nunca código. Se você e
 
 | SO | Campos principais |
 |---|---|
-| `FallacySO` | `id`, `displayName`, `description`, `hint`, `icon`, `category` (`Informal` / `Formal` / `Paradox`) |
+| SO | Campos principais |
+|---|---|
+| `FallacySO` | `id`, `displayName`, `description`, `playerHint`, `icon`, `category` (`Informal` / `Formal` / `Paradox`) |
+| `FallacyCatalogSO` | `Dictionary<string, FallacySO>` por id |
 | `OpponentSO` | `displayName`, `sheet`, `maxCoherence`, `initialAudience`, `fallacyPool`, `act`, `profile` |
-| `ArgumentSO` | espelha o JSON do argumento — usado no fallback e nos testes |
+| `ArgumentSO` | espelha o JSON do argumento |
+| `FallbackLibrarySO` | `Dictionary<string, TextAsset>`: id do catálogo → JSON com os argumentos escritos à mão |
+| `TerrainCostTableSO` | `Dictionary<TerrainId, byte>` |
 | `AbilitySO` | `Inversion` e `Listening` (ramificação Damaris) |
-| `QuoteItemSO` | `displayName`, `effect`, `uses` |
+| `QuoteItemSO` | `displayName`, `effectDescription`, `coherenceDelta`, `audienceDelta`, `uses` |
+
+Tabelas por id são `Dictionary` serializado com `[SerializeField]`, nativo no 6.6 — nada de listas paralelas. O analyzer de serialização (UAC1xxx) roda na compilação e não pode emitir aviso.
 
 Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e vive só nesses dados.
 
-**Sem Editor, SOs são criados por script.** `AssetDatabase.CreateAsset` chamado por `-executeMethod`, gerando a partir de CSV/JSON versionado em `Assets/_Game/Data/Source/`. O catálogo de 20 falácias fica legível em diff, e regenerar é idempotente.
+**Sem Editor, SOs são criados por script.** `Game.EditorTools.DataTools.Regenerate` lê `Assets/_Game/Data/Source/*.json` e `Assets/_Game/Data/Fallback/*.json` e (re)cria catálogo, ícones, tabela de custos e biblioteca de fallback. O conteúdo fica legível em diff, a regeneração é idempotente e falha com código diferente de zero se algum argumento de fallback não passar no `ArgumentValidator`.
 
 ---
 

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: four_terms
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: four_terms
+  displayName: Quatro termos
+  description: "Silogismo que parece ter tr\xEAs termos, mas um deles muda de sentido no caminho."
+  playerHint: 'Conte os termos: algum aparece com dois significados?'
+  icon: {fileID: -9160154748093984925, guid: 64c7fa3c5dc3918448cfe9d9cb6238ac, type: 3}
+  category: 1

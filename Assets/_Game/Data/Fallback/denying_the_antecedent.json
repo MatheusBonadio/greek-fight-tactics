@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Se você fosse rica, poderia pagar um mestre. Você não é rica. Logo, não pode aprender nada que tenha valor, menina.",
+    "fallacy_id": "denying_the_antecedent",
+    "premises": ["Se fosse rica, poderia pagar um mestre", "Kleia não é rica"],
+    "weak_premise": 0,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Quem estudou na Academia sabe geometria. Menexeno nunca estudou lá. Portanto ele não sabe geometria alguma.",
+    "fallacy_id": "denying_the_antecedent",
+    "premises": ["Se alguém estudou na Academia, sabe geometria", "Menexeno nunca estudou na Academia"],
+    "weak_premise": 0,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "Se o oráculo tivesse falado contra mim, eu estaria arruinado. O oráculo não falou contra mim. Logo, nada pode me arruinar.",
+    "fallacy_id": "denying_the_antecedent",
+    "premises": ["Uma fala do oráculo contra mim me arruinaria", "O oráculo não falou contra mim"],
+    "weak_premise": 0,
+    "tone": "theatrical"
+  }
+]

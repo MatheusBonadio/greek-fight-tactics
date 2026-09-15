@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Esta ânfora não é uma ânfora, pois ânfora é o vaso ritual das Panateneias. O que o homem comprou é só um vaso comum.",
+    "fallacy_id": "equivocation",
+    "premises": ["Ânfora é apenas o vaso ritual das Panateneias", "Todo vaso de duas alças é chamado ânfora"],
+    "weak_premise": 0,
+    "tone": "mocking"
+  },
+  {
+    "speech": "O fim de uma coisa é a sua perfeição. A morte é o fim da vida. Logo, a morte é a perfeição da vida, e não há o que temer.",
+    "fallacy_id": "equivocation",
+    "premises": ["O fim de uma coisa é a sua perfeição", "A morte é o fim da vida"],
+    "weak_premise": 0,
+    "tone": "cunning"
+  },
+  {
+    "speech": "Um homem livre age por vontade própria. Kleia não é livre para votar. Então tudo o que ela diz é por ordem de outro.",
+    "fallacy_id": "equivocation",
+    "premises": ["Kleia não é livre para votar", "Quem não é livre para votar não age por vontade própria"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Comprei peixe de dois pescadores do porto e os dois me enganaram no peso. Todo pescador de Atenas é um ladrão.",
+    "fallacy_id": "hasty_generalization",
+    "premises": ["Dois pescadores enganaram no peso", "Dois casos bastam para julgar todos os pescadores"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "Conheci uma mulher que discutia na rua, e ela mentia. Portanto nenhuma mulher deveria abrir a boca na ágora.",
+    "fallacy_id": "hasty_generalization",
+    "premises": ["Uma mulher que discutia mentiu", "O que vale para uma mulher vale para todas"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Os três últimos jovens que vieram da Academia eram arrogantes. A Academia só forma arrogantes, isso está mais que claro.",
+    "fallacy_id": "hasty_generalization",
+    "premises": ["Três alunos da Academia foram arrogantes", "Três alunos representam a escola inteira"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  }
+]

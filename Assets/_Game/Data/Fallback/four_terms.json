@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "O homem é racional. Aquele retrato na parede é um homem. Logo, o retrato é racional, e vocês deveriam ouvir o que ele diz.",
+    "fallacy_id": "four_terms",
+    "premises": ["O homem é racional", "O retrato na parede é um homem"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Nada é melhor que a sabedoria. Um pão velho é melhor que nada. Logo, um pão velho é melhor que a sabedoria.",
+    "fallacy_id": "four_terms",
+    "premises": ["Nada é melhor que a sabedoria", "Um pão velho é melhor que nada"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Quem tem mais dracmas tem mais peso na cidade. Quem tem mais peso afunda no rio. Logo, os ricos afundam, e por isso não nado.",
+    "fallacy_id": "four_terms",
+    "premises": ["Quem tem mais dracmas tem mais peso", "Quem tem mais peso afunda no rio"],
+    "weak_premise": 0,
+    "tone": "theatrical"
+  }
+]

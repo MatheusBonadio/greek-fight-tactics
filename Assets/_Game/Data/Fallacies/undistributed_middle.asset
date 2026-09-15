@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: undistributed_middle
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: undistributed_middle
+  displayName: "Termo m\xE9dio n\xE3o distribu\xEDdo"
+  description: "Junta dois grupos s\xF3 porque ambos compartilham uma caracter\xEDstica."
+  playerHint: Ter algo em comum faz de dois grupos o mesmo grupo?
+  icon: {fileID: -2604265402861910789, guid: 82028944958a37b47a6d82d746a92368, type: 3}
+  category: 1

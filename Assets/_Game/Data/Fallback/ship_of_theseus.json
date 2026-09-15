@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Os atenienses trocaram cada tábua do navio de Teseu, uma a uma. O navio no porto ainda é o de Teseu, ou é outro navio?",
+    "fallacy_id": null,
+    "premises": ["Todas as tábuas foram trocadas", "Um navio é apenas a soma das suas tábuas"],
+    "weak_premise": 1,
+    "tone": "solemn"
+  },
+  {
+    "speech": "Se juntarmos as tábuas velhas e montarmos outro navio, qual dos dois é o de Teseu? Não podem ser os dois ao mesmo tempo.",
+    "fallacy_id": null,
+    "premises": ["As tábuas velhas formam um segundo navio", "Só um dos navios pode ser o original"],
+    "weak_premise": 1,
+    "tone": "curious"
+  },
+  {
+    "speech": "Seu corpo troca de matéria ao longo dos anos, Kleia. A menina que pintava ânforas é a mesma que agora me faz perguntas?",
+    "fallacy_id": null,
+    "premises": ["O corpo renova a sua matéria com o tempo", "Ser a mesma pessoa é ter a mesma matéria"],
+    "weak_premise": 1,
+    "tone": "melancholic"
+  }
+]

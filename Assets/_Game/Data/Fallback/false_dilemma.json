@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Ou você respeita os deuses, ou você é como Sócrates. Não existe meio-termo, menina. Escolha agora de que lado está.",
+    "fallacy_id": "false_dilemma",
+    "premises": ["Só existem duas posições possíveis", "Quem não honra os deuses do meu jeito é igual a Sócrates"],
+    "weak_premise": 0,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Ou você compra as minhas aulas, ou vai perder todas as discussões da sua vida. São só três dracmas, e a escolha é sua.",
+    "fallacy_id": "false_dilemma",
+    "premises": ["Só as minhas aulas ensinam a argumentar", "Sem elas, toda discussão está perdida"],
+    "weak_premise": 0,
+    "tone": "cunning"
+  },
+  {
+    "speech": "Ou trocam o dinheiro no meu balcão, ou serão roubados no porto. Não existe outro cambista confiável em toda Atenas.",
+    "fallacy_id": "false_dilemma",
+    "premises": ["Só há dois lugares para trocar moedas", "O porto sempre rouba quem troca lá"],
+    "weak_premise": 0,
+    "tone": "cunning"
+  }
+]

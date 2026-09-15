@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Um cretense diz: todos os cretenses mentem. Se ele diz a verdade, mente. Se mente, diz a verdade. O que você responde?",
+    "fallacy_id": null,
+    "premises": ["O cretense afirma que todos os cretenses mentem", "Toda frase é verdadeira ou falsa"],
+    "weak_premise": 1,
+    "tone": "curious"
+  },
+  {
+    "speech": "Eu afirmo agora: esta frase que digo é falsa. Refute-me, se puder. Mas diga antes se ela é verdadeira ou falsa.",
+    "fallacy_id": null,
+    "premises": ["A frase declara a própria falsidade", "Uma frase precisa ser verdadeira ou falsa"],
+    "weak_premise": 1,
+    "tone": "calm"
+  },
+  {
+    "speech": "Escrevi num lado da tabuinha que o outro lado é verdadeiro, e no outro que o primeiro é falso. Qual lado mente, menina?",
+    "fallacy_id": null,
+    "premises": ["Cada lado da tabuinha fala do outro", "Pelo menos um dos lados precisa mentir"],
+    "weak_premise": 1,
+    "tone": "melancholic"
+  }
+]

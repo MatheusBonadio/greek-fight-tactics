@@ -1,0 +1,144 @@
+{
+  "fallacies": [
+    {
+      "id": "ad_hominem",
+      "category": "Informal",
+      "display_name": "Ad hominem",
+      "description": "Ataca quem fala em vez do que foi dito.",
+      "player_hint": "O argumento trocou o assunto pela origem, pela vida ou pelo caráter de alguém?"
+    },
+    {
+      "id": "straw_man",
+      "category": "Informal",
+      "display_name": "Espantalho",
+      "description": "Distorce a posição do outro para derrubar uma versão mais fraca dela.",
+      "player_hint": "Foi isso mesmo que foi dito, ou uma caricatura do que foi dito?"
+    },
+    {
+      "id": "false_dilemma",
+      "category": "Informal",
+      "display_name": "Falso dilema",
+      "description": "Apresenta só duas opções quando existem outras.",
+      "player_hint": "Existe uma terceira saída que ninguém mencionou?"
+    },
+    {
+      "id": "appeal_to_authority",
+      "category": "Informal",
+      "display_name": "Apelo à autoridade",
+      "description": "Toma algo por verdadeiro só porque alguém importante afirmou.",
+      "player_hint": "Essa pessoa entende do assunto, ou só tem fama?"
+    },
+    {
+      "id": "appeal_to_ignorance",
+      "category": "Informal",
+      "display_name": "Apelo à ignorância",
+      "description": "Conclui que algo é verdadeiro porque ninguém provou o contrário.",
+      "player_hint": "Falta de prova contra é o mesmo que prova a favor?"
+    },
+    {
+      "id": "hasty_generalization",
+      "category": "Informal",
+      "display_name": "Generalização apressada",
+      "description": "Tira uma regra geral de poucos casos.",
+      "player_hint": "Quantos exemplos sustentam esse \"todos\"?"
+    },
+    {
+      "id": "slippery_slope",
+      "category": "Informal",
+      "display_name": "Ladeira escorregadia",
+      "description": "Afirma que um primeiro passo leva inevitavelmente a uma catástrofe.",
+      "player_hint": "Cada passo da cadeia é mesmo inevitável?"
+    },
+    {
+      "id": "appeal_to_emotion",
+      "category": "Informal",
+      "display_name": "Apelo à emoção",
+      "description": "Troca razões por medo, pena ou raiva.",
+      "player_hint": "Tire o sentimento da frase: sobra algum argumento?"
+    },
+    {
+      "id": "equivocation",
+      "category": "Informal",
+      "display_name": "Equívoco",
+      "description": "Usa a mesma palavra com dois sentidos dentro do mesmo raciocínio.",
+      "player_hint": "A palavra-chave significa a mesma coisa do começo ao fim?"
+    },
+    {
+      "id": "begging_the_question",
+      "category": "Informal",
+      "display_name": "Petição de princípio",
+      "description": "A conclusão já está escondida nas premissas.",
+      "player_hint": "O argumento prova algo, ou só repete o que queria provar?"
+    },
+    {
+      "id": "affirming_the_consequent",
+      "category": "Formal",
+      "display_name": "Afirmação do consequente",
+      "description": "De \"se A, então B\" e \"B\", conclui \"A\".",
+      "player_hint": "B poderia ter outra causa além de A?"
+    },
+    {
+      "id": "denying_the_antecedent",
+      "category": "Formal",
+      "display_name": "Negação do antecedente",
+      "description": "De \"se A, então B\" e \"não A\", conclui \"não B\".",
+      "player_hint": "B poderia acontecer mesmo sem A?"
+    },
+    {
+      "id": "undistributed_middle",
+      "category": "Formal",
+      "display_name": "Termo médio não distribuído",
+      "description": "Junta dois grupos só porque ambos compartilham uma característica.",
+      "player_hint": "Ter algo em comum faz de dois grupos o mesmo grupo?"
+    },
+    {
+      "id": "four_terms",
+      "category": "Formal",
+      "display_name": "Quatro termos",
+      "description": "Silogismo que parece ter três termos, mas um deles muda de sentido no caminho.",
+      "player_hint": "Conte os termos: algum aparece com dois significados?"
+    },
+    {
+      "id": "invalid_disjunctive_syllogism",
+      "category": "Formal",
+      "display_name": "Silogismo disjuntivo inválido",
+      "description": "De \"A ou B\" e \"A\", conclui \"não B\", quando os dois podiam ser verdade.",
+      "player_hint": "Esse \"ou\" excluía mesmo a outra opção?"
+    },
+    {
+      "id": "zeno_tortoise",
+      "category": "Paradox",
+      "display_name": "Aquiles e a tartaruga",
+      "description": "Uma soma infinita de distâncias parece impedir qualquer movimento.",
+      "player_hint": "Não há erro a apontar. Pergunte o que \"infinito\" quer dizer aqui."
+    },
+    {
+      "id": "liar",
+      "category": "Paradox",
+      "display_name": "O Mentiroso",
+      "description": "\"Esta frase é falsa\" não pode ser verdadeira nem falsa.",
+      "player_hint": "Não há erro a apontar. Às vezes a jogada certa é conceder."
+    },
+    {
+      "id": "sorites",
+      "category": "Paradox",
+      "display_name": "O monte de areia",
+      "description": "Tirar um grão não desfaz o monte, mas tirar todos desfaz.",
+      "player_hint": "Não há erro a apontar. Onde fica a fronteira da palavra?"
+    },
+    {
+      "id": "ship_of_theseus",
+      "category": "Paradox",
+      "display_name": "O navio de Teseu",
+      "description": "Trocadas todas as tábuas, ainda é o mesmo navio?",
+      "player_hint": "Não há erro a apontar. O que define \"o mesmo\"?"
+    },
+    {
+      "id": "flux_vs_permanence",
+      "category": "Paradox",
+      "display_name": "Tudo flui e nada muda",
+      "description": "Heráclito e Parmênides não podem estar ambos certos, e cada um parece estar.",
+      "player_hint": "Não há erro a apontar. Talvez seja preciso perder para um deles."
+    }
+  ]
+}

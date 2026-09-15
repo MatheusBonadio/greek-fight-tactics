@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: liar
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: liar
+  displayName: O Mentiroso
+  description: "\"Esta frase \xE9 falsa\" n\xE3o pode ser verdadeira nem falsa."
+  playerHint: "N\xE3o h\xE1 erro a apontar. \xC0s vezes a jogada certa \xE9 conceder."
+  icon: {fileID: 4105501244855940855, guid: 2b56f26561b7948428ec59569bc37127, type: 3}
+  category: 2

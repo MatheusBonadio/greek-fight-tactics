@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Kleia diz que devemos questionar os mais velhos. Então ela quer que nenhum filho obedeça ao pai e que Atenas vire um caos!",
+    "fallacy_id": "straw_man",
+    "premises": ["Kleia defende fazer perguntas aos mais velhos", "Fazer perguntas equivale a desobedecer a tudo"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Minha adversária quer que os pobres falem na Assembleia. Ou seja, quer entregar a cidade aos que nada sabem de governo.",
+    "fallacy_id": "straw_man",
+    "premises": ["Ela pede voz aos pobres", "Dar voz a alguém é o mesmo que entregar o governo a ele"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "Menexeno disse que ensinar de graça é nobre. Então ele acha que todo mestre que cobra é um ladrão! Que ofensa aos sofistas honestos.",
+    "fallacy_id": "straw_man",
+    "premises": ["Menexeno elogia o ensino gratuito", "Elogiar quem ensina de graça é acusar quem cobra"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  }
+]

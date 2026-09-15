@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 292beab4c0d64d24490be6753a399a28, type: 3}
+  m_Name: FallacyCatalog
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacyCatalogSO
+  fallacies:
+  - key: ad_hominem
+    value: {fileID: 11400000, guid: 52b494b19f621ed499bcd6dbee0a06da, type: 2}
+  - key: straw_man
+    value: {fileID: 11400000, guid: 1f9be899a6fb6a744ba83cf9c1eaae60, type: 2}
+  - key: false_dilemma
+    value: {fileID: 11400000, guid: 134c4ff3c09ec154a8c6d84422fcf9ff, type: 2}
+  - key: appeal_to_authority
+    value: {fileID: 11400000, guid: ca830139428897342ae51031418dea30, type: 2}
+  - key: appeal_to_ignorance
+    value: {fileID: 11400000, guid: 6e165a408dbc2924da5e446e592fec55, type: 2}
+  - key: hasty_generalization
+    value: {fileID: 11400000, guid: a3ce3357129ff4244a6e665299bb3986, type: 2}
+  - key: slippery_slope
+    value: {fileID: 11400000, guid: 2fae38e2f284d62429ef9a4bba7cf20a, type: 2}
+  - key: appeal_to_emotion
+    value: {fileID: 11400000, guid: 92830def39410cf47bc60eec8e8da713, type: 2}
+  - key: equivocation
+    value: {fileID: 11400000, guid: 574ef4d5ce24c244bb4641199198a3e7, type: 2}
+  - key: begging_the_question
+    value: {fileID: 11400000, guid: eec1d3f1540f814459faa19e11e647e3, type: 2}
+  - key: affirming_the_consequent
+    value: {fileID: 11400000, guid: 775dc9c74f1405048a6164fbefaace33, type: 2}
+  - key: denying_the_antecedent
+    value: {fileID: 11400000, guid: cf510c46b7e3b204aa82e23342741639, type: 2}
+  - key: undistributed_middle
+    value: {fileID: 11400000, guid: 8d8af6fbed167df46ad70d6d03ca9735, type: 2}
+  - key: four_terms
+    value: {fileID: 11400000, guid: a3adc8daff52a7a4395efd66f1b8773f, type: 2}
+  - key: invalid_disjunctive_syllogism
+    value: {fileID: 11400000, guid: 81cc4026444170d40813c04a1d44a9b5, type: 2}
+  - key: zeno_tortoise
+    value: {fileID: 11400000, guid: 1e7ae9e8ee1c86e4fb224cdb204dddeb, type: 2}
+  - key: liar
+    value: {fileID: 11400000, guid: 24740aa614c42aa4f85ab7ab37b51db6, type: 2}
+  - key: sorites
+    value: {fileID: 11400000, guid: 6c2b5084dac544b43a19e2f8d80d5dcb, type: 2}
+  - key: ship_of_theseus
+    value: {fileID: 11400000, guid: 599b1e22fa3f9b14db9b298443ad5ef5, type: 2}
+  - key: flux_vs_permanence
+    value: {fileID: 11400000, guid: 939de32657c88dd4ba2cc7dc36c7634b, type: 2}

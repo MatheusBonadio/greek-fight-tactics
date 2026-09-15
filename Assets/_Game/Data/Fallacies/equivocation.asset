@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: equivocation
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: equivocation
+  displayName: "Equ\xEDvoco"
+  description: "Usa a mesma palavra com dois sentidos dentro do mesmo racioc\xEDnio."
+  playerHint: "A palavra-chave significa a mesma coisa do come\xE7o ao fim?"
+  icon: {fileID: 2800637577927338550, guid: 9025d840fb61518489ddf25de1cc9cdc, type: 3}
+  category: 0

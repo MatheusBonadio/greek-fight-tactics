@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Para alcançar a tartaruga, Aquiles precisa chegar aonde ela estava. Mas ela já andou. E assim para sempre. Como ele a alcança?",
+    "fallacy_id": null,
+    "premises": ["Aquiles precisa chegar aonde a tartaruga estava", "Sempre resta uma distância a percorrer"],
+    "weak_premise": 1,
+    "tone": "curious"
+  },
+  {
+    "speech": "Para cruzar a ágora você precisa cruzar a metade dela, e antes a metade da metade. São infinitos passos. Como chegou aqui?",
+    "fallacy_id": null,
+    "premises": ["Toda distância tem uma metade", "Infinitos passos não podem ser completados"],
+    "weak_premise": 1,
+    "tone": "calm"
+  },
+  {
+    "speech": "A flecha, em cada instante, ocupa um lugar do seu tamanho, parada. Se está parada em cada instante, quando é que ela voa?",
+    "fallacy_id": null,
+    "premises": ["Em cada instante a flecha ocupa um lugar fixo", "O tempo é feito apenas de instantes"],
+    "weak_premise": 1,
+    "tone": "solemn"
+  }
+]

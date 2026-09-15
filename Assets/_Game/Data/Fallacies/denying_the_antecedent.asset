@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d33c62f67f334eb4f8cda7be02bbe856, type: 3}
+  m_Name: denying_the_antecedent
+  m_EditorClassIdentifier: Game.Content::Game.Content.FallacySO
+  id: denying_the_antecedent
+  displayName: "Nega\xE7\xE3o do antecedente"
+  description: "De \"se A, ent\xE3o B\" e \"n\xE3o A\", conclui \"n\xE3o B\"."
+  playerHint: B poderia acontecer mesmo sem A?
+  icon: {fileID: 7479480753453096953, guid: c2b1b953649da3c408c806af24342fc1, type: 3}
+  category: 1

@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Ninguém entra duas vezes no mesmo rio, pois as águas já são outras. Se tudo flui, o que é você, que me escuta agora?",
+    "fallacy_id": null,
+    "premises": ["As águas do rio mudam sempre", "Tudo o que existe muda sem parar"],
+    "weak_premise": 1,
+    "tone": "solemn"
+  },
+  {
+    "speech": "O que é, é, e não pode deixar de ser. Mudar exigiria que o ser viesse do nada. Logo nada muda, embora tudo pareça mudar.",
+    "fallacy_id": null,
+    "premises": ["O ser não pode vir do não-ser", "Toda mudança exige que algo venha do nada"],
+    "weak_premise": 1,
+    "tone": "calm"
+  },
+  {
+    "speech": "Heráclito diz que tudo muda; Parmênides, que nada muda. Os dois falam com razão. Você terá de perder para um deles.",
+    "fallacy_id": null,
+    "premises": ["Heráclito mostra que tudo muda", "Parmênides mostra que nada muda"],
+    "weak_premise": 0,
+    "tone": "melancholic"
+  }
+]

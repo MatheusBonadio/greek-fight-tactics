@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Olhem para as mãos tortas deste velho oleiro! Como podem ficar do lado da filha dele contra mim, que só quero ajudá-lo?",
+    "fallacy_id": "appeal_to_emotion",
+    "premises": ["Aristeu sofre de artrite", "Sentir pena de alguém mostra quem tem razão"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Lembrem-se dos Trinta Tiranos, do sangue nas ruas! Quem faz perguntas demais quer trazer aquele terror de volta. Tenham medo!",
+    "fallacy_id": "appeal_to_emotion",
+    "premises": ["Os Trinta Tiranos aterrorizaram Atenas", "O medo do passado prova a acusação de hoje"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Meus filhos passarão fome se vocês derem razão a ela contra mim. Vocês têm coragem de fazer isso com crianças inocentes?",
+    "fallacy_id": "appeal_to_emotion",
+    "premises": ["O sofista tem filhos para sustentar", "A fome dos filhos decide quem vence o debate"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  }
+]

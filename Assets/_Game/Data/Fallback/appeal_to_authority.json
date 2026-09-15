@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Protágoras, o maior dos sábios, disse que o homem é a medida de todas as coisas. Se ele disse, está decidido: calem-se.",
+    "fallacy_id": "appeal_to_authority",
+    "premises": ["Protágoras é famoso e respeitado", "O que um homem famoso diz é verdade"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "O arconte comprou uma ânfora na minha banca e disse que é a melhor da ágora. Quem é você para discordar de um arconte?",
+    "fallacy_id": "appeal_to_authority",
+    "premises": ["O arconte elogiou a ânfora", "A opinião de um arconte sobre cerâmica é prova"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "Um general que venceu em Arginusas me garantiu que o eclipse traz desgraça. Um herói de guerra não se engana sobre o céu.",
+    "fallacy_id": "appeal_to_authority",
+    "premises": ["O general é um herói de guerra", "Heróis de guerra entendem dos astros"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  }
+]

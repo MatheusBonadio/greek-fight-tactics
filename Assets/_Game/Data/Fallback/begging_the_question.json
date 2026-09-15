@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Minhas aulas são as melhores de Atenas porque nenhuma aula é melhor que as minhas. Isso deveria bastar para qualquer um.",
+    "fallacy_id": "begging_the_question",
+    "premises": ["Nenhuma aula é melhor que as minhas"],
+    "weak_premise": 0,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "Os deuses existem, pois os poemas sagrados dizem isso. E os poemas são sagrados porque foram inspirados pelos deuses.",
+    "fallacy_id": "begging_the_question",
+    "premises": ["Os poemas sagrados afirmam que os deuses existem", "Os poemas são sagrados porque os deuses os inspiraram"],
+    "weak_premise": 1,
+    "tone": "theatrical"
+  },
+  {
+    "speech": "Eu sou honesto, e você pode confiar nisso porque sou eu mesmo que estou dizendo, e um homem honesto nunca mente sobre si.",
+    "fallacy_id": "begging_the_question",
+    "premises": ["Eu afirmo que sou honesto", "Um homem honesto não mente sobre si mesmo"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "speech": "Kleia é filha de oleiro e mal sabe ler. Que valor pode ter o que ela diz sobre justiça? Ignorem a menina e escutem quem estudou.",
+    "fallacy_id": "ad_hominem",
+    "premises": ["Kleia é filha de um oleiro", "Quem vem do Cerâmico não pode julgar a justiça"],
+    "weak_premise": 1,
+    "tone": "mocking"
+  },
+  {
+    "speech": "Menexeno fala de virtude, mas passou a vida bebendo nas tavernas do Pireu. Um bêbado não pode ter razão sobre coisa alguma.",
+    "fallacy_id": "ad_hominem",
+    "premises": ["Menexeno frequenta as tavernas do Pireu", "Quem bebe erra em tudo o que afirma"],
+    "weak_premise": 1,
+    "tone": "arrogant"
+  },
+  {
+    "speech": "A estrangeira de Abdera quer mudar nossos costumes? Nem cidadã ela é. Tudo o que ela propõe deve ser rejeitado sem discussão.",
+    "fallacy_id": "ad_hominem",
+    "premises": ["Damaris é estrangeira", "Uma proposta é falsa por causa da origem de quem a faz"],
+    "weak_premise": 1,
+    "tone": "cunning"
+  }
+]
