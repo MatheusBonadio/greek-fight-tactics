@@ -69,7 +69,7 @@ Regras duras, verificadas antes de qualquer arte entrar em `art/`:
 
 1. Todo pixel opaco pertence à paleta. Sem exceção para "quase igual".
 2. Máximo de 15 cores + transparente por sprite.
-3. Contorno de tile de chão é `outline_blue`; de props e personagens, `outline`.
+3. Contorno de tile de chão é `outline_blue`; de props e personagens, `outline`. O tile de chão só contorna as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com contorno nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
 ---

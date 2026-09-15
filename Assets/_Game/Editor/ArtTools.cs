@@ -55,6 +55,12 @@ namespace Game.EditorTools
 
         public static void RegenerateAll()
         {
+            var seams = FloorTileSeams.ApplyToSourceFloors();
+            if (seams > 0)
+            {
+                Debug.Log($"[ArtTools] removed the bottom outline from {seams} floor tiles");
+            }
+
             var copied = CopyPlaceholders();
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             AssetDatabase.ImportAsset(PlaceholderFolder, ImportAssetOptions.ImportRecursive | ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
