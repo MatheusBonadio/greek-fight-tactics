@@ -105,6 +105,9 @@ namespace Game.EditorTools
             label.fontSize = BattleHudTools.FontSize;
             label.alignment = alignment;
             label.textWrappingMode = wrap ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
+            label.enableAutoSizing = !wrap;
+            label.fontSizeMin = BattleHudTools.MinFontSize;
+            label.fontSizeMax = BattleHudTools.FontSize;
             label.overflowMode = TextOverflowModes.Truncate;
             label.raycastTarget = false;
             return label;

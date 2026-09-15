@@ -448,6 +448,7 @@ unity run . -- -nographics -executeMethod Game.EditorTools.RenderSetupTools.Appl
 unity run . -- -nographics -executeMethod Game.EditorTools.SandboxTools.BuildSandbox -logFile -
 unity run . -- -executeMethod Game.EditorTools.SandboxTools.CaptureReference -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.UiTools.ImportTextMeshProEssentials -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.FontTools.BuildPixelFont -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.BattleHudTools.BuildHud -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.SystemMenuTools.BuildMenus -logFile -
 
@@ -456,7 +457,11 @@ unity vcs doctor
 
 **UI de batalha (uGUI + TextMesh Pro).**
 - **`UiTools.ImportTextMeshProEssentials`:** extrai o `TMP Essential Resources.unitypackage` do pacote `com.unity.ugui` direto para `Assets/TextMesh Pro`, preservando os GUIDs. `AssetDatabase.ImportPackage` só agenda a importação, e o batch sai antes de ela rodar.
-- **Fonte:** a fonte atual é a LiberationSans padrão do TMP, provisória até existir uma fonte bitmap PT-BR de 8 px licenciada (UI-03 #4). Todo label nasce de `TMP_Settings.defaultFontAsset`, então a troca acontece num lugar só.
+- **Fonte:** Press Start 2P (SIL OFL, `Assets/_Game/Fonts/PressStart2P`), gerada por `FontTools.BuildPixelFont`.
+  - O Font Asset é raster (sem anti-aliasing), com atlas 512 em filtro Point, e é congelado como estático depois de gravar latim básico e acentos do português, para a build não descartar o atlas.
+  - A LiberationSans fica como fallback, porque é ela que tem o □ de glifo ausente.
+  - A ferramenta define a fonte como `TMP_Settings.defaultFontAsset`, e todo label nasce dela. Rode antes de `BattleHudTools.BuildHud`.
+  - A fonte é monoespaçada e larga (8 px por caractere no tamanho 8). Por isso, labels de uma linha usam auto size de 5 a 8 em vez de truncar.
 - **`BattleHudTools.BuildHud`:** gera `Assets/_Game/Prefabs/UI/BattleHud.prefab`, com Canvas *Screen Space – Overlay* e `CanvasScaler` de referência 224×224, barras, plateia e menu. Rode `DataTools.Regenerate` antes. Não use *Screen Space – Camera*: com a `PixelPerfectCamera` em *Upscale Render Texture*, a UI é desenhada na render texture de 224×224 e o texto de 8 px sai ilegível depois de ampliado. Em Overlay o layout escala junto e o TextMesh Pro rasteriza na resolução da tela.
 - **Rótulos e mensagens:** rótulos das ações e motivos de ação indisponível vêm de `Assets/_Game/Data/Source/ui_text.json`, gerado como `UiTextSO`. As chaves são `action.<acao>` e `rejection.<motivo>` em snake case (`UiTextKeys`), e uma chave ausente aparece como `#chave`, nunca como texto vazio.
 - **Menu:** `BattleMenuController` é puro (raiz, submenu de falácia, submenu de premissa). As views só desenham. Teclado e gamepad entram por `BattleMenuInput`, e o mouse entra por `MenuRowPointer`. O clique do mouse na ação `Confirm` é ignorado, para não confirmar duas vezes.

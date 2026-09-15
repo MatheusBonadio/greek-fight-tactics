@@ -39,7 +39,7 @@
     "compendium.counter": "{0}/{1} descobertas",
     "compendium.empty": "Nenhuma falácia descoberta ainda.",
     "credits.title": "CRÉDITOS",
-    "credits.body": "Greek Fight Tactics\nUm tactics de dialética em Atenas, 402 a.C.\n\nFONTE\nLiberation Sans, SIL Open Font License 1.1, distribuída com os recursos essenciais do TextMesh Pro. Provisória até a fonte bitmap definitiva.\n\nBIBLIOTECAS\nNewtonsoft.Json, licença MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 própria em art/palette.\n\nSERVIÇOS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor.",
+    "credits.body": "Greek Fight Tactics\nUm tactics de dialética em Atenas, 402 a.C.\n\nFONTES\nPress Start 2P, The Press Start 2P Project Authors, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licença MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 própria em art/palette.\n\nSERVIÇOS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor.",
     "menu.choose_fallacy": "Qual falácia?",
     "options.title": "OPÇÕES",
     "options.volume": "Volume",
