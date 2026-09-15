@@ -265,6 +265,13 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 **A virada do Ato II** mora inteiramente no passo 3: quando `Argument.IsRefutable == false`, `ActionId.Refute` é rejeitada pelo resolver e a UI desabilita o botão. Nenhuma outra camada precisa saber que o Ato II existe. Isso vale defender — é a tese do jogo virando mecânica num ponto só do código.
 
+- **Batalha jogável na sandbox:** `SandboxBattleDirector` conduz o duelo quando a Kleia entra no raio de `AggroRule` do Thrasybios.
+  - **Entrada na batalha:** desliga `GridSandboxController.ExplorationInputEnabled` e a pausa, aproxima a câmera e mostra o `BattleHud`.
+  - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo, e o ícone da falácia sobe ao refutar certo.
+  - **Saída:** ao fim, volta à exploração e faz save automático. Depois de vencer, o oponente não provoca de novo; depois de perder ou fugir, só volta a provocar quando a Kleia sai do raio e retorna.
+  - **Grid da batalha:** `BattleSession` roda o duelo numa cópia do grid da exploração, porque o `BattleState` exige células livres e os walkers já as ocupam. Os movimentos voltam para os walkers pelo `Outcome.Path`.
+  - **CIRCULAR:** por enquanto vai para a célula alcançável mais próxima do oponente.
+  - **Dados:** o Thrasybios vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id`, e as falas vêm de `battle.*` em `ui_text.json`.
 - **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar".
 - **Oferta de Damaris:** `DamarisOffer.Apply` grava a escolha no save uma única vez.
   - Aceitar dá a flag `ability_inversion`, soma 200 em `drachmas` e grava `menexeno_absent_days`.

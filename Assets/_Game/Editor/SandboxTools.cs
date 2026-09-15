@@ -24,6 +24,8 @@ namespace Game.EditorTools
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
         public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
+        public const string BattleOpponentId = "thrasybios";
+        public const string AudienceCharacter = "citizen";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
         public const string FogSortingLayer = "Fog";
         public const string FloorTilemapName = "Floor";
@@ -257,10 +259,11 @@ namespace Game.EditorTools
                 gizmos);
             controller.PaintFogPreview();
 
-            CreateCamera(actors[0].transform);
+            var explorationCamera = CreateCamera(actors[0].transform);
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
+            CreateBattleDirector(controller, actors, explorationCamera);
 
             AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -330,7 +333,36 @@ namespace Game.EditorTools
             return views;
         }
 
-        private static void CreateCamera(Transform followTarget)
+        private static void CreateBattleDirector(GridSandboxController controller, List<ActorView> actors, ExplorationCamera explorationCamera)
+        {
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.HudPrefabPath)
+                ?? throw new InvalidOperationException($"missing {BattleHudTools.HudPrefabPath}; run BattleHudTools.BuildHud first");
+            var opponent = AssetDatabase.LoadAssetAtPath<Game.Content.OpponentSO>(DataTools.OpponentPath(BattleOpponentId))
+                ?? throw new InvalidOperationException($"missing opponent {BattleOpponentId}; run DataTools.Regenerate first");
+
+            var hud = ((GameObject)PrefabUtility.InstantiatePrefab(hudPrefab)).GetComponent<BattleHud>();
+            hud.gameObject.SetActive(false);
+
+            var opponentIndex = Array.FindIndex(Actors, actor => actor.Character == BattleOpponentId);
+            var audience = Actors
+                .Select((actor, index) => (actor, index))
+                .Where(pair => pair.actor.Character == AudienceCharacter)
+                .Select(pair => actors[pair.index])
+                .ToList();
+
+            new GameObject(nameof(SandboxBattleDirector)).AddComponent<SandboxBattleDirector>().Configure(
+                controller,
+                actors[opponentIndex],
+                audience,
+                opponent,
+                hud,
+                explorationCamera,
+                AssetDatabase.LoadAssetAtPath<Game.Content.UiTextSO>(DataTools.UiTextPath),
+                AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
+                AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
+        }
+
+        private static ExplorationCamera CreateCamera(Transform followTarget)
         {
             var rigPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(RenderSetupTools.CameraRigPrefabPath);
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(rigPrefab);
@@ -357,7 +389,9 @@ namespace Game.EditorTools
             var confiner = virtualCameraObject.AddComponent<CinemachineConfiner2D>();
             confiner.BoundingShape2D = bounds;
 
-            virtualCameraObject.AddComponent<ExplorationCamera>().Configure(virtualCamera, ExplorationOrthographicSize, BattleOrthographicSize);
+            var explorationCamera = virtualCameraObject.AddComponent<ExplorationCamera>();
+            explorationCamera.Configure(virtualCamera, ExplorationOrthographicSize, BattleOrthographicSize);
+            return explorationCamera;
         }
 
         private static Vector2[] MapOutline()

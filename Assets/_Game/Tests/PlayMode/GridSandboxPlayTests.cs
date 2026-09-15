@@ -51,9 +51,10 @@ namespace Game.Tests.PlayMode
         {
             yield return null;
 
-            var description = controller.DescribeCell(controller.Player.Walker.Cell);
+            var playerCell = controller.Player.Walker.Cell;
+            var description = controller.DescribeCell(playerCell);
 
-            StringAssert.Contains("gx 2  gy 2", description);
+            StringAssert.Contains($"gx {playerCell.X}  gy {playerCell.Y}", description);
             StringAssert.Contains("terrain", description);
             StringAssert.Contains($"occupant {controller.Player.Walker.ActorId}", description);
             StringAssert.Contains("outside the grid", controller.DescribeCell(new Coord(-1, 0)));

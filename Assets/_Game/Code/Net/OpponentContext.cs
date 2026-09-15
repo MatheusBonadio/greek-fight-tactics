@@ -48,7 +48,7 @@ namespace Game.Net
             }
 
             return new OpponentContext(
-                opponent.name.ToLowerInvariant(),
+                string.IsNullOrWhiteSpace(opponent.Id) ? opponent.name.ToLowerInvariant() : opponent.Id,
                 opponent.DisplayName,
                 opponent.Profile,
                 opponent.Act,

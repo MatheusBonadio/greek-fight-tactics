@@ -1,5 +1,17 @@
 {
   "entries": {
+    "battle.player_name": "Kleia",
+    "battle.intro": "{0} barra o caminho e chama a plateia: o debate começou.",
+    "battle.refute_hit": "Falácia exposta! {0} perde o fio e a plateia aplaude.",
+    "battle.refute_miss": "Não era essa falácia. {0} aproveita o erro e contra-ataca.",
+    "battle.maieutics_hit": "A pergunta certa: {0} se contradiz sozinho.",
+    "battle.maieutics_miss": "A pergunta não pegou, e a plateia se impacienta.",
+    "battle.concede": "{0} cede o ponto e recupera o fôlego.",
+    "battle.quote": "{0} cita os antigos.",
+    "battle.victory": "Vitória! A plateia fica do lado de Kleia.",
+    "battle.defeat": "Kleia perde o fio da meada. A plateia se dispersa rindo.",
+    "battle.withdrew": "Kleia se retira do debate. A reputação sofre.",
+    "battle.stalemate": "O debate se arrasta até ninguém mais ouvir.",
     "act.one": "Ato I",
     "act.two": "Ato II",
     "location.unknown": "Lugar desconhecido",

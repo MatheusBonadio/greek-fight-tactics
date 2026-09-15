@@ -13,6 +13,30 @@ MonoBehaviour:
   m_Name: UiText
   m_EditorClassIdentifier: Game.Content::Game.Content.UiTextSO
   entries:
+  - key: battle.player_name
+    value: Kleia
+  - key: battle.intro
+    value: "{0} barra o caminho e chama a plateia: o debate come\xE7ou."
+  - key: battle.refute_hit
+    value: "Fal\xE1cia exposta! {0} perde o fio e a plateia aplaude."
+  - key: battle.refute_miss
+    value: "N\xE3o era essa fal\xE1cia. {0} aproveita o erro e contra-ataca."
+  - key: battle.maieutics_hit
+    value: 'A pergunta certa: {0} se contradiz sozinho.'
+  - key: battle.maieutics_miss
+    value: "A pergunta n\xE3o pegou, e a plateia se impacienta."
+  - key: battle.concede
+    value: "{0} cede o ponto e recupera o f\xF4lego."
+  - key: battle.quote
+    value: '{0} cita os antigos.'
+  - key: battle.victory
+    value: "Vit\xF3ria! A plateia fica do lado de Kleia."
+  - key: battle.defeat
+    value: Kleia perde o fio da meada. A plateia se dispersa rindo.
+  - key: battle.withdrew
+    value: "Kleia se retira do debate. A reputa\xE7\xE3o sofre."
+  - key: battle.stalemate
+    value: "O debate se arrasta at\xE9 ningu\xE9m mais ouvir."
   - key: act.one
     value: Ato I
   - key: act.two

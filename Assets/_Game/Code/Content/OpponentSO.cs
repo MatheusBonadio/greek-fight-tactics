@@ -8,6 +8,7 @@ namespace Game.Content
     {
         public const int MaxBarValue = 100;
 
+        [SerializeField] private string id;
         [SerializeField] private string displayName;
         [SerializeField] private Texture2D sheet;
         [SerializeField, Range(1, MaxBarValue)] private int maxCoherence = 50;
@@ -15,6 +16,8 @@ namespace Game.Content
         [SerializeField] private List<FallacySO> fallacyPool = new();
         [SerializeField] private Act act = Act.One;
         [SerializeField] private Profile profile = Profile.Sophist;
+
+        public string Id => id;
 
         public string DisplayName => displayName;
 
@@ -29,5 +32,16 @@ namespace Game.Content
         public Act Act => act;
 
         public Profile Profile => profile;
+
+        public void Configure(string newId, string newDisplayName, int newMaxCoherence, int newInitialAudience, IEnumerable<FallacySO> newFallacyPool, Act newAct, Profile newProfile)
+        {
+            id = newId;
+            displayName = newDisplayName;
+            maxCoherence = Mathf.Clamp(newMaxCoherence, 1, MaxBarValue);
+            initialAudience = Mathf.Clamp(newInitialAudience, 0, MaxBarValue);
+            fallacyPool = new List<FallacySO>(newFallacyPool);
+            act = newAct;
+            profile = newProfile;
+        }
     }
 }

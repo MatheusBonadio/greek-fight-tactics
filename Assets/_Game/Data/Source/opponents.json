@@ -1,0 +1,13 @@
+{
+  "opponents": [
+    {
+      "id": "thrasybios",
+      "display_name": "Thrasybios",
+      "profile": "Sophist",
+      "act": "One",
+      "max_coherence": 40,
+      "initial_audience": 40,
+      "fallacy_pool": ["equivocation", "ad_hominem", "straw_man"]
+    }
+  ]
+}

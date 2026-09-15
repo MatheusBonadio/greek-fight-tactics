@@ -72,6 +72,8 @@ namespace Game.UI
 
         public ActorView Player => player;
 
+        public bool ExplorationInputEnabled { get; set; } = true;
+
         public bool GizmosVisible
         {
             get => gizmos != null && gizmos.DrawGizmos;
@@ -277,6 +279,7 @@ namespace Game.UI
             restoreChecked = true;
             if (services && player != null && services.TryLoadActiveSave(out var save) && ExplorationRestore.TryApply(session, save, LocationId, player.Walker.Facing))
             {
+                cursor.TryHover(IsoMath.GridToWorld(player.Walker.Cell), Vector2.zero);
                 PaintFog(grid);
             }
         }
@@ -298,17 +301,20 @@ namespace Game.UI
             }
 
             TryRestoreActiveSave();
-            ReadPointer();
-            ReadNavigation();
-
-            if (confirmAction.WasPressedThisFrame())
+            if (ExplorationInputEnabled)
             {
-                MovePlayerToCursor();
-            }
+                ReadPointer();
+                ReadNavigation();
 
-            if (cancelAction.WasPressedThisFrame())
-            {
-                player?.Walker.Cancel();
+                if (confirmAction.WasPressedThisFrame())
+                {
+                    MovePlayerToCursor();
+                }
+
+                if (cancelAction.WasPressedThisFrame())
+                {
+                    player?.Walker.Cancel();
+                }
             }
 
             foreach (var actor in actors)

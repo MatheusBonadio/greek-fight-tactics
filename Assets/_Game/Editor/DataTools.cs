@@ -21,12 +21,16 @@ namespace Game.EditorTools
         public const string FallacySourcePath = "Assets/_Game/Data/Source/fallacies.json";
         public const string TerrainCostSourcePath = "Assets/_Game/Data/Source/terrain_costs.json";
         public const string UiTextSourcePath = "Assets/_Game/Data/Source/ui_text.json";
+        public const string OpponentSourcePath = "Assets/_Game/Data/Source/opponents.json";
         public const string FallbackFolder = "Assets/_Game/Data/Fallback";
         public const string FallacyFolder = "Assets/_Game/Data/Fallacies";
+        public const string OpponentFolder = "Assets/_Game/Data/Opponents";
         public const string IconFolder = "Assets/_Game/Art/Icons/Fallacies";
         public const int MinimumFallbackArguments = 3;
 
         public static void Regenerate() => BatchRunner.Run(RegenerateAll);
+
+        public static string OpponentPath(string opponentId) => $"{OpponentFolder}/{opponentId}.asset";
 
         public static void RegenerateAll()
         {
@@ -41,10 +45,11 @@ namespace Game.EditorTools
             EditorUtility.SetDirty(terrainCosts);
 
             var uiTextCount = RegenerateUiText();
+            var opponentCount = RegenerateOpponents(fallacies);
             var fallbackCount = RegenerateFallbackLibrary(fallacies);
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts and {fallbackCount} fallback arguments");
+            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts, {opponentCount} opponents and {fallbackCount} fallback arguments");
         }
 
         private static int RegenerateUiText()
@@ -56,6 +61,28 @@ namespace Game.EditorTools
             uiText.SetEntries(entries);
             EditorUtility.SetDirty(uiText);
             return entries.Count;
+        }
+
+        private static int RegenerateOpponents(IReadOnlyList<FallacySO> fallacies)
+        {
+            var source = JsonConvert.DeserializeObject<OpponentSource>(File.ReadAllText(OpponentSourcePath));
+            var byId = fallacies.ToDictionary(fallacy => fallacy.Id);
+            AssetFolders.Ensure(OpponentFolder);
+
+            foreach (var entry in source.Opponents)
+            {
+                var pool = entry.FallacyPool
+                    .Select(fallacyId => byId.TryGetValue(fallacyId, out var fallacy)
+                        ? fallacy
+                        : throw new InvalidOperationException($"{OpponentSourcePath}: opponent {entry.Id} references unknown fallacy {fallacyId}"))
+                    .ToList();
+
+                var opponent = AssetFolders.LoadOrCreate<OpponentSO>(OpponentPath(entry.Id));
+                opponent.Configure(entry.Id, entry.DisplayName, entry.MaxCoherence, entry.InitialAudience, pool, entry.Act, entry.Profile);
+                EditorUtility.SetDirty(opponent);
+            }
+
+            return source.Opponents.Count;
         }
 
         private static List<FallacySO> RegenerateFallacies()
@@ -151,6 +178,36 @@ namespace Game.EditorTools
 
             [JsonProperty("player_hint", Required = Required.Always)]
             public string PlayerHint { get; set; }
+        }
+
+        private sealed class OpponentSource
+        {
+            [JsonProperty("opponents", Required = Required.Always)]
+            public List<OpponentEntry> Opponents { get; set; }
+        }
+
+        private sealed class OpponentEntry
+        {
+            [JsonProperty("id", Required = Required.Always)]
+            public string Id { get; set; }
+
+            [JsonProperty("display_name", Required = Required.Always)]
+            public string DisplayName { get; set; }
+
+            [JsonProperty("profile", Required = Required.Always)]
+            public Profile Profile { get; set; }
+
+            [JsonProperty("act", Required = Required.Always)]
+            public Act Act { get; set; }
+
+            [JsonProperty("max_coherence", Required = Required.Always)]
+            public int MaxCoherence { get; set; }
+
+            [JsonProperty("initial_audience", Required = Required.Always)]
+            public int InitialAudience { get; set; }
+
+            [JsonProperty("fallacy_pool", Required = Required.Always)]
+            public List<string> FallacyPool { get; set; }
         }
     }
 }
