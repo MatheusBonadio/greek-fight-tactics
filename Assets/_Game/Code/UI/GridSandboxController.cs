@@ -77,6 +77,8 @@ namespace Game.UI
 
         public bool CursorInputEnabled { get; set; }
 
+        public bool DebugPanelVisible { get; set; }
+
         public bool GizmosVisible
         {
             get => gizmos != null && gizmos.DrawGizmos;
@@ -304,6 +306,11 @@ namespace Game.UI
             }
 
             TryRestoreActiveSave();
+            if (Debug.isDebugBuild && Keyboard.current != null && Keyboard.current.f3Key.wasPressedThisFrame)
+            {
+                DebugPanelVisible = !DebugPanelVisible;
+            }
+
             if (ExplorationInputEnabled || CursorInputEnabled)
             {
                 ReadPointer();
@@ -334,7 +341,7 @@ namespace Game.UI
 
         private void OnGUI()
         {
-            if (!IsReady)
+            if (!IsReady || !DebugPanelVisible)
             {
                 return;
             }

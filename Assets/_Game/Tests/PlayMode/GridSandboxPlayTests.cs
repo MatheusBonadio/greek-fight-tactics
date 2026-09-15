@@ -45,6 +45,7 @@ namespace Game.Tests.PlayMode
 
             Assert.IsNotNull(controller.Grid);
             Assert.AreEqual(12, controller.Grid.Width);
+            Assert.IsFalse(controller.DebugPanelVisible, "the debug panel starts hidden so players never see it");
             Assert.IsTrue(controller.Actors.All(actor => actor.Walker != null));
 
             var playerCell = controller.Player.Walker.Cell;

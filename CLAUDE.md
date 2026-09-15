@@ -266,6 +266,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 **A virada do Ato II** mora inteiramente no passo 3: quando `Argument.IsRefutable == false`, `ActionId.Refute` é rejeitada pelo resolver e a UI desabilita o botão. Nenhuma outra camada precisa saber que o Ato II existe. Isso vale defender — é a tese do jogo virando mecânica num ponto só do código.
 
+- **Painel de depuração da sandbox:** o `OnGUI` do `GridSandboxController` (descrição da célula, spawn e remoção de ator de teste, gizmos) começa oculto em `DebugPanelVisible`. F3 alterna o painel só em build de desenvolvimento e no Editor (`Debug.isDebugBuild`). Os métodos por trás dele continuam públicos para os testes.
 - **Batalha jogável na sandbox:** `SandboxBattleDirector` conduz o duelo quando a Kleia entra no raio de `AggroRule` do Thrasybios.
   - **Entrada na batalha:** desliga `GridSandboxController.ExplorationInputEnabled` e a pausa, aproxima a câmera e mostra o `BattleHud`.
   - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo, e o ícone da falácia sobe ao refutar certo. As falas da Kleia e do oponente mostram o retrato de cada um (`SandboxBattleDirector.ConfigurePortraits`); a narração fica sem retrato. Enquanto não existe arte de retrato, `SandboxTools` usa o quadro parado de frente (`<personagem>_se_0`) da folha do personagem.
