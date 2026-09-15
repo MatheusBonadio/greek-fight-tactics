@@ -648,7 +648,7 @@
         "Fase 2 · Comercial",
         "UI / UX"
       ],
-      "description": "O que o [UI-05] deixou de fora de propósito: com três atos, um slot só deixa de bastar.\n\n**Depende de:** [UI-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Save/Load com 3 slots\n- [ ] Confirmação antes de sobrescrever um slot\n- [ ] Resumo por slot: ato, local e tempo de jogo"
+      "description": "O que o [UI-05] deixou de fora de propósito: com três atos, um slot só deixa de bastar.\n\n**Depende de:** [UI-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Save/Load com 3 slots\n- [x] Confirmação antes de sobrescrever um slot\n- [x] Resumo por slot: ato, local e tempo de jogo"
     },
     {
       "title": "[ART-02] Pipeline de arte e ferramentas",

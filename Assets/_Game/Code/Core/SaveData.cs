@@ -17,6 +17,10 @@ namespace Game.Core
 
         public Coord Position { get; set; }
 
+        public string Location { get; set; } = string.Empty;
+
+        public long PlaytimeSeconds { get; set; }
+
         public long Timestamp { get; set; }
 
         public Dictionary<string, DuelRecord> Duels { get; } = new(StringComparer.Ordinal);

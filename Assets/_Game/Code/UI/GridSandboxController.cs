@@ -249,11 +249,36 @@ namespace Game.UI
 
         private bool IsReady => grid != null && cursor != null && actionMap != null;
 
+        public const string LocationId = "sandbox";
+
+        private bool restoreChecked;
+
         public Game.Core.SaveData CaptureSave()
         {
             var services = FindAnyObjectByType<GameServices>();
-            var previous = services && services.LocalSaves != null && services.LocalSaves.TryLoad(out var existing, out _) ? existing : null;
-            return ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            var previous = services && services.TryLoadActiveSave(out var existing) ? existing : null;
+            var playtime = services ? services.PlaytimeSeconds : 0;
+            return ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime);
+        }
+
+        private void TryRestoreActiveSave()
+        {
+            if (restoreChecked)
+            {
+                return;
+            }
+
+            var services = FindAnyObjectByType<GameServices>();
+            if (services && !services.IsBooted)
+            {
+                return;
+            }
+
+            restoreChecked = true;
+            if (services && player != null && services.TryLoadActiveSave(out var save) && ExplorationRestore.TryApply(session, save, LocationId, player.Walker.Facing))
+            {
+                PaintFog(grid);
+            }
         }
 
         private void Start()
@@ -272,6 +297,7 @@ namespace Game.UI
                 return;
             }
 
+            TryRestoreActiveSave();
             ReadPointer();
             ReadNavigation();
 

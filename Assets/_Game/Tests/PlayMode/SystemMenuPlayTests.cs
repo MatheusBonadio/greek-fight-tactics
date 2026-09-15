@@ -14,11 +14,12 @@ namespace Game.Tests.PlayMode
     {
         private const float TimeoutSeconds = 5f;
         private const string SandboxScene = "GridSandbox";
+        private const int NewGameRow = 1;
         private const int OptionsRow = 2;
         private const int CreditsRow = 3;
-        private const int NewGameRow = 1;
         private const int ResumeRow = 0;
-        private const int CompendiumRow = 2;
+        private const int SaveRow = 1;
+        private const int CompendiumRow = 3;
 
         private GameServices services;
         private GameSettings originalSettings;
@@ -68,18 +69,22 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator MainMenu_NewGameLoadsTheGameplayScene()
+        public IEnumerator MainMenu_NewGameAsksForASlotAndCancelReturns()
         {
             var controller = default(MainMenuController);
             yield return LoadMainMenu(loaded => controller = loaded);
-            var gameplayScene = controller.GameplayScene;
-            services = null;
 
             controller.MainMenu.HandlePoint(NewGameRow);
             controller.MainMenu.HandleConfirm();
 
-            yield return WaitFor(() => SceneManager.GetActiveScene().name == gameplayScene);
-            Assert.AreEqual(gameplayScene, SceneManager.GetActiveScene().name);
+            Assert.IsTrue(controller.Slots.gameObject.activeSelf);
+            Assert.AreEqual(SaveSlotsMode.Save, controller.Slots.Model.Mode);
+            Assert.AreEqual(SaveSlots.Count, controller.Slots.Model.Slots.Count);
+            Assert.AreSame(controller.Slots, controller.Input.Panel);
+
+            controller.Slots.HandleCancel();
+            Assert.IsTrue(controller.MainMenu.gameObject.activeSelf);
+            Assert.AreEqual(PauseMenuController.DefaultMainMenuScene, SceneManager.GetActiveScene().name);
         }
 
         [UnityTest]
@@ -94,7 +99,14 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(0f, Time.timeScale);
             Assert.IsTrue(pause.Panel.activeSelf);
             Assert.AreSame(pause.PauseMenu, pause.Input.Panel);
+            Assert.IsTrue(pause.PauseMenu.Model.Entries[SaveRow].Enabled);
             Assert.IsFalse(pause.PauseMenu.Model.Entries[CompendiumRow].Enabled);
+
+            pause.PauseMenu.HandlePoint(SaveRow);
+            pause.PauseMenu.HandleConfirm();
+            Assert.IsTrue(pause.Slots.gameObject.activeSelf);
+            pause.Slots.HandleCancel();
+            Assert.AreSame(pause.PauseMenu, pause.Input.Panel);
 
             pause.PauseMenu.HandlePoint(ResumeRow);
             pause.PauseMenu.HandleConfirm();
@@ -106,7 +118,7 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Pause_CanCaptureTheExplorationAsASave()
+        public IEnumerator Pause_CapturesTheExplorationWithLocationAndPlaytime()
         {
             var pause = default(PauseMenuController);
             yield return LoadSandboxPause(loaded => pause = loaded);
@@ -116,7 +128,9 @@ namespace Game.Tests.PlayMode
             var save = pause.SaveProvider();
 
             Assert.AreEqual(sandbox.Player.Walker.Cell, save.Position);
+            Assert.AreEqual(GridSandboxController.LocationId, save.Location);
             Assert.IsNotEmpty(save.FogBitmask);
+            Assert.GreaterOrEqual(save.PlaytimeSeconds, 0);
             Assert.Greater(save.Timestamp, 0);
         }
 

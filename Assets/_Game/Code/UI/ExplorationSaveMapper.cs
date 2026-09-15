@@ -1,3 +1,4 @@
+using System;
 using Game.Core;
 using Game.Grid;
 
@@ -5,7 +6,7 @@ namespace Game.UI
 {
     public static class ExplorationSaveMapper
     {
-        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp)
+        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp, string locationId, long playtimeSeconds)
         {
             var save = new SaveData
             {
@@ -14,6 +15,8 @@ namespace Game.UI
                 Reputation = previous?.Reputation ?? 0,
                 Position = snapshot.PlayerCell,
                 FogBitmask = snapshot.CopyFogBitmask(),
+                Location = locationId ?? string.Empty,
+                PlaytimeSeconds = Math.Max(0, playtimeSeconds),
                 Timestamp = timestamp
             };
 

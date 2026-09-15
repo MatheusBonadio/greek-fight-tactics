@@ -8,6 +8,7 @@ namespace Game.UI
         public const string Credits = "credits";
         public const string Quit = "quit";
         public const string Resume = "resume";
+        public const string Save = "save";
         public const string Compendium = "compendium";
         public const string MainMenu = "main_menu";
         public const string PauseTitleKey = "system.pause_title";
@@ -28,6 +29,7 @@ namespace Game.UI
         public static MenuListModel Pause() => new(new[]
         {
             Entry(Resume),
+            Entry(Save),
             Entry(Options),
             Entry(Compendium),
             Entry(MainMenu)

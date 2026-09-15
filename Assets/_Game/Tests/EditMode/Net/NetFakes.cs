@@ -119,6 +119,8 @@ namespace Game.Tests.EditMode.Net
                 DamarisBranch = DamarisChoice.Accepted,
                 Reputation = reputation,
                 Position = new Coord(7, 3),
+                Location = "agora",
+                PlaytimeSeconds = 3725,
                 Timestamp = timestamp
             };
             save.Inventory["heraclitus"] = 2;

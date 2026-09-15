@@ -13,6 +13,40 @@ MonoBehaviour:
   m_Name: UiText
   m_EditorClassIdentifier: Game.Content::Game.Content.UiTextSO
   entries:
+  - key: act.one
+    value: Ato I
+  - key: act.two
+    value: Ato II
+  - key: location.unknown
+    value: Lugar desconhecido
+  - key: location.sandbox
+    value: Sandbox
+  - key: location.kerameikos
+    value: "Cer\xE2mico"
+  - key: location.agora
+    value: "\xC1gora"
+  - key: slots.title_save
+    value: SALVAR EM QUAL SLOT?
+  - key: slots.title_load
+    value: CARREGAR QUAL SLOT?
+  - key: slots.slot
+    value: Slot {0}
+  - key: slots.empty_line
+    value: "{0} \u2014 vazio"
+  - key: slots.corrupt_line
+    value: "{0} \u2014 ileg\xEDvel"
+  - key: slots.summary_line
+    value: "{0} \u2014 {1} \xB7 {2} \xB7 {3}"
+  - key: slots.playtime
+    value: '{0}h{1:00}'
+  - key: slots.confirm_overwrite
+    value: Sobrescrever este slot?
+  - key: slots.yes
+    value: Sim
+  - key: slots.no
+    value: "N\xE3o"
+  - key: system.save
+    value: SALVAR
   - key: action.circulate
     value: CIRCULAR
   - key: action.refute

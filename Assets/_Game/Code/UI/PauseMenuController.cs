@@ -14,6 +14,7 @@ namespace Game.UI
         [SerializeField] private GameObject panel;
         [SerializeField] private MenuListView pauseMenu;
         [SerializeField] private OptionsView options;
+        [SerializeField] private SaveSlotsView slots;
         [SerializeField] private CompendiumView compendium;
         [SerializeField] private string mainMenuScene = DefaultMainMenuScene;
 
@@ -35,13 +36,18 @@ namespace Game.UI
 
         public OptionsView Options => options;
 
-        public void Configure(GameServices gameServices, SystemMenuInput menuInput, GameObject pausePanel, MenuListView menu, OptionsView optionsView, CompendiumView compendiumView, string sceneName)
+        public SaveSlotsView Slots => slots;
+
+        public bool CanSave => SaveProvider != null && services && services.IsBooted;
+
+        public void Configure(GameServices gameServices, SystemMenuInput menuInput, GameObject pausePanel, MenuListView menu, OptionsView optionsView, SaveSlotsView slotsView, CompendiumView compendiumView, string sceneName)
         {
             services = gameServices;
             input = menuInput;
             panel = pausePanel;
             pauseMenu = menu;
             options = optionsView;
+            slots = slotsView;
             compendium = compendiumView;
             mainMenuScene = sceneName;
         }
@@ -127,6 +133,8 @@ namespace Game.UI
             pauseMenu.Cancelled += Resume;
             options.Closed += ShowPauseList;
             options.SettingsChanged += OnSettingsChanged;
+            slots.Closed += ShowPauseList;
+            slots.SlotChosen += OnSlotChosen;
             if (compendium)
             {
                 compendium.Closed += ShowPauseList;
@@ -139,6 +147,8 @@ namespace Game.UI
             pauseMenu.Cancelled -= Resume;
             options.Closed -= ShowPauseList;
             options.SettingsChanged -= OnSettingsChanged;
+            slots.Closed -= ShowPauseList;
+            slots.SlotChosen -= OnSlotChosen;
             if (compendium)
             {
                 compendium.Closed -= ShowPauseList;
@@ -160,6 +170,7 @@ namespace Game.UI
         private void ShowPauseList()
         {
             options.gameObject.SetActive(false);
+            slots.gameObject.SetActive(false);
             if (compendium)
             {
                 compendium.gameObject.SetActive(false);
@@ -167,6 +178,7 @@ namespace Game.UI
 
             pauseMenu.gameObject.SetActive(true);
             var model = SystemMenus.Pause();
+            model.SetEnabled(SystemMenus.Save, CanSave);
             model.SetEnabled(SystemMenus.Compendium, compendium && compendium.Compendium != null);
             pauseMenu.Bind(model);
             input.Panel = pauseMenu;
@@ -178,6 +190,12 @@ namespace Game.UI
             {
                 case SystemMenus.Resume:
                     Resume();
+                    break;
+                case SystemMenus.Save:
+                    pauseMenu.gameObject.SetActive(false);
+                    slots.gameObject.SetActive(true);
+                    slots.Bind(new SaveSlotsModel(SaveSlotsMode.Save, services.SlotCatalog.ReadAll()));
+                    input.Panel = slots;
                     break;
                 case SystemMenus.Options:
                     pauseMenu.gameObject.SetActive(false);
@@ -197,9 +215,19 @@ namespace Game.UI
             }
         }
 
+        private void OnSlotChosen(int index)
+        {
+            if (CanSave)
+            {
+                services.SaveToSlot(index, SaveProvider());
+            }
+
+            ShowPauseList();
+        }
+
         private void ReturnToMainMenu()
         {
-            if (services && services.IsBooted && SaveProvider != null)
+            if (CanSave)
             {
                 services.Autosave(SaveProvider());
             }

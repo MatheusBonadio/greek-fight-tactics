@@ -362,6 +362,13 @@ Escrita local primeiro, sempre por `SaveSynchronizer`:
 
 Regras em `firestore.rules`: só o dono lê e escreve `saves/{uid}` e `progress/{uid}/duels/*`. `DamarisBranch` é lido no Tribunal do Ato II.
 
+**Slots.** São 3 slots locais (`saves/slot0.json` a `slot2.json`, `SaveSlots`).
+- **Catálogo:** `SaveSlotCatalog` resume cada slot como vazio, ilegível ou usável, com ato, `Location` e `PlaytimeSeconds`, e guarda o slot ativo em `saves/active_slot.txt` para a escolha sobreviver à troca de cena.
+- **GameServices:** `SelectSlot`, `SaveToSlot`, `StartNewGame` (grava um save vazio no slot escolhido) e `TryLoadActiveSave`. O tempo de jogo só avança com `Time.timeScale` > 0.
+- **Nuvem:** só o slot 0 sincroniza com `saves/{uid}`; os outros são apenas locais.
+- **Campos novos:** `location` e `playtimeSeconds` entraram no JSON e no documento do Firestore. Saves antigos sem eles continuam válidos, e `playtimeSeconds` negativo é rejeitado.
+- **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. A sandbox usa `GridSandboxController.LocationId` (`sandbox`).
+
 O formato de `FogOfWar.ToBitmask` virou schema de banco. Mudá-lo invalida saves de playtest — se precisar, escreva migração.
 
 ---
@@ -447,11 +454,11 @@ unity vcs doctor
 
 **Menus de sistema.** A ordem de geração é: `DataTools.Regenerate`, depois `BattleHudTools.BuildHud`, depois `SystemMenuTools.BuildMenus`, depois `SandboxTools.BuildSandbox`. A sandbox instancia o prefab da pausa, então os menus têm de existir antes.
 - **Cenas no build:** `SystemMenuTools.ApplyBuildScenes` define a ordem `MainMenu`, `GridSandbox`, `SampleScene`, e as duas ferramentas usam o mesmo método.
-- **Cena `MainMenu`:** tem câmera, EventSystem com `InputSystemUIInputModule`, `GameServices` e `MainMenuController`. "Continuar" só habilita com `GameServices.HasContinue` (slot único `saves/slot0.json`). Continuar e Novo jogo carregam `GridSandbox` até existir o mapa do Ato I.
+- **Cena `MainMenu`:** tem câmera, EventSystem com `InputSystemUIInputModule`, `GameServices` e `MainMenuController`. "Continuar" só habilita quando algum slot é usável e abre `SaveSlotsView` para carregar. "Novo jogo" abre o mesmo painel para escolher o slot e pede confirmação antes de sobrescrever, com "Não" como padrão. Os dois carregam `GridSandbox` até existir o mapa do Ato I.
 - **Painéis:** `MenuListModel` pula entradas desabilitadas. `MenuListView`, `OptionsView`, `CreditsView` e `CompendiumView` implementam `IMenuPanel`. `SystemMenuInput` repassa teclado e gamepad ao painel ativo, e `PanelRowPointer` repassa o mouse.
 - **Opções:** `GameSettings` (Core) guarda volume em passos de 10%, velocidade do texto (15, 30 ou 60 caracteres por segundo) e modo assistido, persistidos em `settings.json` por `LocalSettingsStore`, com JSON tolerante que volta ao padrão. `GameServices.UpdateSettings` grava, aplica em `AudioListener.volume` e dispara `SettingsChanged`. `BattleHud.ApplySettings` leva velocidade e modo assistido para o diálogo e o menu.
 - **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot` e preserva o progresso do save anterior.
-- **Pausa:** `PauseMenu.prefab` fica na `GridSandbox`. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Opções, Compêndio (só com `BindCompendium`) e Menu principal, que salva por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
+- **Pausa:** `PauseMenu.prefab` fica na `GridSandbox`. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Salvar, Opções, Compêndio e Menu principal. Salvar só habilita com `SaveProvider` e serviços prontos e abre os slots com confirmação de sobrescrita. Compêndio só habilita com `BindCompendium`. Menu principal salva no slot ativo por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
 - **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
 - **Testes PlayMode de menu:** usam o `persistentDataPath` real, então restauram as opções no teardown e nunca gravam save.
 

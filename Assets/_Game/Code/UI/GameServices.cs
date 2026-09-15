@@ -25,11 +25,19 @@ namespace Game.UI
 
         public ArgumentDiskCache ArgumentCache { get; private set; }
 
+        public SaveSlotCatalog SlotCatalog { get; private set; }
+
+        public int ActiveSlot { get; private set; } = SaveSlots.DefaultIndex;
+
         public LocalSaveStore LocalSaves { get; private set; }
 
         public LocalSettingsStore SettingsStore { get; private set; }
 
         public GameSettings Settings { get; private set; } = new();
+
+        public float Playtime { get; private set; }
+
+        public long PlaytimeSeconds => (long)Playtime;
 
         public FirebaseAnonymousAuth Auth { get; private set; }
 
@@ -41,7 +49,7 @@ namespace Game.UI
 
         public bool IsBooted => BootTask is { IsCompletedSuccessfully: true };
 
-        public bool HasContinue => LocalSaves != null && LocalSaves.Exists;
+        public bool HasContinue => SlotCatalog != null && SlotCatalog.AnyUsable();
 
         public FallacyCatalogSO Catalog => catalog;
 
@@ -65,6 +73,40 @@ namespace Game.UI
             SettingsChanged?.Invoke(settings);
         }
 
+        public void SelectSlot(int index)
+        {
+            RequireBoot();
+            SlotCatalog.WriteActiveSlot(index);
+            ActiveSlot = index;
+            LocalSaves = SlotCatalog.StoreFor(index);
+            Playtime = TryLoadActiveSave(out var save) ? save.PlaytimeSeconds : 0f;
+        }
+
+        public bool TryLoadActiveSave(out SaveData save)
+        {
+            save = null;
+            return LocalSaves != null && LocalSaves.Exists && LocalSaves.TryLoad(out save, out _);
+        }
+
+        public void StartNewGame(int index)
+        {
+            SelectSlot(index);
+            Playtime = 0f;
+            Autosave(new SaveData { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+        }
+
+        public void SaveToSlot(int index, SaveData save)
+        {
+            if (save == null)
+            {
+                throw new ArgumentNullException(nameof(save));
+            }
+
+            SelectSlot(index);
+            Playtime = save.PlaytimeSeconds;
+            Autosave(save);
+        }
+
         public void Autosave(SaveData save)
         {
             if (save == null)
@@ -72,12 +114,8 @@ namespace Game.UI
                 throw new ArgumentNullException(nameof(save));
             }
 
-            if (LocalSaves == null)
-            {
-                throw new InvalidOperationException("GameServices must finish booting before saving.");
-            }
-
-            if (Saves == null)
+            RequireBoot();
+            if (Saves == null || ActiveSlot != SaveSlots.DefaultIndex)
             {
                 LocalSaves.Save(save);
                 return;
@@ -114,6 +152,14 @@ namespace Game.UI
             BootTask = BootAsync(destroyCancellationToken);
         }
 
+        private void Update()
+        {
+            if (IsBooted && Time.timeScale > 0f)
+            {
+                Playtime += Time.unscaledDeltaTime;
+            }
+        }
+
         private void OnApplicationPause(bool paused)
         {
             if (paused)
@@ -136,7 +182,10 @@ namespace Game.UI
         {
             ArgumentCache = new ArgumentDiskCache(Path.Combine(DataDirectory, ArgumentCacheFolder));
             ArgumentCache.Load();
-            LocalSaves = new LocalSaveStore(Path.Combine(DataDirectory, SaveFolder));
+            SlotCatalog = new SaveSlotCatalog(Path.Combine(DataDirectory, SaveFolder));
+            ActiveSlot = SlotCatalog.ReadActiveSlot();
+            LocalSaves = SlotCatalog.StoreFor(ActiveSlot);
+            Playtime = TryLoadActiveSave(out var activeSave) ? activeSave.PlaytimeSeconds : 0f;
             SettingsStore = new LocalSettingsStore(DataDirectory);
             Settings = SettingsStore.Load();
             ApplySettings();
@@ -155,7 +204,7 @@ namespace Game.UI
                 : FirestoreEndpoints.Production(network.ProjectId);
 
             Auth = new FirebaseAnonymousAuth(transport, endpoints, new FileAuthSessionStore(DataDirectory));
-            Saves = new SaveSynchronizer(LocalSaves, new FirestoreSaveClient(transport, Auth, firestore));
+            Saves = new SaveSynchronizer(SlotCatalog.StoreFor(SaveSlots.DefaultIndex), new FirestoreSaveClient(transport, Auth, firestore));
             if (catalog)
             {
                 Arguments = new ArgumentServiceClient(transport, Auth, endpoints.ArgumentUrl, Validator());
@@ -172,6 +221,14 @@ namespace Game.UI
             catch (Exception exception)
             {
                 Debug.LogWarning($"Online services unavailable, continuing offline: {exception.Message}");
+            }
+        }
+
+        private void RequireBoot()
+        {
+            if (SlotCatalog == null || LocalSaves == null)
+            {
+                throw new InvalidOperationException("GameServices must finish booting before touching saves.");
             }
         }
 

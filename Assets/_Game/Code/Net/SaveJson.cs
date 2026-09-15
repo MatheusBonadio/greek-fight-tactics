@@ -26,6 +26,8 @@ namespace Game.Net
                 Reputation = save.Reputation,
                 Inventory = new Dictionary<string, int>(save.Inventory),
                 Position = new PositionDocument { X = save.Position.X, Y = save.Position.Y },
+                Location = save.Location ?? string.Empty,
+                PlaytimeSeconds = save.PlaytimeSeconds,
                 Timestamp = save.Timestamp,
                 Duels = save.Duels.ToDictionary(pair => pair.Key, pair => new DuelDocument { Won = pair.Value.Won, Victory = pair.Value.Victory.ToString().ToLowerInvariant() }),
                 Flags = new Dictionary<string, string>(save.Flags)
@@ -72,6 +74,12 @@ namespace Game.Net
                 return false;
             }
 
+            if (document.PlaytimeSeconds < 0)
+            {
+                error = $"invalid playtimeSeconds {document.PlaytimeSeconds}";
+                return false;
+            }
+
             save = new SaveData
             {
                 ActFlag = (Act)document.ActFlag,
@@ -79,6 +87,8 @@ namespace Game.Net
                 DamarisBranch = branch,
                 Reputation = document.Reputation,
                 Position = new Coord(document.Position?.X ?? 0, document.Position?.Y ?? 0),
+                Location = document.Location ?? string.Empty,
+                PlaytimeSeconds = document.PlaytimeSeconds,
                 Timestamp = document.Timestamp
             };
 
@@ -135,6 +145,8 @@ namespace Game.Net
             [JsonProperty("reputation")] public int Reputation { get; set; }
             [JsonProperty("inventory")] public Dictionary<string, int> Inventory { get; set; }
             [JsonProperty("position")] public PositionDocument Position { get; set; }
+            [JsonProperty("location")] public string Location { get; set; }
+            [JsonProperty("playtimeSeconds")] public long PlaytimeSeconds { get; set; }
             [JsonProperty("timestamp")] public long Timestamp { get; set; }
             [JsonProperty("duels")] public Dictionary<string, DuelDocument> Duels { get; set; }
             [JsonProperty("flags")] public Dictionary<string, string> Flags { get; set; }

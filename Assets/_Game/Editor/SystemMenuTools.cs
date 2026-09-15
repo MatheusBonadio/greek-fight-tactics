@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Game.Content;
+using Game.Core;
 using Game.UI;
 using TMPro;
 using UnityEditor;
@@ -20,11 +21,14 @@ namespace Game.EditorTools
         public const string PauseMenuPrefabPath = "Assets/_Game/Prefabs/UI/PauseMenu.prefab";
         public const string GameTitleKey = "system.game_title";
         public const int MainMenuRows = 5;
-        public const int PauseRows = 4;
+        public const int PauseRows = 5;
         public const int OptionsWidth = 176;
         public const int OptionsHeight = 72;
         public const int CreditsWidth = 208;
         public const int CreditsHeight = 176;
+        public const int SlotsWidth = 208;
+        public const int SlotsHeight = 80;
+        public const int ConfirmHeight = 28;
 
         public static void BuildMenus() => BatchRunner.Run(BuildAll);
 
@@ -85,10 +89,11 @@ namespace Game.EditorTools
             var mainMenu = CreateListPanel(root.transform, "Menu", BottomCenter, new Vector2(0f, 24f), MainMenuRows, uiText, title, GameTitleKey);
             var options = CreateOptionsPanel(root.transform, uiText);
             var credits = CreateCreditsPanel(root.transform, uiText);
+            var slots = CreateSlotsPanel(root.transform, uiText);
 
             var input = root.AddComponent<SystemMenuInput>();
             input.Configure(controls);
-            root.AddComponent<MainMenuController>().Configure(services, input, mainMenu, options, credits, MainMenuController.DefaultGameplayScene);
+            root.AddComponent<MainMenuController>().Configure(services, input, mainMenu, options, credits, slots, MainMenuController.DefaultGameplayScene);
 
             AssetFolders.Ensure(Path.GetDirectoryName(MainMenuScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, MainMenuScenePath))
@@ -106,10 +111,11 @@ namespace Game.EditorTools
 
             var menu = CreateListPanel(panel.transform, "PauseMenu", Center, Vector2.zero, PauseRows, uiText, title, SystemMenus.PauseTitleKey);
             var options = CreateOptionsPanel(panel.transform, uiText);
+            var slots = CreateSlotsPanel(panel.transform, uiText);
 
             var input = root.AddComponent<SystemMenuInput>();
             input.Configure(controls);
-            root.AddComponent<PauseMenuController>().Configure(null, input, panel.gameObject, menu, options, null, PauseMenuController.DefaultMainMenuScene);
+            root.AddComponent<PauseMenuController>().Configure(null, input, panel.gameObject, menu, options, slots, null, PauseMenuController.DefaultMainMenuScene);
             panel.gameObject.SetActive(false);
         }
 
@@ -149,6 +155,25 @@ namespace Game.EditorTools
 
             var view = panel.gameObject.AddComponent<CreditsView>();
             view.Configure(title, body, uiText);
+            panel.gameObject.SetActive(false);
+            return view;
+        }
+
+        private static SaveSlotsView CreateSlotsPanel(Transform parent, UiTextSO uiText)
+        {
+            var panel = CreateImage(parent, "SaveSlots", null, Center, Vector2.zero, new Vector2(SlotsWidth, SlotsHeight), PanelColor);
+            var view = panel.gameObject.AddComponent<SaveSlotsView>();
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(SlotsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            title.color = AccentColor;
+            var (rows, cursor) = CreatePanelRows(panel.transform, SaveSlots.Count, new Vector2(BattleHudTools.RowInset, -14f), SlotsWidth - BattleHudTools.RowInset - BattleHudTools.Margin, view);
+
+            var confirm = CreateImage(panel.transform, "Confirm", null, BottomLeft, Vector2.zero, new Vector2(SlotsWidth, ConfirmHeight), DimColor);
+            var confirmLabel = CreateLabel(confirm.transform, "Question", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(110f, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            confirmLabel.color = AccentColor;
+            var (confirmRows, confirmCursor) = CreatePanelRows(confirm.transform, 2, new Vector2(140f, -2f), 60f, view);
+            confirm.gameObject.SetActive(false);
+
+            view.Configure(title, rows, cursor, confirm.gameObject, confirmLabel, confirmRows, confirmCursor, uiText);
             panel.gameObject.SetActive(false);
             return view;
         }

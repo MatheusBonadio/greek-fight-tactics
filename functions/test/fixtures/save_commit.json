@@ -10,6 +10,8 @@
           "reputation": { "integerValue": "12" },
           "inventory": { "mapValue": { "fields": { "heraclitus": { "integerValue": "2" } } } },
           "position": { "mapValue": { "fields": { "x": { "integerValue": "7" }, "y": { "integerValue": "3" } } } },
+          "location": { "stringValue": "agora" },
+          "playtimeSeconds": { "integerValue": "3725" },
           "timestamp": { "integerValue": "1789480000000" },
           "duels": {
             "mapValue": {

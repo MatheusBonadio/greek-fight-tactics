@@ -13,6 +13,7 @@ namespace Game.UI
         [SerializeField] private MenuListView mainMenu;
         [SerializeField] private OptionsView options;
         [SerializeField] private CreditsView credits;
+        [SerializeField] private SaveSlotsView slots;
         [SerializeField] private string gameplayScene = DefaultGameplayScene;
 
         public bool IsReady { get; private set; }
@@ -27,15 +28,18 @@ namespace Game.UI
 
         public CreditsView Credits => credits;
 
+        public SaveSlotsView Slots => slots;
+
         public string GameplayScene => gameplayScene;
 
-        public void Configure(GameServices gameServices, SystemMenuInput menuInput, MenuListView main, OptionsView optionsView, CreditsView creditsView, string sceneName)
+        public void Configure(GameServices gameServices, SystemMenuInput menuInput, MenuListView main, OptionsView optionsView, CreditsView creditsView, SaveSlotsView slotsView, string sceneName)
         {
             services = gameServices;
             input = menuInput;
             mainMenu = main;
             options = optionsView;
             credits = creditsView;
+            slots = slotsView;
             gameplayScene = sceneName;
         }
 
@@ -43,6 +47,7 @@ namespace Game.UI
         {
             options.gameObject.SetActive(false);
             credits.gameObject.SetActive(false);
+            slots.gameObject.SetActive(false);
             mainMenu.gameObject.SetActive(true);
             mainMenu.Bind(SystemMenus.Main(services.HasContinue));
             input.Panel = mainMenu;
@@ -54,6 +59,8 @@ namespace Game.UI
             options.Closed += ShowMain;
             options.SettingsChanged += OnSettingsChanged;
             credits.Closed += ShowMain;
+            slots.Closed += ShowMain;
+            slots.SlotChosen += OnSlotChosen;
         }
 
         private void OnDisable()
@@ -62,6 +69,8 @@ namespace Game.UI
             options.Closed -= ShowMain;
             options.SettingsChanged -= OnSettingsChanged;
             credits.Closed -= ShowMain;
+            slots.Closed -= ShowMain;
+            slots.SlotChosen -= OnSlotChosen;
         }
 
         private void Update()
@@ -80,8 +89,10 @@ namespace Game.UI
             switch (id)
             {
                 case SystemMenus.Continue:
+                    ShowSlots(SaveSlotsMode.Load);
+                    break;
                 case SystemMenus.NewGame:
-                    SceneManager.LoadScene(gameplayScene);
+                    ShowSlots(SaveSlotsMode.Save);
                     break;
                 case SystemMenus.Options:
                     mainMenu.gameObject.SetActive(false);
@@ -98,6 +109,28 @@ namespace Game.UI
                     Application.Quit();
                     break;
             }
+        }
+
+        private void ShowSlots(SaveSlotsMode mode)
+        {
+            mainMenu.gameObject.SetActive(false);
+            slots.gameObject.SetActive(true);
+            slots.Bind(new SaveSlotsModel(mode, services.SlotCatalog.ReadAll()));
+            input.Panel = slots;
+        }
+
+        private void OnSlotChosen(int index)
+        {
+            if (slots.Model.Mode == SaveSlotsMode.Load)
+            {
+                services.SelectSlot(index);
+            }
+            else
+            {
+                services.StartNewGame(index);
+            }
+
+            SceneManager.LoadScene(gameplayScene);
         }
 
         private void OnSettingsChanged(GameSettings settings)

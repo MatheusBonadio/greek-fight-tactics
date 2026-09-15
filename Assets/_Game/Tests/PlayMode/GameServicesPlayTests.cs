@@ -130,6 +130,34 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(5, save.Reputation);
         }
 
+        [UnityTest]
+        public IEnumerator Slots_SelectSaveAndStartNewGamesAcrossThreeSlots()
+        {
+            var services = CreateServices();
+            yield return WaitForBoot(services);
+            Assert.AreEqual(Game.Core.SaveSlots.DefaultIndex, services.ActiveSlot);
+
+            services.SaveToSlot(2, new Game.Core.SaveData { Location = "agora", PlaytimeSeconds = 600, Timestamp = 7 });
+            Assert.AreEqual(2, services.ActiveSlot);
+            Assert.AreEqual(600, services.PlaytimeSeconds);
+            Assert.IsTrue(services.HasContinue);
+            Assert.IsTrue(services.SlotCatalog.Read(2).IsUsable);
+            Assert.IsFalse(services.SlotCatalog.Read(0).Exists);
+
+            services.StartNewGame(1);
+            Assert.AreEqual(0, services.PlaytimeSeconds);
+            Assert.IsTrue(services.TryLoadActiveSave(out var fresh));
+            Assert.AreEqual(string.Empty, fresh.Location);
+
+            Object.DestroyImmediate(host);
+            var reopened = CreateServices();
+            yield return WaitForBoot(reopened);
+            Assert.AreEqual(1, reopened.ActiveSlot);
+
+            reopened.SelectSlot(2);
+            Assert.AreEqual(600, reopened.PlaytimeSeconds);
+        }
+
         private GameServices CreateServices()
         {
             host = new GameObject(nameof(GameServices));

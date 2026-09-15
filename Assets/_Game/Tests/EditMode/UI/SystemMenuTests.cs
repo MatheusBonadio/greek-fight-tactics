@@ -49,7 +49,7 @@ namespace Game.Tests.EditMode.UI
         public void MenuList_DisablingTheSelectedEntryMovesTheCursor()
         {
             var menu = SystemMenus.Pause();
-            menu.Point(1);
+            menu.Point(2);
 
             menu.SetEnabled(SystemMenus.Options, false);
 
