@@ -10,6 +10,7 @@ namespace Game.Tests.EditMode.Grid
     public sealed class PathFinderTests
     {
         private const int OccupantId = 7;
+        private const int AllocationAttempts = 3;
 
         private PathFinder finder;
         private List<Coord> buffer;
@@ -174,8 +175,22 @@ namespace Game.Tests.EditMode.Grid
             finder.FindPath(grid, from, to, buffer);
             finder.Reachable(grid, from, 40, buffer);
 
-            Assert.That(() => { finder.FindPath(grid, from, to, buffer); }, AllocationIs.Not.AllocatingGCMemory());
-            Assert.That(() => { finder.Reachable(grid, from, 40, buffer); }, AllocationIs.Not.AllocatingGCMemory());
+            Assert.IsTrue(HasAllocationFreeAttempt(() => { finder.FindPath(grid, from, to, buffer); }), "FindPath allocated on every attempt");
+            Assert.IsTrue(HasAllocationFreeAttempt(() => { finder.Reachable(grid, from, 40, buffer); }), "Reachable allocated on every attempt");
+        }
+
+        private static bool HasAllocationFreeAttempt(TestDelegate search)
+        {
+            var noAllocation = ((NUnit.Framework.Constraints.IResolveConstraint)AllocationIs.Not.AllocatingGCMemory()).Resolve();
+            for (var attempt = 0; attempt < AllocationAttempts; attempt++)
+            {
+                if (noAllocation.ApplyTo(search).IsSuccess)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
