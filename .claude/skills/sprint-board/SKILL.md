@@ -96,6 +96,7 @@ board.py blockers
 | `block <ID> "<motivo>"` / `unblock <ID>` | Trava com motivo e data |
 | `blockers` | Travados e aguardando dependência no sprint atual |
 | `add <ID> "<texto>"` | Acrescenta item ao fim da checklist |
+| `new <ID> "<título>" <sprint> "<resumo>" ["<deps>"] ["<estimativa>"] ["<item\|item>"] ["<label\|label>"]` | Cria um card no fim do sprint, com a label do sprint e a checklist |
 | `verify` | Integridade do board |
 
 Os termos de `check` casam por trecho de texto, sem diferenciar maiúsculas. Se um termo casar com mais de um item, o script lista as opções e não marca nada — use `#n`, que aparece na saída de `card`.
@@ -126,7 +127,13 @@ Escopo que não existe no board entra no board, não fica improvisado fora dele:
 board.py add GRD-02 "testar ator atrás de coluna de 56px"
 ```
 
-Para um card inteiramente novo, siga a tabela de formato acima e preencha `**Depende de:**` de verdade. É a linha que alimenta `next`, `blockers` e `verify`; um card sem dependências declaradas parece sempre disponível e fura a ordem do plano. Rode `verify` em seguida.
+Para um card inteiramente novo, use `new` — ele grava pelo mesmo caminho dos outros comandos, então a formatação do arquivo continua consistente:
+
+```bash
+board.py new MAP-01 "Mapas como dado" 3 "Layout em JSON, não em código." "[GRD-04]" "2 dias" "Legenda de tiles|Validação recusa mapa inválido" "Unity / Core"
+```
+
+O card entra depois do último do mesmo sprint, o que mantém a ordem que o `verify` exige entre dependência e consumidor. Preencha `**Depende de:**` de verdade. É a linha que alimenta `next`, `blockers` e `verify`; um card sem dependências declaradas parece sempre disponível e fura a ordem do plano. Rode `verify` em seguida.
 
 ---
 

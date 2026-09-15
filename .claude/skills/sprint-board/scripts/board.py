@@ -20,6 +20,8 @@ USAGE = """usage: python .claude/skills/sprint-board/scripts/board.py <command>
   unblock <ID>                clear the blocked flag
   blockers                    blocked cards and current-sprint cards waiting on dependencies
   add <ID> "<text>"           append a pending item to the card checklist
+  new <ID> "<title>" <sprint> "<summary>" ["<deps>"] ["<estimate>"] ["<item|item>"] ["<label|label>"]
+                              create a card at the end of its sprint
   verify                      ids, dependencies, cycles and blocker placement
 """
 
@@ -370,6 +372,54 @@ def command_add(board, wanted, text):
     save(board)
 
 
+def sprint_label(board, number):
+    for label in board.get("labels", []):
+        match = SPRINT_PATTERN.match(label["name"])
+        if match and int(match.group(1)) == number:
+            return label["name"]
+    sys.exit(f"no label for sprint {number}; add it to the board labels first")
+
+
+def insert_position(board, number):
+    last = None
+    for position, card in enumerate(board["cards"]):
+        if sprint_of(card) == number:
+            last = position
+    return len(board["cards"]) if last is None else last + 1
+
+
+def command_new(board, wanted, title, sprint, summary, depends="", estimate="", checklist="", labels=""):
+    identifier = wanted.strip("[]").upper()
+    if any(card_id(card) == identifier for card in board["cards"]):
+        sys.exit(f"card {identifier} already exists")
+    number = int(sprint)
+    texts = [text.strip() for text in checklist.split("|") if text.strip()]
+    if not texts:
+        sys.exit("a new card needs at least one checklist item")
+
+    metadata = []
+    if depends.strip():
+        metadata.append(f"**Depende de:** {depends.strip()}")
+    if estimate.strip():
+        metadata.append(f"**Estimativa:** {estimate.strip()}")
+
+    body = []
+    if summary.strip():
+        body.append(summary.strip())
+    if metadata:
+        body.append(" · ".join(metadata))
+    body.append("\n".join([CRITERIA_HEADING] + [f"- [ ] {text}" for text in texts]))
+
+    card = {
+        "title": f"[{identifier}] {title}",
+        "labels": [sprint_label(board, number)] + [label.strip() for label in labels.split("|") if label.strip()],
+        "description": "\n\n".join(body),
+    }
+    board["cards"].insert(insert_position(board, number), card)
+    print(f"  + {card['title']}  {GRAY}{sprint_label(board, number)} · {len(texts)} item(s){RESET}")
+    save(board)
+
+
 def find_cycles(graph):
     state = {}
     cycles = []
@@ -448,6 +498,7 @@ COMMANDS = {
     "unblock": (command_unblock, 1),
     "blockers": (command_blockers, 0),
     "add": (command_add, 2),
+    "new": (command_new, 4),
     "verify": (command_verify, 0),
 }
 

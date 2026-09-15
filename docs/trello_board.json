@@ -483,7 +483,7 @@
         "UI / UX",
         "Risco"
       ],
-      "description": "A acentuação em fonte bitmap é uma armadilha clássica. Teste antes de fechar a fonte.\n\n**Depende de:** [DAT-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Typewriter com velocidade ajustável e skip\n- [x] Quebra de linha automática respeitando largura de 208px\n- [x] Retrato + nome do falante\n- [ ] Fonte bitmap de 8px como Font Asset do TextMesh Pro, atlas com filtro Point e sem compressão\n- [x] Testar: á é í ó ú â ê ô ã õ à ç Ç Ã Õ\n- [x] Testar aspas, travessão (—) e reticências\n- [x] Fallback visível se um glifo faltar (não silencioso)"
+      "description": "A acentuação em fonte bitmap é uma armadilha clássica. Teste antes de fechar a fonte.\n\n**Depende de:** [DAT-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Typewriter com velocidade ajustável e skip\n- [x] Quebra de linha automática respeitando largura de 208px\n- [x] Retrato + nome do falante\n- [x] Fonte bitmap de 8px como Font Asset do TextMesh Pro, atlas com filtro Point e sem compressão\n- [x] Testar: á é í ó ú â ê ô ã õ à ç Ç Ã Õ\n- [x] Testar aspas, travessão (—) e reticências\n- [x] Fallback visível se um glifo faltar (não silencioso)"
     },
     {
       "title": "[UI-04] Ícones de falácia e ajuda",
@@ -601,6 +601,30 @@
         "QA / Testes"
       ],
       "description": "**Ponto de corte do projeto.** Com este card fechado o jogo demonstra tudo que o trabalho propõe: tactics isométrico sobre grade própria, argumentos gerados por LLM e julgados por regra determinística, chave protegida no servidor e jogo completo sem rede. O que vem depois é produto, não demonstração.\n\n**Depende de:** [AVA-02], [ENT-02], [QA-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Build Windows e build Web publicada (ex.: itch.io restrito ou Firebase Hosting) com o conteúdo da entrega\n- [ ] Reexecutar o [QA-02] com o conteúdo final: tudo jogável em modo avião\n- [ ] Roteiro de demonstração de ~10 min: exploração, batalha com REFUTAR e MAIÊUTICA, argumento gerado ao vivo e o kill switch desligando a IA sem quebrar a partida\n- [ ] Vídeo de backup da demonstração, caso a rede da apresentação falhe\n- [ ] Repositório com tag da versão entregue e README de como compilar pelo Unity CLI (`unity install`, `unity test`, `unity build`) e pelo plano B em batch mode\n- [ ] Chave da OpenAI rotacionada ou com teto reduzido depois da banca"
+    },
+    {
+      "title": "[MAP-01] Mapas como dado",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Unity / Core"
+      ],
+      "description": "Layout de mapa em JSON, não em código: o diff fica legível e um mapa inválido falha antes de virar cena.\n\n**Depende de:** [GRD-04] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Layout em `Assets/_Game/Data/Maps/<id>.json`: linhas de texto para chão e blocos, com legenda de símbolo para tile\n- [ ] Atores com personagem, célula e `Facing`; o primeiro da lista é o jogador\n- [ ] `MapLayout.Validate` recusa linha de largura diferente, símbolo desconhecido e ator em bloco, água ou célula repetida\n- [ ] Teste garante que toda célula andável é alcançável a partir do jogador\n- [ ] Ágora e Cerâmico convertidos para o formato, sem layout em código"
+    },
+    {
+      "title": "[MAP-02] Uma cena por mapa",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Unity / Core"
+      ],
+      "description": "Cada mapa vira a própria cena, com o próprio local no save.\n\n**Depende de:** [MAP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] `SandboxTools.Maps` monta uma cena por mapa\n- [ ] Batalha criada só quando o mapa tem o adversário\n- [ ] Cada cena grava o próprio `LocationId`, que vai para o save e decide a restauração\n- [ ] `CaptureReference` fotografa cada mapa em `artifacts/reference`"
+    },
+    {
+      "title": "[MAP-03] Transições entre mapas",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Unity / Core"
+      ],
+      "description": "Andar até a borda leva de um mapa ao outro, sem menu no meio.\n\n**Depende de:** [MAP-01], [MAP-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Saídas no JSON do mapa: célula, destino, célula de chegada e `Facing`\n- [ ] Pisar na saída carrega a outra cena e o jogador chega ao lado da saída, virado para o mapa\n- [ ] Novo jogo começa na oficina do Cerâmico; continuar abre o mapa gravado no save\n- [ ] Teste PlayMode: andar da Ágora até a saída e chegar na rua do Cerâmico\n- [ ] Névoa de cada mapa preservada no save ao trocar de cena"
     },
     {
       "title": "[AT1-06] A cobrança e a pressão sobre Aristeu",
