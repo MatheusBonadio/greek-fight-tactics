@@ -35,6 +35,8 @@ A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Bat
 
 O contrato do argumento mora em `Game.Core` porque é a fronteira entre duas camadas que não se conhecem: `Game.Net` produz `Argument`, `Game.Battle` consome.
 
+**Estado estático.** O Play Mode entra sem domain reload, então estático mutável sobrevive entre sessões. Grid, Content, Net e UI têm o analyzer de autostatics ligado por `<asmdef>.globalconfig`: todo campo estático precisa de `[AutoStaticsCleanup]` ou `[NoAutoStaticsCleanup]`, ou a compilação falha com UAL0010/UAL0013. Core e Battle não enxergam o atributo — ele vive em `UnityEngine.CoreModule` —, então lá o analyzer fica desligado e a regra é mais dura: estático só pode ser `const` ou `static readonly` de dado imutável.
+
 ---
 
 ## Invariantes
@@ -349,7 +351,17 @@ unity build . --profile "Web" --output-path Build/Web
 unity run . -- -nographics -executeMethod Game.EditorTools.DataTools.Regenerate -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.ArtTools.SliceSheets -logFile -
 
+unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.CreateProfiles -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.ConfigureProfiles -logFile -
+
 unity vcs doctor
+```
+
+No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
+
+```powershell
+./tools/test.ps1 -Mode All
+./tools/build.ps1 -BuildProfile "Windows Development"
 ```
 
 PlayMode não usa `-nographics`. `unity run` já passa `-batchmode` e `-quit` ao editor e recusa essas flags depois do `--`. Build Profiles ficam em `Assets/Settings/Build Profiles/`: `Windows Development`, `Windows Release` e `Web`.
