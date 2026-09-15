@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Game.Core;
-using UnityEngine;
 
 namespace Game.Net
 {
@@ -32,7 +31,7 @@ namespace Game.Net
             this.tokens = tokens ?? throw new ArgumentNullException(nameof(tokens));
             this.validator = validator ?? throw new ArgumentNullException(nameof(validator));
             this.argumentUrl = argumentUrl;
-            this.delay = delay ?? WaitForSecondsAsync;
+            this.delay = delay ?? UnityDelay.WaitAsync;
         }
 
         public async Task<ArgumentFetch> FetchAsync(ArgumentRequest request, CancellationToken cancellation)
@@ -109,8 +108,5 @@ namespace Game.Net
 
             return ArgumentFetch.Unavailable(MaxAttempts, lastError);
         }
-
-        private static async Task WaitForSecondsAsync(TimeSpan duration, CancellationToken cancellation) =>
-            await Awaitable.WaitForSecondsAsync((float)duration.TotalSeconds, cancellation);
     }
 }

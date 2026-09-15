@@ -10,7 +10,7 @@
     "build": "npm run sync-content && tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:emulators": "firebase emulators:exec --only firestore,auth --project demo-gft \"vitest run --config vitest.emulators.config.mts\""
+    "test:emulators": "node scripts/run-emulator-tests.mjs"
   },
   "dependencies": {
     "firebase-admin": "14.4.0",

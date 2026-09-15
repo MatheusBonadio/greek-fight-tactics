@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Game.Core;
 using Game.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Game.Tests.EditMode.Net
@@ -47,6 +49,8 @@ namespace Game.Tests.EditMode.Net
         {
             this.tokens = new Queue<string>(tokens);
         }
+
+        public string Uid { get; set; } = "uid-1";
 
         public List<bool> ForceRefreshCalls { get; } = new();
 
@@ -99,10 +103,36 @@ namespace Game.Tests.EditMode.Net
 
     internal static class NetSamples
     {
+        public const string DocumentsRoot = "projects/demo-gft/databases/(default)/documents";
+
         public const string OpponentArgumentJson =
             "{\"speech\":\"Ou você respeita os deuses, ou você é como Sócrates. Não existe meio-termo, menina.\",\"fallacy_id\":\"false_dilemma\",\"premises\":[\"Só existem duas posições\",\"Quem duvida é como Sócrates\"],\"weak_premise\":0,\"tone\":\"theatrical\"}";
 
         public static ArgumentValidator Validator() => new(new[] { "false_dilemma", "ad_hominem" });
+
+        public static SaveData SampleSave(long timestamp = 1789480000000, int reputation = 12)
+        {
+            var save = new SaveData
+            {
+                ActFlag = Act.Two,
+                FogBitmask = new byte[] { 1, 2, 255 },
+                DamarisBranch = DamarisChoice.Accepted,
+                Reputation = reputation,
+                Position = new Coord(7, 3),
+                Timestamp = timestamp
+            };
+            save.Inventory["heraclitus"] = 2;
+            save.Duels["batilo"] = new DuelRecord(true, DuelVictory.Maieutics);
+            save.Flags["met_menexeno"] = "yes";
+            return save;
+        }
+
+        public static string FirestoreSaveDocument(SaveData save, string uid = "uid-1")
+        {
+            var commit = FirestoreDocuments.SaveCommit(DocumentsRoot, uid, save);
+            var update = commit["writes"][0]["update"];
+            return new JObject { ["name"] = update["name"], ["fields"] = update["fields"] }.ToString(Formatting.None);
+        }
 
         public static T Run<T>(Task<T> task)
         {
