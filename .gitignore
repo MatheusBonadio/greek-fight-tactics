@@ -117,6 +117,10 @@ InitTestScene*.unity*
 /artifacts/
 /Build/
 
+# Performance test package build reports
+/Assets/Resources/PerformanceTestRun*
+/Assets/Resources.meta
+
 # Firebase backend
 /functions/node_modules/
 /functions/lib/
