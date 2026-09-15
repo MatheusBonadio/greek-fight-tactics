@@ -94,6 +94,42 @@ namespace Game.Tests.PlayMode
             Assert.IsNotEmpty(argument.Speech);
         }
 
+        [UnityTest]
+        public IEnumerator Settings_LoadOnBootApplyTheVolumeAndPersistChanges()
+        {
+            new LocalSettingsStore(directory).Save(new Game.Core.GameSettings { MasterVolume = 0.3f, AssistedMode = true });
+
+            var services = CreateServices();
+            yield return WaitForBoot(services);
+
+            Assert.AreEqual(0.3f, services.Settings.MasterVolume, 0.0001f);
+            Assert.AreEqual(0.3f, AudioListener.volume, 0.0001f);
+            Assert.IsTrue(services.Settings.AssistedMode);
+
+            Game.Core.GameSettings notified = null;
+            services.SettingsChanged += settings => notified = settings;
+            var changed = new Game.Core.GameSettings { TextSpeed = Game.Core.TextSpeed.Fast };
+            services.UpdateSettings(changed);
+
+            Assert.AreSame(changed, notified);
+            Assert.AreEqual(Game.Core.GameSettings.DefaultVolume, AudioListener.volume, 0.0001f);
+            Assert.AreEqual(Game.Core.TextSpeed.Fast, new LocalSettingsStore(directory).Load().TextSpeed);
+        }
+
+        [UnityTest]
+        public IEnumerator Autosave_WritesTheSingleLocalSlotAndEnablesContinue()
+        {
+            var services = CreateServices();
+            yield return WaitForBoot(services);
+            Assert.IsFalse(services.HasContinue);
+
+            services.Autosave(new Game.Core.SaveData { Reputation = 5, Timestamp = 42 });
+
+            Assert.IsTrue(services.HasContinue);
+            Assert.IsTrue(services.LocalSaves.TryLoad(out var save, out var error), error);
+            Assert.AreEqual(5, save.Reputation);
+        }
+
         private GameServices CreateServices()
         {
             host = new GameObject(nameof(GameServices));

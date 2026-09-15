@@ -502,7 +502,7 @@
         "Fase 1 · Entrega acadêmica",
         "UI / UX"
       ],
-      "description": "**Depende de:** [BCK-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Menu principal, pausa, opções\n- [ ] Opções: volume, velocidade de texto, modo assistido\n- [ ] Save automático em slot único, com Continuar no menu principal\n- [ ] Tela de créditos com as licenças de fontes e assets usados"
+      "description": "**Depende de:** [BCK-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Menu principal, pausa, opções\n- [x] Opções: volume, velocidade de texto, modo assistido\n- [x] Save automático em slot único, com Continuar no menu principal\n- [x] Tela de créditos com as licenças de fontes e assets usados"
     },
     {
       "title": "[AT1-01] Mapa da Oficina (Cerâmico)",

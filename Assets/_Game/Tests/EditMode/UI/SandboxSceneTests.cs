@@ -114,9 +114,10 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void BuildSettings_StartWithTheSandbox()
+        public void BuildSettings_StartWithTheMainMenuFollowedByTheSandbox()
         {
-            Assert.AreEqual(SandboxTools.ScenePath, EditorBuildSettings.scenes[0].path);
+            Assert.AreEqual(SystemMenuTools.MainMenuScenePath, EditorBuildSettings.scenes[0].path);
+            Assert.AreEqual(SandboxTools.ScenePath, EditorBuildSettings.scenes[1].path);
         }
 
         private T Find<T>() where T : Component =>

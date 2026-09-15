@@ -249,6 +249,22 @@ namespace Game.UI
 
         private bool IsReady => grid != null && cursor != null && actionMap != null;
 
+        public Game.Core.SaveData CaptureSave()
+        {
+            var services = FindAnyObjectByType<GameServices>();
+            var previous = services && services.LocalSaves != null && services.LocalSaves.TryLoad(out var existing, out _) ? existing : null;
+            return ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+        }
+
+        private void Start()
+        {
+            var pause = FindAnyObjectByType<PauseMenuController>();
+            if (pause && session != null)
+            {
+                pause.SaveProvider = CaptureSave;
+            }
+        }
+
         private void Update()
         {
             if (!IsReady)

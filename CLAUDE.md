@@ -427,6 +427,7 @@ unity run . -- -nographics -executeMethod Game.EditorTools.SandboxTools.BuildSan
 unity run . -- -executeMethod Game.EditorTools.SandboxTools.CaptureReference -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.UiTools.ImportTextMeshProEssentials -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.BattleHudTools.BuildHud -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.SystemMenuTools.BuildMenus -logFile -
 
 unity vcs doctor
 ```
@@ -443,6 +444,16 @@ unity vcs doctor
 - **Ícone de falácia revelada:** `FallacyRevealView.Attach(actor)` coloca o ícone de 16×16 sobre a cabeça do ator, 2,5 unidades acima do pivot, na mesma camada e com ordem +100.
 - **Modo assistido:** `ActionMenuView.AssistedMode` pinta de dourado a premissa fraca no submenu de maiêutica.
 - **Testes:** `TextMeshProUGUI` só gera malha dentro de um `Canvas`. Teste EditMode que lê `textInfo` precisa pôr o label sob um `Canvas`, senão `characterCount` fica 0.
+
+**Menus de sistema.** A ordem de geração é: `DataTools.Regenerate`, depois `BattleHudTools.BuildHud`, depois `SystemMenuTools.BuildMenus`, depois `SandboxTools.BuildSandbox`. A sandbox instancia o prefab da pausa, então os menus têm de existir antes.
+- **Cenas no build:** `SystemMenuTools.ApplyBuildScenes` define a ordem `MainMenu`, `GridSandbox`, `SampleScene`, e as duas ferramentas usam o mesmo método.
+- **Cena `MainMenu`:** tem câmera, EventSystem com `InputSystemUIInputModule`, `GameServices` e `MainMenuController`. "Continuar" só habilita com `GameServices.HasContinue` (slot único `saves/slot0.json`). Continuar e Novo jogo carregam `GridSandbox` até existir o mapa do Ato I.
+- **Painéis:** `MenuListModel` pula entradas desabilitadas. `MenuListView`, `OptionsView`, `CreditsView` e `CompendiumView` implementam `IMenuPanel`. `SystemMenuInput` repassa teclado e gamepad ao painel ativo, e `PanelRowPointer` repassa o mouse.
+- **Opções:** `GameSettings` (Core) guarda volume em passos de 10%, velocidade do texto (15, 30 ou 60 caracteres por segundo) e modo assistido, persistidos em `settings.json` por `LocalSettingsStore`, com JSON tolerante que volta ao padrão. `GameServices.UpdateSettings` grava, aplica em `AudioListener.volume` e dispara `SettingsChanged`. `BattleHud.ApplySettings` leva velocidade e modo assistido para o diálogo e o menu.
+- **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot` e preserva o progresso do save anterior.
+- **Pausa:** `PauseMenu.prefab` fica na `GridSandbox`. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Opções, Compêndio (só com `BindCompendium`) e Menu principal, que salva por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
+- **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
+- **Testes PlayMode de menu:** usam o `persistentDataPath` real, então restauram as opções no teardown e nunca gravam save.
 
 No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
 

@@ -31,8 +31,52 @@ MonoBehaviour:
     value: '{0}/{1} descobertas'
   - key: compendium.empty
     value: "Nenhuma fal\xE1cia descoberta ainda."
+  - key: credits.title
+    value: "CR\xC9DITOS"
+  - key: credits.body
+    value: "Greek Fight Tactics\nUm tactics de dial\xE9tica em Atenas, 402 a.C.\n\nFONTE\nLiberation Sans, SIL Open Font License 1.1, distribu\xEDda com os recursos essenciais do TextMesh Pro. Provis\xF3ria at\xE9 a fonte bitmap definitiva.\n\nBIBLIOTECAS\nNewtonsoft.Json, licen\xE7a MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 pr\xF3pria em art/palette.\n\nSERVI\xC7OS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor."
   - key: menu.choose_fallacy
     value: "Qual fal\xE1cia?"
+  - key: options.title
+    value: "OP\xC7\xD5ES"
+  - key: options.volume
+    value: Volume
+  - key: options.text_speed
+    value: Texto
+  - key: options.assisted_mode
+    value: Modo assistido
+  - key: options.back
+    value: Voltar
+  - key: options.text_speed.slow
+    value: Lento
+  - key: options.text_speed.normal
+    value: Normal
+  - key: options.text_speed.fast
+    value: "R\xE1pido"
+  - key: options.on
+    value: Ligado
+  - key: options.off
+    value: Desligado
+  - key: system.game_title
+    value: GREEK FIGHT TACTICS
+  - key: system.continue
+    value: CONTINUAR
+  - key: system.new_game
+    value: NOVO JOGO
+  - key: system.options
+    value: "OP\xC7\xD5ES"
+  - key: system.credits
+    value: "CR\xC9DITOS"
+  - key: system.quit
+    value: SAIR
+  - key: system.resume
+    value: VOLTAR AO JOGO
+  - key: system.compendium
+    value: "COMP\xCANDIO"
+  - key: system.main_menu
+    value: MENU PRINCIPAL
+  - key: system.pause_title
+    value: PAUSA
   - key: menu.choose_premise
     value: Qual premissa?
   - key: rejection.battle_over

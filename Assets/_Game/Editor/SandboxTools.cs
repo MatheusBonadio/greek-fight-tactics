@@ -111,11 +111,7 @@ namespace Game.EditorTools
             EnsureTileAssets();
             AssetDatabase.SaveAssets();
             BuildScene();
-            EditorBuildSettings.scenes = new[]
-            {
-                new EditorBuildSettingsScene(ScenePath, true),
-                new EditorBuildSettingsScene(SampleScenePath, true)
-            };
+            SystemMenuTools.ApplyBuildScenes();
             AssetDatabase.SaveAssets();
             Debug.Log($"[SandboxTools] built {ScenePath}");
         }
@@ -263,6 +259,8 @@ namespace Game.EditorTools
 
             CreateCamera(actors[0].transform);
             CreateGameServices();
+            SystemMenuTools.CreateEventSystem();
+            SystemMenuTools.InstantiatePauseMenu();
 
             AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -271,7 +269,7 @@ namespace Game.EditorTools
             }
         }
 
-        private static void CreateGameServices()
+        internal static GameServices CreateGameServices()
         {
             var catalog = AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath)
                 ?? throw new InvalidOperationException($"missing {DataTools.CatalogPath}; run DataTools.Regenerate first");
@@ -286,7 +284,9 @@ namespace Game.EditorTools
                 AssetDatabase.SaveAssets();
             }
 
-            new GameObject(nameof(GameServices)).AddComponent<GameServices>().Configure(network, catalog, fallback, null);
+            var services = new GameObject(nameof(GameServices)).AddComponent<GameServices>();
+            services.Configure(network, catalog, fallback, null);
+            return services;
         }
 
         private static Tilemap CreateTilemap(GameObject gridObject, string name, string sortingLayer, int sortingOrder)

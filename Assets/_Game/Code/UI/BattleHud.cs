@@ -1,5 +1,6 @@
 using System;
 using Game.Battle;
+using Game.Core;
 using UnityEngine;
 
 namespace Game.UI
@@ -44,6 +45,17 @@ namespace Game.UI
             opponentCoherence.Bind(new DrainingBar(state.Opponent.MaxCoherence, state.Opponent.Coherence));
             audience.Bind(new AudienceMeter(state.PlayerAudience));
             menu.Bind(controller);
+        }
+
+        public void ApplySettings(GameSettings settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            dialogue.CharactersPerSecond = settings.CharactersPerSecond;
+            menu.AssistedMode = settings.AssistedMode;
         }
 
         public void Sync()

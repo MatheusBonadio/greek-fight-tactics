@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Game.UI
 {
-    public sealed class CompendiumView : MonoBehaviour
+    public sealed class CompendiumView : MonoBehaviour, IMenuPanel
     {
         public const string HeaderKey = "compendium.title";
         public const string CounterKey = "compendium.counter";
@@ -105,6 +105,10 @@ namespace Game.UI
         {
             gameObject.SetActive(false);
             Closed?.Invoke();
+        }
+
+        public void HandleConfirm()
+        {
         }
 
         public void Render()

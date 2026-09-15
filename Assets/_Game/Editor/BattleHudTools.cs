@@ -1,13 +1,11 @@
 using System;
-using System.IO;
 using Game.Content;
 using Game.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using Object = UnityEngine.Object;
+using static Game.EditorTools.UiBuilder;
 
 namespace Game.EditorTools
 {
@@ -36,18 +34,6 @@ namespace Game.EditorTools
         public const int FontSize = 8;
         public const int ReasonWidth = 208;
 
-        private static readonly Vector2 TopLeft = new(0f, 1f);
-        private static readonly Vector2 TopRight = new(1f, 1f);
-        private static readonly Vector2 TopCenter = new(0.5f, 1f);
-        private static readonly Vector2 BottomLeft = new(0f, 0f);
-        private static readonly Vector2 BottomRight = new(1f, 0f);
-        private static readonly Vector2 BottomCenter = new(0.5f, 0f);
-        private static readonly Vector2 Center = new(0.5f, 0.5f);
-        private static readonly Color TrackColor = new Color32(24, 24, 40, 255);
-        private static readonly Color OpponentAudienceColor = new Color32(120, 24, 32, 255);
-        private static readonly Color MarkerColor = new Color32(248, 248, 240, 255);
-        private static readonly Color AccentColor = new Color32(248, 224, 88, 255);
-
         public static void BuildHud() => BatchRunner.Run(BuildHudPrefabs);
 
         public static void BuildHudPrefabs()
@@ -56,8 +42,7 @@ namespace Game.EditorTools
                 ?? throw new InvalidOperationException($"missing {DataTools.UiTextPath}; run DataTools.Regenerate first");
             var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath)
                 ?? throw new InvalidOperationException($"missing {DataTools.CatalogPath}; run DataTools.Regenerate first");
-            var controls = AssetDatabase.LoadAssetAtPath<InputActionAsset>(SandboxTools.ControlsPath)
-                ?? throw new InvalidOperationException($"missing {SandboxTools.ControlsPath}");
+            var controls = Load<InputActionAsset>(SandboxTools.ControlsPath);
 
             SavePrefab(HudPrefabPath, root => BuildHudRoot(root, uiText, catalog, controls));
             SavePrefab(CompendiumPrefabPath, root => BuildCompendiumRoot(root, uiText, catalog, controls));
@@ -101,44 +86,6 @@ namespace Game.EditorTools
             var view = root.AddComponent<CompendiumView>();
             view.Configure(header, rows, cursor, title, description, hint, counter, icon, catalog, uiText);
             root.AddComponent<CompendiumInput>().Configure(controls, view);
-        }
-
-        private static void SavePrefab(string path, Action<GameObject> build)
-        {
-            var root = new GameObject(Path.GetFileNameWithoutExtension(path), typeof(RectTransform));
-            try
-            {
-                build(root);
-                AssetFolders.Ensure(Path.GetDirectoryName(path)?.Replace('\\', '/'));
-                PrefabUtility.SaveAsPrefabAsset(root, path, out var saved);
-                if (!saved)
-                {
-                    throw new InvalidOperationException($"could not save {path}");
-                }
-
-                Debug.Log($"[BattleHudTools] saved {path}");
-            }
-            finally
-            {
-                Object.DestroyImmediate(root);
-            }
-        }
-
-        private static Canvas ConfigureCanvas(GameObject root)
-        {
-            var canvas = root.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.planeDistance = 1f;
-            canvas.pixelPerfect = true;
-
-            var scaler = root.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(CanvasReference, CanvasReference);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 1f;
-            scaler.referencePixelsPerUnit = PixelArtImporter.PixelsPerUnit;
-            root.AddComponent<GraphicRaycaster>();
-            return canvas;
         }
 
         private static BarView CreateBar(Transform parent, string name, string spriteName, Vector2 anchor, Vector2 position)
@@ -224,51 +171,6 @@ namespace Game.EditorTools
             var label = CreateLabel(parent, name, TopLeft, position, new Vector2(MenuWidth - RowInset - 4, RowHeight), TextAlignmentOptions.MidlineLeft);
             label.raycastTarget = true;
             label.gameObject.AddComponent<MenuRowPointer>().Configure(view, layer, index);
-            return label;
-        }
-
-        private static Sprite UiSprite(string name) =>
-            AssetDatabase.LoadAssetAtPath<Sprite>($"{UiSpriteFolder}/{name}.png")
-            ?? throw new InvalidOperationException($"missing ui sprite {name}; run ArtTools.SliceSheets first");
-
-        private static void MakeHorizontalFill(Image image)
-        {
-            image.type = Image.Type.Filled;
-            image.fillMethod = Image.FillMethod.Horizontal;
-            image.fillOrigin = (int)Image.OriginHorizontal.Left;
-        }
-
-        private static RectTransform CreateRect(Transform parent, string name, Vector2 anchor, Vector2 position, Vector2 size)
-        {
-            var gameObject = new GameObject(name, typeof(RectTransform));
-            var rect = (RectTransform)gameObject.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = anchor;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            return rect;
-        }
-
-        private static Image CreateImage(Transform parent, string name, Sprite sprite, Vector2 anchor, Vector2 position, Vector2 size, Color color)
-        {
-            var image = CreateRect(parent, name, anchor, position, size).gameObject.AddComponent<Image>();
-            image.sprite = sprite;
-            image.color = color;
-            image.raycastTarget = false;
-            return image;
-        }
-
-        private static TMP_Text CreateLabel(Transform parent, string name, Vector2 anchor, Vector2 position, Vector2 size, TextAlignmentOptions alignment, bool wrap = false)
-        {
-            var label = CreateRect(parent, name, anchor, position, size).gameObject.AddComponent<TextMeshProUGUI>();
-            label.font = TMP_Settings.defaultFontAsset;
-            label.fontSize = FontSize;
-            label.alignment = alignment;
-            label.textWrappingMode = wrap ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
-            label.overflowMode = TextOverflowModes.Truncate;
-            label.raycastTarget = false;
             return label;
         }
     }

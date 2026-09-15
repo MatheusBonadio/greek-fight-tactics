@@ -21,9 +21,15 @@ namespace Game.UI
 
         private ArgumentValidator validator;
 
+        public event Action<GameSettings> SettingsChanged;
+
         public ArgumentDiskCache ArgumentCache { get; private set; }
 
         public LocalSaveStore LocalSaves { get; private set; }
+
+        public LocalSettingsStore SettingsStore { get; private set; }
+
+        public GameSettings Settings { get; private set; } = new();
 
         public FirebaseAnonymousAuth Auth { get; private set; }
 
@@ -34,6 +40,10 @@ namespace Game.UI
         public Task BootTask { get; private set; }
 
         public bool IsBooted => BootTask is { IsCompletedSuccessfully: true };
+
+        public bool HasContinue => LocalSaves != null && LocalSaves.Exists;
+
+        public FallacyCatalogSO Catalog => catalog;
 
         public string DataDirectory => string.IsNullOrWhiteSpace(dataDirectoryOverride) ? Application.persistentDataPath : dataDirectoryOverride;
 
@@ -46,6 +56,36 @@ namespace Game.UI
         }
 
         public Task SaveArgumentCache() => ArgumentCache?.SaveAsync() ?? Task.CompletedTask;
+
+        public void UpdateSettings(GameSettings settings)
+        {
+            Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            SettingsStore?.Save(settings);
+            ApplySettings();
+            SettingsChanged?.Invoke(settings);
+        }
+
+        public void Autosave(SaveData save)
+        {
+            if (save == null)
+            {
+                throw new ArgumentNullException(nameof(save));
+            }
+
+            if (LocalSaves == null)
+            {
+                throw new InvalidOperationException("GameServices must finish booting before saving.");
+            }
+
+            if (Saves == null)
+            {
+                LocalSaves.Save(save);
+                return;
+            }
+
+            Saves.SaveLocal(save);
+            _ = Saves.PushPendingAsync(destroyCancellationToken);
+        }
 
         public PrewarmedArgumentSource CreateArgumentSource(int seed)
         {
@@ -97,6 +137,9 @@ namespace Game.UI
             ArgumentCache = new ArgumentDiskCache(Path.Combine(DataDirectory, ArgumentCacheFolder));
             ArgumentCache.Load();
             LocalSaves = new LocalSaveStore(Path.Combine(DataDirectory, SaveFolder));
+            SettingsStore = new LocalSettingsStore(DataDirectory);
+            Settings = SettingsStore.Load();
+            ApplySettings();
 
             if (!network || !network.IsConfigured)
             {
@@ -130,6 +173,11 @@ namespace Game.UI
             {
                 Debug.LogWarning($"Online services unavailable, continuing offline: {exception.Message}");
             }
+        }
+
+        private void ApplySettings()
+        {
+            AudioListener.volume = Settings.MasterVolume;
         }
 
         private ArgumentValidator Validator() => validator ??= new ArgumentValidator(catalog.RefutableIds);
