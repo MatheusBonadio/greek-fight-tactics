@@ -27,6 +27,7 @@ namespace Game.EditorTools
         public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
         public const string BattleOpponentId = "thrasybios";
         public const string AudienceCharacter = "citizen";
+        public const string PortraitRow = "se";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
         public const string FogSortingLayer = "Fog";
         public const string FloorTilemapName = "Floor";
@@ -355,7 +356,15 @@ namespace Game.EditorTools
                 AssetDatabase.LoadAssetAtPath<Game.Content.UiTextSO>(DataTools.UiTextPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
+            director.ConfigurePortraits(PortraitFor(placements[0].Character), PortraitFor(BattleOpponentId));
             return director;
+        }
+
+        private static Sprite PortraitFor(string character)
+        {
+            var name = $"{character}_{PortraitRow}_0";
+            return AssetDatabase.LoadAllAssetsAtPath(ArtTools.SheetPathFor(character)).OfType<Sprite>().FirstOrDefault(sprite => sprite.name == name)
+                ?? throw new InvalidOperationException($"missing portrait sprite {name}; run ArtTools.SliceSheets first");
         }
 
         private static ExplorationCamera CreateCamera(Transform followTarget)

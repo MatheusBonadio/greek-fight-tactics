@@ -61,11 +61,20 @@ namespace Game.Tests.PlayMode
             var deadline = Time.realtimeSinceStartup + BattleTimeoutSeconds;
             var sawPlayerTurn = false;
             var sawRange = false;
+            var sawOpponentPortrait = false;
+            Assert.IsNotNull(director.PlayerPortrait, "GridSandbox scene must wire Kleia's portrait");
+            Assert.IsNotNull(director.OpponentPortrait, "GridSandbox scene must wire the opponent's portrait");
             Assert.IsNotNull(director.RangeView, "GridSandbox scene must wire the range highlight view");
             while (director.Phase != BattleFlowPhase.Exploring && Time.realtimeSinceStartup < deadline)
             {
                 if (director.Phase == BattleFlowPhase.Dialogue)
                 {
+                    var dialogue = director.Hud.Dialogue;
+                    if (dialogue.Line.SpeakerName == director.Opponent.DisplayName)
+                    {
+                        sawOpponentPortrait |= dialogue.PortraitFrame.activeSelf && dialogue.Line.Portrait == director.OpponentPortrait;
+                    }
+
                     director.AdvanceDialogue();
                 }
                 else if (director.Phase == BattleFlowPhase.PlayerChoosing)
@@ -90,6 +99,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "the battle did not finish in time");
             Assert.IsTrue(sawPlayerTurn);
             Assert.IsTrue(sawRange, "the selected action range was never painted on the floor");
+            Assert.IsTrue(sawOpponentPortrait, "the opponent spoke without his portrait");
             Assert.AreEqual(0, director.RangeView.PaintedCount);
             Assert.AreNotEqual(BattleStatus.Ongoing, director.LastResult);
             Assert.AreEqual(GameMode.Exploration, director.StateMachine.Mode);

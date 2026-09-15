@@ -59,6 +59,8 @@ namespace Game.UI
 
         public GameObject PortraitFrame => portraitFrame;
 
+        public DialogueLine Line { get; private set; }
+
         public void Configure(GameObject dialogueBox, TMP_Text bodyText, TMP_Text speaker, Image portraitImage, GameObject frame)
         {
             box = dialogueBox;
@@ -70,6 +72,7 @@ namespace Game.UI
 
         public void Show(DialogueLine line)
         {
+            Line = line;
             box.SetActive(true);
             speakerLabel.text = line.SpeakerName ?? string.Empty;
             portrait.sprite = line.Portrait;

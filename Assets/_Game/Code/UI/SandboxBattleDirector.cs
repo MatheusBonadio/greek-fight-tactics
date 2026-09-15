@@ -40,6 +40,8 @@ namespace Game.UI
         [SerializeField] private int aggroRadius = AggroRule.DefaultRadius;
         [SerializeField] private float thinkSeconds = DefaultThinkSeconds;
         [SerializeField] private RangeHighlightView rangeView;
+        [SerializeField] private Sprite playerPortrait;
+        [SerializeField] private Sprite opponentPortrait;
 
         private GameServices services;
         private RangeHighlighter highlighter;
@@ -72,6 +74,10 @@ namespace Game.UI
         public OpponentSO Opponent => opponent;
 
         public RangeHighlightView RangeView => rangeView;
+
+        public Sprite PlayerPortrait => playerPortrait;
+
+        public Sprite OpponentPortrait => opponentPortrait;
 
         public bool AutosaveEnabled { get; set; } = true;
 
@@ -110,6 +116,12 @@ namespace Game.UI
         public void ConfigureRange(RangeHighlightView view)
         {
             rangeView = view;
+        }
+
+        public void ConfigurePortraits(Sprite player, Sprite opponentSprite)
+        {
+            playerPortrait = player;
+            opponentPortrait = opponentSprite;
         }
 
         public void StartBattle()
@@ -387,7 +399,7 @@ namespace Game.UI
             var outcome = Session.PlayChoice(choice);
             if (outcome.IsRejected)
             {
-                ShowLine(text.Get(BattleText.PlayerNameKey), text.Get(UiTextKeys.For(outcome.Rejection)), NextTurn);
+                ShowLine(text.Get(BattleText.PlayerNameKey), playerPortrait, text.Get(UiTextKeys.For(outcome.Rejection)), NextTurn);
                 return;
             }
 
@@ -407,7 +419,7 @@ namespace Game.UI
             {
                 if (outcome.PresentedArgument.HasValue)
                 {
-                    ShowLine(opponent.DisplayName, outcome.PresentedArgument.Value.Speech, NextTurn);
+                    ShowLine(opponent.DisplayName, opponentPortrait, outcome.PresentedArgument.Value.Speech, NextTurn);
                     return;
                 }
 
@@ -457,12 +469,14 @@ namespace Game.UI
             highlighter?.Clear();
         }
 
-        private void ShowLine(string speaker, string body, Action continuation)
+        private void ShowLine(string speaker, string body, Action continuation) => ShowLine(speaker, null, body, continuation);
+
+        private void ShowLine(string speaker, Sprite portrait, string body, Action continuation)
         {
             Phase = BattleFlowPhase.Dialogue;
             dialogueFrame = Time.frameCount;
             dialogueContinuation = continuation;
-            hud.Dialogue.Show(new DialogueLine(speaker, null, body));
+            hud.Dialogue.Show(new DialogueLine(speaker, portrait, body));
         }
 
         private void EndBattle()

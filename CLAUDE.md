@@ -268,7 +268,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 - **Batalha jogável na sandbox:** `SandboxBattleDirector` conduz o duelo quando a Kleia entra no raio de `AggroRule` do Thrasybios.
   - **Entrada na batalha:** desliga `GridSandboxController.ExplorationInputEnabled` e a pausa, aproxima a câmera e mostra o `BattleHud`.
-  - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo, e o ícone da falácia sobe ao refutar certo.
+  - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo, e o ícone da falácia sobe ao refutar certo. As falas da Kleia e do oponente mostram o retrato de cada um (`SandboxBattleDirector.ConfigurePortraits`); a narração fica sem retrato. Enquanto não existe arte de retrato, `SandboxTools` usa o quadro parado de frente (`<personagem>_se_0`) da folha do personagem.
   - **Saída:** ao fim, volta à exploração e faz save automático. Depois de vencer, o oponente não provoca de novo; depois de perder ou fugir, só volta a provocar quando a Kleia sai do raio e retorna.
   - **Grid da batalha:** `BattleSession` roda o duelo numa cópia do grid da exploração, porque o `BattleState` exige células livres e os walkers já as ocupam. Os movimentos voltam para os walkers pelo `Outcome.Path`.
   - **CIRCULAR:** abre a fase `PlayerTargeting`.
@@ -491,7 +491,7 @@ unity vcs doctor
 - **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot` e preserva o progresso do save anterior.
 - **Pausa:** `PauseMenu.prefab` fica na `GridSandbox`. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Salvar, Opções, Compêndio e Menu principal. Salvar só habilita com `SaveProvider` e serviços prontos e abre os slots com confirmação de sobrescrita. Compêndio só habilita com `BindCompendium`. Menu principal salva no slot ativo por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
 - **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
-- **Testes PlayMode de menu:** usam o `persistentDataPath` real, então restauram as opções no teardown e nunca gravam save.
+- **Testes PlayMode:** nunca tocam o save nem as opções reais do jogador. `IsolatedDataDirectory.Enter()` aponta `GFT_DATA_DIRECTORY` para uma pasta temporária, que `GameServices.DataDirectory` respeita, e o `Dispose` do teardown apaga essa pasta.
 
 **Medidor de 501 jurados (Tribunal).**
 - **`TribunalVerdicts` (Core):** guarda os números de referência. São 501 jurados e maioria de 251. O final Sofista absolve por 340, o Filósofo condena por 261 e a Mestra absolve por 281.
