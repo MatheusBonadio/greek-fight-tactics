@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Ladeira escorregadia
   description: "Afirma que um primeiro passo leva inevitavelmente a uma cat\xE1strofe."
   playerHint: "Cada passo da cadeia \xE9 mesmo inevit\xE1vel?"
-  icon: {fileID: 3566289600032562778, guid: a65cb5e1ffc846b4684c40e5b22a2392, type: 3}
+  icon: {fileID: 21300000, guid: a65cb5e1ffc846b4684c40e5b22a2392, type: 3}
   category: 0

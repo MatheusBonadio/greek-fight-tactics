@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: O Mentiroso
   description: "\"Esta frase \xE9 falsa\" n\xE3o pode ser verdadeira nem falsa."
   playerHint: "N\xE3o h\xE1 erro a apontar. \xC0s vezes a jogada certa \xE9 conceder."
-  icon: {fileID: 4105501244855940855, guid: 2b56f26561b7948428ec59569bc37127, type: 3}
+  icon: {fileID: 21300000, guid: 2b56f26561b7948428ec59569bc37127, type: 3}
   category: 2

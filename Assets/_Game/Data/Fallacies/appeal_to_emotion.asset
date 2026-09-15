@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Apelo \xE0 emo\xE7\xE3o"
   description: "Troca raz\xF5es por medo, pena ou raiva."
   playerHint: 'Tire o sentimento da frase: sobra algum argumento?'
-  icon: {fileID: -1406370210058807794, guid: 2266044ad3af8f241986ba64b41b6e75, type: 3}
+  icon: {fileID: 21300000, guid: 2266044ad3af8f241986ba64b41b6e75, type: 3}
   category: 0

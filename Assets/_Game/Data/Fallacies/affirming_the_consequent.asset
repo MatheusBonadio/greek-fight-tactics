@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Afirma\xE7\xE3o do consequente"
   description: "De \"se A, ent\xE3o B\" e \"B\", conclui \"A\"."
   playerHint: "B poderia ter outra causa al\xE9m de A?"
-  icon: {fileID: -4144195564497541961, guid: 079a2af88fd0cb54d9c83fd6b844dab0, type: 3}
+  icon: {fileID: 21300000, guid: 079a2af88fd0cb54d9c83fd6b844dab0, type: 3}
   category: 1

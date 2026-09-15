@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Apelo \xE0 autoridade"
   description: "Toma algo por verdadeiro s\xF3 porque algu\xE9m importante afirmou."
   playerHint: "Essa pessoa entende do assunto, ou s\xF3 tem fama?"
-  icon: {fileID: 6843746232542999171, guid: fb8573d5df35e3c4ab5ac033b46eea44, type: 3}
+  icon: {fileID: 21300000, guid: fb8573d5df35e3c4ab5ac033b46eea44, type: 3}
   category: 0

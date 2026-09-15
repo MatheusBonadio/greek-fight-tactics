@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Equ\xEDvoco"
   description: "Usa a mesma palavra com dois sentidos dentro do mesmo racioc\xEDnio."
   playerHint: "A palavra-chave significa a mesma coisa do come\xE7o ao fim?"
-  icon: {fileID: 2800637577927338550, guid: 9025d840fb61518489ddf25de1cc9cdc, type: 3}
+  icon: {fileID: 21300000, guid: 9025d840fb61518489ddf25de1cc9cdc, type: 3}
   category: 0

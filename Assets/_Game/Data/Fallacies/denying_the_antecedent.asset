@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Nega\xE7\xE3o do antecedente"
   description: "De \"se A, ent\xE3o B\" e \"n\xE3o A\", conclui \"n\xE3o B\"."
   playerHint: B poderia acontecer mesmo sem A?
-  icon: {fileID: 7479480753453096953, guid: c2b1b953649da3c408c806af24342fc1, type: 3}
+  icon: {fileID: 21300000, guid: c2b1b953649da3c408c806af24342fc1, type: 3}
   category: 1

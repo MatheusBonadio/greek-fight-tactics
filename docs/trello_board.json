@@ -123,7 +123,7 @@
         "Unity / Core",
         "Arte"
       ],
-      "description": "Os placeholders já estão em RGB555 e nas dimensões finais — trocar pela arte real depois não quebra referência.\n\n**Depende de:** [SET-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Copiar o pacote de placeholders para `Assets/_Game/Art/Placeholder`\n- [ ] Sprite Mode = Multiple nas 7 folhas de personagem\n- [ ] Slice > Grid By Cell Size 24x32\n- [ ] Pivot Custom (0.5, 0.0625) — pés na base\n- [ ] Tiles de chão: pivot Bottom Left\n- [ ] Animator Controller base com estados idle / walk / acao\n- [ ] TODAS as curvas em modo Constant (nunca Linear)\n- [ ] Blend por direção usando parâmetros `dirX`, `dirY`"
+      "description": "Os placeholders já estão em RGB555 e nas dimensões finais — trocar pela arte real depois não quebra referência.\n\n**Depende de:** [SET-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Copiar o pacote de placeholders para `Assets/_Game/Art/Placeholder`\n- [x] Sprite Mode = Multiple nas 7 folhas de personagem\n- [x] Slice > Grid By Cell Size 24x32\n- [x] Pivot Custom (0.5, 0.0625) — pés na base\n- [x] Tiles de chão: pivot Bottom Left\n- [x] Animator Controller base com estados idle / walk / acao\n- [x] TODAS as curvas em modo Constant (nunca Linear)\n- [x] Blend por direção usando parâmetros `dirX`, `dirY`"
     },
     {
       "title": "[SET-03] Definition of Done do projeto",

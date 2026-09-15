@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Generaliza\xE7\xE3o apressada"
   description: Tira uma regra geral de poucos casos.
   playerHint: Quantos exemplos sustentam esse "todos"?
-  icon: {fileID: 2758005707006894209, guid: b3698571c37cc6f4b8596097285482d6, type: 3}
+  icon: {fileID: 21300000, guid: b3698571c37cc6f4b8596097285482d6, type: 3}
   category: 0

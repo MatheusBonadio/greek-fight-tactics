@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Apelo \xE0 ignor\xE2ncia"
   description: "Conclui que algo \xE9 verdadeiro porque ningu\xE9m provou o contr\xE1rio."
   playerHint: "Falta de prova contra \xE9 o mesmo que prova a favor?"
-  icon: {fileID: 7971433908968643746, guid: 7edbbf687e4c9b64eb27dfdd15f7e473, type: 3}
+  icon: {fileID: 21300000, guid: 7edbbf687e4c9b64eb27dfdd15f7e473, type: 3}
   category: 0

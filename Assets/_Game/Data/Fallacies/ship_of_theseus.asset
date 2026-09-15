@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: O navio de Teseu
   description: "Trocadas todas as t\xE1buas, ainda \xE9 o mesmo navio?"
   playerHint: "N\xE3o h\xE1 erro a apontar. O que define \"o mesmo\"?"
-  icon: {fileID: 8223433594430462551, guid: 76e445dc6b9d8854d9fa470d350d2192, type: 3}
+  icon: {fileID: 21300000, guid: 76e445dc6b9d8854d9fa470d350d2192, type: 3}
   category: 2

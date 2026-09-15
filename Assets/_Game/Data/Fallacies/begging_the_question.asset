@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Peti\xE7\xE3o de princ\xEDpio"
   description: "A conclus\xE3o j\xE1 est\xE1 escondida nas premissas."
   playerHint: "O argumento prova algo, ou s\xF3 repete o que queria provar?"
-  icon: {fileID: 6939233798307038891, guid: 1b1e77ceae20e1f408054a295748ab90, type: 3}
+  icon: {fileID: 21300000, guid: 1b1e77ceae20e1f408054a295748ab90, type: 3}
   category: 0

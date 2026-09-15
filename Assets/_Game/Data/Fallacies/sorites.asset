@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: O monte de areia
   description: "Tirar um gr\xE3o n\xE3o desfaz o monte, mas tirar todos desfaz."
   playerHint: "N\xE3o h\xE1 erro a apontar. Onde fica a fronteira da palavra?"
-  icon: {fileID: -5458885694893024432, guid: 05705f299bd192a42bce4f6ba0107ce1, type: 3}
+  icon: {fileID: 21300000, guid: 05705f299bd192a42bce4f6ba0107ce1, type: 3}
   category: 2

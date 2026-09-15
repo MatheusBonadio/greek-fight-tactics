@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Termo m\xE9dio n\xE3o distribu\xEDdo"
   description: "Junta dois grupos s\xF3 porque ambos compartilham uma caracter\xEDstica."
   playerHint: Ter algo em comum faz de dois grupos o mesmo grupo?
-  icon: {fileID: -2604265402861910789, guid: 82028944958a37b47a6d82d746a92368, type: 3}
+  icon: {fileID: 21300000, guid: 82028944958a37b47a6d82d746a92368, type: 3}
   category: 1

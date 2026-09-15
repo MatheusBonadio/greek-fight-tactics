@@ -325,11 +325,12 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 
 Resumo; o detalhe está na skill `pixel-art-pipeline`.
 
-- A fonte da arte fica em `art/`. O [ART-01] copia os placeholders para `Assets/_Game/Art/Placeholder/`.
-- Import settings por `AssetPostprocessor` (Preset Manager exige Inspector): Sprite, Point, sem compressão, PPU 16, sem mipmap, Full Rect.
-- Folhas 96×128 fatiadas em células 24×32 com pivot `(0.5, 0.0625)` por `ISpriteEditorDataProvider`, via `Game.EditorTools.ArtTools.SliceSheets`. Idempotente.
-- `AnimationClip` criado por script; curvas numéricas com tangentes `Constant`. Clipe montado à mão tende a nascer `Linear` e o pixel treme.
-- `PixelPerfectCamera` com referência 224×224, PPU 16, *Upscale Render Texture* e *Crop Frame* X/Y, em prefab versionado.
+- A fonte da arte fica em `art/`. `Game.EditorTools.ArtTools.SliceSheets` copia `art/placeholders/` para `Assets/_Game/Art/Placeholder/`, força a reimportação, fatia as folhas e gera clipes e Animator Controllers. Idempotente.
+- `PixelArtImporter` (`AssetPostprocessor`, porque Preset Manager exige Inspector) vale para tudo sob `/_Game/Art/`: Sprite, Point, sem compressão, PPU 16, sem mipmap, Full Rect. O modo é **sempre explícito** — `Multiple` só para `*_sheet.png`, `Single` para o resto —, porque o template 2D importa sprite novo como `Multiple` e aí o pivot definido no importer é ignorado. Tudo sob `/tiles/` recebe pivot `BottomLeft`.
+- Folhas 96×128 fatiadas em células 24×32 (`<personagem>_<se|sw|ne|nw>_<coluna>`) com pivot `(0.5, 0.0625)` por `ISpriteEditorDataProvider`, preservando o `spriteID` de cada célula entre regenerações.
+- Um Animator Controller por personagem em `Assets/_Game/Art/Placeholder/Animations/`, com estados `idle`, `walk` e `action`, cada um um blend tree 2D por `dirX`/`dirY`. Os clipes só trocam sprite (curva de referência de objeto, sem interpolação); curvas numéricas, quando existirem, usam tangentes `Constant`.
+- `Game.EditorTools.RenderSetupTools.Apply` gera `Assets/_Game/Prefabs/Camera/PixelPerfectCameraRig.prefab` (URP `PixelPerfectCamera`, referência 224×224, PPU 16, *Upscale Render Texture*, *Crop Frame* X/Y) e põe o `Renderer2D.asset` em Transparency Sort *Custom Axis* (0, 1, 0).
+- Trocar o modo de import de uma textura muda o fileID do sprite. Depois de mexer no importer, rode `ArtTools.SliceSheets` **e** `DataTools.Regenerate`, que religa os ícones dos `FallacySO`.
 
 ---
 

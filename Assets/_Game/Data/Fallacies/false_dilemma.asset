@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Falso dilema
   description: "Apresenta s\xF3 duas op\xE7\xF5es quando existem outras."
   playerHint: "Existe uma terceira sa\xEDda que ningu\xE9m mencionou?"
-  icon: {fileID: -8134559956515430526, guid: b477a0d1318d4a347aa6730842e6f01e, type: 3}
+  icon: {fileID: 21300000, guid: b477a0d1318d4a347aa6730842e6f01e, type: 3}
   category: 0

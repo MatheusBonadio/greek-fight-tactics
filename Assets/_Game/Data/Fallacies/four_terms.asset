@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Quatro termos
   description: "Silogismo que parece ter tr\xEAs termos, mas um deles muda de sentido no caminho."
   playerHint: 'Conte os termos: algum aparece com dois significados?'
-  icon: {fileID: -9160154748093984925, guid: 64c7fa3c5dc3918448cfe9d9cb6238ac, type: 3}
+  icon: {fileID: 21300000, guid: 64c7fa3c5dc3918448cfe9d9cb6238ac, type: 3}
   category: 1

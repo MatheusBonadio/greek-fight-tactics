@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Ad hominem
   description: Ataca quem fala em vez do que foi dito.
   playerHint: "O argumento trocou o assunto pela origem, pela vida ou pelo car\xE1ter de algu\xE9m?"
-  icon: {fileID: -6140432385920761456, guid: b414898ccbefc2d46bfd2e9de57f5323, type: 3}
+  icon: {fileID: 21300000, guid: b414898ccbefc2d46bfd2e9de57f5323, type: 3}
   category: 0

@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: "Silogismo disjuntivo inv\xE1lido"
   description: "De \"A ou B\" e \"A\", conclui \"n\xE3o B\", quando os dois podiam ser verdade."
   playerHint: "Esse \"ou\" exclu\xEDa mesmo a outra op\xE7\xE3o?"
-  icon: {fileID: -3530607828720211120, guid: 5361ef9db1739844a9ecce7c4bd1af5f, type: 3}
+  icon: {fileID: 21300000, guid: 5361ef9db1739844a9ecce7c4bd1af5f, type: 3}
   category: 1

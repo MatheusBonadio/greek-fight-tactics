@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Aquiles e a tartaruga
   description: "Uma soma infinita de dist\xE2ncias parece impedir qualquer movimento."
   playerHint: "N\xE3o h\xE1 erro a apontar. Pergunte o que \"infinito\" quer dizer aqui."
-  icon: {fileID: -7349099783971384677, guid: 12042b96ab0805c4da92e4b08cd2c6fa, type: 3}
+  icon: {fileID: 21300000, guid: 12042b96ab0805c4da92e4b08cd2c6fa, type: 3}
   category: 2

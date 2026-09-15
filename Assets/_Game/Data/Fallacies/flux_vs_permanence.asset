@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Tudo flui e nada muda
   description: "Her\xE1clito e Parm\xEAnides n\xE3o podem estar ambos certos, e cada um parece estar."
   playerHint: "N\xE3o h\xE1 erro a apontar. Talvez seja preciso perder para um deles."
-  icon: {fileID: 3167836915034867874, guid: 95dc43f914fc05145bb91c4053e4b653, type: 3}
+  icon: {fileID: 21300000, guid: 95dc43f914fc05145bb91c4053e4b653, type: 3}
   category: 2

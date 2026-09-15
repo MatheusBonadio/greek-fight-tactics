@@ -114,8 +114,10 @@ namespace Game.EditorTools
 {
     public sealed class PixelArtImporter : AssetPostprocessor
     {
-        private const string ArtFolder = "/_Game/Art/";
-        private const int PixelsPerUnit = 16;
+        public const string ArtFolder = "/_Game/Art/";
+        public const string TileFolder = "/tiles/";
+        public const string SheetSuffix = "_sheet.png";
+        public const int PixelsPerUnit = 16;
 
         private void OnPreprocessTexture()
         {
@@ -126,6 +128,7 @@ namespace Game.EditorTools
 
             var importer = (TextureImporter)assetImporter;
             importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = assetPath.EndsWith(SheetSuffix) ? SpriteImportMode.Multiple : SpriteImportMode.Single;
             importer.filterMode = FilterMode.Point;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.spritePixelsPerUnit = PixelsPerUnit;
@@ -135,23 +138,32 @@ namespace Game.EditorTools
             importer.ReadTextureSettings(settings);
             settings.spriteMeshType = SpriteMeshType.FullRect;
             settings.spriteGenerateFallbackPhysicsShape = false;
+            if (assetPath.Contains(TileFolder))
+            {
+                settings.spriteAlignment = (int)SpriteAlignment.BottomLeft;
+            }
+
             importer.SetTextureSettings(settings);
         }
     }
 }
 ```
 
-`spriteMeshType` e `spriteGenerateFallbackPhysicsShape` só existem em `TextureImporterSettings`, não direto no `TextureImporter`.
+A fonte da verdade é `Assets/_Game/Editor/PixelArtImporter.cs`; o trecho acima o espelha. Três detalhes que já custaram uma rodada de depuração:
+
+- `spriteMeshType`, `spriteAlignment` e `spriteGenerateFallbackPhysicsShape` só existem em `TextureImporterSettings`, não direto no `TextureImporter`.
+- O template Universal 2D importa sprite novo como `Multiple`. Nesse modo o pivot vem do retângulo interno, e o `spriteAlignment` do importer é ignorado em silêncio. Por isso o modo é sempre definido explicitamente.
+- Mudar o modo de import muda o fileID do sprite e quebra referências. Depois de mexer no importer, rode `ArtTools.SliceSheets` e `DataTools.Regenerate`.
 
 ### Fatiamento
 
-Folhas `*_sheet.png` são fatiadas por script de editor usando `ISpriteEditorDataProvider` (pacote `com.unity.2d.sprite`): células 24×32, pivot `(0.5, 0.0625)`, nomes `<personagem>_<direção>_<coluna>`. Invocação:
+Folhas `*_sheet.png` são fatiadas por `Game.EditorTools.ArtTools` usando `SpriteDataProviderFactories` e `ISpriteEditorDataProvider` (pacote `com.unity.2d.sprite`, asmdef `Unity.2D.Sprite.Editor`): células 24×32, pivot `(0.5, 0.0625)`, nomes `<personagem>_<se|sw|ne|nw>_<coluna>`. O `spriteID` de cada célula é reaproveitado entre execuções, então clipes e prefabs não perdem a referência. Invocação:
 
 ```bash
 unity run . -- -nographics -executeMethod Game.EditorTools.ArtTools.SliceSheets -logFile -
 ```
 
-O fatiamento é idempotente — rode depois de qualquer troca de arte. O método termina com `EditorApplication.Exit` e código diferente de zero em falha.
+O mesmo método copia `art/placeholders/` para `Assets/_Game/Art/Placeholder/`, força a reimportação e gera os Animator Controllers. É idempotente — rode depois de qualquer troca de arte. Termina com `EditorApplication.Exit` e código diferente de zero em falha. `Assets/_Game/Tests/EditMode/Art/ArtAssetsTests.cs` confere contagem, fatiamento, pivots e controllers.
 
 ### Animação
 

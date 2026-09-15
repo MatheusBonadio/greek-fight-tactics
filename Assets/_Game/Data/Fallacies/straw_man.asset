@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Espantalho
   description: "Distorce a posi\xE7\xE3o do outro para derrubar uma vers\xE3o mais fraca dela."
   playerHint: Foi isso mesmo que foi dito, ou uma caricatura do que foi dito?
-  icon: {fileID: -6557943794442125698, guid: d9e66af99b95d5b49b097005fb8355bb, type: 3}
+  icon: {fileID: 21300000, guid: d9e66af99b95d5b49b097005fb8355bb, type: 3}
   category: 0
