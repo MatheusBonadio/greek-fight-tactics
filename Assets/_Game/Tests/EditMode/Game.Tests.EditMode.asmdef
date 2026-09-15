@@ -6,7 +6,11 @@
     "UnityEditor.TestRunner",
     "Unity.PerformanceTesting",
     "Game.Core",
-    "Game.Grid"
+    "Game.Grid",
+    "Game.Battle",
+    "Game.Content",
+    "Game.Net",
+    "Game.EditorTools"
   ],
   "includePlatforms": [
     "Editor"
@@ -15,7 +19,8 @@
   "allowUnsafeCode": false,
   "overrideReferences": true,
   "precompiledReferences": [
-    "nunit.framework.dll"
+    "nunit.framework.dll",
+    "Newtonsoft.Json.dll"
   ],
   "autoReferenced": false,
   "defineConstraints": [

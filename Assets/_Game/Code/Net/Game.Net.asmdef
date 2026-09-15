@@ -2,7 +2,8 @@
   "name": "Game.Net",
   "rootNamespace": "Game.Net",
   "references": [
-    "Game.Core"
+    "Game.Core",
+    "Game.Content"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

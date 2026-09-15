@@ -241,7 +241,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Todo conteúdo do jogo vira dado editável, não código. Permite balancear sem recompilar.\n\n**Depende de:** [SET-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] `FallacySO`: id, nome_pt, descricao, dica_jogador, icone, categoria(informal/formal/paradoxo)\n- [ ] `OpponentSO`: nome, sheet, coerencia_max, plateia_inicial, pool de falácias, ato, perfil(sofista/filosofo)\n- [ ] `ArgumentSO`: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [ ] `QuoteItemSO`: nome, efeito, usos\n- [ ] `AbilitySO`: para Inversão e Escuta (ramificação Damaris)\n- [ ] Tabelas por id (falácias, custo de terreno) como `Dictionary` serializado direto no Inspector — nativo no 6.6, sem listas paralelas de wrapper\n- [ ] Analyzer de regras de serialização (6.5) sem aviso nos SOs"
+      "description": "Todo conteúdo do jogo vira dado editável, não código. Permite balancear sem recompilar.\n\n**Depende de:** [SET-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] `FallacySO`: id, nome_pt, descricao, dica_jogador, icone, categoria(informal/formal/paradoxo)\n- [x] `OpponentSO`: nome, sheet, coerencia_max, plateia_inicial, pool de falácias, ato, perfil(sofista/filosofo)\n- [x] `ArgumentSO`: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [x] `QuoteItemSO`: nome, efeito, usos\n- [x] `AbilitySO`: para Inversão e Escuta (ramificação Damaris)\n- [x] Tabelas por id (falácias, custo de terreno) como `Dictionary` serializado direto no Inspector — nativo no 6.6, sem listas paralelas de wrapper\n- [x] Analyzer de regras de serialização (6.5) sem aviso nos SOs"
     },
     {
       "title": "[DAT-02] Catálogo de 20 falácias",
@@ -263,7 +263,7 @@
         "IA / LLM",
         "Backend"
       ],
-      "description": "O LLM gera, a engine julga. Este schema é a fronteira entre os dois — e a única coisa que a IA pode dizer.\n\n**Depende de:** [DAT-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Documentar o JSON: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [ ] Classe C# serializável + Newtonsoft.Json (`com.unity.nuget.newtonsoft-json`) — `JsonUtility` não lida com `Dictionary` nem tipos anuláveis\n- [ ] Validação: rejeitar `fallacy_id` que não existe no catálogo\n- [ ] Validação: `weak_premise` precisa ser índice válido de `premises[]`\n- [ ] Validação: fala entre 40 e 300 caracteres\n- [ ] Payload inválido = descarta e usa fallback, nunca propaga para o resolver"
+      "description": "O LLM gera, a engine julga. Este schema é a fronteira entre os dois — e a única coisa que a IA pode dizer.\n\n**Depende de:** [DAT-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Documentar o JSON: fala, `fallacy_id`, `premises[]`, `weak_premise`, tom\n- [x] Classe C# serializável + Newtonsoft.Json (`com.unity.nuget.newtonsoft-json`) — `JsonUtility` não lida com `Dictionary` nem tipos anuláveis\n- [x] Validação: rejeitar `fallacy_id` que não existe no catálogo\n- [x] Validação: `weak_premise` precisa ser índice válido de `premises[]`\n- [x] Validação: fala entre 40 e 300 caracteres\n- [x] Payload inválido = descarta e usa fallback, nunca propaga para o resolver"
     },
     {
       "title": "[DAT-04] Banco de fallback escrito à mão",

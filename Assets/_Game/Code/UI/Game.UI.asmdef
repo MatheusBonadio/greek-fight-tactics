@@ -5,6 +5,8 @@
     "Game.Core",
     "Game.Grid",
     "Game.Battle",
+    "Game.Content",
+    "Game.Net",
     "Unity.InputSystem"
   ],
   "includePlatforms": [],
