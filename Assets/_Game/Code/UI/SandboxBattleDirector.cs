@@ -18,6 +18,7 @@ namespace Game.UI
         Dialogue,
         OpponentThinking,
         PlayerChoosing,
+        PlayerTargeting,
         Animating
     }
 
@@ -45,6 +46,8 @@ namespace Game.UI
         private PauseMenuController pause;
         private BattleMenuInput menuInput;
         private InputAction confirmAction;
+        private InputAction cancelAction;
+        private int targetingFrame = -1;
         private BattleMenuController controller;
         private FallacyRevealView reveal;
         private Action dialogueContinuation;
@@ -181,6 +184,30 @@ namespace Game.UI
             OnChoiceMade(choice);
         }
 
+        public bool TryChooseDestination(Coord cell)
+        {
+            if (Phase != BattleFlowPhase.PlayerTargeting || !CirculateTargeting.IsValidDestination(highlighter, Session.State, cell))
+            {
+                return false;
+            }
+
+            EndTargeting();
+            OnChoiceMade(new BattleMenuChoice(ActionId.Circulate, destination: cell));
+            return true;
+        }
+
+        public void CancelTargeting()
+        {
+            if (Phase != BattleFlowPhase.PlayerTargeting)
+            {
+                return;
+            }
+
+            EndTargeting();
+            hud.BindPreview(highlighter);
+            menuInput.enabled = true;
+        }
+
         public void AdvanceDialogue()
         {
             if (Phase != BattleFlowPhase.Dialogue)
@@ -209,6 +236,7 @@ namespace Game.UI
             }
 
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
+            cancelAction = sandbox.Controls.FindAction(BattleMenuInput.CancelAction, true);
             if (hud)
             {
                 hud.gameObject.SetActive(false);
@@ -242,6 +270,22 @@ namespace Game.UI
                     if (thinkTimer <= 0f)
                     {
                         AfterOutcome(opponentActor, Session.PlayOpponentTurn(), opponent.DisplayName);
+                    }
+
+                    break;
+                case BattleFlowPhase.PlayerTargeting:
+                    if (Time.frameCount == targetingFrame)
+                    {
+                        break;
+                    }
+
+                    if (confirmAction.WasPressedThisFrame())
+                    {
+                        TryChooseDestination(sandbox.Cursor.Cell);
+                    }
+                    else if (cancelAction.WasPressedThisFrame())
+                    {
+                        CancelTargeting();
                     }
 
                     break;
@@ -332,6 +376,12 @@ namespace Game.UI
                 return;
             }
 
+            if (choice.Action == ActionId.Circulate && !choice.Destination.HasValue)
+            {
+                BeginTargeting();
+                return;
+            }
+
             menuInput.enabled = false;
             HideRange();
             var outcome = Session.PlayChoice(choice);
@@ -383,6 +433,24 @@ namespace Game.UI
             Speak();
         }
 
+        private void BeginTargeting()
+        {
+            var player = Session.State.Player.Position;
+            menuInput.enabled = false;
+            hud.BindPreview(null);
+            highlighter.ShowMove(player, Session.State.Rules.MoveRange);
+            sandbox.Cursor.TryHover(IsoMath.GridToWorld(player), Vector2.zero);
+            sandbox.CursorInputEnabled = true;
+            targetingFrame = Time.frameCount;
+            Phase = BattleFlowPhase.PlayerTargeting;
+        }
+
+        private void EndTargeting()
+        {
+            sandbox.CursorInputEnabled = false;
+            Phase = BattleFlowPhase.PlayerChoosing;
+        }
+
         private void HideRange()
         {
             hud.BindPreview(null);
@@ -428,6 +496,7 @@ namespace Game.UI
                 explorationCamera.FrameExploration();
             }
 
+            sandbox.CursorInputEnabled = false;
             sandbox.ExplorationInputEnabled = true;
             if (pause)
             {

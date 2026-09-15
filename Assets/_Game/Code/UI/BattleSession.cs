@@ -130,7 +130,7 @@ namespace Game.UI
             var opponent = State.Opponent;
             return choice.Action switch
             {
-                ActionId.Circulate => Play.Circulate(player.Id, CirculateDestination()),
+                ActionId.Circulate => Play.Circulate(player.Id, choice.Destination ?? CirculateDestination()),
                 ActionId.Refute => Play.Refute(player.Id, opponent.Id, choice.FallacyId),
                 ActionId.Maieutics => Play.Maieutics(player.Id, opponent.Id, choice.PremiseIndex),
                 ActionId.Quote => Play.Quote(player.Id, State.QuoteIds.FirstOrDefault(id => State.TryGetQuote(id, out _, out var uses) && uses > 0)),

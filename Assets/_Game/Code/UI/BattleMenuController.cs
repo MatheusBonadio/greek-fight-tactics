@@ -19,12 +19,14 @@ namespace Game.UI
         public readonly ActionId Action;
         public readonly string FallacyId;
         public readonly int PremiseIndex;
+        public readonly Coord? Destination;
 
-        public BattleMenuChoice(ActionId action, string fallacyId = null, int premiseIndex = NoPremise)
+        public BattleMenuChoice(ActionId action, string fallacyId = null, int premiseIndex = NoPremise, Coord? destination = null)
         {
             Action = action;
             FallacyId = fallacyId;
             PremiseIndex = premiseIndex;
+            Destination = destination;
         }
     }
 

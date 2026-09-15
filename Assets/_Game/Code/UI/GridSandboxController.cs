@@ -74,6 +74,8 @@ namespace Game.UI
 
         public bool ExplorationInputEnabled { get; set; } = true;
 
+        public bool CursorInputEnabled { get; set; }
+
         public bool GizmosVisible
         {
             get => gizmos != null && gizmos.DrawGizmos;
@@ -301,11 +303,14 @@ namespace Game.UI
             }
 
             TryRestoreActiveSave();
-            if (ExplorationInputEnabled)
+            if (ExplorationInputEnabled || CursorInputEnabled)
             {
                 ReadPointer();
                 ReadNavigation();
+            }
 
+            if (ExplorationInputEnabled)
+            {
                 if (confirmAction.WasPressedThisFrame())
                 {
                     MovePlayerToCursor();

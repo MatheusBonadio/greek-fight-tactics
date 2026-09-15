@@ -271,7 +271,10 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
   - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo, e o ícone da falácia sobe ao refutar certo.
   - **Saída:** ao fim, volta à exploração e faz save automático. Depois de vencer, o oponente não provoca de novo; depois de perder ou fugir, só volta a provocar quando a Kleia sai do raio e retorna.
   - **Grid da batalha:** `BattleSession` roda o duelo numa cópia do grid da exploração, porque o `BattleState` exige células livres e os walkers já as ocupam. Os movimentos voltam para os walkers pelo `Outcome.Path`.
-  - **CIRCULAR:** por enquanto vai para a célula alcançável mais próxima do oponente.
+  - **CIRCULAR:** abre a fase `PlayerTargeting`.
+    - O menu para de receber input, o alcance azul fica no chão e o cursor da exploração volta a responder a mouse, teclado e gamepad por `GridSandboxController.CursorInputEnabled`.
+    - Confirmar numa célula azul move a Kleia: o destino vai em `BattleMenuChoice.Destination` e é validado por `CirculateTargeting`. Cancelar volta ao menu.
+    - Uma escolha sem destino ainda cai em `BattleSession.CirculateDestination`, a célula alcançável mais próxima do oponente.
   - **Dados:** o Thrasybios vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id`, e as falas vêm de `battle.*` em `ui_text.json`.
 - **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar". Na sandbox, o `RangeHighlightView` pinta essas células no tilemap `Range` (entre o chão e o cursor) com `hl_move`, `hl_refute` e `hl_maieutics`, só enquanto o jogador escolhe; o diretor limpa o realce no turno do oponente e ao sair da batalha.
 - **Oferta de Damaris:** `DamarisOffer.Apply` grava a escolha no save uma única vez.

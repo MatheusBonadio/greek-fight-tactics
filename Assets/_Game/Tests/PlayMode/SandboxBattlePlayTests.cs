@@ -74,6 +74,15 @@ namespace Game.Tests.PlayMode
                     sawRange |= director.RangeView.PaintedCount > 0;
                     director.SubmitChoice(PickChoice(director.Session));
                 }
+                else if (director.Phase == BattleFlowPhase.PlayerTargeting)
+                {
+                    Assert.IsFalse(director.Hud.GetComponent<BattleMenuInput>().enabled, "the menu must not take input while choosing a destination");
+                    if (!director.TryChooseDestination(director.Session.CirculateDestination()))
+                    {
+                        director.CancelTargeting();
+                        director.SubmitChoice(new BattleMenuChoice(ActionId.Concede));
+                    }
+                }
 
                 yield return null;
             }

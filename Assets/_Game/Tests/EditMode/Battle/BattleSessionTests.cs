@@ -109,6 +109,49 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(SandboxTools.BattleOpponentId, Game.Net.OpponentContext.From(opponent).Id);
         }
 
+        [Test]
+        public void Circulate_GoesToTheChosenDestinationWhenOneIsGiven()
+        {
+            var (_, session) = StartSession();
+            var chosen = new Coord(2, 1);
+
+            var play = session.ToPlay(new BattleMenuChoice(ActionId.Circulate, destination: chosen));
+
+            Assert.AreEqual(ActionId.Circulate, play.Action);
+            Assert.AreEqual(chosen, play.Destination);
+        }
+
+        [Test]
+        public void CirculateTargeting_AcceptsOnlyHighlightedMoveCellsOtherThanThePlayer()
+        {
+            var (_, session) = StartSession();
+            var state = session.State;
+            for (var y = 0; y < state.Grid.Height; y++)
+            {
+                for (var x = 0; x < state.Grid.Width; x++)
+                {
+                    var tile = state.Grid[new Coord(x, y)];
+                    tile.Revealed = true;
+                    state.Grid.TrySet(new Coord(x, y), tile);
+                }
+            }
+
+            var highlighter = new RangeHighlighter(state.Grid, new PathFinder());
+            var player = state.Player.Position;
+            bool IsValid(Coord cell) => CirculateTargeting.IsValidDestination(highlighter, state, cell);
+
+            Assert.IsFalse(IsValid(new Coord(2, 3)), "nothing is highlighted yet");
+
+            highlighter.ShowMove(player, state.Rules.MoveRange);
+            var reachable = highlighter.Cells.First(cell => cell != player);
+            Assert.IsTrue(IsValid(reachable));
+            Assert.IsFalse(IsValid(player));
+            Assert.IsFalse(IsValid(new Coord(11, 11)));
+
+            highlighter.ShowRefute(player, state.Rules.RefuteRange);
+            Assert.IsFalse(IsValid(reachable), "only the move range accepts a destination");
+        }
+
         internal static BattleMenuChoice PickChoice(BattleSession session)
         {
             bool Available(ActionId action) => session.Menu.Entries.Any(entry => entry.Action == action && entry.IsAvailable);
