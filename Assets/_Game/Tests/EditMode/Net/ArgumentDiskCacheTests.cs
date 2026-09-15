@@ -32,6 +32,7 @@ namespace Game.Tests.EditMode.Net
             Assert.AreEqual(first, ArgumentDiskCache.KeyFor("thrasybios", "ad_hominem", 7));
             Assert.AreNotEqual(first, ArgumentDiskCache.KeyFor("thrasybios", "ad_hominem", 8));
             Assert.AreEqual(32, first.Length);
+            Assert.AreEqual("5ec6c70384b1a269847f092224354426", first);
         }
 
         [Test]

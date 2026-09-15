@@ -172,7 +172,12 @@ namespace Game.Net
                 evicted.Clear();
             }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Persist(toWrite, toDelete, order);
+            return Task.CompletedTask;
+#else
             return Task.Run(() => Persist(toWrite, toDelete, order));
+#endif
         }
 
         private void Persist(List<KeyValuePair<string, string>> toWrite, List<string> toDelete, List<string> order)

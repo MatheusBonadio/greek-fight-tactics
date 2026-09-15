@@ -269,26 +269,26 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 ## Fluxo: obtenção de argumento
 
-Fallback por composição, não por `if` espalhado:
+O turno é síncrono (`IArgumentSource.TryNext`); a rede nunca entra nele. Montagem em `Game.Net`:
 
 ```csharp
-public interface IArgumentProvider
-{
-    Task<Argument> Get(OpponentSO opponent, string fallacyId, int seed, CancellationToken cancellation);
-}
+var transport = new UnityWebRequestTransport();
+var endpoints = FirebaseEndpoints.Production(webApiKey, projectId);
+var auth = new FirebaseAnonymousAuth(transport, endpoints, new FileAuthSessionStore(Application.persistentDataPath));
+var client = new ArgumentServiceClient(transport, auth, endpoints.ArgumentUrl, validator);
+var source = new PrewarmedArgumentSource(client, diskCache, validator, new FallbackArgumentLibrary(fallbackLibrary, validator, seed), seed);
+
+source.Register(opponent.Id, OpponentContext.From(opponentSO, topic));
+await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
 ```
 
-Montagem em `Game.Net`:
+- `ArgumentServiceClient.FetchAsync` nunca lança: devolve `ArgumentFetch` com `Delivered`, `Declined` (204), `Invalid`, `Unavailable` ou `Cancelled`. Timeout de 2 s, 1 retry com backoff para timeout, erro de rede, 429 e 5xx; 401 força renovar o ID token antes do retry; 204 e payload inválido não reintentam.
+- `PrewarmedArgumentSource.PrewarmAsync` consulta o `ArgumentDiskCache` pela mesma chave do servidor, busca o que falta, grava no cache e enfileira. Para no primeiro `Unavailable`, `Declined` ou `Cancelled`. `TryNext` serve a fila e, vazia, cai no `FallbackArgumentLibrary` — silencioso para o jogador.
+- A seed do pedido fica em `0..SeedVariants-1` (8) para o cache compartilhado do servidor ter acerto alto.
+- `FirebaseAnonymousAuth` usa a REST do Identity Toolkit (`accounts:signUp`) e do Secure Token (`grant_type=refresh_token`), guarda uid e refresh token em `auth.json`, renova o ID token 5 min antes de expirar, cria conta nova se o refresh for recusado (4xx) e devolve `null` offline. `FirebaseEndpoints` recusa chave começando com `sk-`; `FirebaseEndpoints.Emulator("demo-gft")` aponta para os emuladores locais.
+- Testes EditMode usam `IHttpTransport` e `IIdTokenProvider` falsos que completam na hora, então as `Task` terminam síncronas.
 
-```csharp
-IArgumentProvider provider = new CachedArgumentProvider(
-    primary: new RemoteArgumentProvider(cloudFunctionClient, timeout: TimeSpan.FromSeconds(2), retries: 1),
-    fallback: new LocalArgumentProvider(new FallbackArgumentLibrary(fallbackLibrary, validator, seed)));
-```
-
-`RemoteArgumentProvider` nunca lança para o chamador — timeout, 4xx, 5xx e payload inválido viram "não consegui", e o decorator cai na reserva. O turno jamais bloqueia esperando rede.
-
-**Pré-aquecimento:** ao entrar num mapa, busque em background os argumentos dos adversários presentes. Quando o jogador chegar perto, já está em cache e a latência é zero.
+**Pré-aquecimento:** ao entrar num mapa, chame `PrewarmAsync` para os adversários presentes. Quando o jogador chegar perto, os argumentos já estão na fila e a latência é zero.
 
 **Validação é do servidor.** A Cloud Function valida o payload antes de responder:
 

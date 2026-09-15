@@ -93,6 +93,7 @@ describe("cacheKey", () => {
     const key = cacheKey("thrasybios", "ad_hominem", 7);
 
     expect(key).toHaveLength(32);
+    expect(key).toBe("5ec6c70384b1a269847f092224354426");
     expect(key).toBe(cacheKey("thrasybios", "ad_hominem", 7));
     expect(key).not.toBe(cacheKey("thrasybios", "ad_hominem", 8));
   });
