@@ -403,7 +403,7 @@
         "Backend",
         "Risco"
       ],
-      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [ ] Estimar custo por sessão de 1h e documentar — vira dado da avaliação ([AVA-01])\n- [ ] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [x] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
+      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [ ] Estimar custo por sessão de 1h e documentar — vira dado da avaliação ([AVA-01])\n- [x] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [x] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
     },
     {
       "title": "[LLM-01] Cliente da Cloud Function",

@@ -328,9 +328,11 @@ npm ci
 npm run build
 npm test
 npm run test:emulators
+npm run usage-report -- 2026-09-01 2026-09-15
 ```
 
-`test:emulators` precisa de Java e sobe Firestore e Auth via `firebase emulators:exec`.
+- **`test:emulators`:** precisa de Java e sobe Firestore e Auth via `firebase emulators:exec`. No Windows, o CLI deixa o `java.exe` do emulador do Firestore órfão, segurando a porta 8080. O `scripts/run-emulator-tests.mjs` encerra, ao final, apenas os emuladores iniciados por aquela execução.
+- **`usage-report`:** imprime o dashboard de `usage/{yyyy-mm-dd}`: chamadas por dia, chamadas à OpenAI, cache hits, taxa de acerto e custo diário e acumulado. O padrão são os últimos 30 dias. Contra produção, precisa de credenciais do Google e de `GCLOUD_PROJECT`. Com `FIRESTORE_EMULATOR_HOST`, lê o emulador. A taxa de acerto é `cache_hits / requests`, e `requests` conta cada chamada à OpenAI (inclusive o retry) mais cada hit, então ela subestima levemente o acerto real.
 
 ---
 

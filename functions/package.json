@@ -10,7 +10,8 @@
     "build": "npm run sync-content && tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:emulators": "node scripts/run-emulator-tests.mjs"
+    "test:emulators": "node scripts/run-emulator-tests.mjs",
+    "usage-report": "npm run build && node lib/usageReportCli.js"
   },
   "dependencies": {
     "firebase-admin": "14.4.0",
