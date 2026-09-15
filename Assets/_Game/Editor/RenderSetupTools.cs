@@ -45,9 +45,8 @@ namespace Game.EditorTools
                 pixelPerfect.assetsPPU = AssetsPixelsPerUnit;
                 pixelPerfect.refResolutionX = ReferenceResolution;
                 pixelPerfect.refResolutionY = ReferenceResolution;
-                pixelPerfect.upscaleRT = true;
-                pixelPerfect.cropFrameX = true;
-                pixelPerfect.cropFrameY = true;
+                pixelPerfect.gridSnapping = PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
+                pixelPerfect.cropFrame = PixelPerfectCamera.CropFrame.Windowbox;
 
                 PrefabUtility.SaveAsPrefabAsset(root, CameraRigPrefabPath, out var saved);
                 if (!saved)

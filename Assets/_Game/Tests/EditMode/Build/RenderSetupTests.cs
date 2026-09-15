@@ -23,9 +23,8 @@ namespace Game.Tests.EditMode.Build
             Assert.AreEqual(16, pixelPerfect.assetsPPU);
             Assert.AreEqual(224, pixelPerfect.refResolutionX);
             Assert.AreEqual(224, pixelPerfect.refResolutionY);
-            Assert.IsTrue(pixelPerfect.upscaleRT);
-            Assert.IsTrue(pixelPerfect.cropFrameX);
-            Assert.IsTrue(pixelPerfect.cropFrameY);
+            Assert.AreEqual(PixelPerfectCamera.GridSnapping.UpscaleRenderTexture, pixelPerfect.gridSnapping);
+            Assert.AreEqual(PixelPerfectCamera.CropFrame.Windowbox, pixelPerfect.cropFrame);
         }
 
         [Test]
