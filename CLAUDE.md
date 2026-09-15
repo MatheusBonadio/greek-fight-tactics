@@ -380,7 +380,12 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Unity.exe"
 
 "$UNITY" -batchmode -nographics -quit -projectPath . \
   -executeMethod Game.EditorTools.DataTools.Regenerate -logFile -
+
+"$UNITY" -batchmode -nographics -quit -projectPath . \
+  -executeMethod Game.EditorTools.BuildTools.BuildWindowsDevelopment -logFile -
 ```
+
+`-runTests` sai com código 2 quando algum teste falha. `BuildTools` aceita `-buildOutput <caminho>`, o mesmo argumento que `unity build --execute-method` repassa. No PowerShell, `Unity.exe` é aplicativo de janela e não bloqueia: use `Start-Process -Wait -PassThru` para ler o código de saída.
 
 ---
 
