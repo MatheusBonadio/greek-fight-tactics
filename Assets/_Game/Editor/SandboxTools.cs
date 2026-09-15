@@ -20,6 +20,7 @@ namespace Game.EditorTools
     public static class SandboxTools
     {
         public const string ScenePath = "Assets/_Game/Scenes/GridSandbox.unity";
+        public const string MapPath = "Assets/_Game/Data/Maps/agora.json";
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
@@ -69,43 +70,10 @@ namespace Game.EditorTools
             ["floor_mosaic"] = TerrainId.Diagram
         };
 
-        private static readonly (string Tile, int X, int Y)[] Blocks =
-        {
-            ("block_doric_column", 6, 6),
-            ("prop_olive_trunk", 3, 8),
-            ("wall_marble", 1, 9),
-            ("wall_brick", 2, 9),
-            ("block_step", 5, 2),
-            ("prop_market_stall", 8, 4),
-            ("prop_statue_base", 9, 6)
-        };
-
-        private static readonly (string Character, int X, int Y, Facing Facing)[] Actors =
-        {
-            ("kleia", 2, 2, Facing.SouthEast),
-            ("eudoro", 7, 6, Facing.SouthWest),
-            ("citizen", 5, 6, Facing.SouthEast),
-            ("menexeno", 3, 7, Facing.SouthEast),
-            ("thrasybios", 4, 8, Facing.SouthWest),
-            ("citizen", 9, 1, Facing.SouthEast),
-            ("damaris", 10, 2, Facing.NorthWest),
-            ("pythia", 11, 3, Facing.NorthEast),
-            ("citizen", 2, 10, Facing.SouthEast)
-        };
-
         public static void BuildSandbox() => BatchRunner.Run(BuildAll);
 
         public static void CaptureReference() => BatchRunner.Run(CaptureReferenceImage);
 
-        public static string FloorTileAt(int x, int y)
-        {
-            if (Blocks.Any(block => block.X == x && block.Y == y) || Actors.Any(actor => actor.X == x && actor.Y == y))
-            {
-                return FloorTileNames[0];
-            }
-
-            return FloorTileNames[(x / 3 + y / 3 * 2) % FloorTileNames.Length];
-        }
 
         public static void BuildAll()
         {
@@ -209,6 +177,11 @@ namespace Game.EditorTools
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var tiles = EnsureTileAssets();
+            var map = MapLayout.Load(MapPath);
+            if (map.Width != Size || map.Height != Size)
+            {
+                throw new InvalidOperationException($"{MapPath} must be {Size}x{Size}, found {map.Width}x{map.Height}");
+            }
 
             var gridObject = new GameObject("Grid");
             gridObject.transform.position = GridPosition;
@@ -228,7 +201,7 @@ namespace Game.EditorTools
             {
                 for (var x = 0; x < Size; x++)
                 {
-                    var floorName = FloorTileAt(x, y);
+                    var floorName = map.FloorAt(x, y);
                     floor.SetTile(new Vector3Int(x, y, 0), tiles[floorName]);
                     terrain[y * Size + x] = FloorTerrain[floorName];
                     costs[y * Size + x] = floorName switch
@@ -241,16 +214,25 @@ namespace Game.EditorTools
             }
 
             blocks.transform.localPosition = new Vector3(0f, 0f, BlockSortLift / RenderSetupTools.TransparencySortAxis.z);
-            foreach (var block in Blocks)
+            for (var y = 0; y < Size; y++)
             {
-                blocks.SetTile(new Vector3Int(block.X, block.Y, 0), tiles[block.Tile]);
-                costs[block.Y * Size + block.X] = BlockedCost;
+                for (var x = 0; x < Size; x++)
+                {
+                    var blockName = map.BlockAt(x, y);
+                    if (blockName == null)
+                    {
+                        continue;
+                    }
+
+                    blocks.SetTile(new Vector3Int(x, y, 0), tiles[blockName]);
+                    costs[y * Size + x] = BlockedCost;
+                }
             }
 
             var sandbox = new GameObject("GridSandbox");
             var gizmos = sandbox.AddComponent<GridGizmoView>();
             var controller = sandbox.AddComponent<GridSandboxController>();
-            var actors = CreateActors();
+            var actors = CreateActors(map.Actors);
 
             controller.ConfigureLayout(Size, Size, terrain, costs, FogRevealDepth);
             controller.ConfigureViews(
@@ -270,7 +252,7 @@ namespace Game.EditorTools
             SystemMenuTools.InstantiatePauseMenu();
             var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
             rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
-            CreateBattleDirector(controller, actors, explorationCamera).ConfigureRange(rangeView);
+            CreateBattleDirector(controller, map.Actors, actors, explorationCamera).ConfigureRange(rangeView);
 
             AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
             if (!EditorSceneManager.SaveScene(scene, ScenePath))
@@ -312,11 +294,11 @@ namespace Game.EditorTools
             return tilemap;
         }
 
-        private static List<ActorView> CreateActors()
+        private static List<ActorView> CreateActors(IReadOnlyList<MapActor> placements)
         {
             var root = new GameObject("Actors");
             var views = new List<ActorView>();
-            foreach (var actor in Actors)
+            foreach (var actor in placements)
             {
                 var sprites = AssetDatabase.LoadAllAssetsAtPath(ArtTools.SheetPathFor(actor.Character)).OfType<Sprite>().ToDictionary(sprite => sprite.name);
                 var row = FacingRules.SheetFacing(actor.Facing) == Facing.NorthEast ? "ne" : "se";
@@ -340,7 +322,7 @@ namespace Game.EditorTools
             return views;
         }
 
-        private static SandboxBattleDirector CreateBattleDirector(GridSandboxController controller, List<ActorView> actors, ExplorationCamera explorationCamera)
+        private static SandboxBattleDirector CreateBattleDirector(GridSandboxController controller, List<MapActor> placements, List<ActorView> actors, ExplorationCamera explorationCamera)
         {
             var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.HudPrefabPath)
                 ?? throw new InvalidOperationException($"missing {BattleHudTools.HudPrefabPath}; run BattleHudTools.BuildHud first");
@@ -350,8 +332,13 @@ namespace Game.EditorTools
             var hud = ((GameObject)PrefabUtility.InstantiatePrefab(hudPrefab)).GetComponent<BattleHud>();
             hud.gameObject.SetActive(false);
 
-            var opponentIndex = Array.FindIndex(Actors, actor => actor.Character == BattleOpponentId);
-            var audience = Actors
+            var opponentIndex = placements.FindIndex(actor => actor.Character == BattleOpponentId);
+            if (opponentIndex < 0)
+            {
+                throw new InvalidOperationException($"{MapPath} has no {BattleOpponentId}");
+            }
+
+            var audience = placements
                 .Select((actor, index) => (actor, index))
                 .Where(pair => pair.actor.Character == AudienceCharacter)
                 .Select(pair => actors[pair.index])

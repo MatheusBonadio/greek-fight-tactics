@@ -95,5 +95,15 @@ namespace Game.Tests.EditMode.Grid
         {
             Assert.AreEqual(expectedFrame, SelectionPulse.FrameAt(seconds));
         }
+
+        [TestCase(0.75, 0.75, 0)]
+        [TestCase(0.75, 1.2, 0)]
+        [TestCase(0.75, 1.3, 1)]
+        [TestCase(0.75, 1.8, 0)]
+        public void SelectionPulse_RestartsVisibleWhenTheCursorMoves(double movedAt, double now, int expectedFrame)
+        {
+            Assert.AreEqual(1, SelectionPulse.FrameAt(movedAt), "the global clock is in the hidden frame when the cursor moves");
+            Assert.AreEqual(expectedFrame, SelectionPulse.FrameSince(now, movedAt));
+        }
     }
 }

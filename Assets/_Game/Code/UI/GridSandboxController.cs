@@ -48,6 +48,7 @@ namespace Game.UI
         private Vector2 lastPointer;
         private bool navigateHeld;
         private Vector3Int? paintedSelection;
+        private double selectionMovedAt;
         private int nextActorId = FirstSpawnedActorId;
 
         public GridModel Grid => grid;
@@ -456,12 +457,17 @@ namespace Game.UI
             }
 
             var target = new Vector3Int(cursor.Cell.X, cursor.Cell.Y, 0);
-            if (paintedSelection.HasValue && paintedSelection.Value != target)
+            if (paintedSelection != target)
             {
-                highlightTilemap.SetTile(paintedSelection.Value, null);
+                if (paintedSelection.HasValue)
+                {
+                    highlightTilemap.SetTile(paintedSelection.Value, null);
+                }
+
+                selectionMovedAt = Time.timeAsDouble;
             }
 
-            var frame = SelectionPulse.FrameAt(Time.timeAsDouble);
+            var frame = SelectionPulse.FrameSince(Time.timeAsDouble, selectionMovedAt);
             highlightTilemap.SetTile(target, frame < selectionFrames.Length ? selectionFrames[frame] : null);
             paintedSelection = target;
         }

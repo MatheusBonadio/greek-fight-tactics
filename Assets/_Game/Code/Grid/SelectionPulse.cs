@@ -9,5 +9,7 @@ namespace Game.Grid
 
         public static int FrameAt(double seconds) =>
             seconds <= 0 ? 0 : (int)(Math.Floor(seconds / PeriodSeconds) % FrameCount);
+
+        public static int FrameSince(double now, double movedAt) => FrameAt(now - movedAt);
     }
 }

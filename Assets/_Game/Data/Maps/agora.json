@@ -1,0 +1,58 @@
+{
+  "id": "agora",
+  "floorLegend": {
+    ".": "floor_marble",
+    "o": "floor_marble_ochre",
+    "m": "floor_mosaic",
+    "s": "floor_stone",
+    "d": "floor_dirt",
+    "g": "floor_grass",
+    "w": "floor_water"
+  },
+  "blockLegend": {
+    "C": "block_doric_column",
+    "S": "block_step",
+    "M": "prop_market_stall",
+    "H": "prop_statue_base",
+    "T": "prop_olive_trunk",
+    "B": "wall_brick",
+    "W": "wall_marble"
+  },
+  "floor": [
+    "ddssssssss..",
+    "ddssssssss..",
+    "ddmmmmmmmm..",
+    "ddm.o.o.om..",
+    "ddmo.o.o.m..",
+    "ddm.oww.om..",
+    "ggmo.wwo.m..",
+    "ggm.o.o.om..",
+    "ggmo.o.o.m..",
+    "ggmmmmmmmm..",
+    "gggggsssss..",
+    "gggggsssss.."
+  ],
+  "blocks": [
+    "----M-M-M---",
+    "----------C-",
+    "--H-------S-",
+    "----------C-",
+    "------------",
+    "----------C-",
+    "------------",
+    "----------C-",
+    "----------S-",
+    "-T--------C-",
+    "------------",
+    "T--T-BB-BBWW"
+  ],
+  "actors": [
+    { "character": "kleia", "x": 0, "y": 1, "facing": "NorthEast" },
+    { "character": "thrasybios", "x": 7, "y": 1, "facing": "SouthWest" },
+    { "character": "citizen", "x": 8, "y": 1, "facing": "SouthWest" },
+    { "character": "citizen", "x": 7, "y": 3, "facing": "SouthEast" },
+    { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
+    { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast" },
+    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest" }
+  ]
+}

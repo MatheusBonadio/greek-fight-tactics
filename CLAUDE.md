@@ -412,6 +412,13 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 
 **Sem Editor, SOs são criados por script.** `Game.EditorTools.DataTools.Regenerate` lê `Assets/_Game/Data/Source/*.json` e `Assets/_Game/Data/Fallback/*.json` e (re)cria catálogo, ícones, tabela de custos e biblioteca de fallback. O conteúdo fica legível em diff, a regeneração é idempotente e falha com código diferente de zero se algum argumento de fallback não passar no `ArgumentValidator`.
 
+**Mapas.** O layout de cada mapa fica em `Assets/_Game/Data/Maps/<id>.json` e é lido por `MapLayout`.
+- **Chão e blocos:** `floor` e `blocks` são linhas de texto, e `floor[y][x]` é a célula `(x, y)`. A linha 0 é a borda da frente, a mais próxima da câmera.
+- **Legendas:** `floorLegend` e `blockLegend` levam cada símbolo ao nome do tile, e `-` marca a célula sem bloco.
+- **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador.
+- **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido e ator em bloco, em água ou em célula repetida.
+- **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2. Tem a estrada de terra que vem do Cerâmico, com a herma na entrada, o mercado de pedra onde Thrasybios junta a plateia e a praça em xadrez com borda de meandro e fonte. Tem também a stoa de colunas dóricas com degraus e as casas de tijolo com oliveiras. Um teste garante que toda célula andável é alcançável a partir da Kleia.
+
 ---
 
 ## Pipeline de arte sem Editor
