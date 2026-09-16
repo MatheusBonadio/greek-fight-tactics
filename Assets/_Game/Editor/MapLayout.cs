@@ -19,6 +19,21 @@ namespace Game.EditorTools
         public Facing Facing { get; set; }
     }
 
+    public sealed class MapExit
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public string Location { get; set; }
+
+        public int ArrivalX { get; set; }
+
+        public int ArrivalY { get; set; }
+
+        public Facing Facing { get; set; }
+    }
+
     public sealed class MapLayout
     {
         public const char EmptyBlock = '-';
@@ -35,6 +50,8 @@ namespace Game.EditorTools
         public List<string> Blocks { get; set; } = new();
 
         public List<MapActor> Actors { get; set; } = new();
+
+        public List<MapExit> Exits { get; set; } = new();
 
         public int Width => Floor.Count == 0 ? 0 : Floor[0].Length;
 
@@ -98,6 +115,25 @@ namespace Game.EditorTools
                 if (!occupied.Add((actor.X, actor.Y)))
                 {
                     throw new InvalidOperationException($"map {Id}: two actors share ({actor.X}, {actor.Y})");
+                }
+            }
+
+            var doors = new HashSet<(int, int)>();
+            foreach (var exit in Exits)
+            {
+                if (exit.X < 0 || exit.Y < 0 || exit.X >= Width || exit.Y >= Height || !IsWalkable(exit.X, exit.Y))
+                {
+                    throw new InvalidOperationException($"map {Id}: the exit at ({exit.X}, {exit.Y}) is not on a walkable cell");
+                }
+
+                if (string.IsNullOrWhiteSpace(exit.Location))
+                {
+                    throw new InvalidOperationException($"map {Id}: the exit at ({exit.X}, {exit.Y}) has no destination");
+                }
+
+                if (!doors.Add((exit.X, exit.Y)))
+                {
+                    throw new InvalidOperationException($"map {Id}: two exits share ({exit.X}, {exit.Y})");
                 }
             }
         }

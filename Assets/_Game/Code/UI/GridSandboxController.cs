@@ -3,6 +3,7 @@ using Game.Core;
 using Game.Grid;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using TileData = Game.Grid.TileData;
 
@@ -33,6 +34,7 @@ namespace Game.UI
         [SerializeField] private List<ActorView> actors = new();
         [SerializeField] private GridGizmoView gizmos;
         [SerializeField] private string locationId = DefaultLocationId;
+        [SerializeField] private MapExitLink[] exits = new MapExitLink[0];
 
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> path = new();
@@ -50,6 +52,9 @@ namespace Game.UI
         private bool navigateHeld;
         private Vector3Int? paintedSelection;
         private double selectionMovedAt;
+        private bool exitCheckPending;
+        private bool leaving;
+        private bool arrived;
         private int nextActorId = FirstSpawnedActorId;
 
         public GridModel Grid => grid;
@@ -231,6 +236,8 @@ namespace Game.UI
             if (player != null)
             {
                 session = new ExplorationSession(player.Walker, fog);
+                player.Walker.CellEntered += OnPlayerCellEntered;
+                TryArrive();
             }
 
             cursor = new GridCursor(grid, player != null ? player.Walker.Cell : new Coord(0, 0));
@@ -251,8 +258,55 @@ namespace Game.UI
 
         private void OnDestroy()
         {
+            if (player != null && player.Walker != null)
+            {
+                player.Walker.CellEntered -= OnPlayerCellEntered;
+            }
+
             session?.Dispose();
             actionMap?.Disable();
+        }
+
+        private void OnPlayerCellEntered(Coord cell)
+        {
+            exitCheckPending = true;
+        }
+
+        private void TryArrive()
+        {
+            if (!SceneArrival.TryConsume(locationId, out var arrival)
+                || !grid.TryGet(arrival.Cell, out var tile)
+                || !tile.IsPassable
+                || (tile.IsOccupied && tile.OccupantId != player.Walker.ActorId))
+            {
+                return;
+            }
+
+            player.Walker.Teleport(arrival.Cell, arrival.Facing);
+            fog.Reveal(arrival.Cell);
+            arrived = true;
+        }
+
+        private void TryLeaveThroughExit()
+        {
+            if (!exitCheckPending || leaving || player == null || player.Walker.IsMoving)
+            {
+                return;
+            }
+
+            exitCheckPending = false;
+            foreach (var exit in exits)
+            {
+                if (exit.Cell != player.Walker.Cell)
+                {
+                    continue;
+                }
+
+                leaving = true;
+                SceneArrival.Set(new PendingArrival(exit.Location, exit.Arrival, exit.Facing));
+                SceneManager.LoadScene(LocationScenes.SceneFor(exit.Location));
+                return;
+            }
         }
 
         private bool IsReady => grid != null && cursor != null && actionMap != null;
@@ -264,6 +318,13 @@ namespace Game.UI
         public void ConfigureLocation(string id)
         {
             locationId = string.IsNullOrWhiteSpace(id) ? DefaultLocationId : id;
+        }
+
+        public IReadOnlyList<MapExitLink> Exits => exits;
+
+        public void ConfigureExits(MapExitLink[] links)
+        {
+            exits = links ?? new MapExitLink[0];
         }
 
         private bool restoreChecked;
@@ -290,6 +351,16 @@ namespace Game.UI
             }
 
             restoreChecked = true;
+            if (arrived)
+            {
+                if (services && services.IsBooted)
+                {
+                    services.Autosave(CaptureSave());
+                }
+
+                return;
+            }
+
             if (services && player != null && services.TryLoadActiveSave(out var save) && ExplorationRestore.TryApply(session, save, LocationId, player.Walker.Facing))
             {
                 cursor.TryHover(IsoMath.GridToWorld(player.Walker.Cell), Vector2.zero);
@@ -345,6 +416,7 @@ namespace Game.UI
 
             PaintFog(grid);
             PaintSelection();
+            TryLeaveThroughExit();
         }
 
         private void OnGUI()

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Game.EditorTools;
+using Game.UI;
 using NUnit.Framework;
 
 namespace Game.Tests.EditMode.UI
@@ -89,6 +91,26 @@ namespace Game.Tests.EditMode.UI
 
             var unreachable = Cells(map).Where(cell => map.IsWalkable(cell.X, cell.Y) && !reached.Contains(cell)).ToList();
             CollectionAssert.IsEmpty(unreachable, $"sealed cells: {string.Join(", ", unreachable)}");
+        }
+
+        [Test]
+        public void Exits_LeadToAFreeArrivalCellInTheDestinationMap()
+        {
+            foreach (var entry in SandboxTools.Maps)
+            {
+                var map = MapLayout.Load(entry.MapPath);
+                Assert.IsNotEmpty(map.Exits, $"{entry.LocationId} has no way out");
+                foreach (var exit in map.Exits)
+                {
+                    var destination = SandboxTools.Maps.Single(other => other.LocationId == exit.Location);
+                    Assert.AreEqual(Path.GetFileNameWithoutExtension(destination.ScenePath), LocationScenes.SceneFor(exit.Location));
+
+                    var target = MapLayout.Load(destination.MapPath);
+                    Assert.IsTrue(target.IsWalkable(exit.ArrivalX, exit.ArrivalY), $"the arrival of {entry.LocationId} into {exit.Location} is blocked");
+                    Assert.IsFalse(target.Actors.Skip(1).Any(actor => actor.X == exit.ArrivalX && actor.Y == exit.ArrivalY), "the arrival lands on an npc; only the player may stand there");
+                    Assert.IsFalse(target.Exits.Any(other => other.X == exit.ArrivalX && other.Y == exit.ArrivalY), "the arrival lands on another exit, which would bounce the player back");
+                }
+            }
         }
 
         [Test]

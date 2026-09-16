@@ -121,16 +121,19 @@ namespace Game.UI
 
         private void OnSlotChosen(int index)
         {
+            string scene;
             if (slots.Model.Mode == SaveSlotsMode.Load)
             {
                 services.SelectSlot(index);
+                scene = services.TryLoadActiveSave(out var save) ? LocationScenes.SceneFor(save.Location) : gameplayScene;
             }
             else
             {
                 services.StartNewGame(index);
+                scene = LocationScenes.StartScene;
             }
 
-            SceneManager.LoadScene(gameplayScene);
+            SceneManager.LoadScene(scene);
         }
 
         private void OnSettingsChanged(GameSettings settings)

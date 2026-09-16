@@ -424,6 +424,12 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
   - O pátio é de argila seca, com o forno e um canto de palha.
   - Na rua de terra, as ânforas esperam prontas na porta.
   - Não há batalha: `SandboxTools` só cria o `SandboxBattleDirector` quando o mapa tem o Thrasybios.
+- **Saídas:** `exits` no JSON do mapa liga uma célula a outro local, com célula de chegada e `Facing`.
+  - `MapLayout.Validate` recusa saída fora do mapa, em célula bloqueada, sem destino ou repetida, e um teste garante que a chegada cai em célula livre, sem ator e sem outra saída — senão o jogador quicaria de volta.
+  - Pisar na saída e parar dispara a troca: `SceneArrival` guarda a chegada, `LocationScenes.SceneFor` resolve a cena e o `GridSandboxController` da outra ponta teleporta o jogador no `Awake`, revela a névoa em volta e faz save automático.
+  - A chegada pula a restauração do save, porque a posição dela vale mais que a gravada.
+  - **Névoa:** o save guarda a névoa de um mapa só, então ela recomeça ao trocar de cena. Está anotado como item aberto na [MAP-03].
+- **Menu:** Novo jogo começa em `LocationScenes.StartScene` (a oficina do Cerâmico) e Continuar abre a cena do `Location` gravado no save; save antigo de `sandbox` abre a Ágora.
 - **Uma cena por mapa:** `SandboxTools.Maps` lista local, mapa e cena.
   - `BuildSandbox` monta todas as cenas, e `CaptureReference` fotografa a Ágora e o Cerâmico (`artifacts/reference/grid_sandbox.png` e `kerameikos.png`).
   - Cada cena grava o próprio `GridSandboxController.LocationId` (`agora`, `kerameikos`). Esse id vai para o save e decide se `ExplorationRestore` aplica posição e névoa.

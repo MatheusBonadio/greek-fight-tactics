@@ -261,6 +261,9 @@ namespace Game.EditorTools
 
             controller.ConfigureLayout(Size, Size, terrain, costs, FogRevealDepth);
             controller.ConfigureLocation(locationId);
+            controller.ConfigureExits(map.Exits
+                .Select(exit => new MapExitLink(new Coord(exit.X, exit.Y), exit.Location, new Coord(exit.ArrivalX, exit.ArrivalY), exit.Facing))
+                .ToArray());
             controller.ConfigureViews(
                 AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath),
                 highlight,
