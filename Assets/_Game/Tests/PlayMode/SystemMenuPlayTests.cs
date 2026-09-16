@@ -138,7 +138,7 @@ namespace Game.Tests.PlayMode
             var save = pause.SaveProvider();
 
             Assert.AreEqual(sandbox.Player.Walker.Cell, save.Position);
-            Assert.AreEqual(GridSandboxController.LocationId, save.Location);
+            Assert.AreEqual(sandbox.LocationId, save.Location);
             Assert.IsNotEmpty(save.FogBitmask);
             Assert.GreaterOrEqual(save.PlaytimeSeconds, 0);
             Assert.Greater(save.Timestamp, 0);

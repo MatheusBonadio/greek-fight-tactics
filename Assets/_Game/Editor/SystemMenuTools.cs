@@ -43,7 +43,7 @@ namespace Game.EditorTools
 
         public static void ApplyBuildScenes()
         {
-            EditorBuildSettings.scenes = new[] { MainMenuScenePath, SandboxTools.ScenePath, SandboxTools.SampleScenePath }
+            EditorBuildSettings.scenes = new[] { MainMenuScenePath, SandboxTools.ScenePath, SandboxTools.KerameikosScenePath, SandboxTools.SampleScenePath }
                 .Where(path => AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
                 .Select(path => new EditorBuildSettingsScene(path, true))
                 .ToArray();

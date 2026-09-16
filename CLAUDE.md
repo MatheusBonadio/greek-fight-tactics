@@ -386,7 +386,7 @@ Regras em `firestore.rules`: só o dono lê e escreve `saves/{uid}` e `progress/
 - **GameServices:** `SelectSlot`, `SaveToSlot`, `StartNewGame` (grava um save vazio no slot escolhido) e `TryLoadActiveSave`. O tempo de jogo só avança com `Time.timeScale` > 0.
 - **Nuvem:** só o slot 0 sincroniza com `saves/{uid}`; os outros são apenas locais.
 - **Campos novos:** `location` e `playtimeSeconds` entraram no JSON e no documento do Firestore. Saves antigos sem eles continuam válidos, e `playtimeSeconds` negativo é rejeitado.
-- **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. A sandbox usa `GridSandboxController.LocationId` (`sandbox`).
+- **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. Cada mapa usa o `GridSandboxController.LocationId` gravado na própria cena (`agora`, `kerameikos`).
 
 O formato de `FogOfWar.ToBitmask` virou schema de banco. Mudá-lo invalida saves de playtest — se precisar, escreva migração.
 
@@ -419,6 +419,15 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 - **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador.
 - **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido e ator em bloco, em água ou em célula repetida.
 - **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2. Tem a estrada de terra que vem do Cerâmico, com a herma na entrada, o mercado de pedra onde Thrasybios junta a plateia e a praça em xadrez com borda de meandro e fonte. Tem também a stoa de colunas dóricas com degraus e as casas de tijolo com oliveiras. Um teste garante que toda célula andável é alcançável a partir da Kleia.
+- **Cerâmico:** `kerameikos.json` gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina do beat I.1.
+  - A oficina tem chão de terra batida cercado de tijolo, com a roda de oleiro onde a Kleia começa e ânforas no fundo.
+  - O pátio é de argila seca, com o forno e um canto de palha.
+  - Na rua de terra, as ânforas esperam prontas na porta.
+  - Não há batalha: `SandboxTools` só cria o `SandboxBattleDirector` quando o mapa tem o Thrasybios.
+- **Uma cena por mapa:** `SandboxTools.Maps` lista local, mapa e cena.
+  - `BuildSandbox` monta todas as cenas, e `CaptureReference` fotografa a Ágora e o Cerâmico (`artifacts/reference/grid_sandbox.png` e `kerameikos.png`).
+  - Cada cena grava o próprio `GridSandboxController.LocationId` (`agora`, `kerameikos`). Esse id vai para o save e decide se `ExplorationRestore` aplica posição e névoa.
+  - Os tiles do Cerâmico (`floor_packed_dirt`, `floor_dry_clay`, `floor_straw`, `block_kiln`, `prop_potters_wheel`, `prop_amphora_stack`) são placeholders em `art/placeholders/tiles`, com a geometria copiada de `floor_dirt` e `wall_brick`.
 
 ---
 

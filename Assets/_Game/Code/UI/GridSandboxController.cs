@@ -32,6 +32,7 @@ namespace Game.UI
         [SerializeField] private TileBase[] fogEdgeTiles = new TileBase[0];
         [SerializeField] private List<ActorView> actors = new();
         [SerializeField] private GridGizmoView gizmos;
+        [SerializeField] private string locationId = DefaultLocationId;
 
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> path = new();
@@ -256,7 +257,14 @@ namespace Game.UI
 
         private bool IsReady => grid != null && cursor != null && actionMap != null;
 
-        public const string LocationId = "sandbox";
+        public const string DefaultLocationId = "sandbox";
+
+        public string LocationId => locationId;
+
+        public void ConfigureLocation(string id)
+        {
+            locationId = string.IsNullOrWhiteSpace(id) ? DefaultLocationId : id;
+        }
 
         private bool restoreChecked;
 

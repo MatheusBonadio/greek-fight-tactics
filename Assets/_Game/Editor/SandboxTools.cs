@@ -21,6 +21,11 @@ namespace Game.EditorTools
     {
         public const string ScenePath = "Assets/_Game/Scenes/GridSandbox.unity";
         public const string MapPath = "Assets/_Game/Data/Maps/agora.json";
+        public const string AgoraLocationId = "agora";
+        public const string KerameikosLocationId = "kerameikos";
+        public const string KerameikosMapPath = "Assets/_Game/Data/Maps/kerameikos.json";
+        public const string KerameikosScenePath = "Assets/_Game/Scenes/Kerameikos.unity";
+        public const string KerameikosCapturePath = "artifacts/reference/kerameikos.png";
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
@@ -56,8 +61,14 @@ namespace Game.EditorTools
         public static readonly Vector3 GridPosition = new(0f, -IsoMath.CellHeight, 0f);
         public static readonly Vector3 CameraDamping = new(0.2f, 0.2f, 0f);
 
-        public static readonly string[] FloorTileNames = { "floor_marble", "floor_marble_ochre", "floor_dirt", "floor_grass", "floor_stone", "floor_water", "floor_mosaic" };
-        public static readonly string[] BlockTileNames = { "wall_marble", "wall_brick", "block_doric_column", "block_step", "prop_market_stall", "prop_statue_base", "prop_olive_trunk" };
+        public static readonly string[] FloorTileNames = { "floor_marble", "floor_marble_ochre", "floor_dirt", "floor_grass", "floor_stone", "floor_water", "floor_mosaic", "floor_packed_dirt", "floor_dry_clay", "floor_straw" };
+        public static readonly string[] BlockTileNames = { "wall_marble", "wall_brick", "block_doric_column", "block_step", "prop_market_stall", "prop_statue_base", "prop_olive_trunk", "block_kiln", "prop_potters_wheel", "prop_amphora_stack" };
+
+        public static readonly (string LocationId, string MapPath, string ScenePath)[] Maps =
+        {
+            (AgoraLocationId, MapPath, ScenePath),
+            (KerameikosLocationId, KerameikosMapPath, KerameikosScenePath)
+        };
         public static readonly string[] FogEdgeNames = { "fog_edge_ne", "fog_edge_nw", "fog_edge_se", "fog_edge_sw" };
 
         private static readonly Dictionary<string, TerrainId> FloorTerrain = new()
@@ -68,12 +79,21 @@ namespace Game.EditorTools
             ["floor_grass"] = TerrainId.Grass,
             ["floor_stone"] = TerrainId.Stone,
             ["floor_water"] = TerrainId.Water,
-            ["floor_mosaic"] = TerrainId.Diagram
+            ["floor_mosaic"] = TerrainId.Diagram,
+            ["floor_packed_dirt"] = TerrainId.Dirt,
+            ["floor_dry_clay"] = TerrainId.Dirt,
+            ["floor_straw"] = TerrainId.Dirt
         };
 
         public static void BuildSandbox() => BatchRunner.Run(BuildAll);
 
-        public static void CaptureReference() => BatchRunner.Run(CaptureReferenceImage);
+        public static void CaptureReference() => BatchRunner.Run(CaptureReferenceImages);
+
+        private static void CaptureReferenceImages()
+        {
+            CaptureReferenceImage(ScenePath, CapturePath);
+            CaptureReferenceImage(KerameikosScenePath, KerameikosCapturePath);
+        }
 
 
         public static void BuildAll()
@@ -84,10 +104,14 @@ namespace Game.EditorTools
             RenderSetupTools.CreateCameraRigPrefab();
             EnsureTileAssets();
             AssetDatabase.SaveAssets();
-            BuildScene();
+            foreach (var map in Maps)
+            {
+                BuildScene(map.LocationId, map.MapPath, map.ScenePath);
+                Debug.Log($"[SandboxTools] built {map.ScenePath} from {map.MapPath}");
+            }
+
             SystemMenuTools.ApplyBuildScenes();
             AssetDatabase.SaveAssets();
-            Debug.Log($"[SandboxTools] built {ScenePath}");
         }
 
         private static void GenerateFogEdgeSources()
@@ -174,14 +198,14 @@ namespace Game.EditorTools
             return tiles;
         }
 
-        private static void BuildScene()
+        private static void BuildScene(string locationId, string mapPath, string scenePath)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var tiles = EnsureTileAssets();
-            var map = MapLayout.Load(MapPath);
+            var map = MapLayout.Load(mapPath);
             if (map.Width != Size || map.Height != Size)
             {
-                throw new InvalidOperationException($"{MapPath} must be {Size}x{Size}, found {map.Width}x{map.Height}");
+                throw new InvalidOperationException($"{mapPath} must be {Size}x{Size}, found {map.Width}x{map.Height}");
             }
 
             var gridObject = new GameObject("Grid");
@@ -236,6 +260,7 @@ namespace Game.EditorTools
             var actors = CreateActors(map.Actors);
 
             controller.ConfigureLayout(Size, Size, terrain, costs, FogRevealDepth);
+            controller.ConfigureLocation(locationId);
             controller.ConfigureViews(
                 AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath),
                 highlight,
@@ -251,14 +276,17 @@ namespace Game.EditorTools
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
-            var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
-            rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
-            CreateBattleDirector(controller, map.Actors, actors, explorationCamera).ConfigureRange(rangeView);
-
-            AssetFolders.Ensure(Path.GetDirectoryName(ScenePath)?.Replace('\\', '/'));
-            if (!EditorSceneManager.SaveScene(scene, ScenePath))
+            if (map.Actors.Any(actor => actor.Character == BattleOpponentId))
             {
-                throw new InvalidOperationException($"could not save {ScenePath}");
+                var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
+                rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
+                CreateBattleDirector(controller, map.Actors, actors, explorationCamera).ConfigureRange(rangeView);
+            }
+
+            AssetFolders.Ensure(Path.GetDirectoryName(scenePath)?.Replace('\\', '/'));
+            if (!EditorSceneManager.SaveScene(scene, scenePath))
+            {
+                throw new InvalidOperationException($"could not save {scenePath}");
             }
         }
 
@@ -409,9 +437,9 @@ namespace Game.EditorTools
         private static Vector2 ToWorld(float gridX, float gridY) =>
             new((gridX - gridY) * IsoMath.CellWidth, (gridX + gridY) * IsoMath.CellHeight);
 
-        private static void CaptureReferenceImage()
+        private static void CaptureReferenceImage(string scenePath, string capturePath)
         {
-            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var camera = UnityEngine.Object.FindAnyObjectByType<Camera>() ?? throw new InvalidOperationException("sandbox has no camera");
 
             if (camera.TryGetComponent<PixelPerfectCamera>(out var pixelPerfect))
@@ -439,9 +467,9 @@ namespace Game.EditorTools
                 texture.ReadPixels(new Rect(0, 0, CaptureWidth, CaptureHeight), 0, 0);
                 texture.Apply();
 
-                Directory.CreateDirectory(Path.GetDirectoryName(CapturePath) ?? ".");
-                File.WriteAllBytes(CapturePath, texture.EncodeToPNG());
-                Debug.Log($"[SandboxTools] captured {CapturePath}");
+                Directory.CreateDirectory(Path.GetDirectoryName(capturePath) ?? ".");
+                File.WriteAllBytes(capturePath, texture.EncodeToPNG());
+                Debug.Log($"[SandboxTools] captured {capturePath}");
             }
             finally
             {

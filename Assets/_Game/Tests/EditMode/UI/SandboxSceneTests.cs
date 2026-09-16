@@ -47,13 +47,13 @@ namespace Game.Tests.EditMode.UI
             var floor = Tilemap(SandboxTools.FloorTilemapName);
 
             Assert.AreEqual(SandboxTools.Size * SandboxTools.Size, floor.GetUsedTilesCount() == 0 ? 0 : CountTiles(floor));
-            CollectionAssert.AreEquivalent(SandboxTools.FloorTileNames, UsedTileNames(floor));
+            CollectionAssert.AreEquivalent(MapLayout.Load(SandboxTools.MapPath).FloorLegend.Values.Distinct(), UsedTileNames(floor));
         }
 
         [Test]
         public void Blocks_UseEveryBlockTile()
         {
-            CollectionAssert.AreEquivalent(SandboxTools.BlockTileNames, UsedTileNames(Tilemap(SandboxTools.BlocksTilemapName)));
+            CollectionAssert.AreEquivalent(MapLayout.Load(SandboxTools.MapPath).BlockLegend.Values.Distinct(), UsedTileNames(Tilemap(SandboxTools.BlocksTilemapName)));
         }
 
         [Test]
@@ -111,6 +111,7 @@ namespace Game.Tests.EditMode.UI
             Assert.GreaterOrEqual(controller.Actors.Count, 7);
             Assert.IsTrue(controller.Actors.All(actor => actor.SpriteRenderer.spriteSortPoint == SpriteSortPoint.Pivot));
             Assert.IsNotNull(controller.GetComponent<GridGizmoView>());
+            Assert.AreEqual(SandboxTools.AgoraLocationId, controller.LocationId);
 
             var model = controller.BuildGrid();
             foreach (var actor in controller.Actors)

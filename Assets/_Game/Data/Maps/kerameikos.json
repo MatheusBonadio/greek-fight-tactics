@@ -1,0 +1,52 @@
+{
+  "id": "kerameikos",
+  "floorLegend": {
+    "p": "floor_packed_dirt",
+    "c": "floor_dry_clay",
+    "s": "floor_straw",
+    "d": "floor_dirt"
+  },
+  "blockLegend": {
+    "B": "wall_brick",
+    "K": "block_kiln",
+    "P": "prop_potters_wheel",
+    "A": "prop_amphora_stack",
+    "T": "prop_olive_trunk"
+  },
+  "floor": [
+    "dddddddddddd",
+    "dddddddddddd",
+    "cccccccccccc",
+    "cccccccccccc",
+    "ppppppppcccc",
+    "ppppppppcccc",
+    "ppppppppcccc",
+    "ppppppppcccc",
+    "ppppppppccss",
+    "ppppppppcsss",
+    "ppppppppcsss",
+    "ppppppppcsss"
+  ],
+  "blocks": [
+    "------------",
+    "------------",
+    "T----AA-----",
+    "------------",
+    "BBB-BBBB----",
+    "B------B-K--",
+    "B------B----",
+    "B-----------",
+    "B--P---B----",
+    "B------B----",
+    "BAA---AB----",
+    "BBBBBBBB----"
+  ],
+  "actors": [
+    { "character": "kleia", "x": 4, "y": 7, "facing": "SouthEast" },
+    { "character": "citizen", "x": 9, "y": 1, "facing": "SouthWest" }
+  ],
+  "exits": [
+    { "x": 11, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" },
+    { "x": 11, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" }
+  ]
+}

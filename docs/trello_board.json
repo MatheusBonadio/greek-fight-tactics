@@ -608,7 +608,7 @@
         "Sprint 03 · Vertical Slice & Entrega",
         "Unity / Core"
       ],
-      "description": "Layout de mapa em JSON, não em código: o diff fica legível e um mapa inválido falha antes de virar cena.\n\n**Depende de:** [GRD-04] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Layout em `Assets/_Game/Data/Maps/<id>.json`: linhas de texto para chão e blocos, com legenda de símbolo para tile\n- [ ] Atores com personagem, célula e `Facing`; o primeiro da lista é o jogador\n- [ ] `MapLayout.Validate` recusa linha de largura diferente, símbolo desconhecido e ator em bloco, água ou célula repetida\n- [ ] Teste garante que toda célula andável é alcançável a partir do jogador\n- [ ] Ágora e Cerâmico convertidos para o formato, sem layout em código"
+      "description": "Layout de mapa em JSON, não em código: o diff fica legível e um mapa inválido falha antes de virar cena.\n\n**Depende de:** [GRD-04] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Layout em `Assets/_Game/Data/Maps/<id>.json`: linhas de texto para chão e blocos, com legenda de símbolo para tile\n- [x] Atores com personagem, célula e `Facing`; o primeiro da lista é o jogador\n- [x] `MapLayout.Validate` recusa linha de largura diferente, símbolo desconhecido e ator em bloco, água ou célula repetida\n- [x] Teste garante que toda célula andável é alcançável a partir do jogador\n- [x] Ágora e Cerâmico convertidos para o formato, sem layout em código"
     },
     {
       "title": "[MAP-02] Uma cena por mapa",
@@ -616,7 +616,7 @@
         "Sprint 03 · Vertical Slice & Entrega",
         "Unity / Core"
       ],
-      "description": "Cada mapa vira a própria cena, com o próprio local no save.\n\n**Depende de:** [MAP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] `SandboxTools.Maps` monta uma cena por mapa\n- [ ] Batalha criada só quando o mapa tem o adversário\n- [ ] Cada cena grava o próprio `LocationId`, que vai para o save e decide a restauração\n- [ ] `CaptureReference` fotografa cada mapa em `artifacts/reference`"
+      "description": "Cada mapa vira a própria cena, com o próprio local no save.\n\n**Depende de:** [MAP-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] `SandboxTools.Maps` monta uma cena por mapa\n- [x] Batalha criada só quando o mapa tem o adversário\n- [x] Cada cena grava o próprio `LocationId`, que vai para o save e decide a restauração\n- [x] `CaptureReference` fotografa cada mapa em `artifacts/reference`"
     },
     {
       "title": "[MAP-03] Transições entre mapas",

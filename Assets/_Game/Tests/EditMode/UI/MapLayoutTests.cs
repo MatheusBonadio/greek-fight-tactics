@@ -10,14 +10,17 @@ namespace Game.Tests.EditMode.UI
     {
         private const string PlayerCharacter = "kleia";
         private const string StallTile = "prop_market_stall";
+        private const string WheelTile = "prop_potters_wheel";
+        private const string KilnTile = "block_kiln";
         private const int StallDistance = 2;
         private const int AudienceDistance = 3;
         private const int MinimumAudience = 2;
 
-        [Test]
-        public void Agora_HasTheSandboxSizeAndUsesOnlyKnownTiles()
+        [TestCase(SandboxTools.MapPath)]
+        [TestCase(SandboxTools.KerameikosMapPath)]
+        public void Map_HasTheSandboxSizeAndUsesOnlyKnownTiles(string mapPath)
         {
-            var map = MapLayout.Load(SandboxTools.MapPath);
+            var map = MapLayout.Load(mapPath);
 
             Assert.AreEqual(SandboxTools.Size, map.Width);
             Assert.AreEqual(SandboxTools.Size, map.Height);
@@ -51,9 +54,22 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void Agora_EveryWalkableCellIsReachableFromKleia()
+        public void Kerameikos_StartsKleiaInTheWorkshopBesideThePottersWheel()
         {
-            var map = MapLayout.Load(SandboxTools.MapPath);
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var kleia = map.Actors[0];
+
+            Assert.AreEqual(PlayerCharacter, kleia.Character);
+            Assert.IsTrue(Cells(map).Any(cell => map.BlockAt(cell.X, cell.Y) == WheelTile && Distance(cell, (kleia.X, kleia.Y)) <= StallDistance), "Kleia paints amphorae beside the wheel");
+            Assert.IsTrue(Cells(map).Any(cell => map.BlockAt(cell.X, cell.Y) == KilnTile), "the workshop has a kiln");
+            CollectionAssert.DoesNotContain(map.Actors.Select(actor => actor.Character), SandboxTools.BattleOpponentId);
+        }
+
+        [TestCase(SandboxTools.MapPath)]
+        [TestCase(SandboxTools.KerameikosMapPath)]
+        public void Map_EveryWalkableCellIsReachableFromKleia(string mapPath)
+        {
+            var map = MapLayout.Load(mapPath);
             var start = (map.Actors[0].X, map.Actors[0].Y);
             var reached = new HashSet<(int X, int Y)> { start };
             var frontier = new Queue<(int X, int Y)>();

@@ -54,5 +54,8 @@
     { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
     { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast" },
     { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest" }
+  ],
+  "exits": [
+    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 10, "arrivalY": 1, "facing": "SouthWest" }
   ]
 }
