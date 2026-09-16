@@ -61,6 +61,12 @@ namespace Game.EditorTools
                 Debug.Log($"[ArtTools] removed the bottom outline from {seams} floor tiles");
             }
 
+            var blockSeams = BlockTileSeams.ApplyToSourceBlocks();
+            if (blockSeams > 0)
+            {
+                Debug.Log($"[ArtTools] removed the right outline from {blockSeams} block tiles");
+            }
+
             var copied = CopyPlaceholders();
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             AssetDatabase.ImportAsset(PlaceholderFolder, ImportAssetOptions.ImportRecursive | ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);

@@ -49,7 +49,7 @@ namespace Game.EditorTools
                 pixelPerfect.refResolutionX = ReferenceResolution;
                 pixelPerfect.refResolutionY = ReferenceResolution;
                 pixelPerfect.gridSnapping = PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
-                pixelPerfect.cropFrame = PixelPerfectCamera.CropFrame.Windowbox;
+                pixelPerfect.cropFrame = PixelPerfectCamera.CropFrame.None;
 
                 PrefabUtility.SaveAsPrefabAsset(root, CameraRigPrefabPath, out var saved);
                 if (!saved)

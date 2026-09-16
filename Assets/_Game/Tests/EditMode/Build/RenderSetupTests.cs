@@ -24,7 +24,7 @@ namespace Game.Tests.EditMode.Build
             Assert.AreEqual(224, pixelPerfect.refResolutionX);
             Assert.AreEqual(224, pixelPerfect.refResolutionY);
             Assert.AreEqual(PixelPerfectCamera.GridSnapping.UpscaleRenderTexture, pixelPerfect.gridSnapping);
-            Assert.AreEqual(PixelPerfectCamera.CropFrame.Windowbox, pixelPerfect.cropFrame);
+            Assert.AreEqual(PixelPerfectCamera.CropFrame.None, pixelPerfect.cropFrame);
         }
 
         [Test]
