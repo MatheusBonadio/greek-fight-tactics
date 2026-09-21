@@ -572,7 +572,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Hoje só o Thrasybios existe como dado; o [AT1-05] precisa dos outros cinco.\n\n**Depende de:** [DAT-01], [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, Phaidra, Kritolaos, Simo e Bátilo em `opponents.json` com perfil, pool de falácias, coerência e plateia inicial\n- [ ] Pool de cada um coberto pelo fallback, com no mínimo 3 argumentos por entrada\n- [ ] Folha placeholder e posição de cada um na Ágora pelos `actors` do mapa\n- [ ] `SandboxBattleDirector` provoca batalha com qualquer `OpponentSO` presente no mapa, sem código por nome\n- [ ] Teste: batalha simulada contra cada um admite vitória do jogador"
+      "description": "Hoje só o Thrasybios existe como dado; o [AT1-05] precisa dos outros cinco.\n\n**Depende de:** [DAT-01], [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Óron, Phaidra, Kritolaos, Simo e Bátilo em `opponents.json` com perfil, pool de falácias, coerência e plateia inicial\n- [x] Pool de cada um coberto pelo fallback, com no mínimo 3 argumentos por entrada\n- [x] Folha placeholder e posição de cada um na Ágora pelos `actors` do mapa\n- [x] `SandboxBattleDirector` provoca batalha com qualquer `OpponentSO` presente no mapa, sem código por nome\n- [x] Teste: batalha simulada contra cada um admite vitória do jogador"
     },
     {
       "title": "[AT1-05] Os cinco duelos de bairro",
