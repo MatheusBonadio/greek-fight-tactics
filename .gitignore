@@ -116,6 +116,7 @@ InitTestScene*.unity*
 # GFT local outputs
 /artifacts/
 /Build/
+__pycache__/
 
 # Performance test package build reports
 /Assets/Resources/PerformanceTestRun*

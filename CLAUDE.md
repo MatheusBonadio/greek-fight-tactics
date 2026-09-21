@@ -481,6 +481,11 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
 - `Game.EditorTools.RenderSetupTools.Apply` gera `Assets/_Game/Prefabs/Camera/PixelPerfectCameraRig.prefab` (URP `PixelPerfectCamera`, referência 224×224, PPU 16, *Upscale Render Texture*, *Crop Frame* `None`) e põe o `Renderer2D.asset` em Transparency Sort *Custom Axis* (0, 1, -1). *Crop Frame* `Windowbox` recorta nos dois eixos para manter a área quadrada de 224×224: em tela cheia 16:9 isso corta parte do mapa e põe barras. Com `None`, a tela inteira é usada e as bordas mostram um pouco mais do mapa, sem quebrar o pixel perfect.
 - Tile de chão contorna só as bordas de cima; a de baixo é desenhada pelo vizinho da frente, e contorno nas quatro bordas vira linha dupla na junção. `ArtTools.RegenerateAll` roda `FloorTileSeams.ApplyToSourceFloors` antes de copiar, e um teste EditMode garante que nenhum chão em `art/` tem contorno na metade de baixo.
 - Trocar o modo de import de uma textura muda o fileID do sprite. Depois de mexer no importer, rode `ArtTools.SliceSheets` **e** `DataTools.Regenerate`, que religa os ícones dos `FallacySO`.
+- **Arte nova antes da Unity (`tools/art/`, Python 3 + Pillow):**
+  - `quantize.py` leva uma pasta de PNGs brutos para a `snes.gpl` sem dithering, redimensiona com Nearest Neighbor para a dimensão exata (`--size`, `--like art/placeholders` ou prefixo do nome) e deixa no máximo 15 cores.
+  - `verify.py` imprime a contagem de cores por arquivo e sai com 1 quando um PNG tem mais de 15 cores + transparente, alfa parcial, cor fora do RGB555 ou da paleta, dimensão errada para o prefixo (`SIZE_RULES` em `sprite_rules.py`) ou é um chão que deixa vão ao repetir.
+  - `tile_preview.py` cola 4 cópias do tile na grade e grava a prévia em `artifacts/art/tiling/`.
+  - Testes: `python -m unittest discover -s tools/art`. Hoje `verify.py art/placeholders` falha em 34 arquivos por pendências conhecidas, listadas na skill.
 
 ---
 

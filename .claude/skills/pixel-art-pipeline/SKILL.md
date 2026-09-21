@@ -65,12 +65,20 @@ Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem
 | Pele / cabelo | `skin_light/mid/shade`, `hair_dark/mid` | Personagens |
 | UI | `ui_background #181828`, `ui_border #F8F8F0` | Caixas |
 
-Regras duras, verificadas antes de qualquer arte entrar em `art/`:
+Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qualquer arte entrar em `art/`:
 
 1. Todo pixel opaco pertence à paleta. Sem exceção para "quase igual".
 2. Máximo de 15 cores + transparente por sprite.
 3. Contorno de tile de chão é `outline_blue`; de props e personagens, `outline`. O tile de chão só contorna as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com contorno nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
+
+O `verify.py` cobre as regras 1, 2 e 4, o RGB555, a dimensão pelo prefixo do nome e o encaixe dos chãos; a regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em quatro pontos, todos pendentes de decisão e não regressão:
+- A sombra dos personagens é translúcida, em `#101020`: 16 px com alfa 90 nos `_idle_se` e 208 px em `#06060B` com alfa 32 nas folhas, que também saem do RGB555.
+- Névoa (`fog*`) em `#101020`, a cor que o GDD 6.5 pede mas que não está na paleta.
+- Realces `hl_*` a 55% de alfa, como o GDD 6.5 especifica, contra a regra 4.
+- `box_dialogue` tem 160×40, e o GDD e o `DialogueBoxView` usam 208×48.
+
+Não esconda essas falhas com `--skip`: ou a arte muda, ou a regra muda no GDD e aqui.
 
 ---
 
@@ -224,13 +232,36 @@ Ao mexer em sorting, teste os quatro casos difíceis: prop que transborda a cél
 
 ## Gerar arte por IA
 
-O template de prompt, os negativos e a variação para tiles estão na seção 9 do GDD. O pós-processamento não é opcional — nenhum gerador entrega RGB555 limpo:
+O template de prompt, os negativos e a variação para tiles estão na seção 9 do GDD. O pós-processamento não é opcional — nenhum gerador entrega RGB555 limpo. Ele é feito pelos scripts de `tools/art/` (Python 3 + Pillow, `python -m pip install -r tools/art/requirements.txt`), sem Unity:
 
-1. Quantizar contra `art/palette/snes.gpl` com dithering **desligado** (Aseprite: *Sprite → Color Mode → Indexed* com a paleta carregada).
-2. Redimensionar para o tamanho exato com Nearest Neighbor.
-3. Conferir o limite de 15 cores + transparente.
-4. Tiles: colar 4 cópias lado a lado e conferir o encaixe.
-5. Salvar com o mesmo nome e dimensão do placeholder que substitui.
+1. Tire o fundo antes: o quantizador só entende transparência pelo canal alfa (abaixo de 128 vira transparente, o resto opaco; `--alpha-threshold` muda o corte).
+2. Quantize e redimensione de uma vez, com o mesmo nome do placeholder que a arte substitui:
+   ```powershell
+   python tools/art/quantize.py <pasta-de-pngs-brutos> --out <pasta-de-saida> --like art/placeholders
+   ```
+   - A dimensão vem de `--size WxH`, do PNG de mesmo nome na pasta de `--like` ou, na falta dele, do prefixo do nome.
+   - O redimensionamento é Nearest Neighbor. Como cada pixel é mapeado sozinho, dá no mesmo que quantizar primeiro.
+   - Cada pixel vai para a cor mais próxima da paleta, pela distância RGB ponderada por luminância (30/59/11), sem dithering.
+   - Se sobrarem mais de 15 cores, ficam as 15 mais usadas e o resto é remapeado entre elas (`--max-colors 0` desliga).
+   - Ao final, o script já roda as mesmas checagens do `verify.py` sobre a saída.
+3. Confira o lote com o relatório de cores por arquivo; ele sai com código 1 se algo quebrar as regras:
+   ```powershell
+   python tools/art/verify.py <pasta-de-saida> --colors
+   ```
+4. Tiles: `python tools/art/tile_preview.py <tile-ou-pasta>` cola 4 cópias em losango 2×2 e grava a prévia ampliada 4× sobre magenta em `artifacts/art/tiling/<tile>_tiling.png`. Para um chão de 32×16, ele também conta os vãos numa grade 3×3 e sai com código 1 se houver algum. Olhe a prévia: vão aparece em magenta, e contorno duplo aparece na junção.
+5. Copie para `art/placeholders/` só o que passou, com o mesmo nome e dimensão, e rode `ArtTools.SliceSheets`.
+
+Os testes dos scripts rodam com `python -m unittest discover -s tools/art`. A tabela de dimensões por prefixo que o `verify.py` e o `quantize.py` usam é `SIZE_RULES`, em `tools/art/sprite_rules.py`: categoria nova de arquivo entra lá.
+
+### Aseprite
+
+A configuração é manual e feita uma vez por máquina, porque o Aseprite guarda a paleta padrão na pasta do usuário, fora do repositório:
+
+1. No menu de opções da paleta (botão ☰ acima das cores), use *Load Palette* e escolha `art/palette/snes.gpl`.
+2. No mesmo menu, use *Save Palette as Default*. Para conferir, *File → New* deve abrir com as 32 cores da `snes.gpl`.
+3. Para converter um sprite à mão, use *Sprite → Color Mode → More Options…* com modo *Indexed* e dithering *None*.
+
+O Aseprite serve para retoque. A conversão em lote é do `quantize.py`, e o que vale é o que passa no `verify.py`.
 
 ## Fonte
 
