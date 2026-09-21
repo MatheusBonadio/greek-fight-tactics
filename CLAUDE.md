@@ -582,6 +582,6 @@ ci: run editmode tests on pull requests
 
 Tipos: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`, `style`.
 
-**Branches:** `feature/SET-01-project-setup` — sempre com o ID do card e descrição em inglês. `main` protegida.
+**Branches:** trabalho direto na `main`, sem branches `feature/*` (projeto solo). O hook de pre-commit do Unity demora minutos: rode o `git commit` em background.
 
 **Definition of Done** (card [SET-03]): compila sem warning novo; passa EditMode e PlayMode por `unity test`; tem teste automatizado ou passo manual escrito no card; não quebrou save existente; se toca rede, testado em modo avião.
