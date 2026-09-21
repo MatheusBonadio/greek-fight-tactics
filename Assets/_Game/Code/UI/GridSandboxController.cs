@@ -55,6 +55,7 @@ namespace Game.UI
         private bool exitCheckPending;
         private bool leaving;
         private bool arrived;
+        private PendingArrival departure;
         private int nextActorId = FirstSpawnedActorId;
 
         public GridModel Grid => grid;
@@ -285,6 +286,7 @@ namespace Game.UI
             player.Walker.Teleport(arrival.Cell, arrival.Facing);
             fog.Reveal(arrival.Cell);
             arrived = true;
+            departure = arrival;
         }
 
         private void TryLeaveThroughExit()
@@ -303,7 +305,7 @@ namespace Game.UI
                 }
 
                 leaving = true;
-                SceneArrival.Set(new PendingArrival(exit.Location, exit.Arrival, exit.Facing));
+                SceneArrival.Set(new PendingArrival(exit.Location, exit.Arrival, exit.Facing, locationId, session.Capture().CopyFogBitmask()));
                 SceneManager.LoadScene(LocationScenes.SceneFor(exit.Location));
                 return;
             }
@@ -334,7 +336,13 @@ namespace Game.UI
             var services = FindAnyObjectByType<GameServices>();
             var previous = services && services.TryLoadActiveSave(out var existing) ? existing : null;
             var playtime = services ? services.PlaytimeSeconds : 0;
-            return ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime);
+            var save = ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime);
+            if (!string.IsNullOrEmpty(departure.DepartureLocationId) && departure.DepartureLocationId != LocationId && departure.DepartureFog != null)
+            {
+                save.FogByLocation[departure.DepartureLocationId] = departure.DepartureFog;
+            }
+
+            return save;
         }
 
         private void TryRestoreActiveSave()
@@ -355,6 +363,11 @@ namespace Game.UI
             {
                 if (services && services.IsBooted)
                 {
+                    if (services.TryLoadActiveSave(out var saved) && ExplorationRestore.TryMergeFog(session, saved, LocationId))
+                    {
+                        PaintFog(grid);
+                    }
+
                     services.Autosave(CaptureSave());
                 }
 

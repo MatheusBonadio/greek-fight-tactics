@@ -20,9 +20,29 @@ namespace Game.UI
                 Timestamp = timestamp
             };
 
-            if (previous == null)
+            if (previous != null)
             {
-                return save;
+                CopyProgress(previous, save);
+            }
+
+            if (!string.IsNullOrEmpty(save.Location))
+            {
+                save.FogByLocation[save.Location] = save.FogBitmask;
+            }
+
+            return save;
+        }
+
+        private static void CopyProgress(SaveData previous, SaveData save)
+        {
+            if (previous.TryGetFog(previous.Location, out var previousFog))
+            {
+                save.FogByLocation[previous.Location] = previousFog;
+            }
+
+            foreach (var pair in previous.FogByLocation)
+            {
+                save.FogByLocation[pair.Key] = pair.Value;
             }
 
             foreach (var pair in previous.Inventory)
@@ -39,8 +59,6 @@ namespace Game.UI
             {
                 save.Flags[pair.Key] = pair.Value;
             }
-
-            return save;
         }
     }
 }

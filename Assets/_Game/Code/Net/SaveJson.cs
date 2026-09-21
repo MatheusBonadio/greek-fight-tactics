@@ -30,7 +30,10 @@ namespace Game.Net
                 PlaytimeSeconds = save.PlaytimeSeconds,
                 Timestamp = save.Timestamp,
                 Duels = save.Duels.ToDictionary(pair => pair.Key, pair => new DuelDocument { Won = pair.Value.Won, Victory = pair.Value.Victory.ToString().ToLowerInvariant() }),
-                Flags = new Dictionary<string, string>(save.Flags)
+                Flags = new Dictionary<string, string>(save.Flags),
+                FogByLocation = save.FogByLocation.Count == 0
+                    ? null
+                    : save.FogByLocation.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => Convert.ToBase64String(pair.Value ?? Array.Empty<byte>()))
             };
 
             return JsonConvert.SerializeObject(document, indented ? Formatting.Indented : Formatting.None, Settings);
@@ -114,6 +117,18 @@ namespace Game.Net
                 save.Flags[pair.Key] = pair.Value;
             }
 
+            foreach (var pair in document.FogByLocation ?? new Dictionary<string, string>())
+            {
+                if (!TryDecodeBitmask(pair.Value, out var locationFog))
+                {
+                    error = $"fogByLocation.{pair.Key} is not valid base64";
+                    save = null;
+                    return false;
+                }
+
+                save.FogByLocation[pair.Key] = locationFog;
+            }
+
             error = null;
             return true;
         }
@@ -150,6 +165,7 @@ namespace Game.Net
             [JsonProperty("timestamp")] public long Timestamp { get; set; }
             [JsonProperty("duels")] public Dictionary<string, DuelDocument> Duels { get; set; }
             [JsonProperty("flags")] public Dictionary<string, string> Flags { get; set; }
+            [JsonProperty("fogByLocation")] public Dictionary<string, string> FogByLocation { get; set; }
         }
 
         private sealed class PositionDocument

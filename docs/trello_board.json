@@ -645,7 +645,7 @@
         "Sprint 03 · Vertical Slice & Entrega",
         "Unity / Core"
       ],
-      "description": "Andar até a borda leva de um mapa ao outro, sem menu no meio.\n\n**Depende de:** [MAP-01], [MAP-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Saídas no JSON do mapa: célula, destino, célula de chegada e `Facing`\n- [x] Pisar na saída carrega a outra cena e o jogador chega ao lado da saída, virado para o mapa\n- [x] Novo jogo começa na oficina do Cerâmico; continuar abre o mapa gravado no save\n- [x] Teste PlayMode: andar da Ágora até a saída e chegar na rua do Cerâmico\n- [ ] Névoa de cada mapa preservada no save ao trocar de cena"
+      "description": "Andar até a borda leva de um mapa ao outro, sem menu no meio.\n\n**Depende de:** [MAP-01], [MAP-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Saídas no JSON do mapa: célula, destino, célula de chegada e `Facing`\n- [x] Pisar na saída carrega a outra cena e o jogador chega ao lado da saída, virado para o mapa\n- [x] Novo jogo começa na oficina do Cerâmico; continuar abre o mapa gravado no save\n- [x] Teste PlayMode: andar da Ágora até a saída e chegar na rua do Cerâmico\n- [x] Névoa de cada mapa preservada no save ao trocar de cena"
     },
     {
       "title": "[UI-08] Compêndio ligado ao jogo",

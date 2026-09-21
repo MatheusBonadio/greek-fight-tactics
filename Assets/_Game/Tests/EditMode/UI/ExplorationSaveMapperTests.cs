@@ -49,6 +49,50 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void ToSave_KeepsTheFogOfEveryVisitedLocation()
+        {
+            var previous = new SaveData { Location = "kerameikos", FogBitmask = new byte[] { 9 } };
+            previous.FogByLocation["kerameikos"] = new byte[] { 9 };
+            previous.FogByLocation["agora"] = new byte[] { 1 };
+
+            var save = ExplorationSaveMapper.ToSave(new ExplorationSnapshot(new Coord(0, 1), Facing.NorthEast, new byte[] { 3, 7 }), previous, 5, "agora", 0);
+
+            CollectionAssert.AreEqual(new byte[] { 3, 7 }, save.FogByLocation["agora"]);
+            CollectionAssert.AreEqual(new byte[] { 9 }, save.FogByLocation["kerameikos"]);
+        }
+
+        [Test]
+        public void ToSave_MigratesTheLegacyFogOfTheSavedLocation()
+        {
+            var legacy = new SaveData { Location = "kerameikos", FogBitmask = new byte[] { 5 } };
+
+            var save = ExplorationSaveMapper.ToSave(new ExplorationSnapshot(new Coord(0, 1), Facing.NorthEast, new byte[] { 3 }), legacy, 5, "agora", 0);
+
+            CollectionAssert.AreEqual(new byte[] { 5 }, save.FogByLocation["kerameikos"]);
+            CollectionAssert.AreEqual(new byte[] { 3 }, save.FogByLocation["agora"]);
+        }
+
+        [Test]
+        public void MergeFog_AddsTheSavedFogOfTheLocationToWhatIsAlreadyRevealed()
+        {
+            var savedGrid = GridFactory.Open(8, 8);
+            var savedFog = new FogOfWar(savedGrid);
+            savedFog.Reveal(new Coord(6, 6), 1);
+            var save = new SaveData { Location = "kerameikos" };
+            save.FogByLocation[Location] = savedFog.ToBitmask();
+
+            var grid = GridFactory.Open(8, 8);
+            var walker = new GridWalker(grid, 1, new Coord(1, 1));
+            using var session = new ExplorationSession(walker, new FogOfWar(grid));
+
+            Assert.IsFalse(ExplorationRestore.TryMergeFog(session, save, "agora"));
+            Assert.IsTrue(ExplorationRestore.TryMergeFog(session, save, Location));
+            Assert.AreEqual(new Coord(1, 1), walker.Cell);
+            Assert.IsTrue(grid[new Coord(6, 6)].Revealed);
+            Assert.IsTrue(grid[new Coord(1, 1)].Revealed);
+        }
+
+        [Test]
         public void Restore_MovesThePlayerAndLoadsTheFogOnlyForTheSameLocation()
         {
             var savedGrid = GridFactory.Open(8, 8);

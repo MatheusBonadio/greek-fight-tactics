@@ -26,5 +26,24 @@ namespace Game.Core
         public Dictionary<string, DuelRecord> Duels { get; } = new(StringComparer.Ordinal);
 
         public Dictionary<string, string> Flags { get; } = new(StringComparer.Ordinal);
+
+        public Dictionary<string, byte[]> FogByLocation { get; } = new(StringComparer.Ordinal);
+
+        public bool TryGetFog(string locationId, out byte[] bitmask)
+        {
+            if (!string.IsNullOrEmpty(locationId) && FogByLocation.TryGetValue(locationId, out bitmask))
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(locationId) && string.Equals(Location, locationId, StringComparison.Ordinal) && FogBitmask.Length > 0)
+            {
+                bitmask = FogBitmask;
+                return true;
+            }
+
+            bitmask = Array.Empty<byte>();
+            return false;
+        }
     }
 }

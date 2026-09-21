@@ -32,6 +32,22 @@ namespace Game.Grid
             return true;
         }
 
+        public bool TryMergeFog(byte[] bitmask)
+        {
+            var current = fog.ToBitmask();
+            if (bitmask == null || bitmask.Length != current.Length)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < current.Length; index++)
+            {
+                current[index] |= bitmask[index];
+            }
+
+            return fog.TryLoadBitmask(current);
+        }
+
         public void Dispose()
         {
             walker.CellEntered -= OnCellEntered;

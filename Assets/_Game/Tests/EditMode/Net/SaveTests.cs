@@ -66,7 +66,25 @@ namespace Game.Tests.EditMode.Net
             Assert.IsTrue(reloadedGrid[new Coord(10, 12)].Revealed);
         }
 
+        [Test]
+        public void Json_RoundTripsTheFogOfEachLocation_AndOldSavesHaveNone()
+        {
+            var original = BuildSave();
+            original.FogByLocation["agora"] = new byte[] { 1, 2, 3 };
+            original.FogByLocation["kerameikos"] = new byte[] { 4 };
+
+            var json = SaveJson.Serialize(original);
+            Assert.IsTrue(SaveJson.TryDeserialize(json, out var restored, out var error), error);
+            CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, restored.FogByLocation["agora"]);
+            CollectionAssert.AreEqual(new byte[] { 4 }, restored.FogByLocation["kerameikos"]);
+
+            StringAssert.DoesNotContain("fogByLocation", SaveJson.Serialize(BuildSave()));
+            Assert.IsTrue(SaveJson.TryDeserialize("{\"actFlag\": 1}", out var old, out error), error);
+            Assert.IsEmpty(old.FogByLocation);
+        }
+
         [TestCase("not json")]
+        [TestCase("{\"actFlag\": 1, \"fogByLocation\": {\"agora\": \"***\"}}")]
         [TestCase("{\"actFlag\": 7}")]
         [TestCase("{\"actFlag\": 1, \"fogBitmask\": \"***\"}")]
         [TestCase("{\"actFlag\": 1, \"damarisBranch\": \"maybe\"}")]

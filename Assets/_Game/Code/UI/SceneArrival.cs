@@ -9,12 +9,16 @@ namespace Game.UI
         public readonly string LocationId;
         public readonly Coord Cell;
         public readonly Facing Facing;
+        public readonly string DepartureLocationId;
+        public readonly byte[] DepartureFog;
 
-        public PendingArrival(string locationId, Coord cell, Facing facing)
+        public PendingArrival(string locationId, Coord cell, Facing facing, string departureLocationId = null, byte[] departureFog = null)
         {
             LocationId = locationId;
             Cell = cell;
             Facing = facing;
+            DepartureLocationId = departureLocationId;
+            DepartureFog = departureFog;
         }
     }
 
