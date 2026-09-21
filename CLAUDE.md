@@ -557,7 +557,7 @@ unity vcs doctor
 - **`JurorLayout`:** 1 pixel por jurado, em 3 fileiras (y 6, 8 e 10), com grupos de 10 colunas separados por 1 pixel. A absolvição entra pela esquerda e a condenação pela direita. Um teste garante que os dois lados nunca se cruzam dentro dos 200×16.
 - **`JurorMeterView`:** pinta uma `Texture2D` 200×16 com filtro Point num `RawImage` e destaca Menexeno em dourado, com uma marca acima e abaixo da coluna dele. O prefab é `Assets/_Game/Prefabs/UI/JurorMeter.prefab`, gerado por `BattleHudTools.BuildHud`.
 
-No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
+No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez. `-Format github` troca o formato para o CI transformar falha em anotação:
 
 ```powershell
 ./tools/test.ps1 -Mode All
@@ -567,6 +567,16 @@ No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format
 PlayMode não usa `-nographics`. `unity run` já passa `-batchmode` e `-quit` ao editor e recusa essas flags depois do `--`. Build Profiles ficam em `Assets/Settings/Build Profiles/`: `Windows Development`, `Windows Release` e `Web`.
 
 Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, namespace `Game.EditorTools`. Ele deve chamar `EditorApplication.Exit(code)` explicitamente ao final, com código diferente de zero em falha, ou o CI passa mesmo quebrado.
+
+### CI (GitHub Actions)
+
+`.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão no README.
+- **Jobs:** `functions-tests` e `unity-tests` rodam em todo push e em PR para a `main` e são os checks exigidos pelo ruleset. `windows-build` roda só em push ou disparo manual na `main`, depois dos dois: build, `tools/scan-secrets.ps1` e upload do player.
+- **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa a licença e devolve a chave de `unity cache key` para o cache da `Library`.
+- **Licença:** a Unity não ativa licença para conta de serviço, então o Editor usa `UNITY_SERIAL` ou `UNITY_LICENSE` (`.ulf`). Com licença já ativa (runner self-hosted), a ativação é pulada.
+- **Push direto na `main`:** o ruleset só aceita commit que já passou nos checks, então o commit sobe antes para o branch `ci` e depois para a `main`.
+- **Fim de linha:** `functions/src/generated/*.json` é `eol=lf` no `.gitattributes`. Sem isso, um checkout novo no Windows traz CRLF e o teste de sincronia do `content.json` falha.
+- **Claude Code:** a skill `unity-cli` fica em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O MCP é registrado por máquina com `unity mcp configure claude-code`, que grava no escopo do usuário.
 
 ### Plano B: editor em batch mode
 
