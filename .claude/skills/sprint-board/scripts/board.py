@@ -20,6 +20,9 @@ USAGE = """usage: python .claude/skills/sprint-board/scripts/board.py <command>
   unblock <ID>                clear the blocked flag
   blockers                    blocked cards and current-sprint cards waiting on dependencies
   add <ID> "<text>"           append a pending item to the card checklist
+  edit <ID> <term|#n> "<text>"
+                              rewrite an item, keeping its state
+  depend <ID> <DEP>...        add dependencies, pulling a same-sprint dependency before the card
   new <ID> "<title>" <sprint> "<summary>" ["<deps>"] ["<estimate>"] ["<item|item>"] ["<label|label>"]
                               create a card at the end of its sprint
   verify                      ids, dependencies, cycles and blocker placement
@@ -372,6 +375,53 @@ def command_add(board, wanted, text):
     save(board)
 
 
+def command_edit(board, wanted, term, text):
+    card = find(board, wanted)
+    (index, previous, done), = resolve(card, [term])
+    lines = card["description"].split("\n")
+    lines[index] = f"- [{'x' if done else ' '}] {text}"
+    card["description"] = "\n".join(lines)
+    print(f"  {DONE_MARK if done else OPEN_MARK} {card['title']}\n      - {previous}\n      + {text}")
+    save(board)
+
+
+def with_dependency(description, reference):
+    listed = re.search(r"\*\*Depende de:\*\*[^\n·]*[^\s·]", description)
+    if listed:
+        return f"{description[:listed.end()]}, {reference}{description[listed.end():]}"
+    if "**Estimativa:**" in description:
+        return description.replace("**Estimativa:**", f"**Depende de:** {reference} · **Estimativa:**", 1)
+    return description.replace(CRITERIA_HEADING, f"**Depende de:** {reference}\n\n{CRITERIA_HEADING}", 1)
+
+
+def pull_before(board, dependency, consumer):
+    cards = board["cards"]
+    if sprint_of(dependency) != sprint_of(consumer) or cards.index(dependency) < cards.index(consumer):
+        return False
+    cards.remove(dependency)
+    cards.insert(cards.index(consumer), dependency)
+    return True
+
+
+def command_depend(board, wanted, *dependencies_wanted):
+    if not dependencies_wanted:
+        sys.exit(USAGE)
+    card = find(board, wanted)
+    for dependency_wanted in dependencies_wanted:
+        dependency = find(board, dependency_wanted)
+        identifier = card_id(dependency)
+        if identifier == card_id(card):
+            sys.exit(f"{identifier} cannot depend on itself")
+        if identifier in dependencies(card):
+            print(f"  {GRAY}{card['title']} already depends on {identifier}{RESET}")
+            continue
+        card["description"] = with_dependency(card["description"], f"[{identifier}]")
+        moved = pull_before(board, dependency, card)
+        note = f"  {GRAY}(moved before {card_id(card)}){RESET}" if moved else ""
+        print(f"  + {card['title']} depends on {identifier}{note}")
+    save(board)
+
+
 def sprint_label(board, number):
     for label in board.get("labels", []):
         match = SPRINT_PATTERN.match(label["name"])
@@ -498,6 +548,8 @@ COMMANDS = {
     "unblock": (command_unblock, 1),
     "blockers": (command_blockers, 0),
     "add": (command_add, 2),
+    "edit": (command_edit, 3),
+    "depend": (command_depend, 2),
     "new": (command_new, 4),
     "verify": (command_verify, 0),
 }

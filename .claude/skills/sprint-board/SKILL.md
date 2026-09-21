@@ -96,6 +96,8 @@ board.py blockers
 | `block <ID> "<motivo>"` / `unblock <ID>` | Trava com motivo e data |
 | `blockers` | Travados e aguardando dependência no sprint atual |
 | `add <ID> "<texto>"` | Acrescenta item ao fim da checklist |
+| `edit <ID> <termo\|#n> "<texto>"` | Reescreve um item que ficou obsoleto, mantendo o estado |
+| `depend <ID> <DEP>...` | Acrescenta dependências e puxa a do mesmo sprint para antes do card |
 | `new <ID> "<título>" <sprint> "<resumo>" ["<deps>"] ["<estimativa>"] ["<item\|item>"] ["<label\|label>"]` | Cria um card no fim do sprint, com a label do sprint e a checklist |
 | `verify` | Integridade do board |
 
