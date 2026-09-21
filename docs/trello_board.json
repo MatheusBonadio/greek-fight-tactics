@@ -113,7 +113,7 @@
         "Unity / Core",
         "Arte"
       ],
-      "description": "Se isso ficar errado, TODA a arte importada depois vai tremer e você vai reimportar tudo.\n\n**Depende de:** [SET-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Pixel Perfect Camera do URP, Reference Resolution 224x224 — já vem no template Universal 2D; o pacote 2D Pixel Perfect avulso é só do Built-in e não deve ser instalado\n- [x] Assets Pixels Per Unit = 16\n- [x] Upscale Render Texture ligado\n- [ ] Crop Frame X e Y ligados\n- [ ] Efeito de tela customizado, se houver, só por Render Graph — o Compatibility Mode do URP foi removido no 6.4\n- [ ] Teste: mover a câmera 1 unidade e confirmar zero tremor\n- [x] Texture Type Sprite, Filter Point, Compression None, PPU 16, Mesh Full Rect\n- [ ] Salvar como Preset e definir como default em Project Settings > Preset Manager\n- [x] Confirmar que um PNG novo já entra com as configurações certas\n- [x] Crop Frame `None` na Pixel Perfect Camera: tela cheia sem cortar o mapa nem criar barras"
+      "description": "Se isso ficar errado, TODA a arte importada depois vai tremer e você vai reimportar tudo.\n\n**Depende de:** [SET-01] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Pixel Perfect Camera do URP, Reference Resolution 224x224 — já vem no template Universal 2D; o pacote 2D Pixel Perfect avulso é só do Built-in e não deve ser instalado\n- [x] Assets Pixels Per Unit = 16\n- [x] Upscale Render Texture ligado\n- [x] Crop Frame avaliado: `Windowbox` recorta o mapa e cria barras em 16:9, então a câmera usa `None` (decisão no CLAUDE.md)\n- [x] Efeito de tela customizado, se houver, só por Render Graph — o Compatibility Mode do URP foi removido no 6.4\n- [ ] Teste: mover a câmera 1 unidade e confirmar zero tremor\n- [x] Texture Type Sprite, Filter Point, Compression None, PPU 16, Mesh Full Rect\n- [x] Import padronizado pelo `PixelArtImporter` (AssetPostprocessor) em vez de Preset, porque o Preset Manager exige o Inspector\n- [x] Confirmar que um PNG novo já entra com as configurações certas\n- [x] Crop Frame `None` na Pixel Perfect Camera: tela cheia sem cortar o mapa nem criar barras"
     },
     {
       "title": "[ART-01] Importar placeholders e fatiar sheets",
@@ -151,7 +151,7 @@
         "Bloqueante",
         "Unity / Core"
       ],
-      "description": "Fonte de verdade da lógica. O Tilemap da Unity é APENAS render — nunca consulte o Tilemap para decidir regra.\n\n**Depende de:** [SET-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] `struct TileData { TerrainId Terrain; byte Cost; bool Revealed; int OccupantId; }`\n- [x] `class GridModel` com `TileData[,]` + largura/altura + bounds check\n- [x] `GridToWorld(cell) => ((cell.X - cell.Y) * 16f / 16f, (cell.X + cell.Y) * 8f / 16f)` em unidades\n- [x] `WorldToGrid` inverso, com arredondamento correto nas bordas do losango\n- [x] `OccupantId` é id do domínio, nunca `GetInstanceID()` — o id inteiro de objeto deixou de compilar no 6.5, substituído por `EntityId`\n- [ ] Teste Edit Mode (Unity Test Framework): ida e volta em 10.000 coordenadas aleatórias, rodando por `unity test` local e no CI\n- [x] Teste de borda: células fora do grid retornam inválido, não exceção\n- [ ] Gizmos no editor desenhando o losango de cada célula"
+      "description": "Fonte de verdade da lógica. O Tilemap da Unity é APENAS render — nunca consulte o Tilemap para decidir regra.\n\n**Depende de:** [SET-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] `struct TileData { TerrainId Terrain; byte Cost; bool Revealed; int OccupantId; }`\n- [x] `class GridModel` com `TileData[,]` + largura/altura + bounds check\n- [x] `GridToWorld(cell) => ((cell.X - cell.Y) * 16f / 16f, (cell.X + cell.Y) * 8f / 16f)` em unidades\n- [x] `WorldToGrid` inverso, com arredondamento correto nas bordas do losango\n- [x] `OccupantId` é id do domínio, nunca `GetInstanceID()` — o id inteiro de objeto deixou de compilar no 6.5, substituído por `EntityId`\n- [x] Teste Edit Mode (Unity Test Framework): ida e volta em 10.000 coordenadas aleatórias, rodando por `unity test` local e no CI\n- [x] Teste de borda: células fora do grid retornam inválido, não exceção\n- [x] Gizmos no editor desenhando o losango de cada célula"
     },
     {
       "title": "[GRD-02] Render isométrico e ordenação de profundidade",
@@ -162,7 +162,7 @@
         "Unity / Core",
         "Risco"
       ],
-      "description": "Ordenação errada em isométrico é o bug que mais consome tempo em projetos assim. Resolva aqui, com casos difíceis.\n\n**Depende de:** [GRD-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Grid component: Isometric Z as Y, Cell Size (1, 0.5, 1)\n- [x] `TilemapRenderer` em modo Individual\n- [x] Transparency Sort Mode = Custom Axis (0, 1, 0) no asset 2D Renderer Data — com o 2D Renderer, a configuração de Project Settings é ignorada\n- [x] `sortingOrder = -(cell.X + cell.Y) * IsoMath.SortingStep` para props e atores (deixa folga para sub-ordenação)\n- [x] Caso difícil validado: Prop que transborda a célula (oliveira 48x56) na frente e atrás de um ator\n- [x] Caso difícil validado: Três atores em células adjacentes na diagonal\n- [x] Caso difícil validado: Ator atrás de coluna de 56px de altura\n- [x] Caso difícil validado: Bloco com altura ocupando visualmente 2 células\n- [x] Blocos vizinhos dividem 1 px: `BlockTileSeams` tira o contorno da lateral direita vertical"
+      "description": "Ordenação errada em isométrico é o bug que mais consome tempo em projetos assim. Resolva aqui, com casos difíceis.\n\n**Depende de:** [GRD-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Grid component: Isometric Z as Y, Cell Size (2, 1, 1) — com PPU 16 o tile mede 2 × 1 unidades\n- [x] `TilemapRenderer` em modo Individual\n- [x] Transparency Sort Mode = Custom Axis (0, 1, -1) no asset 2D Renderer Data — com o 2D Renderer, a configuração de Project Settings é ignorada\n- [x] `sortingOrder = -(cell.X + cell.Y) * IsoMath.SortingStep` para props e atores (deixa folga para sub-ordenação)\n- [x] Caso difícil validado: Prop que transborda a célula (oliveira 48x56) na frente e atrás de um ator\n- [x] Caso difícil validado: Três atores em células adjacentes na diagonal\n- [x] Caso difícil validado: Ator atrás de coluna de 56px de altura\n- [x] Caso difícil validado: Bloco com altura ocupando visualmente 2 células\n- [x] Blocos vizinhos dividem 1 px: `BlockTileSeams` tira o contorno da lateral direita vertical"
     },
     {
       "title": "[GRD-03] Cursor, seleção e input",
@@ -493,7 +493,7 @@
         "UI / UX",
         "Arte"
       ],
-      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [x] Compêndio consultável com as 20 falácias desbloqueadas\n- [x] Dica opcional (modo assistido) destacando a premissa fraca"
+      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [ ] Compêndio consultável com as 20 falácias desbloqueadas\n- [x] Dica opcional (modo assistido) destacando a premissa fraca"
     },
     {
       "title": "[UI-05] Menus de sistema",
@@ -505,6 +505,17 @@
       "description": "**Depende de:** [BCK-03] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Menu principal, pausa, opções\n- [x] Opções: volume, velocidade de texto, modo assistido\n- [x] Save automático em slot único, com Continuar no menu principal\n- [x] Tela de créditos com as licenças de fontes e assets usados"
     },
     {
+      "title": "[EXP-04] Interação e diálogo na exploração",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Bloqueante",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Sem isso nenhuma cena da história existe: falar com NPC, disparar cena e gravar flags.\n\n**Depende de:** [UI-03], [BTL-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Confirm diante de um NPC adjacente abre o `DialogueBoxView` na exploração\n- [ ] Diálogos como dado: `Assets/_Game/Data/Source/dialogues.json` gerado como SO, texto do jogador só nos dados\n- [ ] `GameStateMachine` entra em `Dialogue` e bloqueia movimento e aggro enquanto a caixa está aberta\n- [ ] Condições e efeitos por fala lendo e gravando flags da história no save, com saves antigos válidos\n- [ ] Gatilho por célula: pisar numa célula marcada no JSON do mapa dispara a cena uma única vez\n- [ ] Teste EditMode do roteiro (condições e efeitos) e PlayMode de uma conversa completa"
+    },
+    {
       "title": "[AT1-01] Mapa da Oficina (Cerâmico)",
       "labels": [
         "Sprint 03 · Vertical Slice & Entrega",
@@ -512,7 +523,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Beat I.1. Tutorial de movimento e névoa, sem combate.\n\n**Depende de:** [UI-03], [EXP-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Layout 16x16 com forno, torno, pilhas de ânfora\n- [ ] Tutorial guiado de movimento e revelação de névoa\n- [ ] Diálogo com Aristeu (mãos com artrite visíveis no retrato)\n- [ ] Gatilho de saída para a Ágora"
+      "description": "Beat I.1. Tutorial de movimento e névoa, sem combate.\n\n**Depende de:** [UI-03], [EXP-02], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Layout 16x16 com forno, torno, pilhas de ânfora\n- [ ] Tutorial guiado de movimento e revelação de névoa\n- [ ] Diálogo com Aristeu (mãos com artrite visíveis no retrato)\n- [x] Gatilho de saída para a Ágora"
     },
     {
       "title": "[AT1-02] Mapa da Ágora",
@@ -532,7 +543,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Beat I.2/I.3. Uma falácia (equivocação), vitória garantida.\n\n**Depende de:** [AT1-02], [UI-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Batalha roteirizada ensinando REFUTAR passo a passo\n- [ ] Cena I.3: a plateia ri DELA, não com ela\n- [ ] Oferta de aulas pagas (escolha registrada para o epílogo)"
+      "description": "Beat I.2/I.3. Uma falácia (equivocação), vitória garantida.\n\n**Depende de:** [AT1-02], [UI-01], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Batalha roteirizada ensinando REFUTAR passo a passo\n- [ ] Cena I.3: a plateia ri DELA, não com ela\n- [ ] Oferta de aulas pagas (escolha registrada para o epílogo)"
     },
     {
       "title": "[AT1-04] Cena de Menexeno",
@@ -541,7 +552,7 @@
         "Fase 1 · Entrega acadêmica",
         "Narrativa"
       ],
-      "description": "Beat I.4. Estabelece o mentor e a regra que ele impõe.\n\n**Depende de:** [AT1-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Encontro na porta da oficina\n- [ ] A condição: nunca aceitar dinheiro por uma pergunta\n- [ ] Plantar a pista do twist (ele evita falar do passado)\n- [ ] Desbloqueia MAIÊUTICA no menu\n- [ ] Cena montada em Timeline (pacote core no 6.6)"
+      "description": "Beat I.4. Estabelece o mentor e a regra que ele impõe.\n\n**Depende de:** [AT1-03], [EXP-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Encontro na porta da oficina\n- [ ] A condição: nunca aceitar dinheiro por uma pergunta\n- [ ] Plantar a pista do twist (ele evita falar do passado)\n- [ ] Desbloqueia MAIÊUTICA no menu\n- [ ] Cena montada em Timeline (pacote core no 6.6)"
     },
     {
       "title": "[REL-01] Build do vertical slice (milestone)",
@@ -554,6 +565,16 @@
       "description": "**Depende de:** [AT1-04], [QA-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Builds geradas por `unity build` a partir dos Build Profiles Windows e Web, o mesmo comando local e no CI — WebGL 2 como padrão, WebGPU (fora de experimental desde o 6.6) testado como alternativa\n- [ ] Jogável do boot ao fim do beat I.4 sem crash\n- [ ] Testar online e em modo avião\n- [ ] Playtest com 3 pessoas de fora, gravando a sessão\n- [ ] Anotar TODA dúvida do jogador — cada uma é um problema de UI"
     },
     {
+      "title": "[DAT-06] Elenco dos cinco oponentes de bairro",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Hoje só o Thrasybios existe como dado; o [AT1-05] precisa dos outros cinco.\n\n**Depende de:** [DAT-01], [BTL-05] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, Phaidra, Kritolaos, Simo e Bátilo em `opponents.json` com perfil, pool de falácias, coerência e plateia inicial\n- [ ] Pool de cada um coberto pelo fallback, com no mínimo 3 argumentos por entrada\n- [ ] Folha placeholder e posição de cada um na Ágora pelos `actors` do mapa\n- [ ] `SandboxBattleDirector` provoca batalha com qualquer `OpponentSO` presente no mapa, sem código por nome\n- [ ] Teste: batalha simulada contra cada um admite vitória do jogador"
+    },
+    {
       "title": "[AT1-05] Os cinco duelos de bairro",
       "labels": [
         "Sprint 03 · Vertical Slice & Entrega",
@@ -561,7 +582,7 @@
         "Narrativa",
         "Unity / Core"
       ],
-      "description": "Beat I.5. Cada um ensina uma família de falácia.\n\n**Depende de:** [REL-01] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, o cambista (Stoa) — falso dilema\n- [ ] Phaidra, a adivinha (Templo de Hefesto) — apelo à ignorância\n- [ ] Kritolaos, o político menor (Pnyx) — ad hominem\n- [ ] Simo, o ator (Teatro) — espantalho\n- [ ] Bátilo, o pescador (Porto) — generalização apressada\n- [ ] Bátilo é vencível por MAIÊUTICA sem humilhação — teste moral opcional"
+      "description": "Beat I.5. Cada um ensina uma família de falácia.\n\n**Depende de:** [REL-01], [DAT-06] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, o cambista (Stoa) — falso dilema\n- [ ] Phaidra, a adivinha (Templo de Hefesto) — apelo à ignorância\n- [ ] Kritolaos, o político menor (Pnyx) — ad hominem\n- [ ] Simo, o ator (Teatro) — espantalho\n- [ ] Bátilo, o pescador (Porto) — generalização apressada\n- [ ] Bátilo é vencível por MAIÊUTICA sem humilhação — teste moral opcional"
     },
     {
       "title": "[AVA-01] Métricas da IA para a monografia",
@@ -627,6 +648,15 @@
       "description": "Andar até a borda leva de um mapa ao outro, sem menu no meio.\n\n**Depende de:** [MAP-01], [MAP-02] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Saídas no JSON do mapa: célula, destino, célula de chegada e `Facing`\n- [x] Pisar na saída carrega a outra cena e o jogador chega ao lado da saída, virado para o mapa\n- [x] Novo jogo começa na oficina do Cerâmico; continuar abre o mapa gravado no save\n- [x] Teste PlayMode: andar da Ágora até a saída e chegar na rua do Cerâmico\n- [ ] Névoa de cada mapa preservada no save ao trocar de cena"
     },
     {
+      "title": "[UI-08] Compêndio ligado ao jogo",
+      "labels": [
+        "Sprint 03 · Vertical Slice & Entrega",
+        "Fase 1 · Entrega acadêmica",
+        "UI / UX"
+      ],
+      "description": "Fecha o item do compêndio do [UI-04]: hoje nada desbloqueia falácia fora dos testes.\n\n**Depende de:** [UI-05], [BCK-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] REFUTAR certo chama `FallacyCompendium.Unlock` com a falácia revelada\n- [ ] Falácias desbloqueadas gravadas no save local e no Firestore, com saves antigos válidos\n- [ ] `PauseMenuController.BindCompendium` chamado na montagem da cena\n- [ ] Teste PlayMode: refutar e abrir o compêndio pela pausa mostra a falácia"
+    },
+    {
       "title": "[AT1-06] A cobrança e a pressão sobre Aristeu",
       "labels": [
         "Sprint 04 · Atos I e II",
@@ -644,7 +674,7 @@
         "Narrativa",
         "Unity / Core"
       ],
-      "description": "Beat I.7. Bloqueante do Ato II — a escolha aqui decide a traição no Tribunal. O flag precisa estar no save desde já.\n\n**Depende de:** [AT1-06], [BCK-03] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Cena de oferta com as duas opções\n- [ ] Aceitar: habilidade Inversão + 200 dracmas + Menexeno some por 3 dias\n- [ ] Recusar: habilidade Escuta + respeito de Menexeno\n- [x] Gravar `damarisBranch` no save (Firestore + local)\n- [x] Testar: os dois ramos carregam corretamente num save antigo\n\n**Bloqueante a um sprint do consumidor.** O [TRB-01] usa este flag no Sprint 05. O flag vai para o save já aqui, com teste de carregamento de save antigo, para que o Tribunal nasça testável."
+      "description": "Beat I.7. Bloqueante do Ato II — a escolha aqui decide a traição no Tribunal. O flag precisa estar no save desde já.\n\n**Depende de:** [AT1-06], [BCK-03], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Cena de oferta com as duas opções\n- [ ] Aceitar: habilidade Inversão + 200 dracmas + Menexeno some por 3 dias\n- [ ] Recusar: habilidade Escuta + respeito de Menexeno\n- [x] Gravar `damarisBranch` no save (Firestore + local)\n- [x] Testar: os dois ramos carregam corretamente num save antigo\n\n**Bloqueante a um sprint do consumidor.** O [TRB-01] usa este flag no Sprint 05. O flag vai para o save já aqui, com teste de carregamento de save antigo, para que o Tribunal nasça testável."
     },
     {
       "title": "[AT1-08] Boss: Thrasybios em três fases",
