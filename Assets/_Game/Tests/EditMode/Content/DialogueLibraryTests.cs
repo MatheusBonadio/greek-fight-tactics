@@ -81,7 +81,7 @@ namespace Game.Tests.EditMode.Content
             Assert.IsTrue(agora.Actors.Any(actor => actor.Character == "eudoro" && !string.IsNullOrEmpty(actor.Dialogue)));
             Assert.IsTrue(kerameikos.Actors.Skip(1).All(actor => !string.IsNullOrEmpty(actor.Dialogue)));
             Assert.IsNotEmpty(kerameikos.Triggers, "leaving the workshop plays Kleia's first thought");
-            Assert.IsTrue(agora.Actors.Where(actor => actor.Character == SandboxTools.BattleOpponentId).All(actor => string.IsNullOrEmpty(actor.Dialogue)), "Thrasybios answers with a battle, not a chat");
+            Assert.IsTrue(agora.Actors.Where(actor => DataTools.OpponentIds().Contains(actor.Character)).All(actor => string.IsNullOrEmpty(actor.Dialogue)), "opponents answer with a battle, not a chat");
         }
 
         [Test]

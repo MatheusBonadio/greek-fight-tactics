@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Grid;
+using Game.Net;
 using Game.Tests.EditMode.Grid;
 using Game.UI;
 using NUnit.Framework;
@@ -103,6 +104,45 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(new Coord(1, 1), walker.Cell);
             Assert.IsTrue(grid[new Coord(6, 6)].Revealed);
             Assert.IsTrue(grid[new Coord(1, 1)].Revealed);
+        }
+
+        [Test]
+        public void ToSave_RecordsTheDuelsWonThisSessionOnTopOfThePreviousSave()
+        {
+            var previous = new SaveData { Timestamp = 10 };
+            previous.Duels["oron"] = new DuelRecord(true, DuelVictory.Refute);
+            previous.Duels["simo"] = new DuelRecord(false, DuelVictory.Concede);
+            var session = new DuelProgress();
+            session.Load(previous.Duels);
+            session.RecordVictory("simo", DuelVictory.Maieutics);
+            session.RecordVictory("batilo", DuelVictory.Maieutics);
+
+            var save = ExplorationSaveMapper.ToSave(new ExplorationSnapshot(new Coord(3, 3), Facing.NorthEast, new byte[] { 1 }), previous, 20, Location, 0, duels: session);
+
+            Assert.AreEqual(DuelVictory.Refute, save.Duels["oron"].Victory);
+            Assert.IsTrue(save.Duels["simo"].Won);
+            Assert.AreEqual(DuelVictory.Maieutics, save.Duels["simo"].Victory);
+            Assert.IsTrue(save.Duels["batilo"].Won);
+            Assert.IsFalse(previous.Duels["simo"].Won, "the previous save must not be mutated");
+
+            Assert.IsTrue(SaveJson.TryDeserialize(SaveJson.Serialize(save), out var reloaded, out var error), error);
+            var restored = new DuelProgress();
+            restored.Load(reloaded.Duels);
+            Assert.IsTrue(restored.HasWon("batilo"));
+            Assert.AreEqual(DuelVictory.Maieutics, reloaded.Duels["batilo"].Victory);
+        }
+
+        [Test]
+        public void OldSavesWithoutDuels_StillLoadAndLeaveEveryOpponentUndefeated()
+        {
+            Assert.IsTrue(SaveJson.TryDeserialize("{\"actFlag\": 1, \"location\": \"agora\", \"timestamp\": 7}", out var save, out var error), error);
+
+            var progress = new DuelProgress();
+            progress.Load(save.Duels);
+
+            Assert.IsEmpty(save.Duels);
+            Assert.IsFalse(progress.HasWon("thrasybios"));
+            Assert.IsEmpty(ExplorationSaveMapper.ToSave(new ExplorationSnapshot(new Coord(0, 1), Facing.NorthEast, null), save, 8, Location, 0, duels: progress).Duels);
         }
 
         [Test]

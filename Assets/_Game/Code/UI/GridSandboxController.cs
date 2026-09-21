@@ -335,13 +335,17 @@ namespace Game.UI
 
         private bool restoreChecked;
 
+        public DuelProgress Duels { get; } = new();
+
+        public bool ProgressLoaded => restoreChecked;
+
         public Game.Core.SaveData CaptureSave()
         {
             var services = FindAnyObjectByType<GameServices>();
             var previous = services && services.TryLoadActiveSave(out var existing) ? existing : null;
             var playtime = services ? services.PlaytimeSeconds : 0;
             var unlockedFallacies = services ? services.Compendium.UnlockedIds : null;
-            var save = ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime, unlockedFallacies);
+            var save = ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime, unlockedFallacies, Duels);
             if (!string.IsNullOrEmpty(departure.DepartureLocationId) && departure.DepartureLocationId != LocationId && departure.DepartureFog != null)
             {
                 save.FogByLocation[departure.DepartureLocationId] = departure.DepartureFog;
@@ -364,6 +368,11 @@ namespace Game.UI
             }
 
             restoreChecked = true;
+            if (services && services.TryLoadActiveSave(out var progress))
+            {
+                Duels.Load(progress.Duels);
+            }
+
             if (arrived)
             {
                 if (services && services.IsBooted)

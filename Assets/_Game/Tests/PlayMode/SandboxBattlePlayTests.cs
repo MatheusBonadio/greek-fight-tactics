@@ -16,7 +16,7 @@ namespace Game.Tests.PlayMode
         private const string SandboxScene = "GridSandbox";
         private const float StartTimeoutSeconds = 5f;
         private const float BattleTimeoutSeconds = 90f;
-        private const int ApproachDistance = 2;
+        private const int QuietFrames = 30;
 
         private IsolatedDataDirectory data;
 
@@ -37,7 +37,7 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator EnteringTheMap_PreparesTheOpponentArgumentsBeforeTheBattle()
+        public IEnumerator EnteringTheMap_PreparesEveryOpponentsArgumentsBeforeTheBattle()
         {
             yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);
             yield return null;
@@ -52,30 +52,30 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase);
             Assert.AreEqual(services.Arguments != null, director.PreparedArguments.IsOnline);
 
-            var opponent = new Debater(director.OpponentActor.Walker.ActorId, Side.Opponent, director.Opponent.Profile, 50, 5, director.OpponentActor.Walker.Cell, Facing.SouthWest);
-            Assert.IsTrue(director.PreparedArguments.TryNext(opponent, out var argument));
-            Assert.IsNotEmpty(argument.Speech);
+            foreach (var entry in director.Opponents)
+            {
+                var walker = entry.Actor.Walker;
+                var opponent = new Debater(walker.ActorId, Side.Opponent, entry.Opponent.Profile, entry.Opponent.MaxCoherence, 5, walker.Cell, walker.Facing);
+                Assert.IsTrue(director.PreparedArguments.TryNext(opponent, out var argument), entry.Opponent.Id);
+                Assert.IsNotEmpty(argument.Speech);
+                CollectionAssert.Contains(entry.Opponent.FallacyPool.Select(fallacy => fallacy.Id), argument.FallacyId, $"{entry.Opponent.Id} argued outside its pool");
+            }
         }
 
         [UnityTest]
-        public IEnumerator WalkingUpToThrasybios_PlaysABattleAndReturnsToExploration()
+        public IEnumerator WalkingUpToAnOpponent_PlaysABattleAndReturnsToExploration()
         {
-            yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);
-            yield return null;
-
-            var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
-            var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
-            Assert.IsNotNull(director, "GridSandbox scene must contain the battle director");
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
             Assert.IsFalse(director.Hud.gameObject.activeSelf);
             director.AutosaveEnabled = false;
-            director.ThinkSeconds = 0f;
 
-            var opponentCell = director.OpponentActor.Walker.Cell;
-            var approach = FreeCellNear(sandbox.Grid, opponentCell);
-            sandbox.Player.Walker.Teleport(approach, Facing.NorthEast);
+            var target = director.Opponents[0];
+            sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, target), Facing.NorthEast);
 
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
             Assert.AreEqual(BattleFlowPhase.Dialogue, director.Phase);
+            Assert.AreSame(target, director.Engaged);
             Assert.IsTrue(director.Hud.gameObject.activeSelf);
             Assert.IsFalse(sandbox.ExplorationInputEnabled);
 
@@ -107,11 +107,7 @@ namespace Game.Tests.PlayMode
                 else if (director.Phase == BattleFlowPhase.PlayerTargeting)
                 {
                     Assert.IsFalse(director.Hud.GetComponent<BattleMenuInput>().enabled, "the menu must not take input while choosing a destination");
-                    if (!director.TryChooseDestination(director.Session.CirculateDestination()))
-                    {
-                        director.CancelTargeting();
-                        director.SubmitChoice(new BattleMenuChoice(ActionId.Concede));
-                    }
+                    ChooseDestinationOrConcede(director);
                 }
 
                 yield return null;
@@ -126,6 +122,170 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(GameMode.Exploration, director.StateMachine.Mode);
             Assert.IsFalse(director.Hud.gameObject.activeSelf);
             Assert.IsTrue(sandbox.ExplorationInputEnabled);
+        }
+
+        [UnityTest]
+        public IEnumerator EveryOpponentOnTheMap_ProvokesItsOwnBattle()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            director.AutosaveEnabled = false;
+            Assert.GreaterOrEqual(director.Opponents.Count, 6, "the agora hosts Thrasybios and the five neighbourhood duelists");
+
+            foreach (var entry in director.Opponents)
+            {
+                sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, entry), Facing.NorthEast);
+                yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
+                Assert.AreNotEqual(BattleFlowPhase.Exploring, director.Phase, $"{entry.Opponent.Id} did not notice Kleia");
+                Assert.AreSame(entry, director.Engaged, $"walking up to {entry.Opponent.Id} started the wrong duel");
+                Assert.AreEqual(entry.Opponent.DisplayName, director.Opponent.DisplayName);
+                Assert.AreEqual(entry.Opponent.MaxCoherence, director.Session.State.Opponent.MaxCoherence);
+                Assert.AreEqual(entry.Opponent.InitialAudience, director.Session.State.PlayerAudience);
+                Assert.AreEqual(entry.Opponent.Profile, director.Session.State.Opponent.Profile);
+
+                yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+                Assert.AreEqual(BattleStatus.PlayerWithdrew, director.LastResult, entry.Opponent.Id);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator OpenDialogue_HoldsBackANeighbourhoodDuelistUntilItCloses()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            director.AutosaveEnabled = false;
+            var dialogue = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            dialogue.AutosaveEnabled = false;
+            yield return WaitFor(() => dialogue.IsStoryLoaded, StartTimeoutSeconds);
+            var target = director.Opponents.First(entry => entry.Opponent.AggroRadius == 1);
+
+            Assert.IsTrue(dialogue.TryStartDialogue(dialogue.Talkers[0].Dialogue));
+            sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, target), Facing.NorthEast);
+            yield return Frames(QuietFrames);
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, $"{target.Opponent.Id} provoked while the dialogue box was open");
+
+            for (var confirms = 0; dialogue.IsTalking && confirms < QuietFrames * 2; confirms++)
+            {
+                dialogue.Advance();
+                yield return null;
+            }
+
+            Assert.IsFalse(dialogue.IsTalking);
+            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
+            Assert.AreSame(target, director.Engaged, $"{target.Opponent.Id} provokes once the dialogue closes");
+            yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+        }
+
+        [UnityTest]
+        public IEnumerator WalkingPastANeighbourhoodDuelist_StopsKleiaBesideThemAndStartsTheDuel()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            director.AutosaveEnabled = false;
+
+            var (entry, start, beside, goal) = CrossingBeside(sandbox.Grid, director);
+            sandbox.Player.Walker.Teleport(start, Facing.NorthEast);
+            yield return null;
+            Assert.IsTrue(sandbox.TryMovePlayerTo(goal));
+
+            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
+            Assert.AreSame(entry, director.Engaged, $"walking past {entry.Opponent.Id} did not start the duel");
+            Assert.AreEqual(beside, sandbox.Player.Walker.Cell, "Kleia must stop on the first cell the duelist notices");
+            Assert.IsFalse(sandbox.Player.Walker.IsMoving);
+
+            yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+        }
+
+        [UnityTest]
+        public IEnumerator WinningADuel_IsSavedAndTheOpponentStaysQuietAfterReloadingTheMap()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            var services = Object.FindAnyObjectByType<GameServices>();
+            var target = director.Opponents
+                .Where(entry => entry.Opponent.Profile == Profile.Sophist)
+                .OrderBy(entry => entry.Opponent.MaxCoherence)
+                .First();
+            var opponentId = target.Opponent.Id;
+            Assert.IsFalse(director.IsDefeated(target));
+
+            var approach = FreeCellOnlyWithin(sandbox.Grid, director, target);
+            sandbox.Player.Walker.Teleport(approach, Facing.NorthEast);
+            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
+            Assert.AreSame(target, director.Engaged);
+
+            yield return PlayUntilExploring(director, PickChoice);
+            Assert.AreEqual(BattleStatus.PlayerWon, director.LastResult, "always naming the right fallacy must beat a sophist");
+            Assert.IsTrue(director.IsDefeated(target));
+            Assert.IsTrue(services.TryLoadActiveSave(out var saved), "winning a duel must autosave");
+            Assert.IsTrue(saved.Duels.TryGetValue(opponentId, out var record), $"the save has no duel against {opponentId}");
+            Assert.IsTrue(record.Won);
+            var pool = target.Opponent.FallacyPool.Select(fallacy => fallacy.Id).ToList();
+            CollectionAssert.IsNotEmpty(services.Compendium.UnlockedIds, $"refuting {opponentId} must unlock the fallacy in the compendium");
+            CollectionAssert.IsSubsetOf(services.Compendium.UnlockedIds, pool, $"{opponentId} only argues with his own pool");
+            CollectionAssert.IsSubsetOf(services.Compendium.UnlockedIds, saved.Compendium);
+            var standing = sandbox.Player.Walker.Cell;
+
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            target = director.Opponents.Single(entry => entry.Opponent.Id == opponentId);
+            Assert.AreEqual(standing, sandbox.Player.Walker.Cell, "the reload must put Kleia back where she won");
+            Assert.IsTrue(director.IsDefeated(target), "the reloaded map forgot the won duel");
+
+            yield return Frames(QuietFrames);
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "a defeated opponent picked a fight after the reload");
+
+            sandbox.Player.Walker.Teleport(FarCellFrom(sandbox.Grid, director, target), Facing.NorthEast);
+            yield return Frames(QuietFrames);
+            sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, target), Facing.NorthEast);
+            yield return Frames(QuietFrames);
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "a defeated opponent picked a fight when Kleia came back");
+        }
+
+        private static IEnumerator LoadSandbox(System.Action<(SandboxBattleDirector, GridSandboxController)> loaded)
+        {
+            yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);
+            yield return null;
+
+            var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
+            var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
+            Assert.IsNotNull(director, "GridSandbox scene must contain the battle director");
+            director.ThinkSeconds = 0f;
+            yield return WaitFor(() => sandbox.ProgressLoaded, StartTimeoutSeconds);
+            Assert.IsTrue(sandbox.ProgressLoaded, "the map never loaded the saved progress");
+            loaded((director, sandbox));
+        }
+
+        private static IEnumerator PlayUntilExploring(SandboxBattleDirector director, System.Func<BattleSession, BattleMenuChoice> choose)
+        {
+            var deadline = Time.realtimeSinceStartup + BattleTimeoutSeconds;
+            while (director.Phase != BattleFlowPhase.Exploring && Time.realtimeSinceStartup < deadline)
+            {
+                switch (director.Phase)
+                {
+                    case BattleFlowPhase.Dialogue:
+                        director.AdvanceDialogue();
+                        break;
+                    case BattleFlowPhase.PlayerChoosing:
+                        director.SubmitChoice(choose(director.Session));
+                        break;
+                    case BattleFlowPhase.PlayerTargeting:
+                        ChooseDestinationOrConcede(director);
+                        break;
+                }
+
+                yield return null;
+            }
+
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "the battle did not finish in time");
+        }
+
+        private static void ChooseDestinationOrConcede(SandboxBattleDirector director)
+        {
+            if (!director.TryChooseDestination(director.Session.CirculateDestination()))
+            {
+                director.CancelTargeting();
+                director.SubmitChoice(new BattleMenuChoice(ActionId.Concede));
+            }
         }
 
         private static BattleMenuChoice PickChoice(BattleSession session)
@@ -146,16 +306,61 @@ namespace Game.Tests.PlayMode
             return Available(ActionId.Circulate) ? new BattleMenuChoice(ActionId.Circulate) : new BattleMenuChoice(ActionId.Concede);
         }
 
-        private static Coord FreeCellNear(GridModel grid, Coord center)
+        private static (MapOpponent Entry, Coord Start, Coord Beside, Coord Goal) CrossingBeside(GridModel grid, SandboxBattleDirector director)
         {
-            for (var radius = 1; radius <= ApproachDistance; radius++)
+            var steps = new[] { new Coord(1, 0), new Coord(-1, 0), new Coord(0, 1), new Coord(0, -1) };
+            bool IsFree(Coord cell) => grid.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied;
+            bool IsQuiet(Coord cell) => director.Opponents.All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
+
+            foreach (var entry in director.Opponents.Where(candidate => candidate.Opponent.AggroRadius == 1))
             {
-                for (var dx = -radius; dx <= radius; dx++)
+                foreach (var toward in steps)
                 {
-                    var dy = radius - System.Math.Abs(dx);
+                    var beside = entry.Actor.Walker.Cell + toward;
+                    var across = toward.X == 0 ? new Coord(1, 0) : new Coord(0, 1);
+                    var start = beside + across;
+                    var goal = new Coord(beside.X - across.X, beside.Y - across.Y);
+                    if (IsFree(beside) && IsFree(start) && IsFree(goal) && IsQuiet(start) && IsQuiet(goal) && NoticedFirstBy(director, entry, beside))
+                    {
+                        return (entry, start, beside, goal);
+                    }
+                }
+            }
+
+            Assert.Fail("no neighbourhood duelist has a free cell to walk past");
+            return default;
+        }
+
+        private static Coord FreeCellOnlyWithin(GridModel grid, SandboxBattleDirector director, MapOpponent entry) =>
+            FreeCellAtDistance(grid, entry, 1, entry.Opponent.AggroRadius, "first noticed within", cell => NoticedFirstBy(director, entry, cell));
+
+        private static bool NoticedFirstBy(SandboxBattleDirector director, MapOpponent entry, Coord cell)
+        {
+            var distance = PositionalModifiers.Distance(cell, entry.Actor.Walker.Cell);
+            return director.Opponents
+                .Where(other => other != entry)
+                .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius) || PositionalModifiers.Distance(cell, other.Actor.Walker.Cell) > distance);
+        }
+
+        private static Coord FarCellFrom(GridModel grid, SandboxBattleDirector director, MapOpponent entry) =>
+            FreeCellAtDistance(grid, entry, entry.Opponent.AggroRadius + 2, grid.Width + grid.Height, "outside", cell => OutsideOtherRadii(director, entry, cell));
+
+        private static bool OutsideOtherRadii(SandboxBattleDirector director, MapOpponent entry, Coord cell) =>
+            director.Opponents
+                .Where(other => other != entry)
+                .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
+
+        private static Coord FreeCellAtDistance(GridModel grid, MapOpponent entry, int nearest, int farthest, string where, System.Func<Coord, bool> accepts)
+        {
+            var center = entry.Actor.Walker.Cell;
+            for (var distance = nearest; distance <= farthest; distance++)
+            {
+                for (var dx = -distance; dx <= distance; dx++)
+                {
+                    var dy = distance - System.Math.Abs(dx);
                     foreach (var candidate in new[] { new Coord(center.X + dx, center.Y + dy), new Coord(center.X + dx, center.Y - dy) })
                     {
-                        if (grid.TryGet(candidate, out var tile) && tile.IsPassable && !tile.IsOccupied)
+                        if (grid.TryGet(candidate, out var tile) && tile.IsPassable && !tile.IsOccupied && accepts(candidate))
                         {
                             return candidate;
                         }
@@ -163,8 +368,16 @@ namespace Game.Tests.PlayMode
                 }
             }
 
-            Assert.Fail($"no free cell near {center}");
+            Assert.Fail($"no free cell {where} the aggro radius of {entry.Opponent.Id}");
             return center;
+        }
+
+        private static IEnumerator Frames(int count)
+        {
+            for (var frame = 0; frame < count; frame++)
+            {
+                yield return null;
+            }
         }
 
         private static IEnumerator WaitFor(System.Func<bool> condition, float timeoutSeconds)

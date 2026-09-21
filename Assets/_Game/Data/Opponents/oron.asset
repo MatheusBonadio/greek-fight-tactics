@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 667dea1425fe723409bac6b15759510d, type: 3}
+  m_Name: oron
+  m_EditorClassIdentifier: Game.Content::Game.Content.OpponentSO
+  id: oron
+  displayName: "\xD3ron"
+  sheet: {fileID: 2800000, guid: 1fa23229ed97d8340974e68805dc9b25, type: 3}
+  maxCoherence: 40
+  initialAudience: 40
+  fallacyPool:
+  - {fileID: 11400000, guid: 134c4ff3c09ec154a8c6d84422fcf9ff, type: 2}
+  - {fileID: 11400000, guid: 81cc4026444170d40813c04a1d44a9b5, type: 2}
+  act: 1
+  profile: 0
+  aggroRadius: 1

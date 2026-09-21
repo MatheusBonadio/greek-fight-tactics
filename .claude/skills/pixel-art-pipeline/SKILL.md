@@ -18,7 +18,7 @@ art/
   palette/       snes.gpl  snes.png  snes.txt
   reference/     scene_mockup.png
   placeholders/
-    characters/  7 folhas 96x128 + 7 idles 24x32
+    characters/  12 folhas 96x128 + 12 idles 24x32
     tiles/
       floor/     7 tiles 32x16
       blocks/    7 blocos e props 32x(16+altura)
@@ -44,7 +44,7 @@ Inglês, `snake_case`, com prefixo por categoria. O prefixo é o que o importer 
 | `bar_` / `box_` / `frame_` / `icon_` / `meter_` | UI | `bar_coherence.png` |
 | `<personagem>_sheet` / `<personagem>_idle_se` | Personagem | `kleia_sheet.png` |
 
-Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`); só a Pítia vira `pythia`.
+Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem acento (`oron`, `batilo`); só a Pítia vira `pythia`. Os cinco duelistas de bairro são trocas de paleta das folhas de `citizen`, `damaris` e `thrasybios`, até a arte definitiva.
 
 ---
 

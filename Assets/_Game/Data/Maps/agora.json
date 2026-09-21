@@ -53,7 +53,12 @@
     { "character": "citizen", "x": 7, "y": 3, "facing": "SouthEast" },
     { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
     { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast", "dialogue": "eudoro_agora" },
-    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora" }
+    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora" },
+    { "character": "oron", "x": 10, "y": 10, "facing": "SouthWest" },
+    { "character": "phaidra", "x": 1, "y": 10, "facing": "SouthEast" },
+    { "character": "kritolaos", "x": 6, "y": 10, "facing": "SouthWest" },
+    { "character": "simo", "x": 8, "y": 8, "facing": "SouthWest" },
+    { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" }
   ],
   "exits": [
     { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 10, "arrivalY": 1, "facing": "SouthWest" }

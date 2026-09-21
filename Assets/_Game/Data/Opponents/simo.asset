@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 667dea1425fe723409bac6b15759510d, type: 3}
+  m_Name: simo
+  m_EditorClassIdentifier: Game.Content::Game.Content.OpponentSO
+  id: simo
+  displayName: Simo
+  sheet: {fileID: 2800000, guid: e6b445f2a51979d449bcd718c3989be4, type: 3}
+  maxCoherence: 45
+  initialAudience: 35
+  fallacyPool:
+  - {fileID: 11400000, guid: 1f9be899a6fb6a744ba83cf9c1eaae60, type: 2}
+  - {fileID: 11400000, guid: 2fae38e2f284d62429ef9a4bba7cf20a, type: 2}
+  act: 1
+  profile: 0
+  aggroRadius: 1

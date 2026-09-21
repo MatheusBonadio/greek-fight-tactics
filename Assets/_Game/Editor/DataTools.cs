@@ -34,6 +34,8 @@ namespace Game.EditorTools
 
         public static string OpponentPath(string opponentId) => $"{OpponentFolder}/{opponentId}.asset";
 
+        public static IReadOnlyList<string> OpponentIds() => LoadOpponentSource().Opponents.Select(entry => entry.Id).ToList();
+
         public static void RegenerateAll()
         {
             var fallacies = RegenerateFallacies();
@@ -104,12 +106,17 @@ namespace Game.EditorTools
 
         private static int RegenerateOpponents(IReadOnlyList<FallacySO> fallacies)
         {
-            var source = JsonConvert.DeserializeObject<OpponentSource>(File.ReadAllText(OpponentSourcePath));
+            var source = LoadOpponentSource();
             var byId = fallacies.ToDictionary(fallacy => fallacy.Id);
             AssetFolders.Ensure(OpponentFolder);
 
             foreach (var entry in source.Opponents)
             {
+                if (entry.AggroRadius < 0)
+                {
+                    throw new InvalidOperationException($"{OpponentSourcePath}: opponent {entry.Id} has a negative aggro_radius");
+                }
+
                 var pool = entry.FallacyPool
                     .Select(fallacyId => byId.TryGetValue(fallacyId, out var fallacy)
                         ? fallacy
@@ -118,10 +125,24 @@ namespace Game.EditorTools
 
                 var opponent = AssetFolders.LoadOrCreate<OpponentSO>(OpponentPath(entry.Id));
                 opponent.Configure(entry.Id, entry.DisplayName, entry.MaxCoherence, entry.InitialAudience, pool, entry.Act, entry.Profile);
+                opponent.ConfigurePresence(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Id)), entry.AggroRadius);
                 EditorUtility.SetDirty(opponent);
             }
 
             return source.Opponents.Count;
+        }
+
+        private static OpponentSource LoadOpponentSource()
+        {
+            var source = JsonConvert.DeserializeObject<OpponentSource>(File.ReadAllText(OpponentSourcePath))
+                ?? throw new InvalidOperationException($"{OpponentSourcePath} is empty");
+            var repeated = source.Opponents.GroupBy(entry => entry.Id).FirstOrDefault(group => group.Count() > 1);
+            if (repeated != null)
+            {
+                throw new InvalidOperationException($"{OpponentSourcePath}: opponent {repeated.Key} is declared twice");
+            }
+
+            return source;
         }
 
         private static List<FallacySO> RegenerateFallacies()
@@ -318,6 +339,9 @@ namespace Game.EditorTools
 
             [JsonProperty("fallacy_pool", Required = Required.Always)]
             public List<string> FallacyPool { get; set; }
+
+            [JsonProperty("aggro_radius")]
+            public int AggroRadius { get; set; } = AggroRule.DefaultRadius;
         }
     }
 }

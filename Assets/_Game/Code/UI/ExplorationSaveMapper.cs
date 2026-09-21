@@ -8,7 +8,7 @@ namespace Game.UI
 {
     public static class ExplorationSaveMapper
     {
-        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp, string locationId, long playtimeSeconds, IEnumerable<string> unlockedFallacies = null)
+        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp, string locationId, long playtimeSeconds, IEnumerable<string> unlockedFallacies = null, DuelProgress duels = null)
         {
             var save = new SaveData
             {
@@ -27,6 +27,7 @@ namespace Game.UI
                 CopyProgress(previous, save);
             }
 
+            duels?.WriteTo(save);
             if (!string.IsNullOrEmpty(save.Location))
             {
                 save.FogByLocation[save.Location] = save.FogBitmask;

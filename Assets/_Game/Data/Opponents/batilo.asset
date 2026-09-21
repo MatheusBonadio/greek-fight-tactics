@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 667dea1425fe723409bac6b15759510d, type: 3}
+  m_Name: batilo
+  m_EditorClassIdentifier: Game.Content::Game.Content.OpponentSO
+  id: batilo
+  displayName: "B\xE1tilo"
+  sheet: {fileID: 2800000, guid: 716a670d992ce984883af4a659c53d47, type: 3}
+  maxCoherence: 60
+  initialAudience: 70
+  fallacyPool:
+  - {fileID: 11400000, guid: a3ce3357129ff4244a6e665299bb3986, type: 2}
+  - {fileID: 11400000, guid: 8d8af6fbed167df46ad70d6d03ca9735, type: 2}
+  act: 1
+  profile: 1
+  aggroRadius: 1

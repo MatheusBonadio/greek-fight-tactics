@@ -16,6 +16,7 @@ namespace Game.Content
         [SerializeField] private List<FallacySO> fallacyPool = new();
         [SerializeField] private Act act = Act.One;
         [SerializeField] private Profile profile = Profile.Sophist;
+        [SerializeField, Min(0)] private int aggroRadius = AggroRule.DefaultRadius;
 
         public string Id => id;
 
@@ -33,6 +34,8 @@ namespace Game.Content
 
         public Profile Profile => profile;
 
+        public int AggroRadius => aggroRadius;
+
         public void Configure(string newId, string newDisplayName, int newMaxCoherence, int newInitialAudience, IEnumerable<FallacySO> newFallacyPool, Act newAct, Profile newProfile)
         {
             id = newId;
@@ -42,6 +45,12 @@ namespace Game.Content
             fallacyPool = new List<FallacySO>(newFallacyPool);
             act = newAct;
             profile = newProfile;
+        }
+
+        public void ConfigurePresence(Texture2D newSheet, int newAggroRadius)
+        {
+            sheet = newSheet;
+            aggroRadius = Mathf.Max(0, newAggroRadius);
         }
     }
 }

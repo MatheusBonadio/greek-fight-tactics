@@ -121,6 +121,27 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void BattleDirector_WiresEveryOpponentOnTheMapWithItsActorAndPortrait()
+        {
+            var director = Find<SandboxBattleDirector>();
+            var controller = Find<GridSandboxController>();
+            var ids = DataTools.OpponentIds();
+            var placed = MapLayout.Load(SandboxTools.MapPath).Actors.Skip(1).Where(actor => ids.Contains(actor.Character)).ToList();
+
+            Assert.IsNotNull(director.PlayerPortrait);
+            Assert.AreEqual(placed.Count, director.Opponents.Count);
+            for (var index = 0; index < placed.Count; index++)
+            {
+                var entry = director.Opponents[index];
+                Assert.AreEqual(placed[index].Character, entry.Opponent.Id);
+                CollectionAssert.Contains(controller.Actors, entry.Actor);
+                Assert.AreEqual(new Vector2Int(placed[index].X, placed[index].Y), entry.Actor.StartCell);
+                Assert.AreEqual($"{entry.Opponent.Id}_{SandboxTools.PortraitRow}_0", entry.Portrait.name);
+                Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Opponent.Id)), entry.Actor.SpriteRenderer.sprite.texture);
+            }
+        }
+
+        [Test]
         public void Camera_FollowsThePlayerWithPixelPerfectAndMapBounds()
         {
             var camera = Find<Camera>();

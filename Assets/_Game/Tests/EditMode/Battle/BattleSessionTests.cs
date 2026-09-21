@@ -1,13 +1,10 @@
 using System.Linq;
 using Game.Battle;
-using Game.Content;
 using Game.Core;
-using Game.EditorTools;
 using Game.Grid;
 using Game.Tests.EditMode.Grid;
 using Game.UI;
 using NUnit.Framework;
-using UnityEditor;
 using static Game.Tests.EditMode.Battle.BattleFactory;
 
 namespace Game.Tests.EditMode.Battle
@@ -94,19 +91,6 @@ namespace Game.Tests.EditMode.Battle
 
             Assert.IsTrue(session.IsOver);
             Assert.AreNotEqual(BattleStatus.Ongoing, session.State.Status);
-        }
-
-        [Test]
-        public void GeneratedThrasybios_HasAnIdAndAPoolOfRefutableFallacies()
-        {
-            var opponent = AssetDatabase.LoadAssetAtPath<OpponentSO>(DataTools.OpponentPath(SandboxTools.BattleOpponentId));
-
-            Assert.IsNotNull(opponent, "run DataTools.Regenerate to create the opponent assets");
-            Assert.AreEqual(SandboxTools.BattleOpponentId, opponent.Id);
-            Assert.AreEqual(Profile.Sophist, opponent.Profile);
-            Assert.IsNotEmpty(opponent.FallacyPool);
-            Assert.IsTrue(opponent.FallacyPool.All(fallacy => fallacy.IsRefutable));
-            Assert.AreEqual(SandboxTools.BattleOpponentId, Game.Net.OpponentContext.From(opponent).Id);
         }
 
         [Test]

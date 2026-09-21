@@ -30,7 +30,6 @@ namespace Game.EditorTools
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
         public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
-        public const string BattleOpponentId = "thrasybios";
         public const string AudienceCharacter = "citizen";
         public const string PortraitRow = "se";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
@@ -280,11 +279,12 @@ namespace Game.EditorTools
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
             CreateDialogueDirector(controller, map, actors);
-            if (map.Actors.Any(actor => actor.Character == BattleOpponentId))
+            var opponents = MapOpponentsFor(map.Actors, actors);
+            if (opponents.Count > 0)
             {
                 var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
                 rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
-                CreateBattleDirector(controller, map.Actors, actors, explorationCamera).ConfigureRange(rangeView);
+                CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera).ConfigureRange(rangeView);
             }
 
             AssetFolders.Ensure(Path.GetDirectoryName(scenePath)?.Replace('\\', '/'));
@@ -355,21 +355,28 @@ namespace Game.EditorTools
             return views;
         }
 
-        private static SandboxBattleDirector CreateBattleDirector(GridSandboxController controller, List<MapActor> placements, List<ActorView> actors, ExplorationCamera explorationCamera)
+        private static List<MapOpponent> MapOpponentsFor(IReadOnlyList<MapActor> placements, IReadOnlyList<ActorView> actors)
+        {
+            var opponents = DataTools.OpponentIds().ToDictionary(
+                id => id,
+                id => AssetDatabase.LoadAssetAtPath<Game.Content.OpponentSO>(DataTools.OpponentPath(id))
+                    ?? throw new InvalidOperationException($"missing opponent {id}; run DataTools.Regenerate first"));
+
+            return placements
+                .Select((actor, index) => (actor, index))
+                .Skip(1)
+                .Where(pair => opponents.ContainsKey(pair.actor.Character))
+                .Select(pair => new MapOpponent(actors[pair.index], opponents[pair.actor.Character], PortraitFor(pair.actor.Character)))
+                .ToList();
+        }
+
+        private static SandboxBattleDirector CreateBattleDirector(GridSandboxController controller, List<MapActor> placements, List<ActorView> actors, List<MapOpponent> opponents, ExplorationCamera explorationCamera)
         {
             var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.HudPrefabPath)
                 ?? throw new InvalidOperationException($"missing {BattleHudTools.HudPrefabPath}; run BattleHudTools.BuildHud first");
-            var opponent = AssetDatabase.LoadAssetAtPath<Game.Content.OpponentSO>(DataTools.OpponentPath(BattleOpponentId))
-                ?? throw new InvalidOperationException($"missing opponent {BattleOpponentId}; run DataTools.Regenerate first");
 
             var hud = ((GameObject)PrefabUtility.InstantiatePrefab(hudPrefab)).GetComponent<BattleHud>();
             hud.gameObject.SetActive(false);
-
-            var opponentIndex = placements.FindIndex(actor => actor.Character == BattleOpponentId);
-            if (opponentIndex < 0)
-            {
-                throw new InvalidOperationException($"{MapPath} has no {BattleOpponentId}");
-            }
 
             var audience = placements
                 .Select((actor, index) => (actor, index))
@@ -380,15 +387,14 @@ namespace Game.EditorTools
             var director = new GameObject(nameof(SandboxBattleDirector)).AddComponent<SandboxBattleDirector>();
             director.Configure(
                 controller,
-                actors[opponentIndex],
+                opponents,
                 audience,
-                opponent,
                 hud,
                 explorationCamera,
                 AssetDatabase.LoadAssetAtPath<Game.Content.UiTextSO>(DataTools.UiTextPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
-            director.ConfigurePortraits(PortraitFor(placements[0].Character), PortraitFor(BattleOpponentId));
+            director.ConfigurePlayerPortrait(PortraitFor(placements[0].Character));
             return director;
         }
 

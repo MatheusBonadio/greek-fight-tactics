@@ -29,20 +29,20 @@ namespace Game.UI
         public const string OfflineCacheFolder = "battle_cache";
 
         [SerializeField] private GridSandboxController sandbox;
-        [SerializeField] private ActorView opponentActor;
+        [SerializeField] private List<MapOpponent> opponents = new();
         [SerializeField] private List<ActorView> audience = new();
-        [SerializeField] private OpponentSO opponent;
         [SerializeField] private BattleHud hud;
         [SerializeField] private ExplorationCamera explorationCamera;
         [SerializeField] private UiTextSO text;
         [SerializeField] private FallacyCatalogSO catalog;
         [SerializeField] private FallbackLibrarySO fallbackLibrary;
-        [SerializeField] private int aggroRadius = AggroRule.DefaultRadius;
         [SerializeField] private float thinkSeconds = DefaultThinkSeconds;
         [SerializeField] private RangeHighlightView rangeView;
         [SerializeField] private Sprite playerPortrait;
-        [SerializeField] private Sprite opponentPortrait;
 
+        private readonly AggroWatch aggro = new();
+        private readonly List<AggroCandidate> aggroCandidates = new();
+        private readonly Dictionary<ActorView, FallacyRevealView> reveals = new();
         private GameServices services;
         private RangeHighlighter highlighter;
         private PauseMenuController pause;
@@ -57,7 +57,7 @@ namespace Game.UI
         private ActorView movingActor;
         private float thinkTimer;
         private int dialogueFrame = -1;
-        private bool waitingForAggroExit;
+        private MapOpponent engaged;
         private PrewarmedArgumentSource preparedArguments;
 
         public GameStateMachine StateMachine => sandbox.StateMachine;
@@ -70,19 +70,21 @@ namespace Game.UI
 
         public BattleHud Hud => hud;
 
-        public ActorView OpponentActor => opponentActor;
+        public IReadOnlyList<MapOpponent> Opponents => opponents;
 
-        public OpponentSO Opponent => opponent;
+        public MapOpponent Engaged => engaged;
+
+        public ActorView OpponentActor => engaged?.Actor;
+
+        public OpponentSO Opponent => engaged?.Opponent;
+
+        public Sprite OpponentPortrait => engaged?.Portrait;
 
         public RangeHighlightView RangeView => rangeView;
 
         public Sprite PlayerPortrait => playerPortrait;
 
-        public Sprite OpponentPortrait => opponentPortrait;
-
         public bool AutosaveEnabled { get; set; } = true;
-
-        public bool OpponentDefeated { get; private set; }
 
         public BattleStatus LastResult { get; private set; } = BattleStatus.Ongoing;
 
@@ -96,9 +98,8 @@ namespace Game.UI
 
         public void Configure(
             GridSandboxController sandboxController,
-            ActorView opponentView,
+            List<MapOpponent> mapOpponents,
             List<ActorView> audienceViews,
-            OpponentSO opponentData,
             BattleHud battleHud,
             ExplorationCamera camera,
             UiTextSO uiText,
@@ -106,9 +107,8 @@ namespace Game.UI
             FallbackLibrarySO fallbacks)
         {
             sandbox = sandboxController;
-            opponentActor = opponentView;
+            opponents = mapOpponents;
             audience = audienceViews;
-            opponent = opponentData;
             hud = battleHud;
             explorationCamera = camera;
             text = uiText;
@@ -121,21 +121,25 @@ namespace Game.UI
             rangeView = view;
         }
 
-        public void ConfigurePortraits(Sprite player, Sprite opponentSprite)
+        public void ConfigurePlayerPortrait(Sprite player)
         {
             playerPortrait = player;
-            opponentPortrait = opponentSprite;
         }
 
-        public void StartBattle()
+        public bool IsDefeated(MapOpponent entry) =>
+            entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
+
+        public void StartBattle(MapOpponent target)
         {
-            if (Phase != BattleFlowPhase.Exploring || sandbox.Player?.Walker == null || opponentActor?.Walker == null)
+            if (Phase != BattleFlowPhase.Exploring || target == null || !target.IsPlaced || sandbox.Player?.Walker == null)
             {
                 return;
             }
 
+            engaged = target;
+            var opponent = target.Opponent;
             var playerWalker = sandbox.Player.Walker;
-            var opponentWalker = opponentActor.Walker;
+            var opponentWalker = target.Actor.Walker;
             playerWalker.Cancel();
             sandbox.ExplorationInputEnabled = false;
             if (pause)
@@ -164,7 +168,7 @@ namespace Game.UI
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
                 Seed = seed
-            }, CreateArgumentSource(opponentWalker.ActorId, seed));
+            }, CreateArgumentSource(target, seed));
 
             controller = new BattleMenuController(Session.Menu, catalog.RefutableIds);
             hud.gameObject.SetActive(true);
@@ -184,7 +188,7 @@ namespace Game.UI
                 rangeView.Bind(highlighter);
             }
 
-            reveal ??= FallacyRevealView.Attach(opponentActor);
+            reveal = RevealFor(target.Actor);
             reveal.Hide();
 
             ShowLine(string.Empty, string.Format(text.Get(BattleText.IntroKey), opponent.DisplayName), () =>
@@ -280,7 +284,7 @@ namespace Game.UI
                     thinkTimer -= Time.deltaTime;
                     if (thinkTimer <= 0f)
                     {
-                        AfterOutcome(opponentActor, Session.PlayOpponentTurn(), opponent.DisplayName);
+                        AfterOutcome(engaged.Actor, Session.PlayOpponentTurn(), engaged.Opponent.DisplayName);
                     }
 
                     break;
@@ -315,45 +319,70 @@ namespace Game.UI
 
         private void TryTriggerBattle()
         {
-            if (OpponentDefeated || sandbox.Player?.Walker == null || opponentActor?.Walker == null || (pause && pause.IsPaused) || StateMachine.Mode != GameMode.Exploration)
+            var player = sandbox.Player?.Walker;
+            if (player == null || !sandbox.ProgressLoaded || (pause && pause.IsPaused) || StateMachine.Mode != GameMode.Exploration)
             {
                 return;
             }
 
-            var inRange = AggroRule.IsTriggered(sandbox.Player.Walker.Cell, opponentActor.Walker.Cell, aggroRadius);
-            if (waitingForAggroExit)
+            CollectAggroCandidates();
+            var triggered = aggro.Update(player.Cell, aggroCandidates);
+            if (triggered == AggroWatch.NoTrigger)
             {
-                waitingForAggroExit = inRange;
                 return;
             }
 
-            if (inRange && !sandbox.Player.Walker.IsStepping)
+            if (player.IsStepping)
             {
-                StartBattle();
+                player.Cancel();
+                return;
+            }
+
+            StartBattle(opponents[triggered]);
+        }
+
+        private void CollectAggroCandidates()
+        {
+            aggroCandidates.Clear();
+            foreach (var entry in opponents)
+            {
+                aggroCandidates.Add(entry != null && entry.IsPlaced
+                    ? new AggroCandidate(entry.Actor.Walker.Cell, entry.Opponent.AggroRadius, IsDefeated(entry))
+                    : AggroCandidate.Asleep);
             }
         }
 
         private void PrepareArguments()
         {
-            if (preparedArguments != null || OpponentDefeated || opponentActor?.Walker == null || !services || !services.IsBooted)
+            if (preparedArguments != null || !services || !services.IsBooted || !sandbox.ProgressLoaded)
             {
                 return;
             }
 
-            var opponentId = opponentActor.Walker.ActorId;
             preparedArguments = services.CreateArgumentSource(Environment.TickCount);
-            preparedArguments.Register(opponentId, OpponentContext.From(opponent));
-            TopUpArguments();
+            foreach (var entry in opponents)
+            {
+                if (entry == null || !entry.IsPlaced)
+                {
+                    continue;
+                }
+
+                preparedArguments.Register(entry.Actor.Walker.ActorId, OpponentContext.From(entry.Opponent));
+                if (!IsDefeated(entry))
+                {
+                    TopUpArguments(entry);
+                }
+            }
         }
 
-        private void TopUpArguments()
+        private void TopUpArguments(MapOpponent entry)
         {
-            if (preparedArguments == null || opponentActor?.Walker == null)
+            if (preparedArguments == null || entry == null || !entry.IsPlaced)
             {
                 return;
             }
 
-            var opponentId = opponentActor.Walker.ActorId;
+            var opponentId = entry.Actor.Walker.ActorId;
             var missing = PrewarmCount - preparedArguments.ReadyCount(opponentId);
             if (missing > 0)
             {
@@ -361,7 +390,7 @@ namespace Game.UI
             }
         }
 
-        private IArgumentSource CreateArgumentSource(int opponentId, int seed)
+        private IArgumentSource CreateArgumentSource(MapOpponent target, int seed)
         {
             PrepareArguments();
             if (preparedArguments != null)
@@ -369,7 +398,6 @@ namespace Game.UI
                 return preparedArguments;
             }
 
-            var context = OpponentContext.From(opponent);
             var validator = new ArgumentValidator(catalog.RefutableIds);
             var offline = new PrewarmedArgumentSource(
                 null,
@@ -377,8 +405,19 @@ namespace Game.UI
                 validator,
                 new FallbackArgumentLibrary(fallbackLibrary, validator, seed),
                 seed);
-            offline.Register(opponentId, context);
+            offline.Register(target.Actor.Walker.ActorId, OpponentContext.From(target.Opponent));
             return offline;
+        }
+
+        private FallacyRevealView RevealFor(ActorView actor)
+        {
+            if (!reveals.TryGetValue(actor, out var view) || !view)
+            {
+                view = FallacyRevealView.Attach(actor);
+                reveals[actor] = view;
+            }
+
+            return view;
         }
 
         private void NextTurn()
@@ -448,7 +487,7 @@ namespace Game.UI
             {
                 if (outcome.PresentedArgument.HasValue)
                 {
-                    ShowLine(opponent.DisplayName, opponentPortrait, outcome.PresentedArgument.Value.Speech, NextTurn);
+                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, NextTurn);
                     return;
                 }
 
@@ -511,6 +550,11 @@ namespace Game.UI
         private void EndBattle()
         {
             LastResult = Session.State.Status;
+            if (DuelVictoryRule.TryClassify(Session.State, out var victory))
+            {
+                sandbox.Duels.RecordVictory(engaged.Opponent.Id, victory);
+            }
+
             StateMachine.TryTransition(GameMode.BattleResolve);
             StateMachine.TryTransition(GameMode.BattleOutro);
             ShowLine(string.Empty, text.Get(BattleText.StatusKey(LastResult)), FinishBattle);
@@ -529,11 +573,10 @@ namespace Game.UI
             hud.gameObject.SetActive(false);
             reveal?.Hide();
 
-            OpponentDefeated = LastResult == BattleStatus.PlayerWon;
-            waitingForAggroExit = true;
-            if (!OpponentDefeated)
+            aggro.Disengage(opponents.IndexOf(engaged));
+            if (!IsDefeated(engaged))
             {
-                TopUpArguments();
+                TopUpArguments(engaged);
             }
 
             var from = StateMachine.Mode;

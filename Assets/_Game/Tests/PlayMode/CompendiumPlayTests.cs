@@ -49,7 +49,7 @@ namespace Game.Tests.PlayMode
             var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
             var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
             director.ThinkSeconds = 0f;
-            sandbox.Player.Walker.Teleport(FreeCellNear(sandbox.Grid, director.OpponentActor.Walker.Cell), Facing.NorthEast);
+            sandbox.Player.Walker.Teleport(FreeCellNear(sandbox.Grid, director.Opponents[0].Actor.Walker.Cell), Facing.NorthEast);
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
             Assert.AreNotEqual(BattleFlowPhase.Exploring, director.Phase, "walking up to Thrasybios must start the battle");
 

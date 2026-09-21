@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 667dea1425fe723409bac6b15759510d, type: 3}
+  m_Name: phaidra
+  m_EditorClassIdentifier: Game.Content::Game.Content.OpponentSO
+  id: phaidra
+  displayName: Phaidra
+  sheet: {fileID: 2800000, guid: 059c77dde62a352428f760ab4f97a27e, type: 3}
+  maxCoherence: 30
+  initialAudience: 30
+  fallacyPool:
+  - {fileID: 11400000, guid: 6e165a408dbc2924da5e446e592fec55, type: 2}
+  - {fileID: 11400000, guid: ca830139428897342ae51031418dea30, type: 2}
+  act: 1
+  profile: 0
+  aggroRadius: 1
