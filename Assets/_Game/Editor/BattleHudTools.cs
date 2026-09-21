@@ -14,6 +14,8 @@ namespace Game.EditorTools
         public const string HudPrefabPath = "Assets/_Game/Prefabs/UI/BattleHud.prefab";
         public const string CompendiumPrefabPath = "Assets/_Game/Prefabs/UI/Compendium.prefab";
         public const string JurorMeterPrefabPath = "Assets/_Game/Prefabs/UI/JurorMeter.prefab";
+        public const string ExplorationDialoguePrefabPath = "Assets/_Game/Prefabs/UI/ExplorationDialogue.prefab";
+        public const int ExplorationDialogueSortingOrder = 5;
         public const int JurorFramePadding = 2;
         public const string UiSpriteFolder = ArtTools.PlaceholderFolder + "/ui";
         public const int CanvasReference = RenderSetupTools.ReferenceResolution;
@@ -50,6 +52,13 @@ namespace Game.EditorTools
             SavePrefab(HudPrefabPath, root => BuildHudRoot(root, uiText, catalog, controls));
             SavePrefab(CompendiumPrefabPath, root => BuildCompendiumRoot(root, uiText, catalog, controls));
             SavePrefab(JurorMeterPrefabPath, BuildJurorMeterRoot);
+            SavePrefab(ExplorationDialoguePrefabPath, BuildExplorationDialogueRoot);
+        }
+
+        private static void BuildExplorationDialogueRoot(GameObject root)
+        {
+            ConfigureCanvas(root).sortingOrder = ExplorationDialogueSortingOrder;
+            CreateDialogue(root.transform);
         }
 
         private static void BuildJurorMeterRoot(GameObject root)

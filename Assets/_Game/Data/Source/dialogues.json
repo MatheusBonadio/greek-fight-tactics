@@ -1,0 +1,113 @@
+{
+  "speakers": {
+    "kleia": { "name": "Kleia", "portrait": "kleia" },
+    "menexeno": { "name": "Menexeno", "portrait": "menexeno" },
+    "eudoro": { "name": "Eudoro", "portrait": "eudoro" },
+    "neighbor": { "name": "Vizinho", "portrait": "citizen" }
+  },
+  "dialogues": [
+    {
+      "id": "kerameikos_leaving_workshop",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "As mãos do meu pai já não fecham em volta de uma ânfora. Hoje sou eu quem leva a mercadoria à ágora."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Pela rua de terra até a herma, depois o mercado. Vender, receber e voltar. Sem parar para ouvir discussão alheia."
+        },
+        {
+          "text": "Ela sabe que vai parar."
+        }
+      ]
+    },
+    {
+      "id": "neighbor_kerameikos",
+      "lines": [
+        {
+          "speaker": "neighbor",
+          "text": "Filha de Aristeu! Vai levar as ânforas à ágora? Cuidado com o sujeito de púrpura perto das bancas.",
+          "conditions": [{ "flag": "talked_to_neighbor", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Que sujeito?",
+          "conditions": [{ "flag": "talked_to_neighbor", "absent": true }]
+        },
+        {
+          "speaker": "neighbor",
+          "text": "Um tal de Thrasybios. Vende a arte de vencer qualquer discussão por três dracmas. E vence mesmo quando está errado.",
+          "conditions": [{ "flag": "talked_to_neighbor", "absent": true }],
+          "effects": [{ "flag": "talked_to_neighbor" }, { "flag": "heard_of_thrasybios" }]
+        },
+        {
+          "speaker": "neighbor",
+          "text": "A ágora fica depois da herma, no fim da rua. Boas vendas, menina.",
+          "conditions": [{ "flag": "talked_to_neighbor" }]
+        }
+      ]
+    },
+    {
+      "id": "menexeno_agora",
+      "lines": [
+        {
+          "text": "Um velho de manto encardido, apoiado num bastão de oliveira, observa a feira sem comprar nada.",
+          "conditions": [{ "flag": "met_menexeno", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Procura alguma coisa, senhor?",
+          "conditions": [{ "flag": "met_menexeno", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ou veio ouvir o tal Thrasybios, que vende vitórias por três dracmas?",
+          "conditions": [{ "flag": "met_menexeno", "absent": true }, { "flag": "heard_of_thrasybios" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Procuro quem saiba perguntar. Por enquanto, só achei quem venda respostas.",
+          "conditions": [{ "flag": "met_menexeno", "absent": true }],
+          "effects": [{ "flag": "met_menexeno" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Deixe o homem de púrpura terminar de falar. Quem erra costuma avisar antes.",
+          "conditions": [{ "flag": "met_menexeno" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "E o rapaz do compasso? Repete Platão como quem decora uma receita. Ainda não provou o prato.",
+          "conditions": [{ "flag": "met_menexeno" }, { "flag": "met_eudoro" }]
+        }
+      ]
+    },
+    {
+      "id": "eudoro_agora",
+      "lines": [
+        {
+          "speaker": "eudoro",
+          "text": "Uma oleira na ágora, e sem ânfora nas mãos? Que curioso.",
+          "conditions": [{ "flag": "met_eudoro", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ânforas não discutem. Por isso fazem boa companhia.",
+          "conditions": [{ "flag": "met_eudoro", "absent": true }]
+        },
+        {
+          "speaker": "eudoro",
+          "text": "Na Academia aprendemos que toda coisa imita a sua ideia. A sua, suponho, é a de vaso.",
+          "conditions": [{ "flag": "met_eudoro", "absent": true }],
+          "effects": [{ "flag": "met_eudoro" }]
+        },
+        {
+          "speaker": "eudoro",
+          "text": "Ainda aqui? Platão diria que a ágora é o reino da opinião. Eu apenas concordo com ele.",
+          "conditions": [{ "flag": "met_eudoro" }]
+        }
+      ]
+    }
+  ]
+}

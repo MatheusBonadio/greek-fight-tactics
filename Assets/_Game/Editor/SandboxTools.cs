@@ -279,6 +279,7 @@ namespace Game.EditorTools
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
+            CreateDialogueDirector(controller, map, actors);
             if (map.Actors.Any(actor => actor.Character == BattleOpponentId))
             {
                 var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
@@ -388,6 +389,37 @@ namespace Game.EditorTools
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
             director.ConfigurePortraits(PortraitFor(placements[0].Character), PortraitFor(BattleOpponentId));
+            return director;
+        }
+
+        private static ExplorationDialogueDirector CreateDialogueDirector(GridSandboxController controller, MapLayout map, List<ActorView> actors)
+        {
+            var library = AssetDatabase.LoadAssetAtPath<Game.Content.DialogueLibrarySO>(DataTools.DialogueLibraryPath)
+                ?? throw new InvalidOperationException($"missing {DataTools.DialogueLibraryPath}; run DataTools.Regenerate first");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.ExplorationDialoguePrefabPath)
+                ?? throw new InvalidOperationException($"missing {BattleHudTools.ExplorationDialoguePrefabPath}; run BattleHudTools.BuildHud first");
+
+            var unknown = map.DialogueIds.FirstOrDefault(id => !library.Contains(id));
+            if (unknown != null)
+            {
+                throw new InvalidOperationException($"map {map.Id} references the unknown dialogue {unknown}");
+            }
+
+            var box = ((GameObject)PrefabUtility.InstantiatePrefab(prefab)).GetComponentInChildren<DialogueBoxView>(true);
+            var talkers = map.Actors
+                .Select((actor, index) => (actor, index))
+                .Where(pair => !string.IsNullOrEmpty(pair.actor.Dialogue))
+                .Select(pair => new NpcDialogueLink(actors[pair.index], pair.actor.Dialogue))
+                .ToList();
+            var triggers = map.Triggers
+                .Select(trigger => new DialogueTriggerLink(new Coord(trigger.X, trigger.Y), trigger.Dialogue, trigger.Flag))
+                .ToList();
+            var portraits = library.Speakers
+                .Where(pair => pair.Value.HasPortrait)
+                .ToDictionary(pair => pair.Key, pair => PortraitFor(pair.Value.Portrait));
+
+            var director = new GameObject(nameof(ExplorationDialogueDirector)).AddComponent<ExplorationDialogueDirector>();
+            director.Configure(controller, box, library, talkers, triggers, portraits);
             return director;
         }
 

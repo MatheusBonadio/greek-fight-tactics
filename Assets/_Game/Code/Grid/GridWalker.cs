@@ -84,6 +84,14 @@ namespace Game.Grid
             pending.Clear();
         }
 
+        public void FaceToward(Coord cell)
+        {
+            if (!IsStepping)
+            {
+                Facing = FacingRules.FromStep(Cell, cell, Facing);
+            }
+        }
+
         public void Teleport(Coord cell, Facing facing)
         {
             if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || (tile.IsOccupied && tile.OccupantId != ActorId))

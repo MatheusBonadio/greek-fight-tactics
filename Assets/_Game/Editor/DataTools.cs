@@ -18,6 +18,8 @@ namespace Game.EditorTools
         public const string TerrainCostTablePath = "Assets/_Game/Data/TerrainCostTable.asset";
         public const string FallbackLibraryPath = "Assets/_Game/Data/FallbackLibrary.asset";
         public const string UiTextPath = "Assets/_Game/Data/UiText.asset";
+        public const string DialogueLibraryPath = "Assets/_Game/Data/DialogueLibrary.asset";
+        public const string DialogueSourcePath = "Assets/_Game/Data/Source/dialogues.json";
         public const string FallacySourcePath = "Assets/_Game/Data/Source/fallacies.json";
         public const string TerrainCostSourcePath = "Assets/_Game/Data/Source/terrain_costs.json";
         public const string UiTextSourcePath = "Assets/_Game/Data/Source/ui_text.json";
@@ -47,9 +49,46 @@ namespace Game.EditorTools
             var uiTextCount = RegenerateUiText();
             var opponentCount = RegenerateOpponents(fallacies);
             var fallbackCount = RegenerateFallbackLibrary(fallacies);
+            var dialogueCount = RegenerateDialogues();
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts, {opponentCount} opponents and {fallbackCount} fallback arguments");
+            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts, {opponentCount} opponents, {fallbackCount} fallback arguments and {dialogueCount} dialogues");
+        }
+
+        public static (IReadOnlyDictionary<string, DialogueSpeaker> Speakers, IReadOnlyList<DialogueScript> Scripts) LoadDialogueSource(string path)
+        {
+            var source = JsonConvert.DeserializeObject<DialogueSource>(File.ReadAllText(path))
+                ?? throw new InvalidOperationException($"{path} is not a dialogue file");
+
+            var speakers = source.Speakers.ToDictionary(pair => pair.Key, pair => new DialogueSpeaker(pair.Value.Name, pair.Value.Portrait ?? string.Empty));
+            var scripts = source.Dialogues.Select(entry => entry.ToScript()).ToList();
+
+            var errors = new List<string>();
+            errors.AddRange(scripts.GroupBy(script => script.Id).Where(group => group.Count() > 1).Select(group => $"dialogue {group.Key} is declared {group.Count()} times"));
+            errors.AddRange(speakers.Where(pair => string.IsNullOrWhiteSpace(pair.Value.DisplayName)).Select(pair => $"speaker {pair.Key} has no name"));
+            foreach (var script in scripts)
+            {
+                errors.AddRange(script.Validate());
+                errors.AddRange(script.Lines
+                    .Where(line => !line.IsNarration && !speakers.ContainsKey(line.SpeakerId))
+                    .Select(line => $"{script.Id}: unknown speaker {line.SpeakerId}"));
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new InvalidOperationException($"{path}: {string.Join("; ", errors)}");
+            }
+
+            return (speakers, scripts);
+        }
+
+        private static int RegenerateDialogues()
+        {
+            var (speakers, scripts) = LoadDialogueSource(DialogueSourcePath);
+            var library = AssetFolders.LoadOrCreate<DialogueLibrarySO>(DialogueLibraryPath);
+            library.SetEntries(speakers, scripts);
+            EditorUtility.SetDirty(library);
+            return scripts.Count;
         }
 
         private static int RegenerateUiText()
@@ -178,6 +217,77 @@ namespace Game.EditorTools
 
             [JsonProperty("player_hint", Required = Required.Always)]
             public string PlayerHint { get; set; }
+        }
+
+        private sealed class DialogueSource
+        {
+            [JsonProperty("speakers", Required = Required.Always)]
+            public Dictionary<string, SpeakerSource> Speakers { get; set; }
+
+            [JsonProperty("dialogues", Required = Required.Always)]
+            public List<DialogueSourceEntry> Dialogues { get; set; }
+        }
+
+        private sealed class SpeakerSource
+        {
+            [JsonProperty("name", Required = Required.Always)]
+            public string Name { get; set; }
+
+            [JsonProperty("portrait")]
+            public string Portrait { get; set; }
+        }
+
+        private sealed class DialogueSourceEntry
+        {
+            [JsonProperty("id", Required = Required.Always)]
+            public string Id { get; set; }
+
+            [JsonProperty("lines", Required = Required.Always)]
+            public List<DialogueLineSource> Lines { get; set; }
+
+            public DialogueScript ToScript() => new(Id, Lines.Select(line => line.ToLine()));
+        }
+
+        private sealed class DialogueLineSource
+        {
+            [JsonProperty("speaker")]
+            public string Speaker { get; set; }
+
+            [JsonProperty("text", Required = Required.Always)]
+            public string Text { get; set; }
+
+            [JsonProperty("conditions")]
+            public List<ConditionSource> Conditions { get; set; } = new();
+
+            [JsonProperty("effects")]
+            public List<EffectSource> Effects { get; set; } = new();
+
+            public ScriptLine ToLine() => new(
+                Speaker,
+                Text,
+                Conditions.Select(condition => new StoryCondition(condition.Flag, condition.EqualsValue, condition.Absent)),
+                Effects.Select(effect => new StoryEffect(effect.Flag, effect.Value)));
+        }
+
+        private sealed class ConditionSource
+        {
+            [JsonProperty("flag", Required = Required.Always)]
+            public string Flag { get; set; }
+
+            [JsonProperty("equals")]
+            public string EqualsValue { get; set; }
+
+            [JsonProperty("absent")]
+            public bool Absent { get; set; }
+        }
+
+        private sealed class EffectSource
+        {
+            [JsonProperty("flag", Required = Required.Always)]
+            public string Flag { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
         }
 
         private sealed class OpponentSource

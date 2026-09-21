@@ -13,6 +13,39 @@ namespace Game.Core
 
         private const string CustomFlagPattern = "^[a-z][a-z0-9_]{0,63}$";
 
+        public static bool IsKnownName(string name) => name is Act or DamarisBranch or Reputation or Position;
+
+        public static bool IsCustomName(string name) => name != null && !IsKnownName(name) && Regex.IsMatch(name, CustomFlagPattern);
+
+        public static bool IsValidName(string name) => IsKnownName(name) || IsCustomName(name);
+
+        public static bool TryGet(SaveData save, string name, out string value)
+        {
+            value = null;
+            if (save == null || name == null)
+            {
+                return false;
+            }
+
+            switch (name)
+            {
+                case Act:
+                    value = ((int)save.ActFlag).ToString(CultureInfo.InvariantCulture);
+                    return true;
+                case DamarisBranch:
+                    value = save.DamarisBranch.ToString().ToLowerInvariant();
+                    return true;
+                case Reputation:
+                    value = save.Reputation.ToString(CultureInfo.InvariantCulture);
+                    return true;
+                case Position:
+                    value = string.Format(CultureInfo.InvariantCulture, "{0},{1}", save.Position.X, save.Position.Y);
+                    return true;
+            }
+
+            return save.Flags.TryGetValue(name, out value);
+        }
+
         public static bool TrySet(SaveData save, string name, string value, out string error)
         {
             error = null;

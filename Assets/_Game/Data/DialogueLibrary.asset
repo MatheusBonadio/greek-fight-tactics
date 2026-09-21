@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aacd5c80ac949f84da50e74214e4890a, type: 3}
+  m_Name: DialogueLibrary
+  m_EditorClassIdentifier: Game.Content::Game.Content.DialogueLibrarySO
+  speakers:
+  - key: kleia
+    value:
+      displayName: Kleia
+      portrait: kleia
+  - key: menexeno
+    value:
+      displayName: Menexeno
+      portrait: menexeno
+  - key: eudoro
+    value:
+      displayName: Eudoro
+      portrait: eudoro
+  - key: neighbor
+    value:
+      displayName: Vizinho
+      portrait: citizen
+  dialogues:
+  - key: kerameikos_leaving_workshop
+    value:
+      lines:
+      - speaker: kleia
+        text: "As m\xE3os do meu pai j\xE1 n\xE3o fecham em volta de uma \xE2nfora. Hoje sou eu quem leva a mercadoria \xE0 \xE1gora."
+        conditions: []
+        effects: []
+      - speaker: kleia
+        text: "Pela rua de terra at\xE9 a herma, depois o mercado. Vender, receber e voltar. Sem parar para ouvir discuss\xE3o alheia."
+        conditions: []
+        effects: []
+      - speaker: 
+        text: Ela sabe que vai parar.
+        conditions: []
+        effects: []
+  - key: neighbor_kerameikos
+    value:
+      lines:
+      - speaker: neighbor
+        text: "Filha de Aristeu! Vai levar as \xE2nforas \xE0 \xE1gora? Cuidado com o sujeito de p\xFArpura perto das bancas."
+        conditions:
+        - flag: talked_to_neighbor
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: Que sujeito?
+        conditions:
+        - flag: talked_to_neighbor
+          value: 
+          absent: 1
+        effects: []
+      - speaker: neighbor
+        text: "Um tal de Thrasybios. Vende a arte de vencer qualquer discuss\xE3o por tr\xEAs dracmas. E vence mesmo quando est\xE1 errado."
+        conditions:
+        - flag: talked_to_neighbor
+          value: 
+          absent: 1
+        effects:
+        - flag: talked_to_neighbor
+          value: true
+        - flag: heard_of_thrasybios
+          value: true
+      - speaker: neighbor
+        text: "A \xE1gora fica depois da herma, no fim da rua. Boas vendas, menina."
+        conditions:
+        - flag: talked_to_neighbor
+          value: 
+          absent: 0
+        effects: []
+  - key: menexeno_agora
+    value:
+      lines:
+      - speaker: 
+        text: "Um velho de manto encardido, apoiado num bast\xE3o de oliveira, observa a feira sem comprar nada."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: Procura alguma coisa, senhor?
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: "Ou veio ouvir o tal Thrasybios, que vende vit\xF3rias por tr\xEAs dracmas?"
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 1
+        - flag: heard_of_thrasybios
+          value: 
+          absent: 0
+        effects: []
+      - speaker: menexeno
+        text: "Procuro quem saiba perguntar. Por enquanto, s\xF3 achei quem venda respostas."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 1
+        effects:
+        - flag: met_menexeno
+          value: true
+      - speaker: menexeno
+        text: "Deixe o homem de p\xFArpura terminar de falar. Quem erra costuma avisar antes."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 0
+        effects: []
+      - speaker: menexeno
+        text: "E o rapaz do compasso? Repete Plat\xE3o como quem decora uma receita. Ainda n\xE3o provou o prato."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 0
+        - flag: met_eudoro
+          value: 
+          absent: 0
+        effects: []
+  - key: eudoro_agora
+    value:
+      lines:
+      - speaker: eudoro
+        text: "Uma oleira na \xE1gora, e sem \xE2nfora nas m\xE3os? Que curioso."
+        conditions:
+        - flag: met_eudoro
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: "\xC2nforas n\xE3o discutem. Por isso fazem boa companhia."
+        conditions:
+        - flag: met_eudoro
+          value: 
+          absent: 1
+        effects: []
+      - speaker: eudoro
+        text: "Na Academia aprendemos que toda coisa imita a sua ideia. A sua, suponho, \xE9 a de vaso."
+        conditions:
+        - flag: met_eudoro
+          value: 
+          absent: 1
+        effects:
+        - flag: met_eudoro
+          value: true
+      - speaker: eudoro
+        text: "Ainda aqui? Plat\xE3o diria que a \xE1gora \xE9 o reino da opini\xE3o. Eu apenas concordo com ele."
+        conditions:
+        - flag: met_eudoro
+          value: 
+          absent: 0
+        effects: []

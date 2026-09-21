@@ -43,10 +43,14 @@
   ],
   "actors": [
     { "character": "kleia", "x": 4, "y": 7, "facing": "SouthEast" },
-    { "character": "citizen", "x": 9, "y": 1, "facing": "SouthWest" }
+    { "character": "citizen", "x": 9, "y": 1, "facing": "SouthWest", "dialogue": "neighbor_kerameikos" }
   ],
   "exits": [
     { "x": 11, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" },
     { "x": 11, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" }
+  ],
+  "triggers": [
+    { "x": 3, "y": 4, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" },
+    { "x": 7, "y": 7, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" }
   ]
 }

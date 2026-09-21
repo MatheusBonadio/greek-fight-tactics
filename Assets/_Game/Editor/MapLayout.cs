@@ -17,6 +17,19 @@ namespace Game.EditorTools
         public int Y { get; set; }
 
         public Facing Facing { get; set; }
+
+        public string Dialogue { get; set; }
+    }
+
+    public sealed class MapTrigger
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public string Dialogue { get; set; }
+
+        public string Flag { get; set; }
     }
 
     public sealed class MapExit
@@ -52,6 +65,8 @@ namespace Game.EditorTools
         public List<MapActor> Actors { get; set; } = new();
 
         public List<MapExit> Exits { get; set; } = new();
+
+        public List<MapTrigger> Triggers { get; set; } = new();
 
         public int Width => Floor.Count == 0 ? 0 : Floor[0].Length;
 
@@ -136,6 +151,39 @@ namespace Game.EditorTools
                     throw new InvalidOperationException($"map {Id}: two exits share ({exit.X}, {exit.Y})");
                 }
             }
+
+            if (!string.IsNullOrEmpty(Actors[0].Dialogue))
+            {
+                throw new InvalidOperationException($"map {Id}: the player {Actors[0].Character} cannot hold a dialogue");
+            }
+
+            var triggerCells = new HashSet<(int, int)>();
+            foreach (var trigger in Triggers)
+            {
+                var cell = (trigger.X, trigger.Y);
+                if (trigger.X < 0 || trigger.Y < 0 || trigger.X >= Width || trigger.Y >= Height || !IsWalkable(trigger.X, trigger.Y))
+                {
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) is not on a walkable cell");
+                }
+
+                if (string.IsNullOrWhiteSpace(trigger.Dialogue))
+                {
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) has no dialogue");
+                }
+
+                if (!SaveFlags.IsCustomName(trigger.Flag))
+                {
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) needs a story flag in snake case, found '{trigger.Flag}'");
+                }
+
+                if (!triggerCells.Add(cell) || doors.Contains(cell) || occupied.Contains(cell))
+                {
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) shares its cell with another trigger, an exit or an actor");
+                }
+            }
         }
+
+        public IEnumerable<string> DialogueIds =>
+            Actors.Select(actor => actor.Dialogue).Concat(Triggers.Select(trigger => trigger.Dialogue)).Where(id => !string.IsNullOrEmpty(id)).Distinct();
     }
 }

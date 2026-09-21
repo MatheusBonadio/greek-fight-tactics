@@ -248,6 +248,27 @@ Exploration → (aggro radius) → BattleIntro → BattleTurn ⇄ BattleResolve 
 
 Movimento: `PathFinder.FindPath` devolve células; o ator percorre a 250 ms por célula com interpolação **linear** entre centros. Easing faz o pixel tremer. `TileData.OccupantId` é atualizado na saída e na entrada de cada célula, nunca no meio.
 
+O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirector` usa essa mesma instância, e a pausa a recebe no `Start`. A exploração só lê input com `ExplorationInputEnabled` ligado e a máquina em `Exploration`.
+
+**Diálogo na exploração.** O `ExplorationDialogueDirector` fica em toda cena de mapa, gerado por `SandboxTools`.
+- **Conversa:** Confirm chama `GridSandboxController.ConfirmCursor`, que pergunta primeiro ao `Interaction` do diretor.
+  - Num NPC com `dialogue` ao lado, a Kleia e ele se viram um para o outro e a caixa abre. Num NPC distante, ela anda até a célula livre ao lado de caminho mais curto e depois fala.
+  - Célula sem NPC falante continua sendo andar.
+  - Thrasybios não tem `dialogue`: a resposta dele é a batalha.
+- **Bloqueio:** a conversa abre o overlay `Dialogue` da máquina. Isso trava o movimento, o aggro do `SandboxBattleDirector` e a pausa. Fechar volta a `Exploration` e faz save automático (`AutosavePolicy`).
+- **Caixa:** `Assets/_Game/Prefabs/UI/ExplorationDialogue.prefab` é gerado por `BattleHudTools.BuildHud`, com o mesmo `DialogueBoxView` do HUD de batalha, em canvas próprio abaixo da pausa.
+- **Dados:** `Assets/_Game/Data/Source/dialogues.json` vira o `DialogueLibrarySO` em `DataTools.Regenerate`.
+  - `speakers` dá nome e retrato (id da folha do personagem) a cada falante. Linha sem `speaker` é narração.
+  - Cada linha tem `conditions` (`flag`, com `equals` ou `absent`) e `effects` (`flag` e `value`, padrão `"true"`).
+  - Os nomes seguem o `SaveFlags`: `act`, `damaris_branch`, `reputation`, `position` ou flag própria em snake case. A regeneração falha com flag inválida, falante desconhecido ou texto vazio.
+- **Regras puras (Core):** `DialogueScript`, `ScriptLine`, `StoryCondition`, `StoryEffect` e `DialogueRun`.
+  - As condições são julgadas quando a conversa começa. Por isso, a linha que marca `met_x` não revela na mesma conversa as linhas que exigem `met_x`.
+  - Os efeitos entram no `SaveData` à medida que cada linha aparece.
+  - O diretor carrega as flags do save ativo e reaplica os efeitos da sessão sobre o `CaptureSave` ao salvar. Save antigo sem `flags` continua válido e lê toda flag como ausente.
+- **Gatilho de célula:** `triggers` no JSON do mapa (`x`, `y`, `dialogue`, `flag`).
+  - Ao entrar na célula, pelo `CellEntered` do walker, a Kleia para nela e a cena toca. A `flag` é gravada no disparo, então a cena toca uma vez só. Vários gatilhos podem dividir a mesma flag, como as duas saídas da oficina do Cerâmico.
+  - `MapLayout.Validate` recusa gatilho fora do mapa, em célula bloqueada, sem diálogo, com flag que não seja própria ou na célula de outro gatilho, de uma saída ou de um ator.
+
 ---
 
 ## Fluxo: um turno de batalha
@@ -406,6 +427,7 @@ Conteúdo é ScriptableObject em `Assets/_Game/Data/`, nunca código. Se você e
 | `TerrainCostTableSO` | `Dictionary<TerrainId, byte>` |
 | `AbilitySO` | `Inversion` e `Listening` (ramificação Damaris) |
 | `QuoteItemSO` | `displayName`, `effectDescription`, `coherenceDelta`, `audienceDelta`, `uses` |
+| `DialogueLibrarySO` | `Dictionary<string, DialogueSpeaker>` (nome e retrato) e `Dictionary<string, DialogueEntry>` (linhas com condições e efeitos) por id |
 
 Tabelas por id são `Dictionary` serializado com `[SerializeField]`, nativo no 6.6 — nada de listas paralelas. O analyzer de serialização (UAC1xxx) roda na compilação e não pode emitir aviso.
 
@@ -416,7 +438,7 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 **Mapas.** O layout de cada mapa fica em `Assets/_Game/Data/Maps/<id>.json` e é lido por `MapLayout`.
 - **Chão e blocos:** `floor` e `blocks` são linhas de texto, e `floor[y][x]` é a célula `(x, y)`. A linha 0 é a borda da frente, a mais próxima da câmera.
 - **Legendas:** `floorLegend` e `blockLegend` levam cada símbolo ao nome do tile, e `-` marca a célula sem bloco.
-- **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador.
+- **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador. O campo opcional `dialogue` dá ao NPC um id de `dialogues.json`. O jogador não pode ter um, e um teste garante que todo id citado nos mapas existe.
 - **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido e ator em bloco, em água ou em célula repetida.
 - **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2. Tem a estrada de terra que vem do Cerâmico, com a herma na entrada, o mercado de pedra onde Thrasybios junta a plateia e a praça em xadrez com borda de meandro e fonte. Tem também a stoa de colunas dóricas com degraus e as casas de tijolo com oliveiras. Um teste garante que toda célula andável é alcançável a partir da Kleia.
 - **Cerâmico:** `kerameikos.json` gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina do beat I.1.

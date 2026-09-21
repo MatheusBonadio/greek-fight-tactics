@@ -513,7 +513,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Sem isso nenhuma cena da história existe: falar com NPC, disparar cena e gravar flags.\n\n**Depende de:** [UI-03], [BTL-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Confirm diante de um NPC adjacente abre o `DialogueBoxView` na exploração\n- [ ] Diálogos como dado: `Assets/_Game/Data/Source/dialogues.json` gerado como SO, texto do jogador só nos dados\n- [ ] `GameStateMachine` entra em `Dialogue` e bloqueia movimento e aggro enquanto a caixa está aberta\n- [ ] Condições e efeitos por fala lendo e gravando flags da história no save, com saves antigos válidos\n- [ ] Gatilho por célula: pisar numa célula marcada no JSON do mapa dispara a cena uma única vez\n- [ ] Teste EditMode do roteiro (condições e efeitos) e PlayMode de uma conversa completa"
+      "description": "Sem isso nenhuma cena da história existe: falar com NPC, disparar cena e gravar flags.\n\n**Depende de:** [UI-03], [BTL-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Confirm diante de um NPC adjacente abre o `DialogueBoxView` na exploração\n- [x] Diálogos como dado: `Assets/_Game/Data/Source/dialogues.json` gerado como SO, texto do jogador só nos dados\n- [x] `GameStateMachine` entra em `Dialogue` e bloqueia movimento e aggro enquanto a caixa está aberta\n- [x] Condições e efeitos por fala lendo e gravando flags da história no save, com saves antigos válidos\n- [x] Gatilho por célula: pisar numa célula marcada no JSON do mapa dispara a cena uma única vez\n- [x] Teste EditMode do roteiro (condições e efeitos) e PlayMode de uma conversa completa"
     },
     {
       "title": "[AT1-01] Mapa da Oficina (Cerâmico)",

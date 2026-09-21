@@ -71,6 +71,24 @@ namespace Game.Tests.EditMode.Core
             Assert.IsFalse(machine.TryCloseOverlay());
         }
 
+        [Test]
+        public void ExplorationDialogue_FreezesMovementAndAggroThenAutosavesOnClose()
+        {
+            var machine = new GameStateMachine();
+            var closedFrom = GameMode.Exploration;
+            machine.Changed += (from, _) => closedFrom = from;
+
+            Assert.IsTrue(machine.TryOpenOverlay(GameMode.Dialogue));
+            Assert.IsFalse(machine.IsExplorationInputEnabled);
+            Assert.IsFalse(machine.TryTransition(GameMode.BattleIntro), "no battle starts while the dialogue box is open");
+            Assert.IsFalse(machine.TryOpenOverlay(GameMode.Dialogue));
+
+            Assert.IsTrue(machine.TryCloseOverlay());
+            Assert.AreEqual(GameMode.Exploration, machine.Mode);
+            Assert.IsTrue(machine.IsExplorationInputEnabled);
+            Assert.IsTrue(AutosavePolicy.ShouldSave(closedFrom, machine.Mode));
+        }
+
         [TestCase(3, 0, true)]
         [TestCase(2, 1, true)]
         [TestCase(2, 2, false)]

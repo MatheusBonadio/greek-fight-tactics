@@ -60,7 +60,7 @@ namespace Game.UI
         private bool waitingForAggroExit;
         private PrewarmedArgumentSource preparedArguments;
 
-        public GameStateMachine StateMachine { get; } = new();
+        public GameStateMachine StateMachine => sandbox.StateMachine;
 
         public BattleFlowPhase Phase { get; private set; } = BattleFlowPhase.Exploring;
 
@@ -245,11 +245,6 @@ namespace Game.UI
         {
             services = FindAnyObjectByType<GameServices>();
             pause = FindAnyObjectByType<PauseMenuController>();
-            if (pause)
-            {
-                pause.StateMachine = StateMachine;
-            }
-
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
             cancelAction = sandbox.Controls.FindAction(BattleMenuInput.CancelAction, true);
             if (hud)
@@ -320,7 +315,7 @@ namespace Game.UI
 
         private void TryTriggerBattle()
         {
-            if (OpponentDefeated || sandbox.Player?.Walker == null || opponentActor?.Walker == null || (pause && pause.IsPaused))
+            if (OpponentDefeated || sandbox.Player?.Walker == null || opponentActor?.Walker == null || (pause && pause.IsPaused) || StateMachine.Mode != GameMode.Exploration)
             {
                 return;
             }

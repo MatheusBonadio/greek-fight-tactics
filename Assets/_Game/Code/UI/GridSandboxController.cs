@@ -80,6 +80,10 @@ namespace Game.UI
 
         public ActorView Player => player;
 
+        public GameStateMachine StateMachine { get; } = new();
+
+        public System.Func<Coord, bool> Interaction { get; set; }
+
         public bool ExplorationInputEnabled { get; set; } = true;
 
         public bool CursorInputEnabled { get; set; }
@@ -384,7 +388,13 @@ namespace Game.UI
         private void Start()
         {
             var pause = FindAnyObjectByType<PauseMenuController>();
-            if (pause && session != null)
+            if (!pause)
+            {
+                return;
+            }
+
+            pause.StateMachine = StateMachine;
+            if (session != null)
             {
                 pause.SaveProvider = CaptureSave;
             }
@@ -403,17 +413,18 @@ namespace Game.UI
                 DebugPanelVisible = !DebugPanelVisible;
             }
 
-            if (ExplorationInputEnabled || CursorInputEnabled)
+            var explorationInput = ExplorationInputEnabled && StateMachine.IsExplorationInputEnabled;
+            if (explorationInput || CursorInputEnabled)
             {
                 ReadPointer();
                 ReadNavigation();
             }
 
-            if (ExplorationInputEnabled)
+            if (explorationInput)
             {
                 if (confirmAction.WasPressedThisFrame())
                 {
-                    MovePlayerToCursor();
+                    ConfirmCursor();
                 }
 
                 if (cancelAction.WasPressedThisFrame())
@@ -493,7 +504,13 @@ namespace Game.UI
             navigateHeld = true;
         }
 
-        private void MovePlayerToCursor() => TryMovePlayerTo(cursor.Cell);
+        public void ConfirmCursor()
+        {
+            if (Interaction == null || !Interaction(cursor.Cell))
+            {
+                TryMovePlayerTo(cursor.Cell);
+            }
+        }
 
         private void RevealInitialArea(GridModel model)
         {

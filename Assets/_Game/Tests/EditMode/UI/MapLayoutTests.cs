@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Game.Core;
 using Game.EditorTools;
 using Game.UI;
 using NUnit.Framework;
@@ -137,6 +138,51 @@ namespace Game.Tests.EditMode.UI
             var shared = Tiny();
             shared.Actors.Add(new MapActor { Character = "citizen", X = 0, Y = 0 });
             Assert.Throws<InvalidOperationException>(() => shared.Validate());
+        }
+
+        [Test]
+        public void Validate_AcceptsTalkingNpcsAndTriggersThatShareTheirOnceFlag()
+        {
+            var map = Tiny();
+            map.Actors.Add(new MapActor { Character = "citizen", X = 1, Y = 1, Dialogue = "chat" });
+            map.Triggers.Add(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = "saw_scene" });
+            map.Triggers.Add(new MapTrigger { X = 0, Y = 1, Dialogue = "scene", Flag = "saw_scene" });
+
+            Assert.DoesNotThrow(() => map.Validate());
+            CollectionAssert.AreEquivalent(new[] { "chat", "scene" }, map.DialogueIds);
+        }
+
+        [Test]
+        public void Validate_RejectsTriggersThatCannotFireOnceOnAFreeCell()
+        {
+            Assert.Throws<InvalidOperationException>(() => WithTrigger(new MapTrigger { X = 2, Y = 0, Dialogue = "scene", Flag = "saw_scene" }).Validate(), "outside the map");
+            Assert.Throws<InvalidOperationException>(() => WithTrigger(new MapTrigger { X = 0, Y = 0, Dialogue = "scene", Flag = "saw_scene" }).Validate(), "on the player");
+            Assert.Throws<InvalidOperationException>(() => WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = " ", Flag = "saw_scene" }).Validate(), "no dialogue");
+            Assert.Throws<InvalidOperationException>(() => WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = "Saw Scene" }).Validate(), "bad flag");
+            Assert.Throws<InvalidOperationException>(() => WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = SaveFlags.Act }).Validate(), "save field instead of a story flag");
+
+            var blocked = WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = "saw_scene" });
+            blocked.Blocks[0] = "-C";
+            Assert.Throws<InvalidOperationException>(() => blocked.Validate(), "on a block");
+
+            var onExit = WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = "saw_scene" });
+            onExit.Exits.Add(new MapExit { X = 1, Y = 0, Location = "agora" });
+            Assert.Throws<InvalidOperationException>(() => onExit.Validate(), "on an exit");
+
+            var twice = WithTrigger(new MapTrigger { X = 1, Y = 0, Dialogue = "scene", Flag = "saw_scene" });
+            twice.Triggers.Add(new MapTrigger { X = 1, Y = 0, Dialogue = "other", Flag = "saw_other" });
+            Assert.Throws<InvalidOperationException>(() => twice.Validate(), "two triggers on one cell");
+
+            var talkingPlayer = Tiny();
+            talkingPlayer.Actors[0].Dialogue = "monologue";
+            Assert.Throws<InvalidOperationException>(() => talkingPlayer.Validate(), "the player talks by walking up to others");
+        }
+
+        private static MapLayout WithTrigger(MapTrigger trigger)
+        {
+            var map = Tiny();
+            map.Triggers.Add(trigger);
+            return map;
         }
 
         private static MapLayout Tiny() => new()
