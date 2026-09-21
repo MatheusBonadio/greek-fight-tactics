@@ -19,12 +19,15 @@ namespace Game.UI
         [SerializeField] private string mainMenuScene = DefaultMainMenuScene;
 
         private float resumeTimeScale = 1f;
+        private int resumedFrame = -1;
 
         public GameStateMachine StateMachine { get; set; }
 
         public Func<SaveData> SaveProvider { get; set; }
 
         public bool IsPaused { get; private set; }
+
+        public bool CapturesInput => IsPaused || resumedFrame == Time.frameCount;
 
         public GameServices Services => services;
 
@@ -93,6 +96,7 @@ namespace Game.UI
 
             StateMachine?.TryCloseOverlay();
             IsPaused = false;
+            resumedFrame = Time.frameCount;
             Time.timeScale = resumeTimeScale;
             panel.SetActive(false);
             input.Panel = this;

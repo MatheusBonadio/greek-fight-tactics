@@ -48,6 +48,7 @@ namespace Game.UI
         private InputAction navigateAction;
         private InputAction confirmAction;
         private InputAction cancelAction;
+        private PauseMenuController pause;
         private Vector2 lastPointer;
         private bool navigateHeld;
         private Vector3Int? paintedSelection;
@@ -89,6 +90,11 @@ namespace Game.UI
         public bool CursorInputEnabled { get; set; }
 
         public bool DebugPanelVisible { get; set; }
+
+        public bool IsOverDebugPanel(Vector2 screenPoint) =>
+            DebugPanelVisible && DebugPanelArea.Contains(new Vector2(screenPoint.x, Screen.height - screenPoint.y));
+
+        private static Rect DebugPanelArea => new(HudMargin, HudMargin, HudWidth, HudHeight);
 
         public bool GizmosVisible
         {
@@ -397,7 +403,7 @@ namespace Game.UI
 
         private void Start()
         {
-            var pause = FindAnyObjectByType<PauseMenuController>();
+            pause = FindAnyObjectByType<PauseMenuController>();
             if (!pause)
             {
                 return;
@@ -423,8 +429,13 @@ namespace Game.UI
                 DebugPanelVisible = !DebugPanelVisible;
             }
 
-            var explorationInput = ExplorationInputEnabled && StateMachine.IsExplorationInputEnabled;
-            if (explorationInput || CursorInputEnabled)
+            var menuCapturesInput = pause && pause.CapturesInput;
+            var explorationInput = ExplorationInputEnabled && StateMachine.IsExplorationInputEnabled && !menuCapturesInput;
+            if (menuCapturesInput)
+            {
+                SkipCursorInput();
+            }
+            else if (explorationInput || CursorInputEnabled)
             {
                 ReadPointer();
                 ReadNavigation();
@@ -432,7 +443,7 @@ namespace Game.UI
 
             if (explorationInput)
             {
-                if (confirmAction.WasPressedThisFrame())
+                if (ConfirmPressedOutsideDebugPanel())
                 {
                     ConfirmCursor();
                 }
@@ -461,7 +472,7 @@ namespace Game.UI
             }
 
             var cell = cursor.Cell;
-            GUILayout.BeginArea(new Rect(HudMargin, HudMargin, HudWidth, HudHeight), GUI.skin.box);
+            GUILayout.BeginArea(DebugPanelArea, GUI.skin.box);
             GUILayout.Label(DescribeCell(cell));
 
             if (GUILayout.Button("Spawn test actor"))
@@ -493,8 +504,30 @@ namespace Game.UI
             }
 
             lastPointer = screen;
+            if (IsOverDebugPanel(screen))
+            {
+                return;
+            }
+
             var world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, -camera.transform.position.z));
             cursor.TryHover(world, Vector2.zero);
+        }
+
+        private void SkipCursorInput()
+        {
+            lastPointer = pointAction.ReadValue<Vector2>();
+            navigateHeld = navigateAction.ReadValue<Vector2>().magnitude >= NavigateThreshold;
+        }
+
+        private bool ConfirmPressedOutsideDebugPanel()
+        {
+            if (!confirmAction.WasPressedThisFrame())
+            {
+                return false;
+            }
+
+            var mouse = Mouse.current;
+            return mouse == null || !mouse.leftButton.wasPressedThisFrame || !IsOverDebugPanel(mouse.position.ReadValue());
         }
 
         private void ReadNavigation()

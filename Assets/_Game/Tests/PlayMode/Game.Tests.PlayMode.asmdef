@@ -11,7 +11,9 @@
     "Game.Net",
     "Game.UI",
     "Game.DevCommands",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.InputSystem",
+    "Unity.InputSystem.TestFramework"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
