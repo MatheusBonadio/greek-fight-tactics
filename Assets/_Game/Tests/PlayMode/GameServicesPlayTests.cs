@@ -50,7 +50,7 @@ namespace Game.Tests.PlayMode
                     Directory.Delete(directory, true);
                 }
             }
-            catch (IOException)
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
             }
         }
