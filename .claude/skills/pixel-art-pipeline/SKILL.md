@@ -258,8 +258,10 @@ Os testes dos scripts rodam com `python -m unittest discover -s tools/art`. A ta
 A configuração é manual e feita uma vez por máquina, porque o Aseprite guarda a paleta padrão na pasta do usuário, fora do repositório:
 
 1. No menu de opções da paleta (botão ☰ acima das cores), use *Load Palette* e escolha `art/palette/snes.gpl`.
-2. No mesmo menu, use *Save Palette as Default*. Para conferir, *File → New* deve abrir com as 32 cores da `snes.gpl`.
+2. No mesmo menu, use *Save Palette as Default*. Para conferir, *File → New* deve abrir com as 33 cores da `snes.gpl`.
 3. Para converter um sprite à mão, use *Sprite → Color Mode → More Options…* com modo *Indexed* e dithering *None*.
+
+Esses passos ainda não foram executados num Aseprite de verdade: os nomes de menu vêm da documentação dele. Por isso o critério #1 do [ART-02] continua aberto até alguém fazer a configuração na própria máquina e conferir o *File → New*. Se algum rótulo estiver diferente, corrija aqui.
 
 O Aseprite serve para retoque. A conversão em lote é do `quantize.py`, e o que vale é o que passa no `verify.py`.
 
