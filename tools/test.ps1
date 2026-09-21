@@ -2,7 +2,9 @@ param(
     [ValidateSet("EditMode", "PlayMode", "All")]
     [string]$Mode = "All",
     [string]$OutputDirectory = "artifacts",
-    [string]$Filter = ""
+    [string]$Filter = "",
+    [ValidateSet("json", "github", "human", "ndjson")]
+    [string]$Format = "json"
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,7 +38,7 @@ function Invoke-TestMode {
     }
 
     $arguments = @(
-        "--non-interactive", "--format", "json",
+        "--non-interactive", "--format", $Format,
         "test", ".",
         "--mode", $TestMode,
         "--output", $resultsPath

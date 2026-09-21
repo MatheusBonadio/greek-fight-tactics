@@ -2,7 +2,9 @@ param(
     [ValidateSet("Windows Development", "Windows Release", "Web")]
     [string]$BuildProfile = "Windows Development",
     [string]$OutputPath = "",
-    [switch]$AllowDirty
+    [switch]$AllowDirty,
+    [ValidateSet("json", "github", "human", "ndjson")]
+    [string]$Format = "json"
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,7 +25,7 @@ try {
     }
 
     $arguments = @(
-        "--non-interactive", "--format", "json",
+        "--non-interactive", "--format", $Format,
         "build", ".",
         "--profile", $BuildProfile,
         "--output-path", $OutputPath
