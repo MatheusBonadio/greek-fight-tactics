@@ -23,6 +23,20 @@ namespace Game.UI
 
         public bool Unlock(string id) => id != null && catalogOrder.Contains(id) && unlocked.Add(id);
 
+        public void UnlockAll(IEnumerable<string> ids)
+        {
+            foreach (var id in ids ?? Enumerable.Empty<string>())
+            {
+                Unlock(id);
+            }
+        }
+
+        public void Restore(IEnumerable<string> ids)
+        {
+            unlocked.Clear();
+            UnlockAll(ids);
+        }
+
         public static int? WeakPremiseToHighlight(Argument? argument, bool assistedMode) =>
             assistedMode && argument.HasValue && argument.Value.Premises.Count > 0 ? argument.Value.WeakPremise : (int?)null;
     }

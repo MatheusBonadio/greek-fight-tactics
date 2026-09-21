@@ -34,7 +34,7 @@ namespace Game.EditorTools
 
         public static void BuildAll()
         {
-            SavePrefab(PauseMenuPrefabPath, root => BuildPauseRoot(root, Load<UiTextSO>(DataTools.UiTextPath), Load<InputActionAsset>(SandboxTools.ControlsPath)));
+            SavePrefab(PauseMenuPrefabPath, root => BuildPauseRoot(root, Load<UiTextSO>(DataTools.UiTextPath), Load<FallacyCatalogSO>(DataTools.CatalogPath), Load<InputActionAsset>(SandboxTools.ControlsPath)));
             BuildMainMenuScene();
             ApplyBuildScenes();
             AssetDatabase.SaveAssets();
@@ -100,7 +100,7 @@ namespace Game.EditorTools
             }
         }
 
-        private static void BuildPauseRoot(GameObject root, UiTextSO uiText, InputActionAsset controls)
+        private static void BuildPauseRoot(GameObject root, UiTextSO uiText, FallacyCatalogSO catalog, InputActionAsset controls)
         {
             ConfigureCanvas(root).sortingOrder = 10;
             var panel = CreateImage(root.transform, "Panel", null, Center, Vector2.zero, new Vector2(BattleHudTools.CanvasReference, BattleHudTools.CanvasReference), DimColor);
@@ -110,11 +110,20 @@ namespace Game.EditorTools
             var menu = CreateListPanel(panel.transform, "PauseMenu", Center, Vector2.zero, PauseRows, uiText, title, SystemMenus.PauseTitleKey);
             var options = CreateOptionsPanel(panel.transform, uiText);
             var slots = CreateSlotsPanel(panel.transform, uiText);
+            var compendium = CreateCompendiumPanel(panel.transform, uiText, catalog);
 
             var input = root.AddComponent<SystemMenuInput>();
             input.Configure(controls);
-            root.AddComponent<PauseMenuController>().Configure(null, input, panel.gameObject, menu, options, slots, null, PauseMenuController.DefaultMainMenuScene);
+            root.AddComponent<PauseMenuController>().Configure(null, input, panel.gameObject, menu, options, slots, compendium, PauseMenuController.DefaultMainMenuScene);
             panel.gameObject.SetActive(false);
+        }
+
+        private static CompendiumView CreateCompendiumPanel(Transform parent, UiTextSO uiText, FallacyCatalogSO catalog)
+        {
+            var host = CreateRect(parent, "Compendium", Center, Vector2.zero, new Vector2(BattleHudTools.CanvasReference, BattleHudTools.CanvasReference)).gameObject;
+            var view = BattleHudTools.CreateCompendiumView(host, uiText, catalog);
+            host.SetActive(false);
+            return view;
         }
 
         private static MenuListView CreateListPanel(Transform parent, string name, Vector2 anchor, Vector2 position, int rowCount, UiTextSO uiText, TMP_Text title, string titleKey)

@@ -110,7 +110,15 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(pause.Panel.activeSelf);
             Assert.AreSame(pause.PauseMenu, pause.Input.Panel);
             Assert.IsTrue(pause.PauseMenu.Model.Entries[SaveRow].Enabled);
-            Assert.IsFalse(pause.PauseMenu.Model.Entries[CompendiumRow].Enabled);
+            Assert.IsTrue(pause.PauseMenu.Model.Entries[CompendiumRow].Enabled);
+
+            pause.PauseMenu.HandlePoint(CompendiumRow);
+            pause.PauseMenu.HandleConfirm();
+            Assert.AreSame(pause.Compendium, pause.Input.Panel);
+            Assert.AreSame(pause.Services.Compendium, pause.Compendium.Compendium);
+            Assert.IsNull(pause.Compendium.SelectedId, "a fresh save has nothing discovered yet");
+            pause.Compendium.HandleCancel();
+            Assert.AreSame(pause.PauseMenu, pause.Input.Panel);
 
             pause.PauseMenu.HandlePoint(SaveRow);
             pause.PauseMenu.HandleConfirm();

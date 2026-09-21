@@ -83,7 +83,26 @@ namespace Game.Tests.EditMode.Net
             Assert.IsEmpty(old.FogByLocation);
         }
 
+        [Test]
+        public void Json_RoundTripsTheCompendium_AndOldSavesHaveNone()
+        {
+            var original = BuildSave();
+            original.Compendium.Add("straw_man");
+            original.Compendium.Add("ad_hominem");
+
+            var json = SaveJson.Serialize(original);
+            CollectionAssert.AreEqual(new[] { "ad_hominem", "straw_man" }, JObject.Parse(json)["compendium"].Values<string>());
+            Assert.IsTrue(SaveJson.TryDeserialize(json, out var restored, out var error), error);
+            CollectionAssert.AreEquivalent(new[] { "ad_hominem", "straw_man" }, restored.Compendium);
+
+            StringAssert.DoesNotContain("compendium", SaveJson.Serialize(BuildSave()));
+            Assert.IsTrue(SaveJson.TryDeserialize("{\"actFlag\": 1}", out var old, out error), error);
+            Assert.IsEmpty(old.Compendium);
+        }
+
         [TestCase("not json")]
+        [TestCase("{\"actFlag\": 1, \"compendium\": [\"ad_hominem\", \" \"]}")]
+        [TestCase("{\"actFlag\": 1, \"compendium\": \"ad_hominem\"}")]
         [TestCase("{\"actFlag\": 1, \"fogByLocation\": {\"agora\": \"***\"}}")]
         [TestCase("{\"actFlag\": 7}")]
         [TestCase("{\"actFlag\": 1, \"fogBitmask\": \"***\"}")]

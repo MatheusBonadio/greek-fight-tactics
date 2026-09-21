@@ -58,6 +58,30 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void PausePrefab_CarriesAHiddenCompendiumPanelWiredToTheCatalog()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SystemMenuTools.PauseMenuPrefabPath);
+            Assert.IsNotNull(prefab, $"run SystemMenuTools.BuildMenus to create {SystemMenuTools.PauseMenuPrefabPath}");
+            host = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            var pause = host.GetComponent<PauseMenuController>();
+
+            Assert.IsNotNull(pause.Compendium, "the pause menu must carry its compendium panel");
+            Assert.IsFalse(pause.Compendium.gameObject.activeSelf);
+            Assert.AreEqual(BattleHudTools.CompendiumRows, pause.Compendium.Rows.Count);
+            Assert.IsNull(pause.Compendium.GetComponent<CompendiumInput>(), "the pause menu input already drives the panel");
+            Assert.IsTrue(pause.Compendium.Rows.All(row => row.GetComponent<PanelRowPointer>() != null));
+
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var compendium = new FallacyCompendium(catalog.All.Select(fallacy => fallacy.Id));
+            var first = catalog.All.First();
+            compendium.Unlock(first.Id);
+            pause.BindCompendium(pause.Compendium, compendium);
+
+            Assert.AreEqual(first.DisplayName, pause.Compendium.Rows[0].text);
+            Assert.AreEqual(first.DisplayName, pause.Compendium.Title.text);
+        }
+
+        [Test]
         public void Options_AdjustEveryRowAndBackCloses()
         {
             var settings = new GameSettings();

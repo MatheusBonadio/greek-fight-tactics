@@ -10,7 +10,8 @@
     "Game.Content",
     "Game.Net",
     "Game.UI",
-    "Game.DevCommands"
+    "Game.DevCommands",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

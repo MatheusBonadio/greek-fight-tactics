@@ -493,7 +493,7 @@
         "UI / UX",
         "Arte"
       ],
-      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [ ] Compêndio consultável com as 20 falácias desbloqueadas\n- [x] Dica opcional (modo assistido) destacando a premissa fraca"
+      "description": "**Depende de:** [DAT-02] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Ícone 16x16 sobre a cabeça do oponente quando a falácia é revelada\n- [x] Compêndio consultável com as 20 falácias desbloqueadas\n- [x] Dica opcional (modo assistido) destacando a premissa fraca"
     },
     {
       "title": "[UI-05] Menus de sistema",
@@ -654,7 +654,7 @@
         "Fase 1 · Entrega acadêmica",
         "UI / UX"
       ],
-      "description": "Fecha o item do compêndio do [UI-04]: hoje nada desbloqueia falácia fora dos testes.\n\n**Depende de:** [UI-05], [BCK-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] REFUTAR certo chama `FallacyCompendium.Unlock` com a falácia revelada\n- [ ] Falácias desbloqueadas gravadas no save local e no Firestore, com saves antigos válidos\n- [ ] `PauseMenuController.BindCompendium` chamado na montagem da cena\n- [ ] Teste PlayMode: refutar e abrir o compêndio pela pausa mostra a falácia"
+      "description": "Fecha o item do compêndio do [UI-04]: hoje nada desbloqueia falácia fora dos testes.\n\n**Depende de:** [UI-05], [BCK-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] REFUTAR certo chama `FallacyCompendium.Unlock` com a falácia revelada\n- [x] Falácias desbloqueadas gravadas no save local e no Firestore, com saves antigos válidos\n- [x] `PauseMenuController.BindCompendium` chamado na montagem da cena\n- [x] Teste PlayMode: refutar e abrir o compêndio pela pausa mostra a falácia"
     },
     {
       "title": "[AT1-06] A cobrança e a pressão sobre Aristeu",

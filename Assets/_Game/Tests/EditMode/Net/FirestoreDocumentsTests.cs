@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using Game.Core;
 using Game.Net;
 using Newtonsoft.Json.Linq;
@@ -43,6 +44,23 @@ namespace Game.Tests.EditMode.Net
             Assert.AreEqual(2, save.Inventory["heraclitus"]);
             Assert.AreEqual(DuelVictory.Maieutics, save.Duels["batilo"].Victory);
             Assert.AreEqual("yes", save.Flags["met_menexeno"]);
+        }
+
+        [Test]
+        public void SaveCommit_WritesTheCompendiumAsAStringArrayThatReadsBack()
+        {
+            var original = SampleSave();
+            original.Compendium.Add("straw_man");
+            original.Compendium.Add("ad_hominem");
+
+            var fields = FirestoreDocuments.SaveCommit(DocumentsRoot, "uid-1", original)["writes"][0]["update"]["fields"];
+            var values = fields["compendium"]["arrayValue"]["values"];
+            CollectionAssert.AreEqual(new[] { "ad_hominem", "straw_man" }, values.Select(value => (string)value["stringValue"]));
+
+            Assert.IsTrue(FirestoreDocuments.TryReadSave(FirestoreSaveDocument(original), out var save, out var error), error);
+            CollectionAssert.AreEquivalent(new[] { "ad_hominem", "straw_man" }, save.Compendium);
+            Assert.IsTrue(FirestoreDocuments.TryReadSave(FirestoreSaveDocument(SampleSave()), out var legacy, out error), error);
+            Assert.IsEmpty(legacy.Compendium);
         }
 
         [TestCase("{}")]

@@ -33,7 +33,10 @@ namespace Game.Net
                 Flags = new Dictionary<string, string>(save.Flags),
                 FogByLocation = save.FogByLocation.Count == 0
                     ? null
-                    : save.FogByLocation.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => Convert.ToBase64String(pair.Value ?? Array.Empty<byte>()))
+                    : save.FogByLocation.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => Convert.ToBase64String(pair.Value ?? Array.Empty<byte>())),
+                Compendium = save.Compendium.Count == 0
+                    ? null
+                    : save.Compendium.OrderBy(id => id, StringComparer.Ordinal).ToList()
             };
 
             return JsonConvert.SerializeObject(document, indented ? Formatting.Indented : Formatting.None, Settings);
@@ -129,6 +132,18 @@ namespace Game.Net
                 save.FogByLocation[pair.Key] = locationFog;
             }
 
+            foreach (var fallacyId in document.Compendium ?? new List<string>())
+            {
+                if (string.IsNullOrWhiteSpace(fallacyId))
+                {
+                    error = "compendium has a blank fallacy id";
+                    save = null;
+                    return false;
+                }
+
+                save.Compendium.Add(fallacyId);
+            }
+
             error = null;
             return true;
         }
@@ -166,6 +181,7 @@ namespace Game.Net
             [JsonProperty("duels")] public Dictionary<string, DuelDocument> Duels { get; set; }
             [JsonProperty("flags")] public Dictionary<string, string> Flags { get; set; }
             [JsonProperty("fogByLocation")] public Dictionary<string, string> FogByLocation { get; set; }
+            [JsonProperty("compendium")] public List<string> Compendium { get; set; }
         }
 
         private sealed class PositionDocument

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Game.Core;
 using Game.Grid;
 
@@ -6,7 +8,7 @@ namespace Game.UI
 {
     public static class ExplorationSaveMapper
     {
-        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp, string locationId, long playtimeSeconds)
+        public static SaveData ToSave(ExplorationSnapshot snapshot, SaveData previous, long timestamp, string locationId, long playtimeSeconds, IEnumerable<string> unlockedFallacies = null)
         {
             var save = new SaveData
             {
@@ -30,6 +32,7 @@ namespace Game.UI
                 save.FogByLocation[save.Location] = save.FogBitmask;
             }
 
+            save.Compendium.UnionWith((unlockedFallacies ?? Enumerable.Empty<string>()).Where(id => !string.IsNullOrWhiteSpace(id)));
             return save;
         }
 
@@ -59,6 +62,8 @@ namespace Game.UI
             {
                 save.Flags[pair.Key] = pair.Value;
             }
+
+            save.Compendium.UnionWith(previous.Compendium);
         }
     }
 }

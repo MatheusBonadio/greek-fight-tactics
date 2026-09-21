@@ -84,20 +84,14 @@ namespace Game.EditorTools
             root.AddComponent<BattleHud>().Configure(canvas, playerBar, opponentBar, audience, menu, dialogue);
         }
 
-        private static void BuildCompendiumRoot(GameObject root, UiTextSO uiText, FallacyCatalogSO catalog, InputActionAsset controls)
+        public static CompendiumView CreateCompendiumView(GameObject host, UiTextSO uiText, FallacyCatalogSO catalog)
         {
-            ConfigureCanvas(root);
-            var panel = CreateImage(root.transform, "Panel", null, Center, Vector2.zero, new Vector2(CanvasReference, CanvasReference), TrackColor);
+            var view = host.AddComponent<CompendiumView>();
+            var panel = CreateImage(host.transform, "Panel", null, Center, Vector2.zero, new Vector2(CanvasReference, CanvasReference), TrackColor);
 
             var header = CreateLabel(panel.transform, "Header", TopLeft, new Vector2(Margin, -4f), new Vector2(CanvasReference - 2 * Margin, RowHeight), TextAlignmentOptions.MidlineLeft);
             header.color = AccentColor;
-            var rows = new TMP_Text[CompendiumRows];
-            for (var index = 0; index < CompendiumRows; index++)
-            {
-                rows[index] = CreateLabel(panel.transform, $"Entry{index}", TopLeft, new Vector2(RowInset, -4f - (index + 1) * RowHeight), new Vector2(92f, RowHeight), TextAlignmentOptions.MidlineLeft);
-            }
-
-            var cursor = CreateImage(panel.transform, "Cursor", UiSprite("cursor"), TopLeft, Vector2.zero, new Vector2(8f, 8f), Color.white).rectTransform;
+            var (rows, cursor) = CreatePanelRows(panel.transform, CompendiumRows, new Vector2(RowInset, -4f - RowHeight), 92f, view);
             var icon = CreateImage(panel.transform, "Icon", null, TopLeft, new Vector2(116f, -4f - RowHeight), new Vector2(16f, 16f), Color.white);
             var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(136f, -4f - RowHeight), new Vector2(80f, 16f), TextAlignmentOptions.MidlineLeft);
             title.color = AccentColor;
@@ -106,8 +100,14 @@ namespace Game.EditorTools
             hint.color = AccentColor;
             var counter = CreateLabel(panel.transform, "Counter", BottomLeft, new Vector2(Margin, 4f), new Vector2(100f, RowHeight), TextAlignmentOptions.MidlineLeft);
 
-            var view = root.AddComponent<CompendiumView>();
             view.Configure(header, rows, cursor, title, description, hint, counter, icon, catalog, uiText);
+            return view;
+        }
+
+        private static void BuildCompendiumRoot(GameObject root, UiTextSO uiText, FallacyCatalogSO catalog, InputActionAsset controls)
+        {
+            ConfigureCanvas(root);
+            var view = CreateCompendiumView(root, uiText, catalog);
             root.AddComponent<CompendiumInput>().Configure(controls, view);
         }
 

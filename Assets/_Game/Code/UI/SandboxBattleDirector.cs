@@ -431,6 +431,10 @@ namespace Game.UI
             if (outcome.Action == ActionId.Refute && outcome.Hit && catalog.TryGet(choice.FallacyId, out var fallacy))
             {
                 reveal.Reveal(fallacy);
+                if (services)
+                {
+                    services.Compendium.Unlock(fallacy.Id);
+                }
             }
 
             AfterOutcome(sandbox.Player, outcome, text.Get(BattleText.PlayerNameKey));

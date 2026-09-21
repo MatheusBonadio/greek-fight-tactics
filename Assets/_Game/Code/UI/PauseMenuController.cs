@@ -38,6 +38,8 @@ namespace Game.UI
 
         public SaveSlotsView Slots => slots;
 
+        public CompendiumView Compendium => compendium;
+
         public bool CanSave => SaveProvider != null && services && services.IsBooted;
 
         public void Configure(GameServices gameServices, SystemMenuInput menuInput, GameObject pausePanel, MenuListView menu, OptionsView optionsView, SaveSlotsView slotsView, CompendiumView compendiumView, string sceneName)
@@ -159,6 +161,10 @@ namespace Game.UI
         {
             panel.SetActive(false);
             input.Panel = this;
+            if (compendium && services)
+            {
+                BindCompendium(compendium, services.Compendium);
+            }
         }
 
         private void ShowPauseList()

@@ -340,7 +340,8 @@ namespace Game.UI
             var services = FindAnyObjectByType<GameServices>();
             var previous = services && services.TryLoadActiveSave(out var existing) ? existing : null;
             var playtime = services ? services.PlaytimeSeconds : 0;
-            var save = ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime);
+            var unlockedFallacies = services ? services.Compendium.UnlockedIds : null;
+            var save = ExplorationSaveMapper.ToSave(session.Capture(), previous, System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), LocationId, playtime, unlockedFallacies);
             if (!string.IsNullOrEmpty(departure.DepartureLocationId) && departure.DepartureLocationId != LocationId && departure.DepartureFog != null)
             {
                 save.FogByLocation[departure.DepartureLocationId] = departure.DepartureFog;

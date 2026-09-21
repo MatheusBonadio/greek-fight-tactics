@@ -144,6 +144,22 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void Compendium_RestoresTheSavedIdsAndMergesWithoutForgetting()
+        {
+            var compendium = new FallacyCompendium(new[] { "ad_hominem", "straw_man", "liar" });
+            compendium.Unlock("liar");
+
+            compendium.Restore(new[] { "straw_man", "not_in_catalog" });
+            CollectionAssert.AreEqual(new[] { "straw_man" }, compendium.UnlockedIds);
+
+            compendium.UnlockAll(new[] { "ad_hominem", null });
+            CollectionAssert.AreEqual(new[] { "ad_hominem", "straw_man" }, compendium.UnlockedIds);
+
+            compendium.Restore(null);
+            Assert.IsEmpty(compendium.UnlockedIds);
+        }
+
+        [Test]
         public void AssistedMode_HighlightsTheWeakPremiseOnlyWhenEnabled()
         {
             var argument = new Argument("fala qualquer", "ad_hominem", new[] { "a", "b", "c" }, 2, ArgumentTones.Mocking);

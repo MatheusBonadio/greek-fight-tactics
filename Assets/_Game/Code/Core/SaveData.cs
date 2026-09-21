@@ -29,6 +29,8 @@ namespace Game.Core
 
         public Dictionary<string, byte[]> FogByLocation { get; } = new(StringComparer.Ordinal);
 
+        public HashSet<string> Compendium { get; } = new(StringComparer.Ordinal);
+
         public bool TryGetFog(string locationId, out byte[] bitmask)
         {
             if (!string.IsNullOrEmpty(locationId) && FogByLocation.TryGetValue(locationId, out bitmask))

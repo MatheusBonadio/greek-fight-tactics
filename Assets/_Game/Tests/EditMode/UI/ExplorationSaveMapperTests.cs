@@ -49,6 +49,19 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void ToSave_KeepsTheSavedCompendiumAndAddsTheFallaciesUnlockedInThisSession()
+        {
+            var previous = new SaveData();
+            previous.Compendium.Add("straw_man");
+            var snapshot = new ExplorationSnapshot(new Coord(0, 1), Facing.NorthEast, new byte[] { 1 });
+
+            var save = ExplorationSaveMapper.ToSave(snapshot, previous, 5, Location, 0, new[] { "ad_hominem", "straw_man", "" });
+
+            CollectionAssert.AreEquivalent(new[] { "ad_hominem", "straw_man" }, save.Compendium);
+            Assert.IsEmpty(ExplorationSaveMapper.ToSave(snapshot, null, 5, Location, 0).Compendium);
+        }
+
+        [Test]
         public void ToSave_KeepsTheFogOfEveryVisitedLocation()
         {
             var previous = new SaveData { Location = "kerameikos", FogBitmask = new byte[] { 9 } };

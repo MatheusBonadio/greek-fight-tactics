@@ -1,6 +1,10 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Game.Content;
+using Game.Core;
 using Game.Net;
 using Game.UI;
 using NUnit.Framework;
@@ -14,6 +18,7 @@ namespace Game.Tests.PlayMode
     {
         private const float TimeoutSeconds = 5f;
 
+        private readonly List<Object> createdAssets = new();
         private string directory;
         private GameObject host;
 
@@ -30,6 +35,13 @@ namespace Game.Tests.PlayMode
             {
                 Object.DestroyImmediate(host);
             }
+
+            foreach (var asset in createdAssets)
+            {
+                Object.DestroyImmediate(asset);
+            }
+
+            createdAssets.Clear();
 
             try
             {
@@ -158,14 +170,56 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(600, reopened.PlaytimeSeconds);
         }
 
-        private GameServices CreateServices()
+        [UnityTest]
+        public IEnumerator Slots_RestoreTheCompendiumOfTheActiveSlot()
+        {
+            var catalog = CreateCatalog("ad_hominem", "straw_man", "false_dilemma");
+            var services = CreateServices(catalog);
+            yield return WaitForBoot(services);
+            Assert.AreEqual(3, services.Compendium.Total);
+            Assert.IsEmpty(services.Compendium.UnlockedIds);
+
+            var saved = new Game.Core.SaveData { Timestamp = 7 };
+            saved.Compendium.Add("straw_man");
+            services.SaveToSlot(2, saved);
+            CollectionAssert.AreEqual(new[] { "straw_man" }, services.Compendium.UnlockedIds);
+
+            services.Compendium.Unlock("ad_hominem");
+            services.StartNewGame(1);
+            Assert.IsEmpty(services.Compendium.UnlockedIds);
+
+            services.SelectSlot(2);
+            CollectionAssert.AreEqual(new[] { "straw_man" }, services.Compendium.UnlockedIds);
+
+            Object.DestroyImmediate(host);
+            var reopened = CreateServices(catalog);
+            yield return WaitForBoot(reopened);
+            CollectionAssert.AreEqual(new[] { "straw_man" }, reopened.Compendium.UnlockedIds);
+        }
+
+        private GameServices CreateServices(FallacyCatalogSO catalog = null)
         {
             host = new GameObject(nameof(GameServices));
             host.SetActive(false);
             var services = host.AddComponent<GameServices>();
-            services.Configure(null, null, null, directory);
+            services.Configure(null, catalog, null, directory);
             host.SetActive(true);
             return services;
+        }
+
+        private FallacyCatalogSO CreateCatalog(params string[] ids)
+        {
+            var entries = ids.Select(id =>
+            {
+                var fallacy = ScriptableObject.CreateInstance<FallacySO>();
+                fallacy.Configure(id, id, id, id, FallacyCategory.Informal, null);
+                return fallacy;
+            }).ToList();
+            var catalog = ScriptableObject.CreateInstance<FallacyCatalogSO>();
+            catalog.SetEntries(entries);
+            createdAssets.AddRange(entries);
+            createdAssets.Add(catalog);
+            return catalog;
         }
 
         private static IEnumerator WaitForBoot(GameServices services)

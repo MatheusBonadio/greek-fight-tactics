@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Game.Content;
@@ -21,6 +22,7 @@ namespace Game.UI
         [SerializeField] private string dataDirectoryOverride;
 
         private ArgumentValidator validator;
+        private FallacyCompendium compendium;
 
         public event Action<GameSettings> SettingsChanged;
 
@@ -53,6 +55,8 @@ namespace Game.UI
         public bool HasContinue => SlotCatalog != null && SlotCatalog.AnyUsable();
 
         public FallacyCatalogSO Catalog => catalog;
+
+        public FallacyCompendium Compendium => compendium ??= new FallacyCompendium(catalog ? catalog.All.Select(fallacy => fallacy.Id) : Array.Empty<string>());
 
         public string DataDirectory
         {
@@ -92,7 +96,7 @@ namespace Game.UI
             SlotCatalog.WriteActiveSlot(index);
             ActiveSlot = index;
             LocalSaves = SlotCatalog.StoreFor(index);
-            Playtime = TryLoadActiveSave(out var save) ? save.PlaytimeSeconds : 0f;
+            LoadSessionProgress(TryLoadActiveSave(out var save) ? save : null);
         }
 
         public bool TryLoadActiveSave(out SaveData save)
@@ -104,8 +108,9 @@ namespace Game.UI
         public void StartNewGame(int index)
         {
             SelectSlot(index);
-            Playtime = 0f;
-            Autosave(new SaveData { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
+            var save = new SaveData { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() };
+            LoadSessionProgress(save);
+            Autosave(save);
         }
 
         public void SaveToSlot(int index, SaveData save)
@@ -116,7 +121,7 @@ namespace Game.UI
             }
 
             SelectSlot(index);
-            Playtime = save.PlaytimeSeconds;
+            LoadSessionProgress(save);
             Autosave(save);
         }
 
@@ -198,7 +203,7 @@ namespace Game.UI
             SlotCatalog = new SaveSlotCatalog(Path.Combine(DataDirectory, SaveFolder));
             ActiveSlot = SlotCatalog.ReadActiveSlot();
             LocalSaves = SlotCatalog.StoreFor(ActiveSlot);
-            Playtime = TryLoadActiveSave(out var activeSave) ? activeSave.PlaytimeSeconds : 0f;
+            LoadSessionProgress(TryLoadActiveSave(out var activeSave) ? activeSave : null);
             SettingsStore = new LocalSettingsStore(DataDirectory);
             Settings = SettingsStore.Load();
             ApplySettings();
@@ -227,6 +232,10 @@ namespace Game.UI
             {
                 await Auth.GetIdTokenAsync(false, cancellation);
                 await Saves.ReconcileAsync(cancellation);
+                if (TryLoadActiveSave(out var reconciled))
+                {
+                    Compendium.UnlockAll(reconciled.Compendium);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -243,6 +252,12 @@ namespace Game.UI
             {
                 throw new InvalidOperationException("GameServices must finish booting before touching saves.");
             }
+        }
+
+        private void LoadSessionProgress(SaveData save)
+        {
+            Playtime = save?.PlaytimeSeconds ?? 0f;
+            Compendium.Restore(save?.Compendium);
         }
 
         private void ApplySettings()
