@@ -58,6 +58,7 @@ namespace Game.UI
         private float thinkTimer;
         private int dialogueFrame = -1;
         private bool waitingForAggroExit;
+        private PrewarmedArgumentSource preparedArguments;
 
         public GameStateMachine StateMachine { get; } = new();
 
@@ -84,6 +85,8 @@ namespace Game.UI
         public bool OpponentDefeated { get; private set; }
 
         public BattleStatus LastResult { get; private set; } = BattleStatus.Ongoing;
+
+        public PrewarmedArgumentSource PreparedArguments => preparedArguments;
 
         public float ThinkSeconds
         {
@@ -268,6 +271,7 @@ namespace Game.UI
             switch (Phase)
             {
                 case BattleFlowPhase.Exploring:
+                    PrepareArguments();
                     TryTriggerBattle();
                     break;
                 case BattleFlowPhase.Dialogue:
@@ -334,17 +338,43 @@ namespace Game.UI
             }
         }
 
-        private IArgumentSource CreateArgumentSource(int opponentId, int seed)
+        private void PrepareArguments()
         {
-            var context = OpponentContext.From(opponent);
-            if (services && services.IsBooted)
+            if (preparedArguments != null || OpponentDefeated || opponentActor?.Walker == null || !services || !services.IsBooted)
             {
-                var online = services.CreateArgumentSource(seed);
-                online.Register(opponentId, context);
-                _ = services.PrewarmAsync(online, opponentId, PrewarmCount);
-                return online;
+                return;
             }
 
+            var opponentId = opponentActor.Walker.ActorId;
+            preparedArguments = services.CreateArgumentSource(Environment.TickCount);
+            preparedArguments.Register(opponentId, OpponentContext.From(opponent));
+            TopUpArguments();
+        }
+
+        private void TopUpArguments()
+        {
+            if (preparedArguments == null || opponentActor?.Walker == null)
+            {
+                return;
+            }
+
+            var opponentId = opponentActor.Walker.ActorId;
+            var missing = PrewarmCount - preparedArguments.ReadyCount(opponentId);
+            if (missing > 0)
+            {
+                _ = services.PrewarmAsync(preparedArguments, opponentId, missing);
+            }
+        }
+
+        private IArgumentSource CreateArgumentSource(int opponentId, int seed)
+        {
+            PrepareArguments();
+            if (preparedArguments != null)
+            {
+                return preparedArguments;
+            }
+
+            var context = OpponentContext.From(opponent);
             var validator = new ArgumentValidator(catalog.RefutableIds);
             var offline = new PrewarmedArgumentSource(
                 null,
@@ -502,6 +532,10 @@ namespace Game.UI
 
             OpponentDefeated = LastResult == BattleStatus.PlayerWon;
             waitingForAggroExit = true;
+            if (!OpponentDefeated)
+            {
+                TopUpArguments();
+            }
 
             var from = StateMachine.Mode;
             StateMachine.TryTransition(GameMode.Exploration);

@@ -37,6 +37,27 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator EnteringTheMap_PreparesTheOpponentArgumentsBeforeTheBattle()
+        {
+            yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);
+            yield return null;
+
+            var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
+            var services = Object.FindAnyObjectByType<GameServices>();
+            Assert.IsNotNull(services, "GridSandbox scene must contain GameServices");
+            director.AutosaveEnabled = false;
+
+            yield return WaitFor(() => director.PreparedArguments != null, StartTimeoutSeconds);
+            Assert.IsNotNull(director.PreparedArguments, "arguments must be prepared on map enter, not on battle start");
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase);
+            Assert.AreEqual(services.Arguments != null, director.PreparedArguments.IsOnline);
+
+            var opponent = new Debater(director.OpponentActor.Walker.ActorId, Side.Opponent, director.Opponent.Profile, 50, 5, director.OpponentActor.Walker.Cell, Facing.SouthWest);
+            Assert.IsTrue(director.PreparedArguments.TryNext(opponent, out var argument));
+            Assert.IsNotEmpty(argument.Speech);
+        }
+
+        [UnityTest]
         public IEnumerator WalkingUpToThrasybios_PlaysABattleAndReturnsToExploration()
         {
             yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);

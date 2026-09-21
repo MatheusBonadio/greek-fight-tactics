@@ -414,7 +414,7 @@
         "Unity / Core",
         "IA / LLM"
       ],
-      "description": "**Depende de:** [BCK-01], [DAT-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] `UnityWebRequest` com `Awaitable`, nunca bloqueia o turno; cancelado por `destroyCancellationToken` ao sair da batalha\n- [x] Timeout de 2 segundos\n- [x] 1 retry com backoff, depois desiste\n- [x] Falha ou timeout = fallback local, silencioso para o jogador\n- [ ] Pré-aquecer: buscar os argumentos do próximo adversário ao entrar no mapa"
+      "description": "**Depende de:** [BCK-01], [DAT-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] `UnityWebRequest` com `Awaitable`, nunca bloqueia o turno; cancelado por `destroyCancellationToken` ao sair da batalha\n- [x] Timeout de 2 segundos\n- [x] 1 retry com backoff, depois desiste\n- [x] Falha ou timeout = fallback local, silencioso para o jogador\n- [x] Pré-aquecer: buscar os argumentos do próximo adversário ao entrar no mapa"
     },
     {
       "title": "[LLM-02] Prompt engineering dos adversários",
