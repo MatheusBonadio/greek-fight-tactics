@@ -139,12 +139,12 @@ namespace Game.EditorTools
         {
             var panel = CreateImage(parent, "Options", null, Center, Vector2.zero, new Vector2(OptionsWidth, OptionsHeight), PanelColor);
             var view = panel.gameObject.AddComponent<OptionsView>();
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(OptionsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(OptionsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.Left);
             title.color = AccentColor;
 
             var (labels, cursor) = CreatePanelRows(panel.transform, OptionsModel.RowCount, new Vector2(BattleHudTools.RowInset, -14f), 90f, view);
             var values = Enumerable.Range(0, OptionsModel.RowCount)
-                .Select(index => CreateLabel(panel.transform, $"Value{index}", TopLeft, new Vector2(110f, -14f - index * BattleHudTools.RowHeight), new Vector2(58f, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineRight))
+                .Select(index => CreateLabel(panel.transform, $"Value{index}", TopLeft, new Vector2(110f, -14f - index * BattleHudTools.RowHeight), new Vector2(58f, BattleHudTools.RowHeight), TextAlignmentOptions.Right))
                 .ToArray();
 
             view.Configure(title, labels, values, cursor, uiText);
@@ -155,7 +155,7 @@ namespace Game.EditorTools
         private static CreditsView CreateCreditsPanel(Transform parent, UiTextSO uiText)
         {
             var panel = CreateImage(parent, "Credits", null, Center, Vector2.zero, new Vector2(CreditsWidth, CreditsHeight), PanelColor);
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -4f), new Vector2(CreditsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -4f), new Vector2(CreditsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.Left);
             title.color = AccentColor;
             var body = CreateLabel(panel.transform, "Body", TopLeft, new Vector2(BattleHudTools.Margin, -18f), new Vector2(CreditsWidth - 2 * BattleHudTools.Margin, CreditsHeight - 26f), TextAlignmentOptions.TopLeft, true);
             body.overflowMode = TextOverflowModes.Page;
@@ -170,12 +170,12 @@ namespace Game.EditorTools
         {
             var panel = CreateImage(parent, "SaveSlots", null, Center, Vector2.zero, new Vector2(SlotsWidth, SlotsHeight), PanelColor);
             var view = panel.gameObject.AddComponent<SaveSlotsView>();
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(SlotsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(SlotsWidth - 2 * BattleHudTools.Margin, BattleHudTools.RowHeight), TextAlignmentOptions.Left);
             title.color = AccentColor;
             var (rows, cursor) = CreatePanelRows(panel.transform, SaveSlots.Count, new Vector2(BattleHudTools.RowInset, -14f), SlotsWidth - BattleHudTools.RowInset - BattleHudTools.Margin, view);
 
             var confirm = CreateImage(panel.transform, "Confirm", null, BottomLeft, Vector2.zero, new Vector2(SlotsWidth, ConfirmHeight), DimColor);
-            var confirmLabel = CreateLabel(confirm.transform, "Question", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(110f, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+            var confirmLabel = CreateLabel(confirm.transform, "Question", TopLeft, new Vector2(BattleHudTools.Margin, -2f), new Vector2(110f, BattleHudTools.RowHeight), TextAlignmentOptions.Left);
             confirmLabel.color = AccentColor;
             var (confirmRows, confirmCursor) = CreatePanelRows(confirm.transform, 2, new Vector2(140f, -2f), 60f, view);
             confirm.gameObject.SetActive(false);

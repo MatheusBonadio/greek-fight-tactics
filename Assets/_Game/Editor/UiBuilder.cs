@@ -118,7 +118,7 @@ namespace Game.EditorTools
             var rows = new TMP_Text[count];
             for (var index = 0; index < count; index++)
             {
-                rows[index] = CreateLabel(parent, $"Row{index}", TopLeft, new Vector2(origin.x, origin.y - index * BattleHudTools.RowHeight), new Vector2(width, BattleHudTools.RowHeight), TextAlignmentOptions.MidlineLeft);
+                rows[index] = CreateLabel(parent, $"Row{index}", TopLeft, new Vector2(origin.x, origin.y - index * BattleHudTools.RowHeight), new Vector2(width, BattleHudTools.RowHeight), TextAlignmentOptions.Left);
                 rows[index].raycastTarget = true;
                 rows[index].gameObject.AddComponent<PanelRowPointer>().Configure(panel, index);
             }

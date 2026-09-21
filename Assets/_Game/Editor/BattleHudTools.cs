@@ -89,16 +89,16 @@ namespace Game.EditorTools
             var view = host.AddComponent<CompendiumView>();
             var panel = CreateImage(host.transform, "Panel", null, Center, Vector2.zero, new Vector2(CanvasReference, CanvasReference), TrackColor);
 
-            var header = CreateLabel(panel.transform, "Header", TopLeft, new Vector2(Margin, -4f), new Vector2(CanvasReference - 2 * Margin, RowHeight), TextAlignmentOptions.MidlineLeft);
+            var header = CreateLabel(panel.transform, "Header", TopLeft, new Vector2(Margin, -4f), new Vector2(CanvasReference - 2 * Margin, RowHeight), TextAlignmentOptions.Left);
             header.color = AccentColor;
             var (rows, cursor) = CreatePanelRows(panel.transform, CompendiumRows, new Vector2(RowInset, -4f - RowHeight), 92f, view);
             var icon = CreateImage(panel.transform, "Icon", null, TopLeft, new Vector2(116f, -4f - RowHeight), new Vector2(16f, 16f), Color.white);
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(136f, -4f - RowHeight), new Vector2(80f, 16f), TextAlignmentOptions.MidlineLeft);
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(136f, -4f - RowHeight), new Vector2(80f, 16f), TextAlignmentOptions.Left);
             title.color = AccentColor;
             var description = CreateLabel(panel.transform, "Description", TopLeft, new Vector2(116f, -36f), new Vector2(100f, 80f), TextAlignmentOptions.TopLeft, true);
             var hint = CreateLabel(panel.transform, "Hint", TopLeft, new Vector2(116f, -120f), new Vector2(100f, 72f), TextAlignmentOptions.TopLeft, true);
             hint.color = AccentColor;
-            var counter = CreateLabel(panel.transform, "Counter", BottomLeft, new Vector2(Margin, 4f), new Vector2(100f, RowHeight), TextAlignmentOptions.MidlineLeft);
+            var counter = CreateLabel(panel.transform, "Counter", BottomLeft, new Vector2(Margin, 4f), new Vector2(100f, RowHeight), TextAlignmentOptions.Left);
 
             view.Configure(header, rows, cursor, title, description, hint, counter, icon, catalog, uiText);
             return view;
@@ -151,11 +151,11 @@ namespace Game.EditorTools
             }
 
             var cursor = CreateImage(box.transform, "Cursor", UiSprite("cursor"), TopLeft, Vector2.zero, new Vector2(8f, 8f), Color.white).rectTransform;
-            var reason = CreateLabel(parent, "Reason", BottomRight, new Vector2(-Margin, DialogueReserve + MenuHeight + 2), new Vector2(ReasonWidth, RowHeight), TextAlignmentOptions.MidlineRight);
+            var reason = CreateLabel(parent, "Reason", BottomRight, new Vector2(-Margin, DialogueReserve + MenuHeight + 2), new Vector2(ReasonWidth, RowHeight), TextAlignmentOptions.Right);
             reason.color = AccentColor;
 
             var panel = CreateImage(parent, "Submenu", UiSprite("box_menu"), BottomRight, new Vector2(-Margin - MenuWidth - 4, DialogueReserve), menuSize, Color.white);
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(Margin, -4f), new Vector2(MenuWidth - 2 * Margin, RowHeight), TextAlignmentOptions.MidlineLeft);
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(Margin, -4f), new Vector2(MenuWidth - 2 * Margin, RowHeight), TextAlignmentOptions.Left);
             title.color = AccentColor;
             var options = new TMP_Text[SubmenuRows];
             for (var index = 0; index < SubmenuRows; index++)
@@ -180,7 +180,7 @@ namespace Game.EditorTools
             var frame = CreateImage(container.transform, "PortraitFrame", UiSprite("frame_portrait"), BottomLeft, new Vector2(Margin, Margin + DialogueHeight + 2), new Vector2(PortraitSize, PortraitSize), Color.white);
             var portrait = CreateImage(frame.transform, "Portrait", null, Center, Vector2.zero, new Vector2(PortraitInner, PortraitInner), Color.white);
             portrait.preserveAspect = true;
-            var speaker = CreateLabel(container.transform, "Speaker", BottomLeft, new Vector2(Margin + PortraitSize + 4, Margin + DialogueHeight + 2), new Vector2(120f, RowHeight), TextAlignmentOptions.MidlineLeft);
+            var speaker = CreateLabel(container.transform, "Speaker", BottomLeft, new Vector2(Margin + PortraitSize + 4, Margin + DialogueHeight + 2), new Vector2(120f, RowHeight), TextAlignmentOptions.Left);
             speaker.color = AccentColor;
 
             var view = container.AddComponent<DialogueBoxView>();
@@ -191,7 +191,7 @@ namespace Game.EditorTools
 
         private static TMP_Text CreateRow(Transform parent, string name, Vector2 position, ActionMenuView view, BattleMenuLayer layer, int index)
         {
-            var label = CreateLabel(parent, name, TopLeft, position, new Vector2(MenuWidth - RowInset - 4, RowHeight), TextAlignmentOptions.MidlineLeft);
+            var label = CreateLabel(parent, name, TopLeft, position, new Vector2(MenuWidth - RowInset - 4, RowHeight), TextAlignmentOptions.Left);
             label.raycastTarget = true;
             label.gameObject.AddComponent<MenuRowPointer>().Configure(view, layer, index);
             return label;
