@@ -128,6 +128,7 @@ namespace Game.Tests.EditMode.UI
 
             Assert.IsNotNull(camera.GetComponent<PixelPerfectCamera>());
             Assert.IsNotNull(camera.GetComponent<CinemachineBrain>());
+            Assert.AreEqual(PixelArtImporter.PixelsPerUnit, camera.GetComponent<PixelSnappedCamera>().PixelsPerUnit);
             Assert.AreEqual(RenderSetupTools.MainCameraTag, camera.tag);
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePositionComposer>());
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePixelPerfect>());

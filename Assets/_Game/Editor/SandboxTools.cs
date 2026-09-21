@@ -404,6 +404,7 @@ namespace Game.EditorTools
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(rigPrefab);
             rig.transform.position = new Vector3(followTarget.position.x, followTarget.position.y, RenderSetupTools.CameraDepth);
             rig.AddComponent<CinemachineBrain>();
+            rig.AddComponent<PixelSnappedCamera>();
 
             var boundsObject = new GameObject("CameraBounds");
             var bounds = boundsObject.AddComponent<PolygonCollider2D>();

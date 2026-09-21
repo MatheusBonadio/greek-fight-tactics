@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Core;
 using Game.Grid;
@@ -16,7 +17,14 @@ namespace Game.Tests.PlayMode
         private const float WalkTimeoutSeconds = 5f;
         private const float PositionTolerance = 0.001f;
 
+        private const float ArtPixelsPerUnit = 16f;
+        private const int SettleFrames = 60;
+        private const int MinimumSampledFrames = 10;
+        private const string MapBoundsComponent = "CinemachineConfiner2D";
+
         private static readonly Coord FreeCell = new(4, 4);
+        private static readonly Coord JitterWalkStart = new(0, 1);
+        private static readonly Coord JitterWalkEnd = new(0, 6);
 
         private GridSandboxController controller;
         private IsolatedDataDirectory data;
@@ -107,6 +115,64 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Camera_FollowsAStraightWalkWithoutPixelJitter()
+        {
+            var camera = Camera.main;
+            Assert.IsNotNull(camera, "GridSandbox scene must have a main camera");
+            var confiner = Object.FindAnyObjectByType<ExplorationCamera>().GetComponent(MapBoundsComponent) as Behaviour;
+            Assert.IsNotNull(confiner, "the exploration camera must be confined to the map");
+            confiner.enabled = false;
+            controller.Player.Walker.Teleport(JitterWalkStart, Facing.NorthWest);
+            for (var frame = 0; frame < SettleFrames; frame++)
+            {
+                yield return null;
+            }
+
+            var cameraStart = camera.transform.position;
+            var probe = new GameObject("jitter probe").AddComponent<LateFrameProbe>();
+            probe.Watch(controller.Player.transform, camera.transform);
+            Assert.IsTrue(controller.TryMovePlayerTo(JitterWalkEnd));
+
+            var elapsed = 0f;
+            while (controller.Player.Walker.IsMoving && elapsed < WalkTimeoutSeconds)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+            }
+
+            probe.enabled = false;
+            var offsets = probe.Offsets;
+            Object.Destroy(probe.gameObject);
+
+            Assert.GreaterOrEqual(Vector2.Distance(cameraStart, camera.transform.position), 1f, "the camera must travel at least one unit");
+            Assert.Greater(offsets.Count, MinimumSampledFrames, "the walk must be sampled on every frame");
+            AssertMovesOneWay(offsets.Select(offset => offset.x).ToList(), "x");
+            AssertMovesOneWay(offsets.Select(offset => offset.y).ToList(), "y");
+        }
+
+        [UnityTest]
+        public IEnumerator Camera_StaysOnOnePixelWhileConfinedToASmallMap()
+        {
+            var camera = Camera.main;
+            controller.Player.Walker.Teleport(JitterWalkStart, Facing.NorthWest);
+            for (var frame = 0; frame < SettleFrames; frame++)
+            {
+                yield return null;
+            }
+
+            var start = camera.transform.position;
+            Assert.IsTrue(controller.TryMovePlayerTo(JitterWalkEnd));
+
+            var elapsed = 0f;
+            while (controller.Player.Walker.IsMoving && elapsed < WalkTimeoutSeconds)
+            {
+                yield return null;
+                elapsed += Time.deltaTime;
+                Assert.AreEqual(start, camera.transform.position, "the confined camera must not wiggle while the player walks");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Player_WalksToTheTargetAndRevealsFogOnTheWay()
         {
             var target = new Coord(2, 6);
@@ -125,6 +191,44 @@ namespace Game.Tests.PlayMode
             Assert.Less(Vector3.Distance(IsoMath.GridToWorld(target), controller.Player.transform.position), PositionTolerance);
             Assert.IsTrue(controller.Grid[new Coord(2, 9)].Revealed);
             Assert.GreaterOrEqual(elapsed, GridWalker.SecondsPerCell * 3f);
+        }
+
+        private static void AssertMovesOneWay(List<int> offsets, string axis)
+        {
+            var direction = 0;
+            for (var index = 1; index < offsets.Count; index++)
+            {
+                var step = System.Math.Sign(offsets[index] - offsets[index - 1]);
+                if (step == 0)
+                {
+                    continue;
+                }
+
+                Assert.IsTrue(direction == 0 || step == direction,
+                    $"the player sprite jittered on {axis} relative to the camera at frame {index}: {string.Join(", ", offsets)}");
+                direction = step;
+            }
+        }
+
+        [DefaultExecutionOrder(int.MaxValue)]
+        private sealed class LateFrameProbe : MonoBehaviour
+        {
+            private Transform sprite;
+            private Transform view;
+
+            public List<Vector2Int> Offsets { get; } = new();
+
+            public void Watch(Transform target, Transform camera)
+            {
+                sprite = target;
+                view = camera;
+            }
+
+            private void LateUpdate()
+            {
+                var offset = (sprite.position - view.position) * ArtPixelsPerUnit;
+                Offsets.Add(new Vector2Int(Mathf.RoundToInt(offset.x), Mathf.RoundToInt(offset.y)));
+            }
         }
     }
 }
