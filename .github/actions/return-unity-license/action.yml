@@ -1,0 +1,14 @@
+name: Return the Unity license
+description: Return the Editor license that setup-unity activated in this job, and leave alone a license that was already active on the runner.
+
+runs:
+  using: composite
+  steps:
+    - name: Return the license activated by this job
+      shell: pwsh
+      run: |
+        if (-not (Test-Path -LiteralPath (Join-Path $env:RUNNER_TEMP "unity-license-activated"))) {
+          Write-Output "This job did not activate a Unity license, so none is returned"
+          exit 0
+        }
+        unity license return --yes

@@ -44,7 +44,7 @@ jobs:
       - run: npm test
 
   unity-tests:
-    runs-on: windows-latest
+    runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
     timeout-minutes: 150
     env:
       UNITY_SERVICE_ACCOUNT_ID: ${{ secrets.UNITY_SERVICE_ACCOUNT_ID }}
@@ -58,7 +58,6 @@ jobs:
         uses: ./.github/actions/setup-unity
         with:
           serial: ${{ secrets.UNITY_SERIAL }}
-          license: ${{ secrets.UNITY_LICENSE }}
 
       - id: library
         uses: actions/cache/restore@v6
@@ -97,13 +96,12 @@ jobs:
       - name: Return the Editor license
         if: ${{ always() && steps.unity.outcome != 'skipped' }}
         continue-on-error: true
-        shell: pwsh
-        run: if (Get-Command unity -ErrorAction SilentlyContinue) { unity license return --yes }
+        uses: ./.github/actions/return-unity-license
 
   windows-build:
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     needs: [functions-tests, unity-tests]
-    runs-on: windows-latest
+    runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
     timeout-minutes: 120
     env:
       UNITY_SERVICE_ACCOUNT_ID: ${{ secrets.UNITY_SERVICE_ACCOUNT_ID }}
@@ -117,7 +115,6 @@ jobs:
         uses: ./.github/actions/setup-unity
         with:
           serial: ${{ secrets.UNITY_SERIAL }}
-          license: ${{ secrets.UNITY_LICENSE }}
 
       - uses: actions/cache/restore@v6
         with:
@@ -146,5 +143,4 @@ jobs:
       - name: Return the Editor license
         if: ${{ always() && steps.unity.outcome != 'skipped' }}
         continue-on-error: true
-        shell: pwsh
-        run: if (Get-Command unity -ErrorAction SilentlyContinue) { unity license return --yes }
+        uses: ./.github/actions/return-unity-license

@@ -572,11 +572,15 @@ Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, na
 
 `.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão no README.
 - **Jobs:** `functions-tests` e `unity-tests` rodam em todo push e em PR para a `main` e são os checks exigidos pelo ruleset. `windows-build` roda só em push ou disparo manual na `main`, depois dos dois: build, `tools/scan-secrets.ps1` e upload do player.
-- **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa a licença e devolve a chave de `unity cache key` para o cache da `Library`.
-- **Licença:** a Unity não ativa licença para conta de serviço, então o Editor usa `UNITY_SERIAL` ou `UNITY_LICENSE` (`.ulf`). Com licença já ativa (runner self-hosted), a ativação é pulada.
+- **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa o serial quando o runner não tem licença e devolve a chave de `unity cache key` para o cache da `Library`.
+- **Licença:** a Unity não ativa licença para conta de serviço.
+  - Os jobs Unity rodam no runner da variável `UNITY_RUNNER` (JSON de rótulos, padrão `"windows-latest"`).
+  - Com licença já ativa no runner, o job não ativa nem devolve nada. É o caminho do projeto, que só tem a Personal: runner self-hosted na máquina de desenvolvimento, rodando com o usuário dono da licença.
+  - Sem licença, o job ativa `UNITY_SERIAL` e marca `RUNNER_TEMP/unity-license-activated`. `.github/actions/return-unity-license` só devolve a licença quando essa marca existe, então a licença que já estava na máquina nunca é devolvida.
+  - `.ulf` não entra: a Personal não tem ativação manual e o arquivo fica preso ao hardware que o gerou.
 - **Push direto na `main`:** o ruleset só aceita commit que já passou nos checks, então o commit sobe antes para o branch `ci` e depois para a `main`.
 - **Fim de linha:** `functions/src/generated/*.json` é `eol=lf` no `.gitattributes`. Sem isso, um checkout novo no Windows traz CRLF e o teste de sincronia do `content.json` falha.
-- **Claude Code:** a skill `unity-cli` fica em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O MCP é registrado por máquina com `unity mcp configure claude-code`, que grava no escopo do usuário.
+- **Claude Code:** a skill `unity-cli` fica em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O MCP `unity-editor-mcp` (`unity mcp`) fica em `.mcp.json`, no escopo do projeto, e cada pessoa o aprova na primeira sessão. `unity mcp configure claude-code` gravaria a mesma entrada no escopo do usuário.
 
 ### Plano B: editor em batch mode
 

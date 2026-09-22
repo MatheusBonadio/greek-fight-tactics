@@ -27,14 +27,13 @@ unity editors default 6000.6.0f1
 
 ### Claude Code
 
-A skill do CLI já vem no repositório em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O servidor MCP do Editor é registrado uma vez por máquina, no escopo do usuário, porque o CLI grava a entrada com `claude mcp add --scope user`:
+A skill do CLI já vem no repositório em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O servidor MCP do Editor também: `.mcp.json` na raiz registra `unity-editor-mcp` (stdio, `unity mcp`) no escopo do projeto, sem segredo. Na primeira sessão do Claude Code no projeto, aprove o servidor quando ele perguntar e confira:
 
 ```powershell
-unity mcp configure claude-code
-claude mcp list
+claude mcp get unity-editor-mcp
 ```
 
-A entrada se chama `unity-editor-mcp` e roda `unity mcp`. Não precisa de segredo.
+Não rode `unity mcp configure claude-code`. Ele grava a mesma entrada no escopo do usuário, porque o CLI recusa `--local` para o Claude Code.
 
 ## Clonar
 
@@ -68,7 +67,7 @@ O fluxo inteiro é por CLI, sem Editor. Arquitetura e convenções em [CLAUDE.md
 
 ## Integração contínua
 
-O workflow `.github/workflows/ci.yml` roda em runner Windows.
+O workflow `.github/workflows/ci.yml` roda em runner Windows. `functions-tests` usa sempre o `windows-latest`. Os jobs Unity usam o runner da variável `UNITY_RUNNER` (veja [Licença do Editor](#licença-do-editor)).
 
 | Job | Quando | O que faz |
 |---|---|---|
@@ -86,12 +85,27 @@ Em **Settings → Secrets and variables → Actions → New repository secret**:
 |---|---|---|
 | `UNITY_SERVICE_ACCOUNT_ID` | sim | ID da chave da conta de serviço |
 | `UNITY_SERVICE_ACCOUNT_SECRET` | sim | segredo da chave da conta de serviço |
-| `UNITY_SERIAL` | um dos dois | serial de uma licença Unity com assento (Pro, Plus ou equivalente) |
-| `UNITY_LICENSE` | um dos dois | conteúdo de um arquivo de licença `.ulf` |
+| `UNITY_SERIAL` | só no runner hospedado | serial de uma licença paga com assento (Pro ou equivalente) |
 
 A conta de serviço é criada no Unity Cloud Dashboard, em **Administration → Service accounts**, com uma chave nova. Ela nunca é a sua conta pessoal. O CI valida a chave com `unity auth login --secret-from-stdin --no-store` e usa as variáveis de ambiente do mesmo nome, sem gravar credencial no runner.
 
-**A Unity não ativa licença do Editor para conta de serviço.** Com a conta de serviço, `unity license activate` e `--personal` falham de propósito. Por isso o Editor precisa de `UNITY_SERIAL` ou `UNITY_LICENSE`. Sem nenhum dos dois, o job falha com essa mensagem. A licença Personal desta máquina não serve, porque só ativa com login de usuário. Se não houver serial nem `.ulf`, a alternativa é registrar esta máquina como runner self-hosted e trocar `runs-on` dos jobs Unity: o passo de licença pula a ativação quando já existe licença ativa. Ao fim de cada job, `unity license return --yes` devolve o assento.
+### Licença do Editor
+
+**A Unity não ativa licença do Editor para conta de serviço.** Com a conta de serviço, `unity license activate` e `--personal` falham de propósito. O passo de licença olha `unity license status` e segue um de dois caminhos:
+
+- **Já existe licença ativa no runner:** a ativação é pulada e a licença fica onde está. O job não a devolve.
+- **Não existe licença:** o job ativa `UNITY_SERIAL` e, no fim, devolve só esse assento, mesmo com falha ou cancelamento. Sem o segredo, o job falha dizendo isso.
+
+Arquivo `.ulf` não serve no `windows-latest`. A Personal não tem ativação manual, e o `.ulf` fica preso ao hardware da máquina que o gerou, enquanto cada run ganha uma VM nova.
+
+**Este projeto só tem a Personal**, então os jobs Unity rodam num runner self-hosted nesta máquina, que já tem a licença ativa:
+
+1. Em **Settings → Actions → Runners → New self-hosted runner**, escolha Windows x64 e siga os comandos. No `config.cmd`, dê o rótulo `unity`.
+2. Rode o runner com o seu usuário do Windows: `run.cmd` num terminal, ou o serviço com a sua conta em vez de `NETWORK SERVICE`. A Personal fica em `%LOCALAPPDATA%\Unity\licenses`, que é por usuário.
+3. Em **Settings → Secrets and variables → Actions → Variables**, crie `UNITY_RUNNER` com `["self-hosted", "windows", "unity"]`. Sem a variável, os jobs Unity usam `"windows-latest"`.
+4. Use runner self-hosted só com o repositório privado. Num público, o PR de um fork rodaria código nesta máquina.
+
+Se a Personal vencer, o passo de licença falha. Renove na máquina com `unity license activate --personal --accept-eula`, logado com a sua conta.
 
 ### Proteção da `main`
 
@@ -111,4 +125,4 @@ git push origin HEAD:main
 
 Rode o segundo comando quando o run do branch `ci` ficar verde na aba **Actions**. Se ele estiver vermelho, o GitHub recusa o push na `main`.
 
-Rulesets em repositório privado exigem GitHub Pro ou Team. O GitHub Pro vem de graça no GitHub Student Developer Pack. Runner Windows conta em dobro nos minutos do plano, e cada mudança roda a suíte Unity duas vezes (branch `ci` e `main`).
+Rulesets em repositório privado exigem GitHub Pro ou Team. O GitHub Pro vem de graça no GitHub Student Developer Pack. Cada mudança roda a suíte Unity duas vezes (branch `ci` e `main`). No runner self-hosted isso não gasta minutos do plano. No `windows-latest`, cada minuto conta em dobro.
