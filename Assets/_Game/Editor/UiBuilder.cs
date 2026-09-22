@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Game.UI;
 using TMPro;
@@ -71,6 +72,17 @@ namespace Game.EditorTools
         public static Sprite UiSprite(string name) =>
             AssetDatabase.LoadAssetAtPath<Sprite>($"{BattleHudTools.UiSpriteFolder}/{name}.png")
             ?? throw new InvalidOperationException($"missing ui sprite {name}; run ArtTools.SliceSheets first");
+
+        public static Sprite[] UiSpriteFrames(string name)
+        {
+            var frames = new List<Sprite> { UiSprite(name) };
+            while (AssetDatabase.LoadAssetAtPath<Sprite>($"{BattleHudTools.UiSpriteFolder}/{name}_{frames.Count}.png") is { } frame)
+            {
+                frames.Add(frame);
+            }
+
+            return frames.ToArray();
+        }
 
         public static void SavePrefab(string path, Action<GameObject> build)
         {

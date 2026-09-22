@@ -21,6 +21,41 @@ namespace Game.Tests.EditMode.UI
             }
         }
 
+        [Test]
+        public void DriftingSprite_CrossesThePaintingInWholePixelsAndComesBackAround()
+        {
+            const float frameWidth = 384f;
+            const float scale = 2f;
+            host = new GameObject("frame", typeof(RectTransform));
+            var frame = (RectTransform)host.transform;
+            frame.sizeDelta = new Vector2(frameWidth * scale, 216f * scale);
+
+            var cloud = new GameObject("cloud", typeof(RectTransform), typeof(UnityEngine.UI.Image));
+            cloud.transform.SetParent(frame, false);
+            var rect = (RectTransform)cloud.transform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.zero;
+            rect.pivot = Vector2.zero;
+            var sprite = Sprite.Create(new Texture2D(32, 16), new Rect(0f, 0f, 32f, 16f), Vector2.zero);
+            cloud.GetComponent<UnityEngine.UI.Image>().sprite = sprite;
+
+            var drift = cloud.AddComponent<DriftingSprite>();
+            drift.Configure(frame, new Vector2(frameWidth, 216f), new Vector2(40f, 150f), 2f);
+            Assert.AreEqual(new Vector2(40f, 150f) * scale, rect.anchoredPosition);
+            Assert.AreEqual(new Vector2(32f, 16f) * scale, rect.sizeDelta);
+
+            drift.Advance(0.5f);
+            Assert.AreEqual(new Vector2(41f, 150f) * scale, rect.anchoredPosition, "the cloud only ever lands on whole painting pixels");
+
+            drift.Advance((frameWidth + 32f) / 2f);
+            Assert.AreEqual(new Vector2(41f, 150f) * scale, rect.anchoredPosition, "a full crossing brings the cloud back to where it was");
+
+            drift.Advance((frameWidth - 41f) / 2f);
+            Assert.AreEqual(-32f * scale, rect.anchoredPosition.x, "the cloud leaves on one side and enters on the other");
+
+            Object.DestroyImmediate(sprite);
+        }
+
         [TestCase(Facing.SouthEast, false)]
         [TestCase(Facing.NorthEast, false)]
         [TestCase(Facing.SouthWest, true)]

@@ -24,6 +24,14 @@ namespace Game.EditorTools
         public const string GameTitleKey = "system.game_title";
         public const int TitleBackgroundWidth = 384;
         public const int TitleBackgroundHeight = 216;
+
+        public static readonly (string Sprite, Vector2 Start, float Speed)[] TitleClouds =
+        {
+            ("cloud_high", new Vector2(40f, 168f), 2.5f),
+            ("cloud_mid", new Vector2(230f, 150f), 1.75f),
+            ("cloud_low", new Vector2(140f, 132f), 1f)
+        };
+
         public const int TitleScale = 2;
         public const int TitleTop = 18;
         public const int TitleWidth = 320;
@@ -123,10 +131,19 @@ namespace Game.EditorTools
         private static void CreateTitleBackground(Transform parent)
         {
             var background = Fill(parent, "Background");
-            Paint(background.gameObject, UiSprite(TitleBackgroundSprite), Color.white);
+            var frames = UiSpriteFrames(TitleBackgroundSprite);
+            Paint(background.gameObject, frames[0], Color.white);
             var fitter = background.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
             fitter.aspectRatio = (float)TitleBackgroundWidth / TitleBackgroundHeight;
+            background.gameObject.AddComponent<SpriteFlipbook>().Configure(frames, SpriteFlipbook.DefaultFramesPerSecond);
+            var painting = new Vector2(TitleBackgroundWidth, TitleBackgroundHeight);
+            foreach (var (sprite, start, speed) in TitleClouds)
+            {
+                var cloud = CreateRect(background, sprite, BottomLeft, Vector2.zero, Vector2.zero);
+                Paint(cloud.gameObject, UiSprite(sprite), Color.white);
+                cloud.gameObject.AddComponent<DriftingSprite>().Configure(background, painting, start, speed);
+            }
         }
 
         private static void CreateOutlinedLabel(Transform parent, string name, Vector2 position, Vector2 size, int scale, Color color, UiTextSO uiText, string key)

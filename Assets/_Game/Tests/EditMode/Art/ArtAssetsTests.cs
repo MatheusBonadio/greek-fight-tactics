@@ -12,7 +12,7 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 102;
+        private const int PlaceholderPngCount = 112;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
         private const string PalettePath = "art/palette/snes.gpl";
@@ -129,24 +129,30 @@ namespace Game.Tests.EditMode.Art
         [Test]
         public void TitleBackground_IsAPointFilteredSpriteOfTheNativeFramePaintedWithThePalette()
         {
-            var path = $"{BattleHudTools.UiSpriteFolder}/{SystemMenuTools.TitleBackgroundSprite}.png";
-            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-            Assert.IsNotNull(sprite, path);
-            Assert.AreEqual(SystemMenuTools.TitleBackgroundWidth, sprite.rect.width);
-            Assert.AreEqual(SystemMenuTools.TitleBackgroundHeight, sprite.rect.height);
-            Assert.AreEqual(FilterMode.Point, sprite.texture.filterMode);
-            Assert.AreEqual(Vector4.zero, sprite.border, "only box_ sprites are sliced");
+            var files = Directory.GetFiles(Path.Combine(ArtTools.SourceFolder, "ui"), $"{SystemMenuTools.TitleBackgroundSprite}*.png").OrderBy(file => file).ToList();
+            Assert.Greater(files.Count, 1, "the title screen plays a loop, not a single painting");
 
-            var source = new Texture2D(2, 2);
-            source.LoadImage(File.ReadAllBytes(Path.Combine(ArtTools.SourceFolder, "ui", Path.GetFileName(path))));
-            var pixels = source.GetPixels32();
-            Object.DestroyImmediate(source);
+            foreach (var file in files)
+            {
+                var path = $"{BattleHudTools.UiSpriteFolder}/{Path.GetFileName(file)}";
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                Assert.IsNotNull(sprite, path);
+                Assert.AreEqual(SystemMenuTools.TitleBackgroundWidth, sprite.rect.width, path);
+                Assert.AreEqual(SystemMenuTools.TitleBackgroundHeight, sprite.rect.height, path);
+                Assert.AreEqual(FilterMode.Point, sprite.texture.filterMode, path);
+                Assert.AreEqual(Vector4.zero, sprite.border, "only box_ sprites are sliced");
 
-            Assert.IsTrue(pixels.All(pixel => pixel.a == byte.MaxValue), "the title background covers the whole frame");
-            var colors = pixels.Select(pixel => (pixel.r, pixel.g, pixel.b)).Distinct().ToList();
-            CollectionAssert.IsSubsetOf(colors, LoadPalette(), "the title background paints outside the SNES palette");
-            Assert.Greater(colors.Count, MaxColorsPerSprite, "a background layer may use several sub-palettes");
-            Assert.LessOrEqual(colors.Count, MaxColorsPerBackground);
+                var source = new Texture2D(2, 2);
+                source.LoadImage(File.ReadAllBytes(file));
+                var pixels = source.GetPixels32();
+                Object.DestroyImmediate(source);
+
+                Assert.IsTrue(pixels.All(pixel => pixel.a == byte.MaxValue), $"{path} must cover the whole frame");
+                var colors = pixels.Select(pixel => (pixel.r, pixel.g, pixel.b)).Distinct().ToList();
+                CollectionAssert.IsSubsetOf(colors, LoadPalette(), $"{path} paints outside the SNES palette");
+                Assert.Greater(colors.Count, MaxColorsPerSprite, "a background layer may use several sub-palettes");
+                Assert.LessOrEqual(colors.Count, MaxColorsPerBackground, path);
+            }
         }
 
         [Test]

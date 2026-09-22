@@ -7,6 +7,7 @@ using Game.UI;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -43,6 +44,48 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(SystemMenus.Continue, withSave.Selected.Id);
             Assert.IsTrue(withSave.TryConfirm(out var id));
             Assert.AreEqual(SystemMenus.Continue, id);
+        }
+
+        [Test]
+        public void MainMenu_PlaysTheSunsetBehindTheTitle()
+        {
+            var scene = EditorSceneManager.OpenScene(SystemMenuTools.MainMenuScenePath, OpenSceneMode.Additive);
+            try
+            {
+                var flipbook = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<SpriteFlipbook>(true)).Single();
+                var paths = flipbook.Frames.Select(AssetDatabase.GetAssetPath).ToList();
+                Assert.AreEqual(SpriteFlipbook.DefaultFramesPerSecond, flipbook.FramesPerSecond);
+                Assert.Greater(paths.Count, 1, "the title screen needs more than the still painting");
+                Assert.AreEqual($"{BattleHudTools.UiSpriteFolder}/{SystemMenuTools.TitleBackgroundSprite}.png", paths[0], "the painting opens the loop");
+                CollectionAssert.AllItemsAreUnique(paths);
+                Assert.IsTrue(flipbook.Frames.All(frame => frame), "every frame of the title screen must exist");
+
+                var image = flipbook.GetComponent<Image>();
+                Assert.AreSame(flipbook.Frames[0], image.sprite);
+                flipbook.Advance(1f / SpriteFlipbook.DefaultFramesPerSecond);
+                Assert.AreEqual(1, flipbook.Index);
+                Assert.AreSame(flipbook.Frames[1], image.sprite);
+
+                flipbook.Advance(flipbook.Frames.Count / SpriteFlipbook.DefaultFramesPerSecond);
+                Assert.AreEqual(1, flipbook.Index, "the sunset loops back to where it started");
+
+                var clouds = flipbook.GetComponentsInChildren<DriftingSprite>(true);
+                Assert.AreEqual(SystemMenuTools.TitleClouds.Length, clouds.Length, "every cloud of the sky drifts");
+                foreach (var (name, start, speed) in SystemMenuTools.TitleClouds)
+                {
+                    var cloud = clouds.Single(drifting => drifting.name == name);
+                    Assert.AreEqual(start, cloud.Origin);
+                    Assert.AreEqual(speed, cloud.PixelsPerSecond);
+                    Assert.Greater(cloud.Origin.y, SystemMenuTools.TitleBackgroundHeight / 2f, "clouds belong in the sky, not in the city");
+                    Assert.AreEqual($"{BattleHudTools.UiSpriteFolder}/{name}.png", AssetDatabase.GetAssetPath(cloud.GetComponent<Image>().sprite));
+                }
+
+                CollectionAssert.AllItemsAreUnique(clouds.Select(cloud => cloud.PixelsPerSecond).ToList(), "clouds at different heights cross at different speeds");
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
 
         [Test]

@@ -89,6 +89,7 @@ SIZE_RULES = (
     exact("fallacy icon", r"^icon_", 16, 16),
     exact("juror meter", r"^meter_jurors$", 200, 16),
     exact("title background", r"^bg_", 384, 216, max_colors=BACKGROUND_MAX_COLORS),
+    exact("drifting cloud", r"^cloud_", 32, 16),
 )
 
 
