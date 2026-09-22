@@ -18,11 +18,11 @@ MonoBehaviour:
   - key: battle.intro
     value: "Kleia aceita o desafio de {0}. A plateia se junta: o debate come\xE7ou."
   - key: battle.refute_hit
-    value: "Fal\xE1cia exposta! {0} perde o fio e a plateia aplaude."
+    value: "Fal\xE1cia exposta! {1} perde o fio e a plateia aplaude."
   - key: battle.refute_miss
-    value: "N\xE3o era essa fal\xE1cia. {0} aproveita o erro e contra-ataca."
+    value: "N\xE3o era essa fal\xE1cia. {1} aproveita o erro e contra-ataca."
   - key: battle.maieutics_hit
-    value: 'A pergunta certa: {0} se contradiz sozinho.'
+    value: "A pergunta certa: {1} se contradiz nas pr\xF3prias palavras."
   - key: battle.maieutics_miss
     value: "A pergunta n\xE3o pegou, e a plateia se impacienta."
   - key: battle.concede

@@ -421,7 +421,7 @@ namespace Game.UI
                     thinkTimer -= Time.deltaTime;
                     if (thinkTimer <= 0f)
                     {
-                        AfterOutcome(engaged.Actor, Session.PlayOpponentTurn(), engaged.Opponent.DisplayName);
+                        AfterOutcome(engaged.Actor, Session.PlayOpponentTurn(), engaged.Opponent.DisplayName, text.Get(BattleText.PlayerNameKey));
                     }
 
                     break;
@@ -809,10 +809,10 @@ namespace Game.UI
                 }
             }
 
-            AfterOutcome(sandbox.Player, outcome, text.Get(BattleText.PlayerNameKey));
+            AfterOutcome(sandbox.Player, outcome, text.Get(BattleText.PlayerNameKey), engaged.Opponent.DisplayName);
         }
 
-        private void AfterOutcome(ActorView actor, Outcome outcome, string speaker)
+        private void AfterOutcome(ActorView actor, Outcome outcome, string speaker, string listener)
         {
             hud.Sync();
 
@@ -833,7 +833,7 @@ namespace Game.UI
                     return;
                 }
 
-                ShowLine(string.Empty, string.Format(text.Get(key), speaker), Continue);
+                ShowLine(string.Empty, string.Format(text.Get(key), speaker, listener), Continue);
             }
 
             if (outcome.Moves && actor?.Walker != null)

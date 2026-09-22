@@ -41,6 +41,29 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void BattleNarration_NamesTheDebaterEachLineIsAbout()
+        {
+            const string speaker = "Kleia";
+            const string listener = "Trasíbulo";
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            Assert.IsNotNull(uiText, $"run DataTools.Regenerate to create {DataTools.UiTextPath}");
+
+            foreach (var key in new[] { BattleText.RefuteHitKey, BattleText.RefuteMissKey, BattleText.MaieuticsHitKey })
+            {
+                var line = string.Format(uiText.Get(key), speaker, listener);
+                StringAssert.Contains(listener, line, $"{key} tells what happened to the debater who was answered");
+                StringAssert.DoesNotContain(speaker, line, $"{key} must not credit the wrong side");
+            }
+
+            foreach (var key in new[] { BattleText.ConcedeKey, BattleText.ConcedeCounterKey, BattleText.QuoteKey, BattleText.DeflectedKey })
+            {
+                var line = string.Format(uiText.Get(key), speaker, listener);
+                StringAssert.Contains(speaker, line, $"{key} tells what the debater of the turn did");
+                StringAssert.DoesNotContain(listener, line, $"{key} must not name the other side");
+            }
+        }
+
+        [Test]
         public void GeneratedUiText_HasALineForEverythingTheBattleNarrates()
         {
             var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);

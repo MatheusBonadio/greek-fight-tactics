@@ -2,9 +2,9 @@
   "entries": {
     "battle.player_name": "Kleia",
     "battle.intro": "Kleia aceita o desafio de {0}. A plateia se junta: o debate começou.",
-    "battle.refute_hit": "Falácia exposta! {0} perde o fio e a plateia aplaude.",
-    "battle.refute_miss": "Não era essa falácia. {0} aproveita o erro e contra-ataca.",
-    "battle.maieutics_hit": "A pergunta certa: {0} se contradiz sozinho.",
+    "battle.refute_hit": "Falácia exposta! {1} perde o fio e a plateia aplaude.",
+    "battle.refute_miss": "Não era essa falácia. {1} aproveita o erro e contra-ataca.",
+    "battle.maieutics_hit": "A pergunta certa: {1} se contradiz nas próprias palavras.",
     "battle.maieutics_miss": "A pergunta não pegou, e a plateia se impacienta.",
     "battle.concede": "{0} cede o ponto e recupera o fôlego.",
     "battle.quote": "{0} cita os antigos.",
