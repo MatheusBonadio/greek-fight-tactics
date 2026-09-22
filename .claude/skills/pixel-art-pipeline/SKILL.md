@@ -19,6 +19,7 @@ art/
   reference/     scene_mockup.png
   placeholders/
     characters/  13 folhas 96x128 + 13 idles 24x32
+    portraits/   retratos dedicados 32x32 (hoje só aristeu_portrait)
     tiles/
       floor/     7 tiles 32x16
       blocks/    7 blocos e props 32x(16+altura)
@@ -43,8 +44,9 @@ Inglês, `snake_case`, com prefixo por categoria. O prefixo é o que o importer 
 | `hl_` | Realce de alcance | `hl_refute.png` |
 | `bar_` / `box_` / `frame_` / `icon_` / `meter_` | UI | `bar_coherence.png` |
 | `<personagem>_sheet` / `<personagem>_idle_se` | Personagem | `kleia_sheet.png` |
+| `<personagem>_portrait` | Retrato 32×32 da caixa de diálogo | `aristeu_portrait.png` |
 
-Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem acento (`oron`, `batilo`); só a Pítia vira `pythia`. Os cinco duelistas de bairro são trocas de paleta das folhas de `citizen`, `damaris` e `thrasybios`, e `aristeu` é a de `citizen` com quíton marrom, barba grisalha e a mão torta à mostra, até a arte definitiva.
+Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem acento (`oron`, `batilo`); só a Pítia vira `pythia`. Os cinco duelistas de bairro são trocas de paleta das folhas de `citizen`, `damaris` e `thrasybios`, e `aristeu` é a de `citizen` com quíton marrom e barba grisalha, até a arte definitiva. Retrato dedicado (`<personagem>_portrait.png`, 32×32, o miolo da moldura `frame_portrait` de 40×40) vence o quadro `<personagem>_se_0` da folha no diálogo e na batalha. O de Aristeu mostra a mão erguida ao lado do rosto, com os dedos tortos, desviados para o lado do mindinho, e os nós inchados: é o detalhe obrigatório do GDD, que a folha de 24×32 não tem espaço para mostrar.
 
 ---
 

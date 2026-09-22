@@ -9,6 +9,7 @@
     "Game.Net",
     "Unity.InputSystem",
     "Unity.Cinemachine",
+    "Unity.Timeline",
     "Unity.TextMeshPro",
     "UnityEngine.UI"
   ],

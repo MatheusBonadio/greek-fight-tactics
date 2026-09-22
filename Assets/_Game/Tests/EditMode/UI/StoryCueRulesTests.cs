@@ -41,6 +41,38 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void CutsceneTrigger_KeepsItsCellFlagAndConditions()
+        {
+            var trigger = DialogueTriggerLink.ForCutscene(new Coord(3, 5), "door_scene", Once, new[] { StoryCondition.Has(Needed) });
+            var story = new SaveData();
+
+            Assert.IsTrue(trigger.IsCutscene);
+            Assert.AreEqual("door_scene", trigger.Cutscene);
+            Assert.IsTrue(string.IsNullOrEmpty(trigger.Dialogue));
+            Assert.AreEqual(new Coord(3, 5), trigger.Cell);
+            Assert.IsFalse(trigger.IsDue(story));
+            story.Flags[Needed] = StoryEffect.DefaultValue;
+            Assert.IsTrue(trigger.IsDue(story));
+            story.Flags[Once] = StoryEffect.DefaultValue;
+            Assert.IsFalse(trigger.IsDue(story));
+            Assert.IsFalse(new DialogueTriggerLink(new Coord(1, 1), "door", Once).IsCutscene);
+        }
+
+        [Test]
+        public void IdleCue_WaitsForItsConditionsLikeEveryOtherCue()
+        {
+            var cue = new StoryCueLink(ExplorationCue.Idle, "go_home", Once, new[] { new StoryCondition("duel_thrasybios", "won") });
+            var story = new SaveData();
+
+            Assert.IsFalse(cue.IsDue(ExplorationCue.Idle, story));
+            story.Duels["thrasybios"] = new DuelRecord(true, DuelVictory.Refute);
+            Assert.IsTrue(cue.IsDue(ExplorationCue.Idle, story), "a duel won before the flag existed also points Kleia home");
+            Assert.IsFalse(cue.IsDue(ExplorationCue.MapStart, story));
+            story.Flags[Once] = StoryEffect.DefaultValue;
+            Assert.IsFalse(cue.IsDue(ExplorationCue.Idle, story));
+        }
+
+        [Test]
         public void TriggerWithoutConditions_BehavesAsBefore()
         {
             var trigger = new DialogueTriggerLink(new Coord(1, 1), "door", Once);

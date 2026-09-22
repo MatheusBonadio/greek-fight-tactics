@@ -12,6 +12,7 @@ namespace Game.UI
     {
         [SerializeField] private Vector2Int cell;
         [SerializeField] private string dialogue;
+        [SerializeField] private string cutscene;
         [SerializeField] private string flag;
         [SerializeField] private List<StoryConditionEntry> conditions = new();
 
@@ -27,9 +28,16 @@ namespace Game.UI
             conditions = (requires ?? Enumerable.Empty<StoryCondition>()).Select(StoryConditionEntry.From).ToList();
         }
 
+        public static DialogueTriggerLink ForCutscene(Coord triggerCell, string cutsceneId, string onceFlag, IEnumerable<StoryCondition> requires = null) =>
+            new(triggerCell, null, onceFlag, requires) { cutscene = cutsceneId };
+
         public Coord Cell => new(cell.x, cell.y);
 
         public string Dialogue => dialogue;
+
+        public string Cutscene => cutscene;
+
+        public bool IsCutscene => !string.IsNullOrEmpty(cutscene);
 
         public string Flag => flag;
 

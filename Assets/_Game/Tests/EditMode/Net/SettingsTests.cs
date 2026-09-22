@@ -100,6 +100,8 @@ namespace Game.Tests.EditMode.Net
 
         [TestCase(GameMode.BattleOutro, GameMode.Exploration, true)]
         [TestCase(GameMode.Dialogue, GameMode.Exploration, true)]
+        [TestCase(GameMode.Cutscene, GameMode.Exploration, true)]
+        [TestCase(GameMode.Dialogue, GameMode.Cutscene, false)]
         [TestCase(GameMode.Exploration, GameMode.BattleIntro, false)]
         [TestCase(GameMode.Paused, GameMode.Exploration, false)]
         [TestCase(GameMode.BattleTurn, GameMode.BattleResolve, false)]

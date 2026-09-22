@@ -46,7 +46,7 @@ namespace Game.Core
 
         public bool TryOpenOverlay(GameMode overlay)
         {
-            var isOverlay = overlay is GameMode.Dialogue or GameMode.Paused;
+            var isOverlay = overlay is GameMode.Dialogue or GameMode.Paused or GameMode.Cutscene;
             var alreadyPaused = Mode == GameMode.Paused;
             if (!isOverlay || alreadyPaused || Mode == overlay)
             {

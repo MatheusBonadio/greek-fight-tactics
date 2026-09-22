@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Game.Core;
 using Game.Grid;
 using Newtonsoft.Json;
@@ -51,11 +52,48 @@ namespace Game.EditorTools
 
         public string Dialogue { get; set; }
 
+        public string Cutscene { get; set; }
+
         public string Flag { get; set; }
 
         public List<MapCondition> Conditions { get; set; } = new();
 
+        public bool IsCutscene => !string.IsNullOrWhiteSpace(Cutscene);
+
         public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
+    }
+
+    public sealed class MapCutsceneStep
+    {
+        public double At { get; set; }
+
+        public CutsceneAction Action { get; set; }
+
+        public string Actor { get; set; }
+
+        public string Toward { get; set; }
+
+        public int? X { get; set; }
+
+        public int? Y { get; set; }
+
+        public string Dialogue { get; set; }
+
+        public bool HasCell => X.HasValue && Y.HasValue;
+
+        public Coord? Cell => HasCell ? new Coord(X.Value, Y.Value) : null;
+    }
+
+    public sealed class MapCutscene
+    {
+        public string Id { get; set; }
+
+        public List<MapCutsceneStep> Steps { get; set; } = new();
+
+        public double LastStepAt => Steps.Count == 0 ? 0d : Steps[^1].At;
+
+        public IEnumerable<string> ActorIds =>
+            Steps.SelectMany(step => new[] { step.Actor, step.Toward }).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct();
     }
 
     public sealed class MapCue
@@ -90,6 +128,7 @@ namespace Game.EditorTools
     {
         public const char EmptyBlock = '-';
         public const string WaterTile = "floor_water";
+        public const string CutsceneIdPattern = "^[a-z][a-z0-9_]*$";
 
         public string Id { get; set; }
 
@@ -108,6 +147,8 @@ namespace Game.EditorTools
         public List<MapTrigger> Triggers { get; set; } = new();
 
         public List<MapCue> Cues { get; set; } = new();
+
+        public List<MapCutscene> Cutscenes { get; set; } = new();
 
         public int? FogRevealDepth { get; set; }
 
@@ -212,6 +253,8 @@ namespace Game.EditorTools
                 throw new InvalidOperationException($"map {Id}: the player {Actors[0].Character} cannot hold a dialogue");
             }
 
+            ValidateCutscenes();
+
             var triggerCells = new HashSet<(int, int)>();
             foreach (var trigger in Triggers)
             {
@@ -221,9 +264,14 @@ namespace Game.EditorTools
                     throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) is not on a walkable cell");
                 }
 
-                if (string.IsNullOrWhiteSpace(trigger.Dialogue))
+                if (string.IsNullOrWhiteSpace(trigger.Dialogue) == !trigger.IsCutscene)
                 {
-                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) has no dialogue");
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) needs either a dialogue or a cutscene");
+                }
+
+                if (trigger.IsCutscene && Cutscenes.All(cutscene => cutscene.Id != trigger.Cutscene))
+                {
+                    throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) plays the unknown cutscene {trigger.Cutscene}");
                 }
 
                 if (!SaveFlags.IsCustomName(trigger.Flag))
@@ -260,6 +308,107 @@ namespace Game.EditorTools
             }
         }
 
+        private void ValidateCutscenes()
+        {
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var cutscene in Cutscenes)
+            {
+                if (cutscene.Id == null || !Regex.IsMatch(cutscene.Id, CutsceneIdPattern) || !ids.Add(cutscene.Id))
+                {
+                    throw new InvalidOperationException($"map {Id}: every cutscene needs its own id in snake case, found '{cutscene.Id}'");
+                }
+
+                if (cutscene.Steps.Count == 0)
+                {
+                    throw new InvalidOperationException($"map {Id}: the cutscene {cutscene.Id} has no steps");
+                }
+
+                var previous = 0d;
+                foreach (var step in cutscene.Steps)
+                {
+                    var owner = $"the cutscene {cutscene.Id} at {step.At}s";
+                    if (step.At <= previous)
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} must come after the previous step and after 0s");
+                    }
+
+                    previous = step.At;
+                    ValidateStep(owner, step);
+                }
+            }
+        }
+
+        private void ValidateStep(string owner, MapCutsceneStep step)
+        {
+            switch (step.Action)
+            {
+                case CutsceneAction.Dialogue:
+                    if (string.IsNullOrWhiteSpace(step.Dialogue))
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} has no dialogue");
+                    }
+
+                    return;
+                case CutsceneAction.Face:
+                    RequireCastMember(owner, step.Actor);
+                    if (string.IsNullOrWhiteSpace(step.Toward) == !step.HasCell)
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} faces either an actor or a cell");
+                    }
+
+                    if (step.HasCell)
+                    {
+                        RequireInside(owner, step.X.Value, step.Y.Value);
+                    }
+                    else
+                    {
+                        RequireCastMember(owner, step.Toward);
+                    }
+
+                    return;
+                case CutsceneAction.Walk:
+                    RequireCastMember(owner, step.Actor);
+                    if (!step.HasCell)
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} walks without a destination");
+                    }
+
+                    RequireInside(owner, step.X.Value, step.Y.Value);
+                    if (!IsWalkable(step.X.Value, step.Y.Value))
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} walks to the blocked cell ({step.X}, {step.Y})");
+                    }
+
+                    return;
+                case CutsceneAction.Leave:
+                    RequireCastMember(owner, step.Actor);
+                    if (step.Actor == Actors[0].Character)
+                    {
+                        throw new InvalidOperationException($"map {Id}: {owner} cannot send the player off the map");
+                    }
+
+                    return;
+                default:
+                    throw new InvalidOperationException($"map {Id}: {owner} has the unknown action {step.Action}");
+            }
+        }
+
+        private void RequireCastMember(string owner, string character)
+        {
+            if (string.IsNullOrWhiteSpace(character) || Actors.Count(actor => actor.Character == character) != 1)
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} needs an actor that appears exactly once on the map, found '{character}'");
+            }
+        }
+
+        private void RequireInside(string owner, int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} points outside the map at ({x}, {y})");
+            }
+        }
+
         private void ValidateConditions(string owner, IEnumerable<MapCondition> conditions)
         {
             foreach (var condition in (conditions ?? Enumerable.Empty<MapCondition>()).Select(entry => entry.ToCondition()))
@@ -275,6 +424,7 @@ namespace Game.EditorTools
             Actors.Select(actor => actor.Dialogue)
                 .Concat(Triggers.Select(trigger => trigger.Dialogue))
                 .Concat(Cues.Select(cue => cue.Dialogue))
+                .Concat(Cutscenes.SelectMany(cutscene => cutscene.Steps).Where(step => step.Action == CutsceneAction.Dialogue).Select(step => step.Dialogue))
                 .Where(id => !string.IsNullOrEmpty(id))
                 .Distinct();
     }

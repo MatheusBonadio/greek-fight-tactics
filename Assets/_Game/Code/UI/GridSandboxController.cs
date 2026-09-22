@@ -176,6 +176,26 @@ namespace Game.UI
             return true;
         }
 
+        public bool TryDismiss(ActorView actor)
+        {
+            if (!actor || actor == player || actor.Walker == null)
+            {
+                return false;
+            }
+
+            var walker = actor.Walker;
+            walker.Cancel();
+            if (grid.TryGet(walker.Cell, out var tile) && tile.OccupantId == walker.ActorId)
+            {
+                tile.OccupantId = TileData.NoOccupant;
+                grid.TrySet(walker.Cell, tile);
+            }
+
+            actor.Bind(null);
+            actor.gameObject.SetActive(false);
+            return true;
+        }
+
         public void ConfigureLayout(int newWidth, int newHeight, TerrainId[] newTerrain, byte[] newCosts, int newFogRevealDepth)
         {
             width = newWidth;

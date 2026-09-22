@@ -559,7 +559,7 @@ namespace Game.UI
                 sandbox.Duels.RecordVictory(engaged.Opponent.Id, victory);
             }
 
-            var result = DuelStoryFlags.ResultOf(engaged.Opponent.Id, LastResult);
+            var result = DuelStoryResults.ResultOf(engaged.Opponent.Id, LastResult);
             duelResult = result;
             if (storyteller)
             {

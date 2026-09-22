@@ -100,7 +100,7 @@ namespace Game.Tests.EditMode.Battle
         public void DuelResult_IsAStoryFlagPerOpponent(BattleStatus status, string value)
         {
             var save = new SaveData();
-            var effect = DuelStoryFlags.ResultOf("thrasybios", status);
+            var effect = DuelStoryResults.ResultOf("thrasybios", status);
 
             Assert.IsTrue(effect.TryApply(save, out var error), error);
             Assert.AreEqual(value, save.Flags["duel_thrasybios"]);
@@ -112,8 +112,26 @@ namespace Game.Tests.EditMode.Battle
         public void DuelResult_NeedsAnOpponentAndAFinishedBattle()
         {
             Assert.Throws<ArgumentException>(() => DuelStoryFlags.FlagFor(" "));
-            Assert.Throws<ArgumentOutOfRangeException>(() => DuelStoryFlags.ValueFor(BattleStatus.Ongoing));
+            Assert.Throws<ArgumentOutOfRangeException>(() => DuelStoryResults.ValueFor(BattleStatus.Ongoing));
             Assert.IsTrue(DataTools.OpponentIds().All(id => SaveFlags.IsCustomName(DuelStoryFlags.FlagFor(id))), "every opponent id makes a valid story flag");
+        }
+
+        [Test]
+        public void SaveFromBeforeDuelFlags_ReadsAWonDuelRecordAsItsStoryFlag()
+        {
+            var save = new SaveData();
+            save.Duels["thrasybios"] = new DuelRecord(true, DuelVictory.Refute);
+            save.Duels["oron"] = new DuelRecord(false, DuelVictory.Concede);
+            var wonThrasybios = new StoryCondition(DuelStoryFlags.FlagFor("thrasybios"), DuelStoryFlags.Won);
+
+            Assert.IsTrue(wonThrasybios.IsMet(save), "a save that beat Thrasybios before duel flags existed still counts the win");
+            Assert.IsFalse(StoryCondition.Has(DuelStoryFlags.FlagFor("oron")).IsMet(save), "only won duels stand in for the flag");
+            Assert.IsFalse(StoryCondition.Has(DuelStoryFlags.FlagFor("simo")).IsMet(save));
+            Assert.IsFalse(StoryCondition.Lacks(DuelStoryFlags.FlagFor("thrasybios")).IsMet(save));
+            Assert.IsFalse(save.Flags.ContainsKey(DuelStoryFlags.FlagFor("thrasybios")), "reading does not write the flag");
+
+            Assert.IsTrue(DuelStoryResults.ResultOf("thrasybios", BattleStatus.PlayerWon).TryApply(save, out _));
+            Assert.IsTrue(wonThrasybios.IsMet(save));
         }
 
         [Test]

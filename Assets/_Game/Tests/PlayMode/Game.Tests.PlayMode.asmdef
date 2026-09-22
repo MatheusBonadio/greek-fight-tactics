@@ -10,6 +10,7 @@
     "Game.Content",
     "Game.Net",
     "Game.UI",
+    "Unity.Timeline",
     "Game.DevCommands",
     "Unity.TextMeshPro",
     "Unity.InputSystem",

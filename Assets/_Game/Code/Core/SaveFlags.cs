@@ -43,7 +43,7 @@ namespace Game.Core
                     return true;
             }
 
-            return save.Flags.TryGetValue(name, out value);
+            return save.Flags.TryGetValue(name, out value) || DuelStoryFlags.TryReadRecordedVictory(save, name, out value);
         }
 
         public static bool TrySet(SaveData save, string name, string value, out string error)

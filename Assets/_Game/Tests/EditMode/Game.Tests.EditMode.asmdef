@@ -17,6 +17,7 @@
     "Unity.InputSystem",
     "Game.UI",
     "Unity.Cinemachine",
+    "Unity.Timeline",
     "Game.DevCommands",
     "Unity.TextMeshPro",
     "UnityEngine.UI"

@@ -1,7 +1,6 @@
 using System;
-using Game.Core;
 
-namespace Game.Battle
+namespace Game.Core
 {
     public static class DuelStoryFlags
     {
@@ -21,15 +20,21 @@ namespace Game.Battle
             return Prefix + opponentId;
         }
 
-        public static string ValueFor(BattleStatus status) => status switch
+        public static bool TryReadRecordedVictory(SaveData save, string flag, out string value)
         {
-            BattleStatus.PlayerWon => Won,
-            BattleStatus.PlayerLost => Lost,
-            BattleStatus.PlayerWithdrew => Withdrew,
-            BattleStatus.TurnLimitReached => Stalemate,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "An ongoing battle has no result yet.")
-        };
+            value = null;
+            if (save == null || flag == null || !flag.StartsWith(Prefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
 
-        public static StoryEffect ResultOf(string opponentId, BattleStatus status) => new(FlagFor(opponentId), ValueFor(status));
+            if (!save.Duels.TryGetValue(flag.Substring(Prefix.Length), out var record) || record == null || !record.Won)
+            {
+                return false;
+            }
+
+            value = Won;
+            return true;
+        }
     }
 }

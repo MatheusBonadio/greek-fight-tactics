@@ -16,6 +16,7 @@ namespace Game.UI
         [SerializeField] private List<NpcDialogueLink> talkers = new();
         [SerializeField] private List<DialogueTriggerLink> triggers = new();
         [SerializeField] private Dictionary<string, Sprite> portraits = new();
+        [SerializeField] private CutsceneDirector cutscenes;
 
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> candidatePath = new();
@@ -41,6 +42,8 @@ namespace Game.UI
         public IReadOnlyList<DialogueTriggerLink> Triggers => triggers;
 
         public IReadOnlyDictionary<string, Sprite> Portraits => portraits;
+
+        public CutsceneDirector Cutscenes => cutscenes;
 
         public bool AutosaveEnabled { get; set; } = true;
 
@@ -74,6 +77,11 @@ namespace Game.UI
             portraits = speakerPortraits;
         }
 
+        public void ConfigureCutscenes(CutsceneDirector director)
+        {
+            cutscenes = director;
+        }
+
         public Sprite PortraitFor(string speakerId) =>
             !string.IsNullOrEmpty(speakerId) && portraits.TryGetValue(speakerId, out var portrait) ? portrait : null;
 
@@ -88,7 +96,7 @@ namespace Game.UI
             if (talker == null)
             {
                 pendingTalk = null;
-                return false;
+                return TryApproachTriggerBeside(cell);
             }
 
             Approach(talker);
@@ -98,7 +106,7 @@ namespace Game.UI
         public bool TryStartDialogue(string dialogueId)
         {
             EnsureStoryLoaded();
-            if (IsTalking || Story == null || !library || sandbox.StateMachine.Mode != GameMode.Exploration || !library.TryGet(dialogueId, out var script))
+            if (IsTalking || Story == null || !library || !CanOpenFrom(sandbox.StateMachine.Mode) || !library.TryGet(dialogueId, out var script))
             {
                 return false;
             }
@@ -141,6 +149,18 @@ namespace Game.UI
                 SaveProgress();
             }
 
+            return true;
+        }
+
+        public bool TryPlayCutsceneOnce(string cutsceneId, string onceFlag)
+        {
+            EnsureStoryLoaded();
+            if (!cutscenes || IsTalking || Story == null || StoryCondition.Has(onceFlag).IsMet(Story) || !cutscenes.TryPlay(cutsceneId))
+            {
+                return false;
+            }
+
+            Remember(new StoryEffect(onceFlag));
             return true;
         }
 
@@ -318,6 +338,12 @@ namespace Game.UI
 
         private void Fire(DialogueTriggerLink trigger)
         {
+            if (trigger.IsCutscene)
+            {
+                TryPlayCutsceneOnce(trigger.Cutscene, trigger.Flag);
+                return;
+            }
+
             FaceSpeakerBeside(trigger.Dialogue);
             TryPlayOnce(trigger.Dialogue, trigger.Flag);
         }
@@ -354,7 +380,7 @@ namespace Game.UI
 
             var from = sandbox.StateMachine.Mode;
             sandbox.StateMachine.TryCloseOverlay();
-            if (pause)
+            if (pause && sandbox.StateMachine.Mode == GameMode.Exploration)
             {
                 pause.Input.Panel = pause;
             }
@@ -365,7 +391,7 @@ namespace Game.UI
             }
         }
 
-        private void SaveProgress()
+        public void SaveProgress()
         {
             if (!AutosaveEnabled || !services || !services.IsBooted)
             {
@@ -381,16 +407,60 @@ namespace Game.UI
             services.Autosave(save);
         }
 
+        private static bool CanOpenFrom(GameMode mode) => mode is GameMode.Exploration or GameMode.Cutscene;
+
         private bool CanTalkTo(NpcDialogueLink talker) =>
             talker.Actor && talker.Actor.Walker != null && library && library.Contains(talker.Dialogue);
 
         private NpcDialogueLink TalkerAt(Coord cell) =>
             talkers.Find(talker => CanTalkTo(talker) && talker.Actor.Walker.Cell == cell);
 
-        private static bool IsBeside(Coord cell, NpcDialogueLink talker)
+        private static bool IsBeside(Coord cell, NpcDialogueLink talker) => AreBeside(cell, talker.Actor.Walker.Cell);
+
+        private static bool AreBeside(Coord first, Coord second) => Math.Abs(first.X - second.X) + Math.Abs(first.Y - second.Y) == 1;
+
+        private bool TryApproachTriggerBeside(Coord occupiedCell)
         {
-            var npc = talker.Actor.Walker.Cell;
-            return Math.Abs(cell.X - npc.X) + Math.Abs(cell.Y - npc.Y) == 1;
+            var walker = sandbox.Player?.Walker;
+            EnsureStoryLoaded();
+            if (walker == null || Story == null || occupiedCell == walker.Cell || !sandbox.Grid.TryGet(occupiedCell, out var tile) || !tile.IsOccupied)
+            {
+                return false;
+            }
+
+            approachPath.Clear();
+            DialogueTriggerLink nearest = null;
+            foreach (var trigger in triggers)
+            {
+                if (!AreBeside(trigger.Cell, occupiedCell) || !trigger.IsDue(Story))
+                {
+                    continue;
+                }
+
+                if (trigger.Cell == walker.Cell)
+                {
+                    walker.Cancel();
+                    pendingTrigger = trigger;
+                    return true;
+                }
+
+                if (!pathFinder.FindPath(sandbox.Grid, walker.Cell, trigger.Cell, candidatePath) || (nearest != null && candidatePath.Count >= approachPath.Count))
+                {
+                    continue;
+                }
+
+                nearest = trigger;
+                approachPath.Clear();
+                approachPath.AddRange(candidatePath);
+            }
+
+            if (nearest == null)
+            {
+                return false;
+            }
+
+            walker.Follow(approachPath);
+            return true;
         }
 
         private bool TryFindApproach(Coord from, Coord target)

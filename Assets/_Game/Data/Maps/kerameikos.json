@@ -59,8 +59,7 @@
       "x": 3,
       "y": 6,
       "facing": "NorthEast",
-      "dialogue": "menexeno_workshop_door",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }]
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
     }
   ],
   "exits": [
@@ -72,9 +71,40 @@
     {
       "x": 4,
       "y": 6,
-      "dialogue": "menexeno_workshop_door",
+      "cutscene": "menexeno_follows_home",
       "flag": "menexeno_door_scene",
       "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    }
+  ],
+  "cutscenes": [
+    {
+      "id": "menexeno_follows_home",
+      "steps": [
+        { "at": 0.25, "action": "Face", "actor": "kleia", "toward": "menexeno" },
+        { "at": 0.5, "action": "Face", "actor": "menexeno", "toward": "kleia" },
+        { "at": 0.75, "action": "Dialogue", "dialogue": "menexeno_door_offer" },
+        { "at": 1.5, "action": "Face", "actor": "menexeno", "x": 3, "y": 0 },
+        { "at": 2.25, "action": "Dialogue", "dialogue": "menexeno_door_glance" },
+        { "at": 2.75, "action": "Face", "actor": "menexeno", "toward": "kleia" },
+        { "at": 3.0, "action": "Dialogue", "dialogue": "menexeno_door_lesson" },
+        { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 4, "y": 0 },
+        { "at": 3.75, "action": "Leave", "actor": "menexeno" },
+        { "at": 4.5, "action": "Dialogue", "dialogue": "menexeno_door_learned" }
+      ]
     }
   ],
   "cues": [

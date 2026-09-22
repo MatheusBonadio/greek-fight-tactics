@@ -4,6 +4,7 @@ namespace Game.Core
     {
         MapStart,
         FogRevealed,
-        WalkFinished
+        WalkFinished,
+        Idle
     }
 }

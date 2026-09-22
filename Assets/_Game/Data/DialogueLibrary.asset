@@ -142,143 +142,92 @@ MonoBehaviour:
           absent: 1
         effects: []
       - speaker: aristeu
-        text: "Aquele velho parado na porta... N\xE3o gosto de quem ensina de gra\xE7a, filha. Sempre cobra de outro jeito."
+        text: "Aquele velho que te esperava na porta... N\xE3o gosto de quem ensina de gra\xE7a, filha. Sempre cobra de outro jeito."
         conditions:
         - flag: maieutics_unlocked
           value: 
           absent: 0
         effects: []
-  - key: menexeno_workshop_door
+  - key: menexeno_door_offer
     value:
       lines:
       - speaker: 
         text: "O velho de manto encardido est\xE1 parado diante da oficina, apoiado no bast\xE3o de oliveira. Seguiu Kleia desde a \xE1gora."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
-        effects: []
+        conditions: []
+        effects:
+        - flag: met_menexeno
+          value: true
       - speaker: kleia
         text: "O senhor estava no mercado. Veio rir tamb\xE9m?"
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: menexeno
         text: "Riram de voc\xEA porque \xE9 menina do Cer\xE2mico. Ningu\xE9m riu do que importava: voc\xEA esperou o homem terminar de errar."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: menexeno
         text: "Isso n\xE3o se ensina. O resto, sim. Eu ensino. De gra\xE7a."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: kleia
         text: "Ningu\xE9m ensina de gra\xE7a no Cer\xE2mico. Qual \xE9 o pre\xE7o?"
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: menexeno
         text: "Uma condi\xE7\xE3o. Nunca aceite dinheiro por uma pergunta. Nem uma dracma, nem de quem puder pagar."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects:
         - flag: menexeno_condition
           value: true
       - speaker: kleia
         text: "Por qu\xEA?"
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: 
         text: "Ele n\xE3o explica."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: kleia
         text: E o senhor aprendeu com quem? Foi aluno de algum mestre?
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: menexeno
         text: "Faz muito tempo. N\xE3o importa."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
+  - key: menexeno_door_glance
+    value:
+      lines:
       - speaker: 
         text: "Menexeno desvia os olhos para a rua, na dire\xE7\xE3o dos tribunais, e muda de assunto depressa demais."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects:
         - flag: menexeno_avoids_past
           value: true
+  - key: menexeno_door_lesson
+    value:
+      lines:
       - speaker: menexeno
         text: "Amanh\xE3, quando algu\xE9m disser uma certeza, n\xE3o aponte o erro. Pergunte at\xE9 ele trope\xE7ar sozinho. A m\xE3e dele era parteira; ele dizia que s\xF3 ajudava as ideias a nascer."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: kleia
         text: Ele quem?
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
       - speaker: menexeno
         text: "Ningu\xE9m. Boa noite, menina."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects: []
+  - key: menexeno_door_learned
+    value:
+      lines:
       - speaker: 
         text: "Kleia aprendeu a MAI\xCAUTICA. No debate, escolha a premissa fr\xE1gil do advers\xE1rio e deixe que ele se contradiga sozinho."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 1
+        conditions: []
         effects:
         - flag: maieutics_unlocked
           value: true
-      - speaker: menexeno
-        text: "Pergunte. N\xE3o cobre. \xC9 s\xF3 isso que eu pe\xE7o."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 0
-        effects: []
-      - speaker: menexeno
-        text: "J\xE1 dei respostas demais na vida. Nenhuma prestou."
-        conditions:
-        - flag: maieutics_unlocked
-          value: 
-          absent: 0
-        - flag: menexeno_avoids_past
-          value: 
-          absent: 0
-        effects: []
   - key: kerameikos_leaving_workshop
     value:
       lines:
@@ -292,6 +241,17 @@ MonoBehaviour:
         effects: []
       - speaker: 
         text: Ela sabe que vai parar.
+        conditions: []
+        effects: []
+  - key: agora_after_thrasybios
+    value:
+      lines:
+      - speaker: kleia
+        text: "As \xE2nforas j\xE1 est\xE3o vendidas. Meu pai deve estar me esperando na oficina."
+        conditions: []
+        effects: []
+      - speaker: 
+        text: "A rua de terra, depois da herma, leva de volta ao Cer\xE2mico."
         conditions: []
         effects: []
   - key: neighbor_kerameikos
@@ -355,6 +315,9 @@ MonoBehaviour:
         - flag: heard_of_thrasybios
           value: 
           absent: 0
+        - flag: headed_home
+          value: 
+          absent: 1
         effects: []
       - speaker: menexeno
         text: "Procuro quem saiba perguntar. Por enquanto, s\xF3 achei quem venda respostas."
@@ -369,6 +332,42 @@ MonoBehaviour:
         text: "Deixe o homem de p\xFArpura terminar de falar. Quem erra costuma avisar antes."
         conditions:
         - flag: met_menexeno
+          value: 
+          absent: 0
+        - flag: headed_home
+          value: 
+          absent: 1
+        - flag: maieutics_unlocked
+          value: 
+          absent: 1
+        effects: []
+      - speaker: menexeno
+        text: "Aqui n\xE3o, menina. V\xE1 para casa. Eu ando devagar, mas chego."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 0
+        - flag: headed_home
+          value: 
+          absent: 0
+        - flag: maieutics_unlocked
+          value: 
+          absent: 1
+        effects: []
+      - speaker: menexeno
+        text: "Pergunte. N\xE3o cobre. \xC9 s\xF3 isso que eu pe\xE7o."
+        conditions:
+        - flag: maieutics_unlocked
+          value: 
+          absent: 0
+        effects: []
+      - speaker: menexeno
+        text: "J\xE1 dei respostas demais na vida. Nenhuma prestou."
+        conditions:
+        - flag: maieutics_unlocked
+          value: 
+          absent: 0
+        - flag: menexeno_avoids_past
           value: 
           absent: 0
         effects: []

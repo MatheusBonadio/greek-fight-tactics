@@ -84,10 +84,12 @@ namespace Game.UI
                 }
             }
 
-            if (!sandbox.ArrivedThroughExit)
+            if (!sandbox.ArrivedThroughExit && TryPlay(ExplorationCue.MapStart))
             {
-                TryPlay(ExplorationCue.MapStart);
+                return;
             }
+
+            TryPlay(ExplorationCue.Idle);
         }
 
         private bool IsQuiet() =>

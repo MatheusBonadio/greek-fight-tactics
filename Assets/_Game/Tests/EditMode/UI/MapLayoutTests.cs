@@ -112,21 +112,68 @@ namespace Game.Tests.EditMode.UI
         public void Kerameikos_KeepsAristeuInTheWorkshopAndBringsMenexenoToTheDoorOnlyAfterTheThrasybiosDuel()
         {
             var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
-            var duelFlag = DuelStoryFlags.FlagFor(ThrasybiosCharacter);
             var aristeu = map.Actors.Single(actor => actor.Character == AristeuCharacter);
             var menexeno = map.Actors.Single(actor => actor.Character == MenexenoCharacter);
-            var scene = map.Triggers.Single(trigger => trigger.Dialogue == menexeno.Dialogue);
+            var scenes = map.Triggers.Where(trigger => trigger.IsCutscene).ToList();
+            var wonDuel = new StoryCondition(DuelStoryFlags.FlagFor(ThrasybiosCharacter), DuelStoryFlags.Won).ToString();
+            var untaught = StoryCondition.Lacks(ActionUnlocks.MaieuticsFlag).ToString();
 
             Assert.IsFalse(aristeu.IsConditional, "Aristeu is always home");
             Assert.IsNotEmpty(aristeu.Dialogue);
-            var wonDuel = new StoryCondition(duelFlag, DuelStoryFlags.Won);
-            CollectionAssert.AreEqual(new[] { wonDuel.ToString() }, menexeno.StoryConditions.Select(condition => condition.ToString()), "Menexeno follows Kleia home only after she beats Thrasybios");
-            Assert.AreEqual(1, Distance((scene.X, scene.Y), (menexeno.X, menexeno.Y)), "the door scene plays beside Menexeno");
-            CollectionAssert.Contains(scene.StoryConditions.Select(condition => condition.ToString()).ToList(), wonDuel.ToString());
-            Assert.IsTrue(scene.StoryConditions.Any(condition => condition.Flag == ActionUnlocks.MaieuticsFlag && condition.Absent), "the door scene stops once Menexeno taught maieutics");
+            Assert.IsTrue(string.IsNullOrEmpty(menexeno.Dialogue), "Menexeno speaks through the door cutscene");
+            CollectionAssert.AreEquivalent(new[] { wonDuel, untaught }, menexeno.StoryConditions.Select(condition => condition.ToString()), "Menexeno waits at the door between the Thrasybios win and the lesson");
 
-            var home = Flood(map, (map.Actors[0].X, map.Actors[0].Y), cell => cell != (scene.X, scene.Y));
+            var beside = new[] { (menexeno.X + 1, menexeno.Y), (menexeno.X - 1, menexeno.Y), (menexeno.X, menexeno.Y + 1), (menexeno.X, menexeno.Y - 1) }
+                .Where(cell => cell.Item1 >= 0 && cell.Item2 >= 0 && cell.Item1 < map.Width && cell.Item2 < map.Height && map.IsWalkable(cell.Item1, cell.Item2))
+                .ToList();
+            CollectionAssert.AreEquivalent(beside, scenes.Select(scene => (scene.X, scene.Y)), "every free cell beside Menexeno starts the door scene");
+            foreach (var scene in scenes)
+            {
+                Assert.AreEqual(map.Cutscenes.Single().Id, scene.Cutscene);
+                Assert.AreEqual(scenes[0].Flag, scene.Flag, "the door scene plays once, whichever side Kleia comes from");
+                CollectionAssert.IsSubsetOf(new[] { wonDuel, untaught }, scene.StoryConditions.Select(condition => condition.ToString()).ToList());
+            }
+
+            var home = Flood(map, (map.Actors[0].X, map.Actors[0].Y), cell => scenes.All(scene => (scene.X, scene.Y) != cell));
             Assert.IsFalse(map.Exits.Any(exit => home.Contains((exit.X, exit.Y))), "coming home from the agora always crosses the door scene");
+        }
+
+        [Test]
+        public void Kerameikos_StagesMenexenosVisitOnATimelineThatEndsWithHimWalkingAway()
+        {
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var steps = map.Cutscenes.Single().Steps;
+            var dialogues = steps.Where(step => step.Action == CutsceneAction.Dialogue).Select(step => step.Dialogue).ToList();
+
+            CollectionAssert.AreEqual(new[] { "menexeno_door_offer", "menexeno_door_glance", "menexeno_door_lesson", "menexeno_door_learned" }, dialogues);
+            Assert.AreEqual(CutsceneAction.Face, steps[0].Action, "Kleia turns to the old man first");
+            Assert.AreEqual(PlayerCharacter, steps[0].Actor);
+            Assert.AreEqual(MenexenoCharacter, steps[0].Toward);
+
+            var glance = steps.FindIndex(step => step.Dialogue == "menexeno_door_glance");
+            Assert.AreEqual(CutsceneAction.Face, steps[glance - 1].Action, "he looks away before the narration says so");
+            Assert.AreEqual(MenexenoCharacter, steps[glance - 1].Actor);
+            Assert.IsTrue(steps[glance - 1].HasCell);
+            Assert.AreEqual(StreetTile, map.FloorAt(steps[glance - 1].X.Value, steps[glance - 1].Y.Value), "he looks down the street, toward the courts");
+
+            var leave = steps.FindIndex(step => step.Action == CutsceneAction.Leave);
+            Assert.AreEqual(CutsceneAction.Walk, steps[leave - 1].Action);
+            Assert.AreEqual(MenexenoCharacter, steps[leave].Actor);
+            Assert.AreEqual(StreetTile, map.FloorAt(steps[leave - 1].X.Value, steps[leave - 1].Y.Value), "he leaves by the street");
+            Assert.Less(steps.FindIndex(step => step.Dialogue == "menexeno_door_lesson"), leave, "he says good night before walking away");
+            Assert.Less(leave, steps.FindIndex(step => step.Dialogue == "menexeno_door_learned"), "the lesson sinks in after he is gone");
+        }
+
+        [Test]
+        public void Agora_PointsKleiaHomeOnceSheBeatsThrasybios()
+        {
+            var map = MapLayout.Load(SandboxTools.MapPath);
+            var cue = map.Cues.Single(candidate => candidate.Dialogue == "agora_after_thrasybios");
+
+            Assert.AreEqual(ExplorationCue.Idle, cue.On, "the hint plays as soon as the battle hands control back");
+            CollectionAssert.Contains(cue.StoryConditions.Select(condition => condition.ToString()).ToList(), new StoryCondition(DuelStoryFlags.FlagFor(ThrasybiosCharacter), DuelStoryFlags.Won).ToString());
+            CollectionAssert.Contains(cue.StoryConditions.Select(condition => condition.ToString()).ToList(), StoryCondition.Lacks(ActionUnlocks.MaieuticsFlag).ToString());
+            Assert.IsTrue(map.Exits.Any(exit => exit.Location == SandboxTools.KerameikosLocationId), "the agora has a road home");
         }
 
         [Test]
@@ -345,6 +392,62 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void Validate_AcceptsCutscenesAndTheTriggersThatPlayThem()
+        {
+            var map = WithCast();
+            map.Cutscenes.Add(Visit());
+            map.Triggers.Add(new MapTrigger { X = 1, Y = 0, Cutscene = "visit", Flag = "saw_visit" });
+
+            Assert.DoesNotThrow(() => map.Validate());
+            CollectionAssert.AreEquivalent(new[] { "hello" }, map.DialogueIds, "the dialogue steps of a cutscene are checked against the library");
+            CollectionAssert.AreEquivalent(new[] { PlayerCharacter, "citizen" }, map.Cutscenes[0].ActorIds);
+            Assert.AreEqual(2d, map.Cutscenes[0].LastStepAt);
+        }
+
+        [Test]
+        public void Validate_RejectsCutscenesThatCannotPlay()
+        {
+            AssertRejects(cutscene => cutscene.Id = "Not Snake", "id in snake case");
+            AssertRejects(cutscene => cutscene.Steps.Clear(), "a cutscene needs steps");
+            AssertRejects(cutscene => cutscene.Steps[0].At = 0d, "steps start after 0s");
+            AssertRejects(cutscene => cutscene.Steps[1].At = cutscene.Steps[0].At, "steps move forward in time");
+            AssertRejects(cutscene => cutscene.Steps[0].Actor = "nobody", "unknown actor");
+            AssertRejects(cutscene => cutscene.Steps[0].Toward = null, "facing needs a target");
+            AssertRejects(cutscene => (cutscene.Steps[0].X, cutscene.Steps[0].Y) = (0, 1), "facing an actor and a cell at once");
+            AssertRejects(cutscene => cutscene.Steps[1].Dialogue = " ", "dialogue step without dialogue");
+            AssertRejects(cutscene => cutscene.Steps[2].X = 5, "walking off the map");
+            AssertRejects(cutscene => cutscene.Steps[2].Y = null, "walking without a destination");
+            AssertRejects(cutscene => cutscene.Steps[3].Actor = PlayerCharacter, "the player never leaves the map");
+            AssertRejects(cutscene => cutscene.Steps[3].Action = (CutsceneAction)99, "unknown action");
+
+            var blocked = WithCast();
+            blocked.Blocks = new List<string> { "--", "C-" };
+            blocked.Cutscenes.Add(Visit());
+            Assert.Throws<InvalidOperationException>(() => blocked.Validate(), "walking into a block");
+
+            var crowd = WithCast();
+            crowd.Actors.Add(new MapActor { Character = "citizen", X = 0, Y = 1 });
+            crowd.Cutscenes.Add(Visit());
+            crowd.Cutscenes[0].Steps[2].X = 1;
+            crowd.Cutscenes[0].Steps[2].Y = 0;
+            Assert.Throws<InvalidOperationException>(() => crowd.Validate(), "a cast member must be unique on the map");
+
+            var twice = WithCast();
+            twice.Cutscenes.Add(Visit());
+            twice.Cutscenes.Add(Visit());
+            Assert.Throws<InvalidOperationException>(() => twice.Validate(), "two cutscenes share an id");
+
+            var unknownScene = WithCast();
+            unknownScene.Triggers.Add(new MapTrigger { X = 1, Y = 0, Cutscene = "missing", Flag = "saw_visit" });
+            Assert.Throws<InvalidOperationException>(() => unknownScene.Validate(), "trigger plays an unknown cutscene");
+
+            var both = WithCast();
+            both.Cutscenes.Add(Visit());
+            both.Triggers.Add(new MapTrigger { X = 1, Y = 0, Dialogue = "hello", Cutscene = "visit", Flag = "saw_visit" });
+            Assert.Throws<InvalidOperationException>(() => both.Validate(), "a trigger plays a dialogue or a cutscene, not both");
+        }
+
+        [Test]
         public void Json_ReadsConditionsCuesAndFogDepthInTheDialogueConditionShape()
         {
             const string json = "{\"id\":\"tiny\",\"fogRevealDepth\":0,\"floorLegend\":{\".\":\"floor_marble\"},\"blockLegend\":{}," +
@@ -360,6 +463,56 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(ExplorationCue.WalkFinished, map.Cues[0].On);
             Assert.AreEqual("!met", map.Cues[0].StoryConditions.Single().ToString());
         }
+
+        [Test]
+        public void Json_ReadsCutscenesAndCutsceneTriggers()
+        {
+            const string json = "{\"id\":\"tiny\",\"floorLegend\":{\".\":\"floor_marble\"},\"blockLegend\":{}," +
+                "\"floor\":[\"..\",\"..\"],\"blocks\":[\"--\",\"--\"]," +
+                "\"actors\":[{\"character\":\"kleia\",\"x\":0,\"y\":0},{\"character\":\"citizen\",\"x\":1,\"y\":1}]," +
+                "\"triggers\":[{\"x\":1,\"y\":0,\"cutscene\":\"visit\",\"flag\":\"saw_visit\"}]," +
+                "\"cutscenes\":[{\"id\":\"visit\",\"steps\":[{\"at\":0.5,\"action\":\"Face\",\"actor\":\"citizen\",\"x\":0,\"y\":1},{\"at\":1,\"action\":\"Leave\",\"actor\":\"citizen\"}]}]}";
+
+            var map = Newtonsoft.Json.JsonConvert.DeserializeObject<MapLayout>(json);
+            map.Validate();
+
+            Assert.AreEqual("visit", map.Triggers.Single().Cutscene);
+            Assert.IsTrue(map.Triggers.Single().IsCutscene);
+            var steps = map.Cutscenes.Single().Steps;
+            Assert.AreEqual(CutsceneAction.Face, steps[0].Action);
+            Assert.AreEqual(new Coord(0, 1), steps[0].Cell);
+            Assert.AreEqual(0.5d, steps[0].At);
+            Assert.AreEqual(CutsceneAction.Leave, steps[1].Action);
+            Assert.IsNull(steps[1].Cell);
+        }
+
+        private static void AssertRejects(Action<MapCutscene> spoil, string reason)
+        {
+            var map = WithCast();
+            var cutscene = Visit();
+            spoil(cutscene);
+            map.Cutscenes.Add(cutscene);
+            Assert.Throws<InvalidOperationException>(() => map.Validate(), reason);
+        }
+
+        private static MapLayout WithCast()
+        {
+            var map = Tiny();
+            map.Actors.Add(new MapActor { Character = "citizen", X = 1, Y = 1 });
+            return map;
+        }
+
+        private static MapCutscene Visit() => new()
+        {
+            Id = "visit",
+            Steps = new List<MapCutsceneStep>
+            {
+                new() { At = 0.5d, Action = CutsceneAction.Face, Actor = PlayerCharacter, Toward = "citizen" },
+                new() { At = 1d, Action = CutsceneAction.Dialogue, Dialogue = "hello" },
+                new() { At = 1.5d, Action = CutsceneAction.Walk, Actor = "citizen", X = 0, Y = 1 },
+                new() { At = 2d, Action = CutsceneAction.Leave, Actor = "citizen" }
+            }
+        };
 
         private static MapLayout WithCue(MapCue cue)
         {

@@ -18,19 +18,26 @@ namespace Game.Tests.PlayMode
     {
         private const float TimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 90f;
+        private const float CutsceneTimeoutSeconds = 60f;
         private const int MaxConfirms = 64;
         private const int QuietFrames = 30;
         private const string FirstStepsDialogue = "kerameikos_first_steps";
         private const string FogDialogue = "kerameikos_tutorial_fog";
         private const string TalkDialogue = "kerameikos_tutorial_talk";
         private const string AristeuDialogue = "aristeu_workshop";
-        private const string MenexenoDialogue = "menexeno_workshop_door";
+        private const string MenexenoCutscene = "menexeno_follows_home";
+        private const string MenexenoCharacter = "menexeno";
+        private const string KleiaCharacter = "kleia";
+        private const string HomeHint = "agora_after_thrasybios";
+        private const string HomeHintFlag = "headed_home";
+        private const string GlanceDialogue = "menexeno_door_glance";
         private const string ThrasybiosId = "thrasybios";
         private const string AristeuName = "Aristeu";
         private const string MenexenoName = "Menexeno";
 
         private static readonly string[] TutorialFlags = { "tutorial_first_steps", "tutorial_fog", "tutorial_talk" };
-        private static readonly string[] MenexenoFlags = { ActionUnlocks.MaieuticsFlag, "menexeno_condition", "menexeno_avoids_past" };
+        private static readonly string[] MenexenoFlags = { ActionUnlocks.MaieuticsFlag, "menexeno_condition", "menexeno_avoids_past", "menexeno_door_scene" };
+        private static readonly string[] MenexenoDialogues = { "menexeno_door_offer", GlanceDialogue, "menexeno_door_lesson", "menexeno_door_learned" };
         private static readonly Coord Workbench = new(4, 11);
         private static readonly Coord Shelves = new(2, 9);
         private static readonly Coord FarCorner = new(6, 9);
@@ -144,21 +151,24 @@ namespace Game.Tests.PlayMode
         {
             var map = default(Workshop);
             yield return LoadWorkshop(loaded => map = loaded, false);
-            var menexeno = map.Dialogues.Talkers.Single(link => link.Dialogue == MenexenoDialogue).Actor;
+            var menexeno = map.Cutscenes.Cast[MenexenoCharacter];
             Assert.IsNull(menexeno.Walker, "Menexeno has not followed Kleia yet");
             Assert.IsFalse(menexeno.gameObject.activeSelf);
             map.Sandbox.Player.Walker.Teleport(Street, Facing.SouthWest);
             Assert.IsTrue(map.Sandbox.TryMovePlayerTo(MenexenoDoor));
-            yield return WaitFor(() => !map.Sandbox.Player.Walker.IsMoving || map.Dialogues.IsTalking);
+            yield return WaitFor(() => !map.Sandbox.Player.Walker.IsMoving || map.Cutscenes.IsPlaying);
             yield return Frames(QuietFrames);
-            Assert.IsFalse(map.Dialogues.IsTalking, "the door scene played before the Thrasybios duel");
+            Assert.IsFalse(map.Cutscenes.IsPlaying || map.Dialogues.IsTalking, "the door scene played before the Thrasybios duel");
 
             yield return SceneManager.LoadSceneAsync(LocationScenes.AgoraScene, LoadSceneMode.Single);
             var agora = Object.FindAnyObjectByType<GridSandboxController>();
             var battle = Object.FindAnyObjectByType<SandboxBattleDirector>();
+            var agoraStory = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
             var services = Object.FindAnyObjectByType<GameServices>();
             battle.ThinkSeconds = 0f;
             yield return WaitFor(() => services.IsBooted && agora.ProgressLoaded);
+            yield return Frames(QuietFrames);
+            Assert.IsFalse(agoraStory.IsTalking, "the road home is only pointed out after the duel");
             var thrasybios = battle.Opponents.Single(entry => entry.Opponent.Id == ThrasybiosId);
             agora.Player.Walker.Teleport(CellNoticedOnlyBy(agora.Grid, battle, thrasybios), Facing.NorthEast);
             yield return WaitFor(() => battle.Phase != BattleFlowPhase.Exploring);
@@ -173,8 +183,15 @@ namespace Game.Tests.PlayMode
             });
             Assert.IsTrue(sawLockedMaieutics, "maieutics was on the menu before Menexeno taught it");
             Assert.AreEqual(BattleStatus.PlayerWon, battle.LastResult, "naming every fallacy beats Thrasybios");
+
+            yield return WaitFor(() => agoraStory.IsTalking);
+            Assert.AreEqual(HomeHint, agoraStory.ActiveDialogueId, "winning the duel points Kleia back home");
+            var hint = new List<DialogueLine>();
+            yield return PlayToTheEnd(agoraStory, hint);
+            Assert.IsTrue(hint.Any(line => line.Text.Contains("Cerâmico")), "the hint names the way home");
             Assert.IsTrue(services.TryLoadActiveSave(out var afterDuel));
             Assert.AreEqual(DuelStoryFlags.Won, afterDuel.Flags[DuelStoryFlags.FlagFor(ThrasybiosId)], "the duel result is a story flag");
+            Assert.IsTrue(StoryCondition.Has(HomeHintFlag).IsMet(afterDuel), "the hint plays once");
             CollectionAssert.Contains(ActionUnlocks.LockedIn(afterDuel, ActionMenuModel.PlayerActions), ActionId.Maieutics);
 
             var exit = agora.Exits.Single(link => link.Location == LocationScenes.Kerameikos);
@@ -187,24 +204,24 @@ namespace Game.Tests.PlayMode
             map = Find();
             yield return WaitFor(() => map.Services.IsBooted && map.Sandbox.ProgressLoaded && map.Dialogues.IsStoryLoaded);
 
-            menexeno = map.Dialogues.Talkers.Single(link => link.Dialogue == MenexenoDialogue).Actor;
+            menexeno = map.Cutscenes.Cast[MenexenoCharacter];
             Assert.IsNotNull(menexeno.Walker, "Menexeno followed Kleia home after the duel");
             Assert.IsTrue(menexeno.gameObject.activeSelf);
             Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell);
             yield return Frames(QuietFrames);
             Assert.IsFalse(map.Dialogues.IsTalking, "arriving from the agora does not replay the tutorial");
 
-            var player = map.Sandbox.Player.Walker;
-            Assert.IsTrue(map.Sandbox.TryMovePlayerTo(MenexenoDoor));
-            yield return WaitFor(() => map.Dialogues.IsTalking);
-            Assert.AreEqual(MenexenoDialogue, map.Dialogues.ActiveDialogueId, "the door scene starts on the doorstep");
-            Assert.AreEqual(MenexenoDoor, player.Cell);
-            Assert.AreEqual(FacingRules.FromStep(player.Cell, menexeno.Walker.Cell, player.Facing), player.Facing, "Kleia faces Menexeno");
-            Assert.AreEqual(FacingRules.FromStep(menexeno.Walker.Cell, player.Cell, menexeno.Walker.Facing), menexeno.Walker.Facing, "Menexeno faces Kleia");
+            var scene = default(DoorScene);
+            yield return WalkIntoTheDoorScene(map, loaded => scene = loaded);
+            CollectionAssert.AreEqual(MenexenoDialogues, scene.Dialogues, "the timeline plays the door scene in order");
+            Assert.IsTrue(scene.Lines.Any(line => line.SpeakerName == MenexenoName && line.Text.Contains("dinheiro")), "he states his condition");
+            Assert.IsTrue(scene.FacedEachOther, "Kleia and Menexeno face each other on the doorstep");
+            Assert.AreEqual(Facing.SouthEast, scene.GlanceFacing, "he looks down the street before the narration says so");
+            Assert.IsNull(menexeno.Walker, "Menexeno walks away at the end of the scene");
+            Assert.IsFalse(menexeno.gameObject.activeSelf);
+            Assert.AreEqual(GameMode.Exploration, map.Sandbox.StateMachine.Mode);
+            Assert.IsTrue(map.Sandbox.ExplorationInputEnabled);
 
-            var scene = new List<DialogueLine>();
-            yield return PlayToTheEnd(map.Dialogues, scene);
-            Assert.IsTrue(scene.Any(line => line.SpeakerName == MenexenoName && line.Text.Contains("dinheiro")), "he states his condition");
             Assert.IsTrue(map.Services.TryLoadActiveSave(out var taught));
             foreach (var flag in MenexenoFlags)
             {
@@ -213,12 +230,117 @@ namespace Game.Tests.PlayMode
 
             CollectionAssert.IsEmpty(ActionUnlocks.LockedIn(taught, ActionMenuModel.PlayerActions), "maieutics is unlocked for the next battle");
 
+            var player = map.Sandbox.Player.Walker;
             Assert.IsTrue(map.Sandbox.TryMovePlayerTo(Street));
-            yield return WaitFor(() => !player.IsMoving || map.Dialogues.IsTalking);
+            yield return WaitFor(() => !player.IsMoving || map.Cutscenes.IsPlaying);
             Assert.IsTrue(map.Sandbox.TryMovePlayerTo(MenexenoDoor));
-            yield return WaitFor(() => !player.IsMoving || map.Dialogues.IsTalking);
+            yield return WaitFor(() => !player.IsMoving || map.Cutscenes.IsPlaying);
             yield return Frames(QuietFrames);
-            Assert.IsFalse(map.Dialogues.IsTalking, "the door scene plays only once");
+            Assert.IsFalse(map.Cutscenes.IsPlaying || map.Dialogues.IsTalking, "the door scene plays only once");
+
+            yield return LoadWorkshop(loaded => map = loaded, false);
+            Assert.IsNull(map.Cutscenes.Cast[MenexenoCharacter].Walker, "Menexeno does not come back to the door after the lesson");
+        }
+
+        [UnityTest]
+        public IEnumerator SaveThatBeatThrasybiosBeforeDuelFlags_StillBringsMenexenoHome()
+        {
+            var map = default(Workshop);
+            yield return LoadWorkshop(loaded => map = loaded, false);
+            var legacy = map.Sandbox.CaptureSave();
+            legacy.Duels[ThrasybiosId] = new DuelRecord(true, DuelVictory.Refute);
+            legacy.Flags["left_workshop"] = StoryEffect.DefaultValue;
+            legacy.Flags.Remove(DuelStoryFlags.FlagFor(ThrasybiosId));
+            map.Services.Autosave(legacy);
+
+            yield return SceneManager.LoadSceneAsync(LocationScenes.AgoraScene, LoadSceneMode.Single);
+            var agoraStory = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            agoraStory.AutosaveEnabled = false;
+            yield return WaitFor(() => agoraStory.IsTalking);
+            Assert.AreEqual(HomeHint, agoraStory.ActiveDialogueId, "an old save that already beat Thrasybios is still pointed home");
+            yield return PlayToTheEnd(agoraStory, new List<DialogueLine>());
+
+            yield return LoadWorkshop(loaded => map = loaded, false);
+            var menexeno = map.Cutscenes.Cast[MenexenoCharacter];
+            Assert.IsNotNull(menexeno.Walker, "the won duel in the old save brings Menexeno to the door");
+            Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell);
+
+            map.Sandbox.Player.Walker.Teleport(Street, Facing.SouthWest);
+            var scene = default(DoorScene);
+            yield return WalkIntoTheDoorScene(map, loaded => scene = loaded, true);
+            CollectionAssert.AreEqual(MenexenoDialogues, scene.Dialogues, "clicking Menexeno walks Kleia beside him and plays the door scene");
+            Assert.IsTrue(map.Services.TryLoadActiveSave(out var taught));
+            CollectionAssert.IsEmpty(ActionUnlocks.LockedIn(taught, ActionMenuModel.PlayerActions), "the old save can still learn maieutics");
+        }
+
+        private readonly struct DoorScene
+        {
+            public readonly List<string> Dialogues;
+            public readonly List<DialogueLine> Lines;
+            public readonly bool FacedEachOther;
+            public readonly Facing GlanceFacing;
+
+            public DoorScene(List<string> dialogues, List<DialogueLine> lines, bool facedEachOther, Facing glanceFacing)
+            {
+                Dialogues = dialogues;
+                Lines = lines;
+                FacedEachOther = facedEachOther;
+                GlanceFacing = glanceFacing;
+            }
+        }
+
+        private static IEnumerator WalkIntoTheDoorScene(Workshop map, Action<DoorScene> played, bool clickMenexeno = false)
+        {
+            var player = map.Sandbox.Player.Walker;
+            var menexeno = map.Cutscenes.Cast[MenexenoCharacter].Walker;
+            Assert.AreSame(map.Sandbox.Player, map.Cutscenes.Cast[KleiaCharacter]);
+            if (clickMenexeno)
+            {
+                map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(menexeno.Cell), Vector2.zero);
+                map.Sandbox.ConfirmCursor();
+                Assert.IsTrue(player.IsMoving, "clicking Menexeno sends Kleia to the cell beside him");
+            }
+            else
+            {
+                Assert.IsTrue(map.Sandbox.TryMovePlayerTo(MenexenoDoor));
+            }
+
+            yield return WaitFor(() => map.Cutscenes.IsPlaying);
+            Assert.AreEqual(MenexenoCutscene, map.Cutscenes.ActiveCutscene, "the door scene starts beside Menexeno");
+            Assert.AreEqual(1, Distance(player.Cell, menexeno.Cell), "Kleia stops beside Menexeno");
+            Assert.IsFalse(map.Sandbox.StateMachine.IsExplorationInputEnabled, "the cutscene holds exploration");
+
+            var dialogues = new List<string>();
+            var lines = new List<DialogueLine>();
+            var facedEachOther = false;
+            var glanceFacing = menexeno.Facing;
+            var deadline = Time.realtimeSinceStartup + CutsceneTimeoutSeconds;
+            while (map.Cutscenes.IsPlaying && Time.realtimeSinceStartup < deadline)
+            {
+                if (map.Dialogues.IsTalking)
+                {
+                    var id = map.Dialogues.ActiveDialogueId;
+                    dialogues.Add(id);
+                    if (dialogues.Count == 1)
+                    {
+                        facedEachOther = player.Facing == FacingRules.FromStep(player.Cell, menexeno.Cell, player.Facing)
+                            && menexeno.Facing == FacingRules.FromStep(menexeno.Cell, player.Cell, menexeno.Facing);
+                    }
+
+                    if (id == GlanceDialogue)
+                    {
+                        glanceFacing = menexeno.Facing;
+                    }
+
+                    yield return PlayToTheEnd(map.Dialogues, lines);
+                    continue;
+                }
+
+                yield return null;
+            }
+
+            Assert.IsFalse(map.Cutscenes.IsPlaying, "the door scene never finished");
+            played(new DoorScene(dialogues, lines, facedEachOther, glanceFacing));
         }
 
         private readonly struct Workshop
@@ -227,13 +349,15 @@ namespace Game.Tests.PlayMode
             public readonly ExplorationDialogueDirector Dialogues;
             public readonly StoryCueDirector Cues;
             public readonly GameServices Services;
+            public readonly CutsceneDirector Cutscenes;
 
-            public Workshop(GridSandboxController sandbox, ExplorationDialogueDirector dialogues, StoryCueDirector cues, GameServices services)
+            public Workshop(GridSandboxController sandbox, ExplorationDialogueDirector dialogues, StoryCueDirector cues, GameServices services, CutsceneDirector cutscenes)
             {
                 Sandbox = sandbox;
                 Dialogues = dialogues;
                 Cues = cues;
                 Services = services;
+                Cutscenes = cutscenes;
             }
         }
 
@@ -252,7 +376,8 @@ namespace Game.Tests.PlayMode
             Object.FindAnyObjectByType<GridSandboxController>(),
             Object.FindAnyObjectByType<ExplorationDialogueDirector>(),
             Object.FindAnyObjectByType<StoryCueDirector>(),
-            Object.FindAnyObjectByType<GameServices>());
+            Object.FindAnyObjectByType<GameServices>(),
+            Object.FindAnyObjectByType<CutsceneDirector>());
 
         private static BattleMenuChoice RefuteOrClose(BattleSession session)
         {

@@ -282,6 +282,7 @@ namespace Game.EditorTools
             SystemMenuTools.InstantiatePauseMenu();
             var dialogues = CreateDialogueDirector(controller, map, actors);
             CreateCueDirector(controller, dialogues, map);
+            CutsceneTools.CreateDirector(controller, dialogues, map, actors);
             var opponents = MapOpponentsFor(map.Actors, actors);
             if (opponents.Count > 0)
             {
@@ -421,7 +422,9 @@ namespace Game.EditorTools
                 .Select(pair => new NpcDialogueLink(actors[pair.index], pair.actor.Dialogue))
                 .ToList();
             var triggers = map.Triggers
-                .Select(trigger => new DialogueTriggerLink(new Coord(trigger.X, trigger.Y), trigger.Dialogue, trigger.Flag, trigger.StoryConditions))
+                .Select(trigger => trigger.IsCutscene
+                    ? DialogueTriggerLink.ForCutscene(new Coord(trigger.X, trigger.Y), trigger.Cutscene, trigger.Flag, trigger.StoryConditions)
+                    : new DialogueTriggerLink(new Coord(trigger.X, trigger.Y), trigger.Dialogue, trigger.Flag, trigger.StoryConditions))
                 .ToList();
             var portraits = library.Speakers
                 .Where(pair => pair.Value.HasPortrait)
@@ -445,8 +448,14 @@ namespace Game.EditorTools
             new GameObject(nameof(StoryCueDirector)).AddComponent<StoryCueDirector>().Configure(controller, dialogues, cues);
         }
 
-        private static Sprite PortraitFor(string character)
+        public static Sprite PortraitFor(string character)
         {
+            var dedicated = AssetDatabase.LoadAssetAtPath<Sprite>(ArtTools.PortraitPathFor(character));
+            if (dedicated)
+            {
+                return dedicated;
+            }
+
             var name = $"{character}_{PortraitRow}_0";
             return AssetDatabase.LoadAllAssetsAtPath(ArtTools.SheetPathFor(character)).OfType<Sprite>().FirstOrDefault(sprite => sprite.name == name)
                 ?? throw new InvalidOperationException($"missing portrait sprite {name}; run ArtTools.SliceSheets first");
