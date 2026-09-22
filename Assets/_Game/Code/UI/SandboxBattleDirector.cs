@@ -188,7 +188,7 @@ namespace Game.UI
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
                 Seed = seed,
-                Rules = tutorial != null ? RefuteTutorial.Rules() : null
+                Rules = tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : null
             },
             tutorial != null ? TutorialArguments(tutorialData) : CreateArgumentSource(target, seed),
             tutorial != null ? new TutorialOpponent() : null);

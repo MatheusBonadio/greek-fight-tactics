@@ -1,3 +1,4 @@
+using System;
 using Game.Core;
 
 namespace Game.Battle
@@ -8,20 +9,24 @@ namespace Game.Battle
         private bool fallaciesHinted;
         private bool remind;
 
-        public bool IsLearned { get; private set; }
-
-        public static BattleRules Rules() => new()
+        public static BattleRules Rules(int opponentMaxCoherence)
         {
-            CounterattackDamage = 0,
-            CorneredCoherencePenalty = 0
-        };
+            var rules = new BattleRules
+            {
+                CounterattackDamage = 0,
+                CorneredCoherencePenalty = 0
+            };
+
+            rules.RefuteDamage = Math.Max(rules.RefuteDamage, opponentMaxCoherence);
+            return rules;
+        }
 
         public TutorialCue OnBattleStart() => TutorialCue.Intro;
 
         public TutorialCue OnPlayerTurn(BattleState state)
         {
             fallaciesHinted = false;
-            if (IsLearned || state.Status != BattleStatus.Ongoing || !state.CurrentArgument.HasValue)
+            if (state.Status != BattleStatus.Ongoing || !state.CurrentArgument.HasValue)
             {
                 return TutorialCue.None;
             }
@@ -44,7 +49,7 @@ namespace Game.Battle
 
         public TutorialCue OnFallaciesOpened()
         {
-            if (IsLearned || fallaciesHinted)
+            if (fallaciesHinted)
             {
                 return TutorialCue.None;
             }
@@ -55,7 +60,7 @@ namespace Game.Battle
 
         public TutorialCue OnOutcome(Outcome outcome, BattleState state)
         {
-            if (IsLearned || outcome == null || outcome.IsRejected || outcome.ActorId != state.Player.Id)
+            if (outcome == null || outcome.IsRejected || outcome.ActorId != state.Player.Id || state.Status != BattleStatus.Ongoing)
             {
                 return TutorialCue.None;
             }
@@ -66,17 +71,7 @@ namespace Game.Battle
                 return TutorialCue.None;
             }
 
-            if (outcome.Hit)
-            {
-                IsLearned = true;
-            }
-
-            if (state.Status != BattleStatus.Ongoing)
-            {
-                return TutorialCue.None;
-            }
-
-            return outcome.Hit ? TutorialCue.Hit : TutorialCue.Miss;
+            return outcome.Hit ? TutorialCue.None : TutorialCue.Miss;
         }
 
         public TutorialCue OnBattleOver(BattleState state) =>

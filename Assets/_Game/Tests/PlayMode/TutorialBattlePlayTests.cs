@@ -145,29 +145,22 @@ namespace Game.Tests.PlayMode
             yield return AdvanceUntil(() => director.Phase == BattleFlowPhase.PlayerChoosing);
             CollectionAssert.Contains(scriptsSeen, tutorial.DialogueFor(TutorialCue.Miss));
             Assert.AreEqual(coherence, director.Session.State.Player.Coherence, "a wrong answer costs nothing while learning");
-            Assert.IsFalse(director.Tutorial.IsLearned);
+            Assert.AreEqual(argument.Speech, director.Session.State.CurrentArgument.Value.Speech, "Thrasybios repeats the amphora argument until Kleia refutes it");
 
             yield return OpenRefute();
+            Assert.AreEqual(tutorial.DialogueFor(TutorialCue.Fallacies), director.ActiveScriptId, "the fallacy hint returns until Kleia gets it right");
             yield return AdvanceUntil(() => director.Phase == BattleFlowPhase.PlayerChoosing);
-            PickFallacy(director.Session.State.CurrentArgument.Value.FallacyId);
-            yield return AdvanceUntil(() => director.Phase == BattleFlowPhase.PlayerChoosing);
-            CollectionAssert.Contains(scriptsSeen, tutorial.DialogueFor(TutorialCue.Hit));
-            Assert.IsTrue(director.Tutorial.IsLearned);
+            PickFallacy(argument.FallacyId);
+            yield return AdvanceUntil(() => director.Hud.Dialogue.IsAwaitingChoice);
+
+            Assert.AreEqual(BattleStatus.PlayerWon, director.Session.State.Status, "GDD I.2: one refutation wins the tutorial");
+            Assert.AreEqual(1, director.Session.State.Log.Count(entry => entry.Action == ActionId.Refute && entry.Hit));
             CollectionAssert.Contains(services.Compendium.UnlockedIds, TaughtFallacy);
-
-            var guided = scriptsSeen.Count;
-            var deadline = Time.realtimeSinceStartup + BattleTimeoutSeconds;
-            while (director.Phase == BattleFlowPhase.PlayerChoosing && Time.realtimeSinceStartup < deadline)
-            {
-                yield return OpenRefute();
-                Assert.AreEqual(BattleFlowPhase.PlayerChoosing, director.Phase, "after the first hit Kleia refutes without help");
-                PickFallacy(director.Session.State.CurrentArgument.Value.FallacyId);
-                yield return AdvanceUntil(() => director.Phase == BattleFlowPhase.PlayerChoosing || director.Hud.Dialogue.IsAwaitingChoice);
-            }
-
-            Assert.AreEqual(BattleStatus.PlayerWon, director.Session.State.Status, "the tutorial ends in a victory");
             Assert.AreEqual(tutorial.DialogueFor(TutorialCue.Victory), director.ActiveScriptId);
-            Assert.AreEqual(guided + 1, scriptsSeen.Count, "no hint plays after the lesson is learned");
+            CollectionAssert.AreEqual(
+                new[] { TutorialCue.Intro, TutorialCue.Argument, TutorialCue.Fallacies, TutorialCue.Miss, TutorialCue.Fallacies, TutorialCue.Victory }.Select(tutorial.DialogueFor),
+                scriptsSeen,
+                "the argument is explained once, and the victory scene follows the hit");
             CollectionAssert.Contains(speakersSeen, CrowdName, "the crowd laughs at Kleia");
             Assert.IsTrue(director.Hud.Dialogue.IsAwaitingChoice, "Thrasybios waits for an answer to his offer");
             Assert.AreEqual(2, director.Hud.Dialogue.Options.Count);

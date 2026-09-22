@@ -275,6 +275,11 @@ MonoBehaviour:
         effects: []
         choices: []
       - speaker: 
+        text: "Uma refuta\xE7\xE3o certa derruba a Coer\xEAncia dele e puxa a plateia para o seu lado."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
         text: Para apontar o erro, escolha REFUTAR no menu.
         conditions: []
         effects: []
@@ -284,26 +289,7 @@ MonoBehaviour:
     value:
       lines:
       - speaker: 
-        text: "Agora diga qual fal\xE1cia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, \xE9 Equivoca\xE7\xE3o."
-        conditions: []
-        effects: []
-        choices: []
-      branches: []
-  - key: thrasybios_tutorial_hit
-    value:
-      lines:
-      - speaker: 
-        text: "Acertou. Cada refuta\xE7\xE3o certa custa Coer\xEAncia a ele e puxa a plateia para o seu lado."
-        conditions: []
-        effects: []
-        choices: []
-      - speaker: thrasybios
-        text: "Um trope\xE7o de ret\xF3rica, nada mais. Escute esta, menina."
-        conditions: []
-        effects: []
-        choices: []
-      - speaker: 
-        text: "Ele vai tentar de novo. Agora \xE9 com voc\xEA: ache a palavra que muda de sentido e refute."
+        text: "Agora diga qual fal\xE1cia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, a fal\xE1cia se chama Equ\xEDvoco."
         conditions: []
         effects: []
         choices: []
@@ -312,7 +298,7 @@ MonoBehaviour:
     value:
       lines:
       - speaker: 
-        text: "N\xE3o era essa. Nesta primeira vez o erro n\xE3o custa nada: procure a palavra que muda de sentido entre as premissas."
+        text: "N\xE3o era essa. Aqui o erro n\xE3o custa nada, e ele vai repetir o mesmo argumento. Procure a palavra que muda de sentido entre as premissas."
         conditions: []
         effects: []
         choices: []

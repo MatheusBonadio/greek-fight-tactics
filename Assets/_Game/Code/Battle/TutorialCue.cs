@@ -6,7 +6,6 @@ namespace Game.Battle
         Intro,
         Argument,
         Fallacies,
-        Hit,
         Miss,
         Reminder,
         Victory

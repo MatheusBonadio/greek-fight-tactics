@@ -9,7 +9,7 @@ namespace Game.Tests.EditMode.Battle
     {
         private const int Seed = 402;
         private const int SimulatedBattles = 60;
-        private const int MaxTurns = 40;
+        private const int RepeatedTurns = 3;
         private const string Taught = "equivocation";
         private const string Wrong = "ad_hominem";
 
@@ -30,7 +30,7 @@ namespace Game.Tests.EditMode.Battle
         private readonly BattleResolver resolver = new();
 
         [Test]
-        public void GuidedBattle_ExplainsTheArgumentTheSubmenuAMissAndAHitThenLetsKleiaFinishAlone()
+        public void GuidedBattle_ExplainsTheArgumentTheSubmenuAndAMissThenOneRefutationWins()
         {
             var tutorial = new RefuteTutorial();
             var state = Duel();
@@ -54,24 +54,15 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(TutorialCue.Miss, tutorial.OnOutcome(miss, state));
 
             Apply(state, opponent.Decide(state, state.Opponent, arguments));
-            Assert.AreEqual(Death.Speech, state.CurrentArgument.Value.Speech);
-            Assert.AreEqual(TutorialCue.None, tutorial.OnPlayerTurn(state), "the argument is explained only once");
+            Assert.AreEqual(Amphora.Speech, state.CurrentArgument.Value.Speech, "Thrasybios repeats the amphora argument until Kleia refutes it");
+            Assert.AreEqual(TutorialCue.None, tutorial.OnPlayerTurn(state), "the argument on the table was already explained");
             Assert.AreEqual(TutorialCue.Fallacies, tutorial.OnFallaciesOpened(), "the hint comes back on the next turn until Kleia gets it right");
 
             var hit = Apply(state, Play.Refute(state.Player.Id, state.Opponent.Id, Taught));
             Assert.IsTrue(hit.Hit);
-            Assert.AreEqual(TutorialCue.Hit, tutorial.OnOutcome(hit, state));
-            Assert.IsTrue(tutorial.IsLearned);
-
-            for (var turn = 0; turn < MaxTurns && state.Status == BattleStatus.Ongoing; turn++)
-            {
-                Apply(state, opponent.Decide(state, state.Opponent, arguments));
-                Assert.AreEqual(TutorialCue.None, tutorial.OnPlayerTurn(state));
-                Assert.AreEqual(TutorialCue.None, tutorial.OnFallaciesOpened(), "after the first hit Kleia refutes on her own");
-                Assert.AreEqual(TutorialCue.None, tutorial.OnOutcome(Apply(state, Play.Refute(state.Player.Id, state.Opponent.Id, state.CurrentArgument.Value.FallacyId)), state));
-            }
-
-            Assert.AreEqual(BattleStatus.PlayerWon, state.Status);
+            Assert.AreEqual(BattleStatus.PlayerWon, state.Status, "GDD I.2: one refutation wins the tutorial");
+            Assert.AreEqual(0, state.Opponent.Coherence);
+            Assert.AreEqual(TutorialCue.None, tutorial.OnOutcome(hit, state), "the victory scene follows the hit");
             Assert.AreEqual(TutorialCue.Victory, tutorial.OnBattleOver(state));
         }
 
@@ -80,7 +71,7 @@ namespace Game.Tests.EditMode.Battle
         {
             var tutorial = new RefuteTutorial();
             var state = Duel();
-            var arguments = new ScriptedArgumentSource(new[] { Amphora });
+            var arguments = new ScriptedArgumentSource(new[] { Amphora, Death });
             var opponent = new TutorialOpponent();
 
             Apply(state, opponent.Decide(state, state.Opponent, arguments));
@@ -88,6 +79,7 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(TutorialCue.None, tutorial.OnOutcome(Apply(state, Play.Concede(state.Player.Id)), state));
 
             Apply(state, opponent.Decide(state, state.Opponent, arguments));
+            Assert.AreEqual(Amphora.Speech, state.CurrentArgument.Value.Speech, "the reminder points at the argument still on the table");
             Assert.AreEqual(TutorialCue.Reminder, tutorial.OnPlayerTurn(state));
             Assert.AreEqual(TutorialCue.None, tutorial.OnPlayerTurn(state), "the reminder plays once per detour");
         }
@@ -102,7 +94,6 @@ namespace Game.Tests.EditMode.Battle
             Assert.IsTrue(rejected.IsRejected);
             Assert.AreEqual(TutorialCue.None, tutorial.OnOutcome(rejected, state));
             Assert.AreEqual(TutorialCue.None, tutorial.OnOutcome(null, state));
-            Assert.IsFalse(tutorial.IsLearned);
         }
 
         [Test]
@@ -118,16 +109,21 @@ namespace Game.Tests.EditMode.Battle
         }
 
         [Test]
-        public void TutorialRules_OnlyForgiveMistakes()
+        public void TutorialRules_ForgiveMistakesAndMakeOneRefutationDecisive()
         {
-            var tutorial = RefuteTutorial.Rules();
             var standard = new BattleRules();
+            foreach (var coherence in new[] { standard.RefuteDamage / 2, standard.RefuteDamage, BattleArena.OpponentMaxCoherence, BattleArena.OpponentMaxCoherence * 2 })
+            {
+                var tutorial = RefuteTutorial.Rules(coherence);
 
-            Assert.AreEqual(0, tutorial.CounterattackDamage);
-            Assert.AreEqual(0, tutorial.CorneredCoherencePenalty);
-            Assert.AreEqual(standard.RefuteDamage, tutorial.RefuteDamage);
-            Assert.AreEqual(standard.RefuteRange, tutorial.RefuteRange);
-            Assert.AreEqual(standard.TurnLimit, tutorial.TurnLimit);
+                Assert.AreEqual(0, tutorial.CounterattackDamage);
+                Assert.AreEqual(0, tutorial.CorneredCoherencePenalty);
+                Assert.GreaterOrEqual(tutorial.RefuteDamage, coherence, $"one refutation must empty {coherence} coherence");
+                Assert.GreaterOrEqual(tutorial.RefuteDamage, standard.RefuteDamage);
+                Assert.AreEqual(standard.RefuteRange, tutorial.RefuteRange);
+                Assert.AreEqual(standard.MaieuticsDamage, tutorial.MaieuticsDamage);
+                Assert.AreEqual(standard.TurnLimit, tutorial.TurnLimit);
+            }
         }
 
         [Test]
@@ -175,11 +171,24 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(state.Player.Id, argue.TargetId);
             Assert.AreEqual(Amphora.Speech, argue.PresentedArgument.Value.Speech);
 
-            Assert.AreEqual(ActionId.Concede, opponent.Decide(state, state.Opponent, new ScriptedArgumentSource(null)).Action);
-            Assert.AreEqual(ActionId.Concede, opponent.Decide(state, state.Opponent, null).Action);
+            Assert.AreEqual(ActionId.Concede, new TutorialOpponent().Decide(state, state.Opponent, new ScriptedArgumentSource(null)).Action);
+            Assert.AreEqual(ActionId.Concede, new TutorialOpponent().Decide(state, state.Opponent, null).Action);
         }
 
-        private static BattleState Duel(int seed = Seed) => BattleArena.CreateDuel(Act.One, Profile.Sophist, seed, BattleArena.OpponentOpens, RefuteTutorial.Rules());
+        [Test]
+        public void TutorialOpponent_KeepsTheLessonArgumentOnTheTable()
+        {
+            var state = Duel();
+            var opponent = new TutorialOpponent();
+            var arguments = new ScriptedArgumentSource(new[] { Amphora, Death });
+
+            for (var turn = 0; turn < RepeatedTurns; turn++)
+            {
+                Assert.AreEqual(Amphora.Speech, opponent.Decide(state, state.Opponent, arguments).PresentedArgument.Value.Speech, $"turn {turn}");
+            }
+        }
+
+        private static BattleState Duel(int seed = Seed) => BattleArena.CreateDuel(Act.One, Profile.Sophist, seed, BattleArena.OpponentOpens, RefuteTutorial.Rules(BattleArena.OpponentMaxCoherence));
 
         private Outcome Apply(BattleState state, in Play play)
         {

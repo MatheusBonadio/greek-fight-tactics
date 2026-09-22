@@ -47,6 +47,17 @@ namespace Game.Tests.EditMode.Content
         }
 
         [Test]
+        public void FallacyHint_NamesTheFallacyAsTheListShowsIt()
+        {
+            var tutorial = Load(Thrasybios).Tutorial;
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            Assert.IsTrue(catalog.TryGet(tutorial.FallacyId, out var fallacy));
+            Assert.IsTrue(Library().TryGet(tutorial.DialogueFor(TutorialCue.Fallacies), out var hint));
+
+            Assert.IsTrue(hint.AllLines().Any(line => line.Text.Contains(fallacy.DisplayName)), $"the hint must name {fallacy.DisplayName}, the label Kleia sees in the fallacy list");
+        }
+
+        [Test]
         public void OnlyThrasybios_OpensWithATutorial()
         {
             foreach (var id in DataTools.OpponentIds().Where(id => id != Thrasybios))

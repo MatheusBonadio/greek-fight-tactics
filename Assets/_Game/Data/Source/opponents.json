@@ -16,7 +16,6 @@
           "intro": "thrasybios_tutorial_intro",
           "argument": "thrasybios_tutorial_argument",
           "fallacies": "thrasybios_tutorial_fallacies",
-          "hit": "thrasybios_tutorial_hit",
           "miss": "thrasybios_tutorial_miss",
           "reminder": "thrasybios_tutorial_reminder",
           "victory": "agora_wrong_laughter"

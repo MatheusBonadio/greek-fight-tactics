@@ -161,6 +161,9 @@
           "text": "Thrasybios chamou de ânfora só o vaso ritual das Panateneias. Mas todo oleiro chama de ânfora qualquer vaso de duas alças."
         },
         {
+          "text": "Uma refutação certa derruba a Coerência dele e puxa a plateia para o seu lado."
+        },
+        {
           "text": "Para apontar o erro, escolha REFUTAR no menu."
         }
       ]
@@ -169,22 +172,7 @@
       "id": "thrasybios_tutorial_fallacies",
       "lines": [
         {
-          "text": "Agora diga qual falácia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, é Equivocação."
-        }
-      ]
-    },
-    {
-      "id": "thrasybios_tutorial_hit",
-      "lines": [
-        {
-          "text": "Acertou. Cada refutação certa custa Coerência a ele e puxa a plateia para o seu lado."
-        },
-        {
-          "speaker": "thrasybios",
-          "text": "Um tropeço de retórica, nada mais. Escute esta, menina."
-        },
-        {
-          "text": "Ele vai tentar de novo. Agora é com você: ache a palavra que muda de sentido e refute."
+          "text": "Agora diga qual falácia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, a falácia se chama Equívoco."
         }
       ]
     },
@@ -192,7 +180,7 @@
       "id": "thrasybios_tutorial_miss",
       "lines": [
         {
-          "text": "Não era essa. Nesta primeira vez o erro não custa nada: procure a palavra que muda de sentido entre as premissas."
+          "text": "Não era essa. Aqui o erro não custa nada, e ele vai repetir o mesmo argumento. Procure a palavra que muda de sentido entre as premissas."
         }
       ]
     },

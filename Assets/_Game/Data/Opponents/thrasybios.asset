@@ -35,10 +35,8 @@ MonoBehaviour:
     - key: 3
       value: thrasybios_tutorial_fallacies
     - key: 4
-      value: thrasybios_tutorial_hit
-    - key: 5
       value: thrasybios_tutorial_miss
-    - key: 6
+    - key: 5
       value: thrasybios_tutorial_reminder
-    - key: 7
+    - key: 6
       value: agora_wrong_laughter
