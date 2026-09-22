@@ -137,6 +137,8 @@ namespace Game.UI
 
         public System.Func<Coord, bool> Interaction { get; set; }
 
+        public IStoryShortcut StoryShortcut { get; set; }
+
         public event System.Action<int> FogRevealed;
 
         public IReadOnlyList<ActorPresenceLink> Presences => presences;
@@ -814,6 +816,16 @@ namespace Game.UI
             if (GUILayout.Button("Remove test actor"))
             {
                 TryRemoveTestActor(cell);
+            }
+
+            if (StoryShortcut != null)
+            {
+                GUILayout.Label($"story: {StoryShortcut.ReachedLabel}");
+                var next = StoryShortcut.NextLabel;
+                if (next != null && GUILayout.Button($"F4  skip to {next}"))
+                {
+                    StoryShortcut.SkipToNextCheckpoint();
+                }
             }
 
             GizmosVisible = GUILayout.Toggle(GizmosVisible, "Grid gizmos");

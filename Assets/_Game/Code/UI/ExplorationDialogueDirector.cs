@@ -8,8 +8,10 @@ using UnityEngine.InputSystem;
 
 namespace Game.UI
 {
-    public sealed class ExplorationDialogueDirector : MonoBehaviour
+    public sealed class ExplorationDialogueDirector : MonoBehaviour, IStoryShortcut
     {
+        public const string NewGameLabel = "a new game";
+
         [SerializeField] private GridSandboxController sandbox;
         [SerializeField] private DialogueBoxView dialogueBox;
         [SerializeField] private DialogueLibrarySO library;
@@ -63,6 +65,32 @@ namespace Game.UI
         public bool HasPendingTrigger => pendingTrigger != null;
 
         public IDuelChallenges Challenges { get; set; }
+
+        public StoryCheckpoint ReachedCheckpoint => StoryCheckpoints.Reached(Story);
+
+        public string ReachedLabel => ReachedCheckpoint?.Label ?? NewGameLabel;
+
+        public string NextLabel => NextCheckpoint?.Label;
+
+        public StoryCheckpoint NextCheckpoint => StoryCheckpoints.Next(Story);
+
+        public bool SkipToNextCheckpoint()
+        {
+            EnsureStoryLoaded();
+            var checkpoint = NextCheckpoint;
+            if (Story == null || checkpoint == null || IsTalking || sandbox.StateMachine.Mode != GameMode.Exploration)
+            {
+                return false;
+            }
+
+            foreach (var effect in checkpoint.Effects)
+            {
+                Remember(effect);
+            }
+
+            SaveProgress();
+            return true;
+        }
 
         public string ActiveDialogueId => player?.Run?.Script.Id;
 
@@ -251,6 +279,7 @@ namespace Game.UI
             navigateAction = sandbox.Controls.FindAction(BattleMenuInput.NavigateAction, true);
             interaction = HandleConfirm;
             sandbox.Interaction = interaction;
+            sandbox.StoryShortcut = this;
         }
 
         private void Start()
@@ -274,6 +303,11 @@ namespace Game.UI
                 sandbox.Interaction = null;
             }
 
+            if (sandbox && ReferenceEquals(sandbox.StoryShortcut, this))
+            {
+                sandbox.StoryShortcut = null;
+            }
+
             player?.Dispose();
         }
 
@@ -292,6 +326,7 @@ namespace Game.UI
         private void Update()
         {
             EnsureStoryLoaded();
+            ReadCheckpointShortcut();
             if (mapStale && !IsTalking)
             {
                 RefreshMap();
@@ -460,6 +495,14 @@ namespace Game.UI
             if (AutosavePolicy.ShouldSave(from, sandbox.StateMachine.Mode))
             {
                 SaveProgress();
+            }
+        }
+
+        private void ReadCheckpointShortcut()
+        {
+            if (Debug.isDebugBuild && Keyboard.current != null && Keyboard.current.f4Key.wasPressedThisFrame)
+            {
+                SkipToNextCheckpoint();
             }
         }
 
