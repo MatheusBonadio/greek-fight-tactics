@@ -332,10 +332,13 @@ await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
 - A seed do pedido fica em `0..SeedVariants-1` (8) para o cache compartilhado do servidor ter acerto alto.
 - `FirebaseAnonymousAuth` usa a REST do Identity Toolkit (`accounts:signUp`) e do Secure Token (`grant_type=refresh_token`), guarda uid e refresh token em `auth.json`, renova o ID token 5 min antes de expirar, cria conta nova se o refresh for recusado (4xx) e devolve `null` offline. `FirebaseEndpoints` recusa chave começando com `sk-`; `FirebaseEndpoints.Emulator("demo-gft")` aponta para os emuladores locais.
 - Testes EditMode usam `IHttpTransport` e `IIdTokenProvider` falsos que completam na hora, então as `Task` terminam síncronas.
-- **Modo avião ([QA-02]):** `Assets/_Game/Tests/Support` (assembly `Game.Tests.Support`) tem `FlakyNetwork`, `FlakyIdTokenProvider` e `FakeFirebase`.
-  - A rede cai com timeout, conexão recusada, 5xx ou pedido travado, e volta com `Reconnect`.
+- **Modo avião ([QA-02]):** `Assets/_Game/Tests/Support` (assembly `Game.Tests.Support`) tem `FlakyNetwork`, `FlakyIdTokenProvider`, `FakeFirebase` e `LoopbackHttpServer`.
+  - A rede cai com timeout, conexão recusada, 5xx, pedido travado ou host que não resolve, e volta com `Reconnect`.
+  - No `Unresolvable`, o pedido sai pelo `UnityWebRequestTransport` de verdade para `https://gft-airplane-mode.invalid`, e o DNS da máquina falha de verdade. O `.invalid` é reservado e nunca resolve. Tem de ser HTTPS: fora de `127.0.0.1`, a Unity recusa HTTP antes do DNS e registra um aviso, que o `LogAssert.NoUnexpectedReceived` reprova.
+  - `LoopbackHttpServer` atende o `FakeFirebase.ServedAt` em `127.0.0.1` por socket de verdade, então o `UnityWebRequestTransport` também entra no teste. Ele responde, trava (`Hang`) ou recusa conexão (`GoDown`), e as respostas saem na thread principal.
   - `AirplaneModeTests` (EditMode) e `AirplaneModePlayTests` (PlayMode) usam essas classes.
-  - O roteiro manual na build de Windows fica em `docs/qa/airplane-mode.md`.
+  - `AirplaneModePlaythroughPlayTests` joga, com a rede caída desde o menu, tudo o que existe: novo jogo, Cerâmico, Ágora, todas as conversas, os seis duelos com todas as ações, a pausa e o Continuar. Ao ganhar conteúdo novo, estenda esse teste.
+  - Os testes rodam no Editor e não fecham o card sozinhos. O roteiro manual na build de Windows fica em `docs/qa/airplane-mode.md`, e cada rodada é anotada na tabela de registro dele.
 
 **Pré-aquecimento:** ao entrar num mapa, chame `PrewarmAsync` para os adversários presentes. Quando o jogador chegar perto, os argumentos já estão na fila e a latência é zero.
 

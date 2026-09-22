@@ -20,9 +20,14 @@ namespace Game.Tests.Support
         private const string NotFoundBody = "{\"error\":{\"code\":404,\"status\":\"NOT_FOUND\"}}";
 
         public FakeFirebase()
+            : this(FirebaseEndpoints.Emulator(ProjectId), FirestoreEndpoints.Emulator(ProjectId))
         {
-            Endpoints = FirebaseEndpoints.Emulator(ProjectId);
-            Firestore = FirestoreEndpoints.Emulator(ProjectId);
+        }
+
+        private FakeFirebase(FirebaseEndpoints endpoints, FirestoreEndpoints firestore)
+        {
+            Endpoints = endpoints;
+            Firestore = firestore;
         }
 
         public FirebaseEndpoints Endpoints { get; }
@@ -40,6 +45,14 @@ namespace Game.Tests.Support
         public int ArgumentsServed { get; private set; }
 
         public string SaveDocumentUrl => Firestore.DocumentUrl($"{FirestoreDocuments.SavesCollection}/{Uid}");
+
+        public static FakeFirebase ServedAt(string baseUrl) =>
+            new(new FirebaseEndpoints(
+                    FirebaseEndpoints.EmulatorApiKey,
+                    $"{baseUrl}/identitytoolkit.googleapis.com/v1/accounts:signUp",
+                    $"{baseUrl}/securetoken.googleapis.com/v1/token",
+                    $"{baseUrl}/{ProjectId}/{FirebaseEndpoints.DefaultRegion}/{FirebaseEndpoints.FunctionName}"),
+                new FirestoreEndpoints($"{baseUrl}/v1", ProjectId));
 
         public static string ServedSpeech(string fallacyId) =>
             $"{ServedSpeechPrefix} um argumento sobre {fallacyId} chega antes do turno começar.";

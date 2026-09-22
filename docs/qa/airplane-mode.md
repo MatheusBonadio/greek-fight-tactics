@@ -1,15 +1,15 @@
 # Protocolo manual — modo avião ([QA-02])
 
-Critério não negociável: o jogo precisa ser completável sem internet. Este roteiro verifica isso na build real de Windows. Os testes automáticos cobrem a lógica com uma rede falsa. O roteiro cobre o que eles não alcançam: a pilha de rede do Windows, o `UnityWebRequest` de verdade, o Firebase real e o que só um humano percebe na tela.
+Critério não negociável: o jogo precisa ser completável sem internet. Este roteiro verifica isso na build real de Windows. Os testes automáticos rodam no Editor e jogam tudo o que existe hoje com a rede caída. A queda vem de uma rede falsa, de um servidor local em `127.0.0.1` e de uma falha de DNS de verdade, pelo `UnityWebRequest`. O roteiro cobre o que eles não alcançam: a build de Windows, o modo avião de verdade na pilha de rede do sistema, o Firebase real e o que só um humano percebe na tela.
 
-| Item do card | Automático | Manual |
+| Item do card | Automático (Editor) | Manual (build de Windows) |
 |---|---|---|
-| 1. Tudo que existe jogável com Wi-Fi desligado | parcial | **obrigatório; repetir no [ENT-01] com o conteúdo final** |
-| 2. Nenhum diálogo vazio, travamento ou popup de erro | sim | confirmação visual |
-| 3. Tempo de turno idêntico ao modo online | sim | cronometragem |
-| 4. Save funciona e sincroniza ao reconectar | sim | conferência no Firestore |
+| 1. Tudo que existe jogável com Wi-Fi desligado | parcial: passos 1.1 a 1.11 | **obrigatório; repetir no [ENT-01] com o conteúdo final** |
+| 2. Nenhum diálogo vazio, travamento ou popup de erro | sim | **obrigatório:** confirmação visual e log da build |
+| 3. Tempo de turno idêntico ao modo online | sim | **obrigatório:** cronometragem |
+| 4. Save funciona e sincroniza ao reconectar | sim, contra um Firebase falso | **obrigatório:** conferência no Firestore |
 
-> **Item 1 fica aberto até o [ENT-01].** Rode este roteiro agora com o conteúdo atual e de novo no [ENT-01] com o conteúdo da entrega. O card só fecha o item 1 depois da segunda rodada.
+> **Os testes automáticos não fecham o card.** Eles barram regressão, mas nenhum item fecha antes de a rodada manual correspondente estar anotada no [Registro](#registro), com commit, config e testador. O item 1 só fecha depois da segunda rodada, no [ENT-01], com o conteúdo da entrega.
 
 ---
 
@@ -20,11 +20,21 @@ Rode `./tools/test.ps1 -Mode All` antes do roteiro manual. Se algum destes teste
 | Teste | Prova |
 |---|---|
 | `Game.Tests.EditMode.Net.AirplaneModeTests` | Com timeout, conexão recusada e 5xx: o pré-aquecimento tenta uma vez e reintenta uma vez, e depois para. O fallback serve argumentos válidos sem nenhuma requisição. Com a rede travada, uma batalha inteira termina em menos tempo que um único timeout, enquanto o pedido continua pendurado. Os saves feitos offline ficam no disco, e ao reconectar só o mais novo sobe. Ao reconciliar, vence o `timestamp` mais recente. A conta anônima sobrevive à queda e é renovada, sem criar outra. |
-| `Game.Tests.PlayMode.AirplaneModePlayTests` | Com a rede travada, o boot libera o jogo dentro de `GameServices.OnlineBootBudgetSeconds` (2 s). O save automático é gravado na hora e sobe ao reconectar, sem precisar de outro save. Um save antigo de um boot offline nunca sobrescreve um save mais novo da nuvem. Na Ágora, a rede cai no meio da sessão: os argumentos pré-aquecidos são usados, o fallback assume, nenhum turno toca a rede, o turno dura o tempo de pensar do oponente e toda fala da batalha e da exploração tem texto. Nenhum erro chega ao log. |
+| `Game.Tests.PlayMode.AirplaneModePlaythroughPlayTests` | Os passos 1.1 a 1.10 do item 1, com a rede caída desde a abertura. Roda três vezes: com conexão recusada, com pedido travado (Wi-Fi sem internet) e com um host que o DNS não resolve (o que o modo avião faz com todo nome). Nesta última, cada pedido sai pelo `UnityWebRequest` de verdade. **NOVO JOGO** no primeiro slot, o gatilho da saída da oficina, a conversa com o vizinho e a saída do Cerâmico para a Ágora, com save automático na chegada. Na Ágora, as conversas com Eudoro e Menexeno e os seis duelos. Ao longo deles aparecem as falas de **CITAR**, **REFUTAR** (acerto e erro), **MAIÊUTICA** (acerto e erro), **CONCEDER**, vitória e fuga, e **CIRCULAR** escolhe a célula azul. O oponente vencido não provoca de novo, e o que ficou para trás provoca de novo quando a Kleia sai do raio e volta. Na pausa, **COMPÊNDIO** mostra a falácia refutada, **OPÇÕES** aplica o volume, **SALVAR** grava o primeiro slot com confirmação e **MENU PRINCIPAL** volta ao menu. **CONTINUAR** põe a Kleia no lugar salvo, com o duelo vencido preservado. Cada menu e cada mapa abre dentro do orçamento do boot, e toda fala tem texto, nome e retrato. Nenhum turno pede argumento ao servidor, e nenhum turno passa do tempo de pensar. Ao reconectar e voltar ao Cerâmico, a nuvem recebe o save mais novo com os duelos vencidos, e nenhum save antigo sobrescreve um mais novo. |
+| `Game.Tests.PlayMode.AirplaneModePlayTests` | Com a rede travada, o boot libera o jogo dentro de `GameServices.OnlineBootBudgetSeconds` (2 s). O save automático é gravado na hora e sobe ao reconectar, sem precisar de outro save. Um save antigo de um boot offline nunca sobrescreve um save mais novo da nuvem. Na Ágora, a rede cai no meio da sessão: os argumentos pré-aquecidos são usados, o fallback assume, nenhum turno toca a rede, o turno dura o tempo de pensar do oponente e toda fala da batalha e da exploração tem texto. Os testes `RealSockets_*` repetem o boot e a queda no meio da sessão com o `UnityWebRequestTransport` de verdade, contra um servidor HTTP em `127.0.0.1` que responde, trava e recusa conexão. O `RealTransport_*` confirma que um host que o DNS não resolve volta do `UnityWebRequestTransport` como falha, sem exceção. O save gravado durante timeout, recusa, 5xx e falha de DNS sobe ao reconectar. Nenhum erro chega ao log. |
 | `Game.Tests.EditMode.UI.UiTextTests.GeneratedUiText_HasALineForEverythingTheBattleNarrates` | Toda frase que a batalha narra existe em `ui_text.json`. Nada aparece como `#chave`. |
 | `FallbackLibraryTests`, `DialogueLibraryTests`, `OpponentRosterTests` | Cada falácia tem ao menos 3 argumentos de fallback válidos, entre 40 e 300 caracteres. A biblioteca de diálogo gerada guarda cada fala do `dialogues.json`, e a regeneração recusa fala vazia. Todo o repertório de cada oponente está coberto pelo banco de fallback. |
 
-A rede falsa fica em `Assets/_Game/Tests/Support` (`FlakyNetwork`, `FlakyIdTokenProvider`, `FakeFirebase`). Os testes de PlayMode a injetam na cena por `OnlineBackendOverride`.
+A rede falsa fica em `Assets/_Game/Tests/Support` (`FlakyNetwork`, `FlakyIdTokenProvider`, `FakeFirebase` e `LoopbackHttpServer`, o servidor local dos testes com sockets). Os testes de PlayMode a injetam na cena por `OnlineBackendOverride`. A queda `Unresolvable` do `FlakyNetwork` manda o pedido de verdade para `https://gft-airplane-mode.invalid`, um nome reservado que nenhum DNS resolve. Precisa ser HTTPS: fora de `127.0.0.1`, a Unity recusa HTTP antes de chegar ao DNS (*Non-secure network connections disabled in Player Settings*).
+
+O que continua só no roteiro manual:
+- a build de Windows;
+- o modo avião de verdade, sem adaptador de rede (os testes provocam a falha de DNS com a rede da máquina ligada);
+- o Firebase de produção ou os emuladores;
+- a percepção de travamento na tela;
+- o passo 1.12 (fechar e reabrir o executável).
+
+A névoa do passo 1.11 é coberta sem backend por `MapTransitionPlayTests`.
 
 ---
 
@@ -49,7 +59,7 @@ Anote o commit da build (`git rev-parse --short HEAD`) na tabela de resultado.
 
 A config B é uma edição local de texto no `.asset`, **nunca versionada**. A chave web do Firebase não é segredo. A chave da OpenAI nunca entra ali. Gere uma build para cada config.
 
-Sem projeto de produção, use os emuladores: `useEmulator: 1`, `projectId: demo-gft` e `firebase emulators:start` na raiz. O modo avião não corta o `127.0.0.1`. Com emuladores, "cortar a rede" é parar os emuladores com `Ctrl+C`, ou criar uma regra de saída no Firewall do Windows bloqueando `GFT.exe`.
+Sem projeto de produção, use os emuladores: `useEmulator: 1`, `projectId: demo-gft` e `firebase emulators:start` na raiz. Mantenha `emulatorHost: 127.0.0.1`. O projeto não permite HTTP (`insecureHttpOption: 0`), e com outro host a Unity recusa os pedidos aos emuladores: o jogo fica offline mesmo com a rede ligada. O modo avião não corta o `127.0.0.1`. Com emuladores, "cortar a rede" é parar os emuladores com `Ctrl+C`, ou criar uma regra de saída no Firewall do Windows bloqueando `GFT.exe`.
 
 ### Pasta de dados
 

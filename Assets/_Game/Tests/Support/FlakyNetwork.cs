@@ -13,20 +13,24 @@ namespace Game.Tests.Support
         TimedOut,
         Refused,
         ServerError,
-        Hanging
+        Hanging,
+        Unresolvable
     }
 
     public sealed class FlakyNetwork : IHttpTransport
     {
         public const string RefusedError = "Cannot connect to destination host";
         public const long ServerErrorStatus = 503;
+        public const string UnresolvableHost = "gft-airplane-mode.invalid";
 
         private readonly Func<HttpRequestData, HttpResponseData> online;
+        private readonly IHttpTransport realNetwork;
         private readonly List<TaskCompletionSource<HttpResponseData>> hanging = new();
 
-        public FlakyNetwork(Func<HttpRequestData, HttpResponseData> online)
+        public FlakyNetwork(Func<HttpRequestData, HttpResponseData> online, IHttpTransport realNetwork = null)
         {
             this.online = online ?? throw new ArgumentNullException(nameof(online));
+            this.realNetwork = realNetwork;
         }
 
         public NetworkOutage Outage { get; private set; }
@@ -68,8 +72,22 @@ namespace Game.Tests.Support
                 NetworkOutage.TimedOut => Task.FromResult(HttpResponseData.Timeout()),
                 NetworkOutage.Refused => Task.FromResult(HttpResponseData.Failed(RefusedError)),
                 NetworkOutage.ServerError => Task.FromResult(HttpResponseData.Completed(ServerErrorStatus, "{\"error\":\"unavailable\"}")),
+                NetworkOutage.Unresolvable => SendToUnresolvableHost(request, timeout, cancellation),
                 _ => Hang(cancellation)
             };
+        }
+
+        public static HttpRequestData AtUnresolvableHost(HttpRequestData request) =>
+            new(request.Method, new UriBuilder(request.Url) { Scheme = Uri.UriSchemeHttps, Host = UnresolvableHost, Port = -1 }.Uri.AbsoluteUri, request.Body, request.ContentType, request.Headers);
+
+        private Task<HttpResponseData> SendToUnresolvableHost(HttpRequestData request, TimeSpan timeout, CancellationToken cancellation)
+        {
+            if (realNetwork == null)
+            {
+                throw new InvalidOperationException("Looking up an unresolvable host needs a real transport.");
+            }
+
+            return realNetwork.SendAsync(AtUnresolvableHost(request), timeout, cancellation);
         }
 
         internal Task<HttpResponseData> Hang(CancellationToken cancellation)
