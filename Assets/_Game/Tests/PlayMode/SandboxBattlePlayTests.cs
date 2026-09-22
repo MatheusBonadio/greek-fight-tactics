@@ -54,7 +54,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase);
             Assert.AreEqual(services.Arguments != null, director.PreparedArguments.IsOnline);
 
-            foreach (var entry in director.Opponents)
+            foreach (var entry in director.Opponents.Where(SandboxBattleDirector.Prewarms))
             {
                 var walker = entry.Actor.Walker;
                 var opponent = new Debater(walker.ActorId, Side.Opponent, entry.Opponent.Profile, entry.Opponent.MaxCoherence, 5, walker.Cell, walker.Facing);
@@ -155,7 +155,7 @@ namespace Game.Tests.PlayMode
             director.AutosaveEnabled = false;
             Assert.GreaterOrEqual(director.Opponents.Count, 6, "the agora hosts Thrasybios and the five neighbourhood duelists");
 
-            foreach (var entry in director.Opponents)
+            foreach (var entry in director.Opponents.Where(entry => entry.IsPlaced))
             {
                 yield return DuelChallenge.Engage(sandbox, director, entry, StartTimeoutSeconds);
                 Assert.AreEqual(entry.Opponent.DisplayName, director.Opponent.DisplayName);
@@ -177,7 +177,7 @@ namespace Game.Tests.PlayMode
             var dialogue = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
             dialogue.AutosaveEnabled = false;
             yield return WaitFor(() => dialogue.IsStoryLoaded, StartTimeoutSeconds);
-            var target = director.Opponents.Last();
+            var target = director.Opponents.Last(entry => entry.IsPlaced);
 
             DuelChallenge.StandBeside(sandbox, target);
             var standing = sandbox.Player.Walker.Cell;
@@ -239,7 +239,7 @@ namespace Game.Tests.PlayMode
             story.AutosaveEnabled = false;
             yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
 
-            var target = director.Opponents.Last();
+            var target = director.Opponents.Last(entry => entry.IsPlaced);
             sandbox.Duels.RecordVictory(target.Opponent.Id, DuelVictory.Refute);
             Assert.IsTrue(director.IsDefeated(target));
             var player = sandbox.Player.Walker;
@@ -455,7 +455,7 @@ namespace Game.Tests.PlayMode
             var steps = new[] { new Coord(1, 0), new Coord(-1, 0), new Coord(0, 1), new Coord(0, -1) };
             bool IsFree(Coord cell) => grid.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied;
 
-            foreach (var entry in director.Opponents)
+            foreach (var entry in director.Opponents.Where(entry => entry.IsPlaced))
             {
                 foreach (var toward in steps)
                 {

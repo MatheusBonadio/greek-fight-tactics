@@ -61,20 +61,23 @@
   ],
   "actors": [
     { "character": "kleia", "x": 0, "y": 1, "facing": "NorthEast" },
-    { "character": "thrasybios", "x": 7, "y": 1, "facing": "SouthWest" },
+    { "character": "thrasybios", "x": 7, "y": 1, "facing": "SouthWest", "conditions": [{ "flag": "street_trial_called", "absent": true }] },
     { "character": "citizen", "x": 8, "y": 1, "facing": "SouthWest" },
     { "character": "citizen", "x": 7, "y": 3, "facing": "SouthEast" },
     { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
     { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast", "dialogue": "eudoro_agora" },
-    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora", "conditions": [{ "flag": "menexeno_absent_days", "absent": true }] },
+    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora", "conditions": [{ "flag": "menexeno_absent_days", "absent": true }, { "flag": "duel_thrasybios_street_trial", "not": "won" }] },
     { "character": "oron", "x": 10, "y": 10, "facing": "SouthWest" },
     { "character": "phaidra", "x": 1, "y": 10, "facing": "SouthEast" },
     { "character": "kritolaos", "x": 6, "y": 10, "facing": "SouthWest" },
     { "character": "simo", "x": 8, "y": 8, "facing": "SouthWest" },
-    { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" }
+    { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" },
+    { "character": "thrasybios_street_trial", "sheet": "thrasybios", "x": 10, "y": 8, "facing": "SouthWest", "conditions": [{ "flag": "street_trial_called" }, { "flag": "duel_thrasybios_street_trial", "not": "won" }] }
   ],
   "exits": [
-    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest", "heading": "SouthWest", "label": "Para o Cerâmico" }
+    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest", "heading": "SouthWest", "label": "Para o Cerâmico" },
+    { "x": 11, "y": 4, "location": "archive", "arrivalX": 3, "arrivalY": 1, "facing": "NorthWest", "label": "Para o arquivo", "conditions": [{ "flag": "searching_menexeno" }] },
+    { "x": 7, "y": 11, "location": "academy", "arrivalX": 3, "arrivalY": 1, "facing": "NorthWest", "label": "Para a Academia" }
   ],
   "cues": [
     {
@@ -103,9 +106,27 @@
     },
     {
       "on": "Idle",
-      "dialogue": "agora_menexeno_gone",
+      "dialogue": "agora_menexeno_away",
       "flag": "noticed_menexeno_gone",
       "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }, { "flag": "menexeno_absent_days" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_street_trial_summons",
+      "flag": "street_trial_called",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "not": "undecided" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_menexeno_gone",
+      "flag": "searching_menexeno",
+      "conditions": [{ "flag": "duel_thrasybios_street_trial", "equals": "won" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_academy_road",
+      "flag": "saw_academy_road",
+      "conditions": [{ "flag": "act", "equals": "2" }]
     }
   ]
 }

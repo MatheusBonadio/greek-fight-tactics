@@ -1,0 +1,64 @@
+{
+  "id": "archive",
+  "floorLegend": {
+    ".": "floor_marble",
+    "o": "floor_marble_ochre"
+  },
+  "blockLegend": {
+    "W": "wall_marble",
+    "A": "prop_amphora_stack",
+    "M": "prop_market_stall",
+    "C": "block_doric_column",
+    "H": "prop_statue_base"
+  },
+  "floor": [
+    "...o....",
+    "...o....",
+    "...o....",
+    "...o....",
+    "...o....",
+    "..ooo...",
+    "........",
+    "........"
+  ],
+  "blocks": [
+    "-------W",
+    "-------W",
+    "-C---C-W",
+    "-------W",
+    "-C---C-W",
+    "-------W",
+    "HAAMAA-W",
+    "WWWWWWWW"
+  ],
+  "actors": [
+    { "character": "kleia", "x": 3, "y": 1, "facing": "NorthWest" },
+    { "character": "archivist", "sheet": "citizen", "x": 6, "y": 3, "facing": "SouthWest", "dialogue": "archive_archivist" },
+    { "character": "academic", "sheet": "citizen", "x": 0, "y": 2, "facing": "NorthEast", "conditions": [{ "flag": "bronze_seal", "absent": true }] }
+  ],
+  "exits": [
+    { "x": 3, "y": 0, "location": "agora", "arrivalX": 11, "arrivalY": 5, "facing": "SouthWest", "label": "Para a ágora" }
+  ],
+  "triggers": [
+    { "x": 3, "y": 5, "cutscene": "archive_list_scene", "flag": "read_juror_list" }
+  ],
+  "cues": [
+    { "on": "Idle", "dialogue": "archive_entrance", "flag": "entered_archive" }
+  ],
+  "cutscenes": [
+    {
+      "id": "archive_list_scene",
+      "steps": [
+        { "at": 0.5, "action": "Face", "actor": "kleia", "x": 3, "y": 6 },
+        { "at": 1.0, "action": "Dialogue", "dialogue": "archive_juror_list" },
+        { "at": 1.5, "action": "Walk", "actor": "academic", "x": 2, "y": 5 },
+        { "at": 2.0, "action": "Face", "actor": "academic", "toward": "kleia" },
+        { "at": 2.5, "action": "Face", "actor": "kleia", "toward": "academic" },
+        { "at": 3.0, "action": "Dialogue", "dialogue": "archive_bronze_seal" },
+        { "at": 3.5, "action": "Walk", "actor": "academic", "x": 2, "y": 0 },
+        { "at": 4.0, "action": "Leave", "actor": "academic" },
+        { "at": 4.5, "action": "Dialogue", "dialogue": "archive_act_two" }
+      ]
+    }
+  ]
+}

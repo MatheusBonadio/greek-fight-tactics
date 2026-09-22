@@ -30,6 +30,7 @@ namespace Game.Tests.EditMode.UI
 
         [TestCase(SandboxTools.MapPath, SandboxTools.ScenePath)]
         [TestCase(SandboxTools.KerameikosMapPath, SandboxTools.KerameikosScenePath)]
+        [TestCase(SandboxTools.ArchiveMapPath, SandboxTools.ArchiveScenePath)]
         public void Scene_WiresTheTalkingNpcsAndCellTriggersOfItsMap(string mapPath, string scenePath)
         {
             Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath), $"run SandboxTools.BuildSandbox to create {scenePath}");

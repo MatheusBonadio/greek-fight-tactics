@@ -79,6 +79,10 @@
     "rejection.missing_argument": "Falta um argumento para responder.",
     "rejection.action_locked": "Kleia ainda não aprendeu a perguntar assim.",
     "hud.coherence": "COERÊNCIA",
-    "hud.audience": "PLATEIA"
+    "hud.audience": "PLATEIA",
+    "battle.concede_counter": "{0} aceita o fato, e o ataque fica sem alvo.",
+    "battle.phase_deflected": "{0} tem razão, mas não é essa a resposta agora, e o golpe se volta contra ela.",
+    "location.archive": "Arquivo",
+    "location.academy": "Academia"
   }
 }

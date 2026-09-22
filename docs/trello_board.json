@@ -688,7 +688,7 @@
         "Narrativa",
         "Unity / Core"
       ],
-      "description": "Beat I.8. O clímax do ato.\n\n**Depende de:** [AT1-07] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [ ] Fase 1 — ataque pessoal: contra-atacar com CONCEDER\n- [ ] Fase 2 — falso dilema: contra-atacar com REFUTAR apontando a terceira via\n- [ ] Fase 3 — apelo ao medo político: só MAIÊUTICA funciona\n- [ ] Cada fase muda a música e a postura do sprite\n- [ ] Derrota não é game over: repetir com diálogo diferente"
+      "description": "Beat I.8. O clímax do ato.\n\n**Depende de:** [AT1-07] · **Estimativa:** 5 dias\n\n**Critérios de aceitação:**\n- [x] Fase 1 — ataque pessoal: contra-atacar com CONCEDER\n- [x] Fase 2 — falso dilema: contra-atacar com REFUTAR apontando a terceira via\n- [x] Fase 3 — apelo ao medo político: só MAIÊUTICA funciona\n- [ ] Cada fase muda a música e a postura do sprite\n- [x] Derrota não é game over: repetir com diálogo diferente"
     },
     {
       "title": "[AT1-09] O twist e o portão do Ato II",
@@ -697,7 +697,7 @@
         "Fase 2 · Comercial",
         "Narrativa"
       ],
-      "description": "Beats I.9 e I.10.\n\n**Depende de:** [AT1-08] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Cena do arquivo do tribunal — a lista de jurados\n- [ ] Revelação: Menexeno votou pela condenação de Sócrates\n- [ ] Entrega do selo de bronze\n- [ ] `ActFlag = 2`, estrada para a Academia sai da névoa\n- [ ] Testar que áreas do Ato II ficam INACESSÍVEIS com `ActFlag = 1`"
+      "description": "Beats I.9 e I.10.\n\n**Depende de:** [AT1-08] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Cena do arquivo do tribunal — a lista de jurados\n- [x] Revelação: Menexeno votou pela condenação de Sócrates\n- [x] Entrega do selo de bronze\n- [x] `ActFlag = 2`, estrada para a Academia sai da névoa\n- [x] Testar que áreas do Ato II ficam INACESSÍVEIS com `ActFlag = 1`"
     },
     {
       "title": "[UI-07] Menus de sistema completos",

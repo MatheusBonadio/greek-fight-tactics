@@ -39,6 +39,9 @@ namespace Game.Tests.PlayMode
         private const string CustomerDialoguePrefix = "customer_";
         private const int AcceptOption = 0;
         private const int RefuseOption = 1;
+        private const string TrialCalledFlag = "street_trial_called";
+        private const string SearchingMenexenoFlag = "searching_menexeno";
+        private const string TutorOpponent = "thrasybios";
 
         private static readonly NetworkOutage[] Outages = { NetworkOutage.Refused, NetworkOutage.Hanging, NetworkOutage.Unresolvable };
 
@@ -50,6 +53,8 @@ namespace Game.Tests.PlayMode
             BattleText.MaieuticsHitKey,
             BattleText.MaieuticsMissKey,
             BattleText.ConcedeKey,
+            BattleText.ConcedeCounterKey,
+            BattleText.DeflectedKey,
             BattleText.VictoryKey,
             BattleText.WithdrewKey
         };
@@ -61,6 +66,7 @@ namespace Game.Tests.PlayMode
         private readonly Dictionary<string, int> dialogueAnswers = new();
         private readonly HashSet<AbilityId> abilitiesUsed = new();
         private int abilityLines;
+        private readonly List<DuelPhaseCue> phaseCues = new();
         private IsolatedDataDirectory data;
         private FakeFirebase firebase;
         private FlakyNetwork network;
@@ -72,7 +78,8 @@ namespace Game.Tests.PlayMode
         {
             Win,
             Explore,
-            Withdraw
+            Withdraw,
+            Lose
         }
 
         [UnitySetUp]
@@ -90,6 +97,7 @@ namespace Game.Tests.PlayMode
             dialogueAnswers.Clear();
             abilitiesUsed.Clear();
             abilityLines = 0;
+            phaseCues.Clear();
             longestOpponentTurnSeconds = 0f;
             opponentLines = 0;
             yield return null;
@@ -156,12 +164,6 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(road.Arrival, agora.Player.Cell);
             yield return SettleTheStory(agora);
             yield return DuelEveryone(agora);
-
-            AssertEveryBattleLineWasShown();
-            Assert.Greater(opponentLines, 0);
-            Assert.Less(longestOpponentTurnSeconds, OfflineThinkSeconds + ThinkSlackSeconds, "an opponent turn took longer than its think time");
-            Assert.IsEmpty(firebase.Commits, "nothing reaches the cloud while the network is down");
-
             var branch = BranchFor(outage);
             dialogueAnswers[DamarisOfferDialogue] = branch == DamarisChoice.Accepted ? AcceptOption : RefuseOption;
             Assert.IsTrue(agora.Services.TryLoadActiveSave(out var beforeHome));
@@ -183,6 +185,44 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(branch == DamarisChoice.Refused, Menexeno(agora).Walker != null, "Menexeno stays away from the agora only after Kleia takes Damaris's money");
             yield return TalkToEveryone(agora);
             yield return DuelWithTheAbilityOf(agora, branch);
+            Assert.IsEmpty(firebase.Commits, "nothing reaches the cloud while the network is down");
+
+            yield return FaceTheStreetTrial(agora);
+
+            var archiveDoor = agora.Sandbox.Exits.Single(link => link.Location == LocationScenes.Archive);
+            Assert.IsTrue(agora.Sandbox.IsExitOpen(archiveDoor), "searching for Menexeno opens the archive door");
+            yield return WalkThroughExit(agora, archiveDoor);
+            var archive = default(MapScene);
+            yield return EnterMap(loaded => archive = loaded);
+            Assert.AreEqual(LocationScenes.Archive, archive.Sandbox.LocationId);
+            yield return SettleTheStory(archive);
+            yield return TalkToEveryone(archive);
+            yield return WalkIntoEveryTrigger(archive);
+            Assert.IsTrue(StoryCondition.Has("knows_menexeno_vote").IsMet(archive.Dialogue.Story), "the juror list reveals Menexeno's vote while offline");
+            Assert.AreEqual(Act.Two, archive.Dialogue.Story.ActFlag, "the bronze seal sets ActFlag = 2 while offline");
+            Assert.IsTrue(archive.Services.TryLoadActiveSave(out var sealedSave));
+            Assert.AreEqual(Act.Two, sealedSave.ActFlag, "the second act is saved while offline");
+            CollectionAssert.IsSubsetOf(archive.Dialogue.Triggers.Select(trigger => trigger.Cutscene), cutscenesPlayed, "the archive scene plays offline");
+
+            yield return WalkThroughExit(archive, archive.Sandbox.Exits.Single());
+            yield return EnterMap(loaded => agora = loaded);
+            yield return SettleTheStory(agora);
+            var academyRoad = agora.Sandbox.Exits.Single(link => link.Location == LocationScenes.Academy);
+            Assert.IsTrue(agora.Sandbox.IsExitOpen(academyRoad), "the Academy road has come out of the fog");
+            yield return WalkThroughExit(agora, academyRoad);
+            var academy = default(MapScene);
+            yield return EnterMap(loaded => academy = loaded);
+            Assert.AreEqual(LocationScenes.Academy, academy.Sandbox.LocationId);
+            Assert.AreEqual(academyRoad.Arrival, academy.Player.Cell);
+            yield return SettleTheStory(academy);
+            Assert.IsTrue(StoryCondition.Has("reached_academy").IsMet(academy.Dialogue.Story));
+            yield return WalkThroughExit(academy, academy.Sandbox.Exits.Single());
+            yield return EnterMap(loaded => agora = loaded);
+            yield return SettleTheStory(agora);
+
+            AssertEveryBattleLineWasShown();
+            Assert.Greater(opponentLines, 0);
+            Assert.Less(longestOpponentTurnSeconds, OfflineThinkSeconds + ThinkSlackSeconds, "an opponent turn took longer than its think time");
             Assert.IsEmpty(firebase.Commits, "nothing reaches the cloud while the network is down");
 
             yield return SaveFromThePauseMenuAndQuit(agora);
@@ -260,7 +300,7 @@ namespace Game.Tests.PlayMode
         {
             var ability = DamarisOffer.GrantedAbility(branch).Value;
             var battle = map.Battle;
-            var rival = battle.Opponents.First(entry => !battle.IsDefeated(entry));
+            var rival = battle.Opponents.First(entry => !battle.IsDefeated(entry) && entry.IsPlaced && !entry.Opponent.IsPhased);
             abilitiesUsed.Clear();
             abilityLines = 0;
 
@@ -496,7 +536,7 @@ namespace Game.Tests.PlayMode
         {
             var battle = map.Battle;
             Assert.IsNotNull(battle, "the agora hosts the duels");
-            var rivals = battle.Opponents.Where(entry => !battle.IsDefeated(entry)).ToList();
+            var rivals = battle.Opponents.Where(entry => entry.IsPlaced && !battle.IsDefeated(entry)).ToList();
             var winner = rivals
                 .Where(entry => entry.Opponent.Profile == Profile.Sophist)
                 .OrderBy(entry => entry.Opponent.MaxCoherence)
@@ -524,7 +564,43 @@ namespace Game.Tests.PlayMode
                 yield return PlayDuel(map, DuelPlan.Explore);
             }
 
-            Assert.AreEqual(battle.Opponents.Count, duelResults.Count, "every opponent on the map must be fought");
+            Assert.AreEqual(battle.Opponents.Count(entry => entry.IsPlaced), duelResults.Count, "every opponent on the map must be fought");
+        }
+
+        private IEnumerator FaceTheStreetTrial(MapScene map)
+        {
+            var battle = map.Battle;
+            var trial = battle.Opponents.Single(entry => entry.Opponent.IsPhased);
+            var menexeno = map.Dialogue.Talkers.Single(talker => talker.Dialogue == "menexeno_agora").Actor;
+            var menexenoWasThere = menexeno.Walker != null;
+            yield return SettleTheStory(map);
+            Assert.IsTrue(StoryCondition.Has(TrialCalledFlag).IsMet(map.Dialogue.Story), "Thrasybios calls Kleia to the stoa steps while offline");
+            Assert.IsTrue(trial.IsPlaced, "the trial waits on the stoa steps");
+            Assert.IsFalse(battle.Opponents.Single(entry => entry.Opponent.Id == TutorOpponent).IsPlaced, "Thrasybios left the market");
+
+            battle.PhaseStarted += phaseCues.Add;
+            try
+            {
+                yield return Challenge(map, trial);
+                yield return PlayDuel(map, DuelPlan.Lose);
+                Assert.AreEqual(BattleStatus.PlayerLost, duelResults[trial.Opponent.Id], "refuting the personal attack loses the trial");
+                Assert.IsTrue(trial.IsPlaced, "defeat is not game over");
+                Assert.AreEqual(menexenoWasThere, menexeno.Walker != null, "losing the trial changes nothing for Menexeno");
+
+                phaseCues.Clear();
+                yield return Challenge(map, trial);
+                yield return PlayDuel(map, DuelPlan.Win);
+            }
+            finally
+            {
+                battle.PhaseStarted -= phaseCues.Add;
+            }
+
+            Assert.AreEqual(BattleStatus.PlayerWon, duelResults[trial.Opponent.Id], "the three counters win the trial offline");
+            CollectionAssert.AreEqual(trial.Opponent.Phases.Phases.Select(phase => phase.Music), phaseCues.Select(cue => cue.MusicId), "every phase raised its music cue");
+            Assert.IsFalse(trial.IsPlaced, "Thrasybios leaves the steps");
+            Assert.IsNull(menexeno.Walker, "Menexeno disappears after the trial");
+            Assert.IsTrue(StoryCondition.Has(SearchingMenexenoFlag).IsMet(map.Dialogue.Story), "Kleia goes looking for him");
         }
 
         private static IEnumerator Challenge(MapScene map, MapOpponent entry)
@@ -547,6 +623,7 @@ namespace Game.Tests.PlayMode
             var director = map.Battle;
             var opponent = director.Engaged;
             var lesson = director.Tutorial != null;
+            var phased = director.PhasedDuel != null;
             var argumentRequests = network.RequestsTo(firebase.Endpoints.ArgumentUrl);
             var approaches = 0;
             var playerEntry = -1;
@@ -604,7 +681,8 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, $"the duel against {opponent.Opponent.Id} did not finish in time");
             duelResults[opponent.Opponent.Id] = director.LastResult;
             var closedByTheLessonScene = lesson && director.LastResult == BattleStatus.PlayerWon;
-            if (!closedByTheLessonScene)
+            var closedByTheTrialScene = phased && director.LastResult is BattleStatus.PlayerWon or BattleStatus.PlayerLost;
+            if (!closedByTheLessonScene && !closedByTheTrialScene)
             {
                 battleLinesShown.Add(BattleText.StatusKey(director.LastResult));
             }
@@ -648,6 +726,11 @@ namespace Game.Tests.PlayMode
             if (plan == DuelPlan.Withdraw)
             {
                 return new BattleMenuChoice(ActionId.Withdraw);
+            }
+
+            if (session.State.Rules.Phases != null && session.State.CurrentArgument.HasValue)
+            {
+                return ChoosePhaseAnswer(session.State, plan);
             }
 
             if (Missing(BattleText.QuoteKey) && Available(ActionId.Quote))
@@ -697,6 +780,22 @@ namespace Game.Tests.PlayMode
             }
 
             return Available(ActionId.Circulate) ? new BattleMenuChoice(ActionId.Circulate) : new BattleMenuChoice(ActionId.Concede);
+        }
+
+        private static BattleMenuChoice ChoosePhaseAnswer(BattleState state, DuelPlan plan)
+        {
+            var argument = state.CurrentArgument.Value;
+            if (plan == DuelPlan.Lose)
+            {
+                return new BattleMenuChoice(ActionId.Refute, argument.FallacyId);
+            }
+
+            return state.Rules.Phases.PhaseFor(state.Opponent.Coherence).Counter switch
+            {
+                ActionId.Refute => new BattleMenuChoice(ActionId.Refute, argument.FallacyId),
+                ActionId.Maieutics => new BattleMenuChoice(ActionId.Maieutics, premiseIndex: argument.WeakPremise),
+                _ => new BattleMenuChoice(ActionId.Concede)
+            };
         }
 
         private IEnumerator SaveFromThePauseMenuAndQuit(MapScene map)
@@ -760,11 +859,11 @@ namespace Game.Tests.PlayMode
             Assert.IsEmpty(missing, $"these battle lines never showed up offline: {string.Join(", ", missing)}");
         }
 
-        private static string OutcomeLineKey(BattleLogEntry entry) => entry.Action switch
+        private static string OutcomeLineKey(BattleLogEntry entry) => entry.Deflected ? BattleText.DeflectedKey : entry.Action switch
         {
             ActionId.Refute => entry.Hit ? BattleText.RefuteHitKey : BattleText.RefuteMissKey,
             ActionId.Maieutics => entry.Hit ? BattleText.MaieuticsHitKey : BattleText.MaieuticsMissKey,
-            ActionId.Concede => BattleText.ConcedeKey,
+            ActionId.Concede => entry.Hit ? BattleText.ConcedeCounterKey : BattleText.ConcedeKey,
             ActionId.Quote => BattleText.QuoteKey,
             _ => null
         };

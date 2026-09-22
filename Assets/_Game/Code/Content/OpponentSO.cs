@@ -17,12 +17,20 @@ namespace Game.Content
         [SerializeField] private Act act = Act.One;
         [SerializeField] private Profile profile = Profile.Sophist;
         [SerializeField] private OpponentTutorial tutorial = new();
+        [SerializeField] private string sheetId;
+        [SerializeField] private OpponentPhases phases = new();
 
         public string Id => id;
 
         public string DisplayName => displayName;
 
         public Texture2D Sheet => sheet;
+
+        public string SheetId => string.IsNullOrEmpty(sheetId) ? id : sheetId;
+
+        public OpponentPhases Phases => phases ?? new OpponentPhases();
+
+        public bool IsPhased => Phases.IsDefined;
 
         public int MaxCoherence => maxCoherence;
 
@@ -50,6 +58,17 @@ namespace Game.Content
         public void ConfigureSheet(Texture2D newSheet)
         {
             sheet = newSheet;
+        }
+
+        public void ConfigureSheet(Texture2D newSheet, string newSheetId)
+        {
+            sheet = newSheet;
+            sheetId = newSheetId;
+        }
+
+        public void ConfigurePhases(OpponentPhases newPhases)
+        {
+            phases = newPhases ?? new OpponentPhases();
         }
 
         public void ConfigureTutorial(OpponentTutorial newTutorial)

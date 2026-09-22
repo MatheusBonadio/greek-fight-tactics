@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Game.Content;
 using Game.Core;
 using Game.Grid;
 using UnityEngine;
@@ -16,6 +19,8 @@ namespace Game.UI
         [SerializeField] private Facing heading;
         [SerializeField] private string label;
         [SerializeField] private TileBase marker;
+        [SerializeField] private Act requiredAct = ActGate.FirstAct;
+        [SerializeField] private List<StoryConditionEntry> conditions = new();
 
         public MapExitLink()
         {
@@ -50,5 +55,20 @@ namespace Game.UI
         public string Label => label;
 
         public TileBase Marker => marker;
+
+        public Act RequiredAct => requiredAct;
+
+        public IReadOnlyList<StoryCondition> Conditions => (conditions ?? new List<StoryConditionEntry>()).Select(entry => entry.ToCondition()).ToList();
+
+        public bool IsGated => ActGate.IsGated(requiredAct, Conditions);
+
+        public bool IsOpenFor(SaveData story) => ActGate.IsOpen(story, requiredAct, Conditions);
+
+        public MapExitLink Gated(Act act, IEnumerable<StoryCondition> requires)
+        {
+            requiredAct = act;
+            conditions = (requires ?? Enumerable.Empty<StoryCondition>()).Select(StoryConditionEntry.From).ToList();
+            return this;
+        }
     }
 }

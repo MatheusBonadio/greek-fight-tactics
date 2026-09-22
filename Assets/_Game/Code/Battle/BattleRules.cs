@@ -51,5 +51,13 @@ namespace Game.Battle
         public int InversionUsesPerBattle { get; set; } = 1;
 
         public int ListeningUsesPerBattle { get; set; } = 1;
+
+        public bool AudienceVictory { get; set; } = true;
+
+        public int PhaseCounterDamage { get; set; } = 20;
+
+        public int PhaseCounterAudienceGain { get; set; } = 10;
+
+        public PhasedDuel Phases { get; set; }
     }
 }

@@ -173,3 +173,11 @@ MonoBehaviour:
     value: "COER\xCANCIA"
   - key: hud.audience
     value: PLATEIA
+  - key: battle.concede_counter
+    value: '{0} aceita o fato, e o ataque fica sem alvo.'
+  - key: battle.phase_deflected
+    value: "{0} tem raz\xE3o, mas n\xE3o \xE9 essa a resposta agora, e o golpe se volta contra ela."
+  - key: location.archive
+    value: Arquivo
+  - key: location.academy
+    value: Academia

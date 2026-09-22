@@ -59,6 +59,9 @@ namespace Game.UI
         private DialoguePlayer scripts;
         private RefuteTutorial tutorial;
         private OpponentTutorial tutorialData;
+        private OpponentPhases phaseData;
+        private PhasedDuel phasedDuel;
+        private int phaseIndex = PhasedDuel.NoPhase;
         private int targetingFrame = -1;
         private BattleMenuController controller;
         private FallacyRevealView reveal;
@@ -71,6 +74,8 @@ namespace Game.UI
         private PrewarmedArgumentSource preparedArguments;
         private int crowdSeed;
         private BattleFlowPhase phase = BattleFlowPhase.Exploring;
+
+        public event Action<DuelPhaseCue> PhaseStarted;
 
         public GameStateMachine StateMachine => sandbox.StateMachine;
 
@@ -116,6 +121,12 @@ namespace Game.UI
         public ExplorationDialogueDirector Story => story;
 
         public RefuteTutorial Tutorial => tutorial;
+
+        public PhasedDuel PhasedDuel => phasedDuel;
+
+        public int PhaseIndex => phaseIndex;
+
+        public DuelPhaseCue? CurrentPhaseCue { get; private set; }
 
         public BattleCrowd Crowd => crowd;
 
@@ -181,6 +192,8 @@ namespace Game.UI
         public bool IsDefeated(MapOpponent entry) =>
             entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
 
+        public static bool Prewarms(MapOpponent entry) => entry != null && entry.IsPlaced && !entry.Opponent.IsPhased;
+
         public ActorView ChallengerAt(Coord cell)
         {
             if (Phase != BattleFlowPhase.Exploring || !sandbox.ProgressLoaded || (pause && pause.IsPaused))
@@ -225,6 +238,10 @@ namespace Game.UI
             GatherCrowd(playerWalker.Cell, opponentWalker.Cell, CrowdSeed ?? seed);
             tutorialData = PendingTutorial(opponent);
             tutorial = tutorialData != null ? new RefuteTutorial() : null;
+            phaseData = tutorial == null && opponent.IsPhased ? opponent.Phases : null;
+            phasedDuel = phaseData?.ToDuel();
+            phaseIndex = PhasedDuel.NoPhase;
+            CurrentPhaseCue = null;
             Session = BattleSession.Start(sandbox.Grid, new BattleSetup
             {
                 PlayerId = playerWalker.ActorId,
@@ -242,10 +259,10 @@ namespace Game.UI
                 Abilities = AbilityUnlocks.OwnedIn(CurrentStory()),
                 Spectators = crowd ? crowd.Reservations : Array.Empty<KeyValuePair<int, Coord>>(),
                 Seed = seed,
-                Rules = tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : null
+                Rules = RulesFor(opponent)
             },
-            tutorial != null ? TutorialArguments(tutorialData) : CreateArgumentSource(target, seed),
-            tutorial != null ? new TutorialOpponent() : null);
+            ArgumentsFor(target, seed),
+            PolicyFor());
 
             controller = new BattleMenuController(Session.Menu, catalog.RefutableIds);
             hud.gameObject.SetActive(true);
@@ -270,6 +287,11 @@ namespace Game.UI
             reveal.Hide();
 
             if (tutorial != null && TryPlayCue(tutorial.OnBattleStart(), BeginFirstTurn))
+            {
+                return;
+            }
+
+            if (phaseData != null && TryPlayScript(phaseData.Intro, BeginFirstTurn))
             {
                 return;
             }
@@ -465,7 +487,7 @@ namespace Game.UI
             preparedArguments = services.CreateArgumentSource(Environment.TickCount);
             foreach (var entry in opponents)
             {
-                if (entry == null || !entry.IsPlaced)
+                if (!Prewarms(entry))
                 {
                     continue;
                 }
@@ -480,7 +502,7 @@ namespace Game.UI
 
         private void TopUpArguments(MapOpponent entry)
         {
-            if (preparedArguments == null || entry == null || !entry.IsPlaced)
+            if (preparedArguments == null || !Prewarms(entry))
             {
                 return;
             }
@@ -512,6 +534,15 @@ namespace Game.UI
             return offline;
         }
 
+        private BattleRules RulesFor(OpponentSO opponent) =>
+            tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : phasedDuel?.Rules();
+
+        private IArgumentSource ArgumentsFor(MapOpponent target, int seed) =>
+            tutorial != null ? TutorialArguments(tutorialData) : phasedDuel != null ? null : CreateArgumentSource(target, seed);
+
+        private IOpponentPolicy PolicyFor() =>
+            tutorial != null ? new TutorialOpponent() : phasedDuel != null ? new PhasedOpponent(phasedDuel) : null;
+
         private IArgumentSource TutorialArguments(OpponentTutorial data)
         {
             var arguments = new List<Argument>();
@@ -534,10 +565,20 @@ namespace Game.UI
             return data.IsPending(story.LoadStory()) ? data : null;
         }
 
-        private bool TryPlayCue(TutorialCue cue, Action continuation)
+        private bool TryPlayCue(TutorialCue cue, Action continuation) =>
+            TryPlayScript(cue == TutorialCue.None ? null : tutorialData?.DialogueFor(cue), continuation);
+
+        private void PlayScript(string dialogueId, Action continuation)
         {
-            var dialogueId = cue == TutorialCue.None ? null : tutorialData?.DialogueFor(cue);
-            var storyData = dialogueId != null && story ? story.LoadStory() : null;
+            if (!TryPlayScript(dialogueId, continuation))
+            {
+                continuation();
+            }
+        }
+
+        private bool TryPlayScript(string dialogueId, Action continuation)
+        {
+            var storyData = !string.IsNullOrEmpty(dialogueId) && story ? story.LoadStory() : null;
             if (storyData == null || !story.Library.TryGet(dialogueId, out var script))
             {
                 return false;
@@ -658,7 +699,41 @@ namespace Game.UI
         private void StartTurns()
         {
             StateMachine.TryTransition(GameMode.BattleTurn);
-            NextTurn();
+            ContinueWithPhase(NextTurn);
+        }
+
+        private void ContinueWithPhase(Action next)
+        {
+            if (phasedDuel == null || Session.IsOver)
+            {
+                next();
+                return;
+            }
+
+            var index = phasedDuel.IndexFor(Session.State.Opponent.Coherence);
+            if (index == phaseIndex)
+            {
+                next();
+                return;
+            }
+
+            phaseIndex = index;
+            var phase = phaseData.Phases[index];
+            StrikePose(phase.Posture, phase.Tint);
+            var cue = new DuelPhaseCue(engaged.Opponent.Id, index, phase.Id, phase.Music, phase.Posture);
+            CurrentPhaseCue = cue;
+            PhaseStarted?.Invoke(cue);
+            hud.Sync();
+            PlayScript(phase.Dialogue, next);
+        }
+
+        private void StrikePose(Posture posture, Color tint)
+        {
+            if (engaged?.Actor)
+            {
+                engaged.Actor.Posture = posture;
+                engaged.Actor.Tint = tint;
+            }
         }
 
         private void NextTurn()
@@ -700,7 +775,7 @@ namespace Game.UI
 
         private void ContinueAfter(Outcome outcome)
         {
-            PlayCue(tutorial?.OnOutcome(outcome, Session.State) ?? TutorialCue.None, NextTurn);
+            PlayCue(tutorial?.OnOutcome(outcome, Session.State) ?? TutorialCue.None, () => ContinueWithPhase(NextTurn));
         }
 
         private void OnChoiceMade(BattleMenuChoice choice)
@@ -847,6 +922,11 @@ namespace Game.UI
                 return;
             }
 
+            if (phaseData != null && TryPlayScript(phaseData.DialogueFor(LastResult), FinishBattle))
+            {
+                return;
+            }
+
             ShowLine(string.Empty, text.Get(BattleText.StatusKey(LastResult)), FinishBattle);
         }
 
@@ -862,6 +942,7 @@ namespace Game.UI
             highlighter = null;
             hud.gameObject.SetActive(false);
             reveal?.Hide();
+            StrikePose(Posture.Idle, Color.white);
 
             if (!IsDefeated(engaged))
             {
@@ -883,6 +964,15 @@ namespace Game.UI
             controller = null;
             tutorial = null;
             tutorialData = null;
+            phaseData = null;
+            phasedDuel = null;
+            phaseIndex = PhasedDuel.NoPhase;
+            CurrentPhaseCue = null;
+            var map = story ? story : storyteller;
+            if (map)
+            {
+                map.RefreshMap();
+            }
 
             var result = duelResult;
             duelResult = null;

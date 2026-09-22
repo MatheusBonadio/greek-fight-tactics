@@ -104,6 +104,9 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(services, "GridSandbox scene must contain GameServices");
             yield return WaitFor(() => services.IsBooted, StartTimeoutSeconds);
             Assert.IsTrue(services.IsBooted);
+            var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
+            yield return WaitFor(() => sandbox.ProgressLoaded, StartTimeoutSeconds);
+            Assert.IsTrue(sandbox.ProgressLoaded, "the map never loaded the saved progress");
             loaded(services);
         }
 

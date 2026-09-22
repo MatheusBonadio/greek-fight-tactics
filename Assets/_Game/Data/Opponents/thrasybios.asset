@@ -39,3 +39,9 @@ MonoBehaviour:
       value: thrasybios_tutorial_reminder
     - key: 6
       value: agora_wrong_laughter
+  sheetId: 
+  phases:
+    intro: 
+    victory: 
+    defeat: 
+    phases: []

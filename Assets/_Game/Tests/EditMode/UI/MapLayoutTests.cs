@@ -25,6 +25,7 @@ namespace Game.Tests.EditMode.UI
         private const int MinimumAudience = 2;
         private const int AgoraSize = 12;
         private const int KerameikosSize = 16;
+        private const int InteriorSize = 8;
         private const string AmphoraTile = "prop_amphora_stack";
         private const string StreetTile = "floor_dirt";
         private const string AristeuCharacter = "aristeu";
@@ -37,6 +38,8 @@ namespace Game.Tests.EditMode.UI
 
         [TestCase(SandboxTools.MapPath, AgoraSize)]
         [TestCase(SandboxTools.KerameikosMapPath, KerameikosSize)]
+        [TestCase(SandboxTools.ArchiveMapPath, InteriorSize)]
+        [TestCase(SandboxTools.AcademyMapPath, InteriorSize)]
         public void Map_TakesItsSizeFromItsJsonAndUsesOnlyKnownTiles(string mapPath, int size)
         {
             var map = MapLayout.Load(mapPath);
@@ -210,6 +213,8 @@ namespace Game.Tests.EditMode.UI
 
         [TestCase(SandboxTools.MapPath)]
         [TestCase(SandboxTools.KerameikosMapPath)]
+        [TestCase(SandboxTools.ArchiveMapPath)]
+        [TestCase(SandboxTools.AcademyMapPath)]
         public void Map_StandingActorsHideAtMostTheNookRightBehindThem(string mapPath)
         {
             var map = MapLayout.Load(mapPath);
@@ -230,6 +235,8 @@ namespace Game.Tests.EditMode.UI
 
         [TestCase(SandboxTools.MapPath)]
         [TestCase(SandboxTools.KerameikosMapPath)]
+        [TestCase(SandboxTools.ArchiveMapPath)]
+        [TestCase(SandboxTools.AcademyMapPath)]
         public void Map_EveryWalkableCellIsReachableFromKleia(string mapPath)
         {
             var map = MapLayout.Load(mapPath);
@@ -453,6 +460,18 @@ namespace Game.Tests.EditMode.UI
             Assert.Throws<InvalidOperationException>(() => WithCue(new MapCue { On = (ExplorationCue)99, Dialogue = "intro", Flag = "saw_intro" }).Validate(), "unknown cue event");
             Assert.Throws<InvalidOperationException>(() => WithCue(new MapCue { On = ExplorationCue.FogRevealed, Dialogue = "intro", Flag = "saw_intro", Conditions = { MapCondition.Has(null) } }).Validate(), "cue condition without flag");
 
+            var badExit = Tiny();
+            badExit.Exits.Add(new MapExit { X = 1, Y = 0, Location = "agora", Conditions = { new MapCondition { Flag = "met", EqualsValue = "yes", NotValue = "no" } } });
+            Assert.Throws<InvalidOperationException>(() => badExit.Validate(), "an exit condition cannot ask for a value and forbid another");
+
+            var unknownAct = Tiny();
+            unknownAct.Act = (Act)3;
+            Assert.Throws<InvalidOperationException>(() => unknownAct.Validate(), "there are only two acts");
+
+            var blankSheet = Tiny();
+            blankSheet.Actors.Add(new MapActor { Character = "archivist", Sheet = " ", X = 1, Y = 1 });
+            Assert.Throws<InvalidOperationException>(() => blankSheet.Validate(), "an actor that names a sheet must name one");
+
             var negativeFog = Tiny();
             negativeFog.FogRevealDepth = -1;
             Assert.Throws<InvalidOperationException>(() => negativeFog.Validate());
@@ -529,6 +548,25 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual("act=1", map.Actors[1].StoryConditions.Single().ToString());
             Assert.AreEqual(ExplorationCue.WalkFinished, map.Cues[0].On);
             Assert.AreEqual("!met", map.Cues[0].StoryConditions.Single().ToString());
+        }
+
+        [Test]
+        public void Json_ReadsNotConditionsSheetsGatedExitsAndTheMapAct()
+        {
+            const string json = "{\"id\":\"tiny\",\"act\":2,\"floorLegend\":{\".\":\"floor_marble\"},\"blockLegend\":{}," +
+                "\"floor\":[\"..\",\"..\"],\"blocks\":[\"--\",\"--\"]," +
+                "\"actors\":[{\"character\":\"kleia\",\"x\":0,\"y\":0},{\"character\":\"archivist\",\"sheet\":\"citizen\",\"x\":1,\"y\":1,\"conditions\":[{\"flag\":\"damaris_branch\",\"not\":\"undecided\"}]}]," +
+                "\"exits\":[{\"x\":1,\"y\":0,\"location\":\"agora\",\"label\":\"Para a ágora\",\"conditions\":[{\"flag\":\"searching_menexeno\"}]}]}";
+
+            var map = Newtonsoft.Json.JsonConvert.DeserializeObject<MapLayout>(json);
+            map.Validate();
+
+            Assert.AreEqual(Act.Two, map.Act);
+            Assert.AreEqual("citizen", map.Actors[1].SheetId);
+            Assert.AreEqual(PlayerCharacter, map.Actors[0].SheetId, "without a sheet the character names it");
+            Assert.AreEqual("damaris_branch!=undecided", map.Actors[1].StoryConditions.Single().ToString());
+            Assert.AreEqual("searching_menexeno", map.Exits[0].StoryConditions.Single().ToString());
+            Assert.AreEqual(Act.One, Tiny().Act, "a map without an act belongs to the first");
         }
 
         [Test]
@@ -672,7 +710,7 @@ namespace Game.Tests.EditMode.UI
         {
             var map = MapLayout.Load(SandboxTools.MapPath);
             var menexeno = map.Actors.Single(actor => actor.Character == MenexenoCharacter);
-            CollectionAssert.AreEqual(new[] { StoryCondition.Lacks(DamarisOffer.MenexenoAbsentDaysFlag).ToString() }, menexeno.StoryConditions.Select(condition => condition.ToString()), "Menexeno stays away while his absence lasts");
+            CollectionAssert.Contains(menexeno.StoryConditions.Select(condition => condition.ToString()).ToList(), StoryCondition.Lacks(DamarisOffer.MenexenoAbsentDaysFlag).ToString(), "Menexeno stays away while his absence lasts");
 
             string Stage(string dialogue) => map.Cues.Single(cue => cue.Dialogue == dialogue).StoryConditions.Select(condition => condition.ToString()).Single(StoryPressure.IsStageFlag);
             Assert.AreEqual(StoryPressure.RumorFlag, Stage("agora_asebeia_rumor"), "Thrasybios accuses her after the first duel past his");
@@ -680,7 +718,7 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(StoryPressure.ToolsFlag, Stage("agora_pressure_home"), "the last stage sends Kleia home, where Damaris waits");
             Assert.IsTrue(map.Cues.Where(cue => cue.Dialogue.StartsWith("agora_")).All(cue => cue.On == ExplorationCue.Idle));
 
-            var gone = map.Cues.Single(cue => cue.Dialogue == "agora_menexeno_gone");
+            var gone = map.Cues.Single(cue => cue.Dialogue == "agora_menexeno_away");
             CollectionAssert.Contains(gone.StoryConditions.Select(condition => condition.ToString()).ToList(), DamarisOffer.MenexenoAbsentDaysFlag);
         }
 

@@ -65,6 +65,96 @@
       "max_coherence": 60,
       "initial_audience": 70,
       "fallacy_pool": ["hasty_generalization", "undistributed_middle"]
+    },
+    {
+      "id": "thrasybios_street_trial",
+      "display_name": "Thrasybios",
+      "sheet": "thrasybios",
+      "profile": "Sophist",
+      "act": "One",
+      "max_coherence": 60,
+      "initial_audience": 30,
+      "fallacy_pool": ["ad_hominem", "false_dilemma", "appeal_to_emotion"],
+      "phased_duel": {
+        "intro": "street_trial_intro",
+        "victory": "street_trial_victory",
+        "defeat": "street_trial_defeat",
+        "phases": [
+          {
+            "id": "personal_attack",
+            "counter": "Concede",
+            "until_coherence": 40,
+            "dialogue": "street_trial_personal_attack",
+            "music": "street_trial_personal_attack",
+            "posture": "Idle",
+            "arguments": [
+              {
+                "speech": "Olhem bem para ela: filha de oleiro, mãos sujas de argila, pai que mal sabe ler. Quem nasceu no Cerâmico não tem nada a ensinar sobre os deuses.",
+                "fallacy_id": "ad_hominem",
+                "premises": ["Kleia é filha de um oleiro do Cerâmico", "Quem nasceu no Cerâmico não pode falar dos deuses"],
+                "weak_premise": 1,
+                "tone": "mocking"
+              },
+              {
+                "speech": "Uma menina que vende ânforas na feira quer dar lição a homens livres? Antes de abrir a boca, que aprenda o lugar dela: atrás do forno do pai.",
+                "fallacy_id": "ad_hominem",
+                "premises": ["Kleia vende ânforas na feira", "Quem trabalha com as mãos não tem lugar no debate"],
+                "weak_premise": 1,
+                "tone": "arrogant"
+              }
+            ]
+          },
+          {
+            "id": "false_dilemma",
+            "counter": "Refute",
+            "until_coherence": 20,
+            "dialogue": "street_trial_false_dilemma",
+            "music": "street_trial_false_dilemma",
+            "posture": "Action",
+            "arguments": [
+              {
+                "speech": "Ou você respeita os deuses da cidade, ou você é como Sócrates, que corrompe a juventude com perguntas. Escolha, menina: de que lado você está?",
+                "fallacy_id": "false_dilemma",
+                "premises": ["Só existem duas saídas: honrar os deuses ou ser como Sócrates", "Quem faz perguntas desonra os deuses"],
+                "weak_premise": 0,
+                "tone": "theatrical"
+              },
+              {
+                "speech": "Nesta escadaria só há dois tipos de gente: os que obedecem aos costumes e os ímpios. Ela não obedece aos costumes. Logo, cidadãos, ela é ímpia.",
+                "fallacy_id": "false_dilemma",
+                "premises": ["Todo mundo ou obedece aos costumes ou é ímpio", "Kleia não obedece aos costumes"],
+                "weak_premise": 0,
+                "tone": "cunning"
+              }
+            ]
+          },
+          {
+            "id": "political_fear",
+            "counter": "Maieutics",
+            "until_coherence": 0,
+            "dialogue": "street_trial_political_fear",
+            "music": "street_trial_political_fear",
+            "posture": "Idle",
+            "tint": "#D0C8F8",
+            "arguments": [
+              {
+                "speech": "Lembram das listas dos Trinta? Das portas arrombadas de noite? Foi gente que duvidava de tudo que abriu caminho para eles. Eu sofri aquele terror como vocês, e digo: quem pergunta demais chama os tiranos de volta!",
+                "fallacy_id": "appeal_to_emotion",
+                "premises": ["Os Trinta aterrorizaram Atenas", "Thrasybios sofreu sob os Trinta como todos"],
+                "weak_premise": 1,
+                "tone": "theatrical"
+              },
+              {
+                "speech": "Querem de novo o toque de recolher e os Onze batendo à porta? Eu fiquei do lado do povo enquanto os Trinta mandavam. Esta menina é o primeiro passo de volta à tirania!",
+                "fallacy_id": "appeal_to_emotion",
+                "premises": ["Ninguém quer a tirania de volta", "Thrasybios ficou do lado do povo sob os Trinta"],
+                "weak_premise": 1,
+                "tone": "theatrical"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

@@ -7,6 +7,8 @@ namespace Game.Tests.EditMode.UI
     {
         [TestCase(LocationScenes.Kerameikos, LocationScenes.KerameikosScene)]
         [TestCase(LocationScenes.Agora, LocationScenes.AgoraScene)]
+        [TestCase(LocationScenes.Archive, LocationScenes.ArchiveScene)]
+        [TestCase(LocationScenes.Academy, LocationScenes.AcademyScene)]
         [TestCase(GridSandboxController.DefaultLocationId, LocationScenes.AgoraScene)]
         [TestCase("", LocationScenes.KerameikosScene)]
         [TestCase(null, LocationScenes.KerameikosScene)]

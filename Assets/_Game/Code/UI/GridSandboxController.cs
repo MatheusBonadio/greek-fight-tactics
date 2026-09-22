@@ -49,6 +49,8 @@ namespace Game.UI
         private readonly PathFinder pathFinder = new();
         private readonly HashSet<Coord> hiddenBlocks = new();
         private readonly List<Coord> path = new();
+        private readonly HashSet<Coord> closedExits = new();
+        private readonly HashSet<ActorView> departed = new();
         private GridModel grid;
         private FogOfWar fog;
         private GridCursor cursor;
@@ -113,7 +115,7 @@ namespace Game.UI
 
                 foreach (var exit in exits)
                 {
-                    if (exit.Cell == cursor.Cell)
+                    if (exit.Cell == cursor.Cell && IsExitOpen(exit))
                     {
                         return exit;
                     }
@@ -122,6 +124,8 @@ namespace Game.UI
                 return null;
             }
         }
+
+        public bool IsExitOpen(MapExitLink exit) => exit != null && !closedExits.Contains(exit.Cell);
 
         public GridCursor Cursor => cursor;
 
@@ -223,6 +227,24 @@ namespace Game.UI
 
         public bool TryDismiss(ActorView actor)
         {
+            if (!Withdraw(actor))
+            {
+                return false;
+            }
+
+            departed.Add(actor);
+            return true;
+        }
+
+        public bool ApplyStory(Game.Core.SaveData story)
+        {
+            story ??= new Game.Core.SaveData();
+            ApplyGates(story);
+            return ApplyPresences(story);
+        }
+
+        private bool Withdraw(ActorView actor)
+        {
             if (!actor || actor == player || actor.Walker == null)
             {
                 return false;
@@ -313,6 +335,7 @@ namespace Game.UI
             var previewGrid = BuildGrid();
             var previewFog = new FogOfWar(previewGrid);
             RevealInitialArea(previewGrid);
+            CloseGatedExits(previewGrid, previewFog);
             if (actors.Count > 0)
             {
                 previewFog.Reveal(ToCoord(actors[0].StartCell));
@@ -330,6 +353,7 @@ namespace Game.UI
             grid = BuildGrid();
             fog = new FogOfWar(grid);
             RevealInitialArea(grid);
+            CloseGatedExits(grid, fog);
 
             for (var index = 0; index < actors.Count; index++)
             {
@@ -387,25 +411,82 @@ namespace Game.UI
 
         private bool IsConditional(ActorView actor) => presences.Exists(presence => presence.Actor == actor);
 
-        private void PlaceConditionalActors(Game.Core.SaveData story)
+        private bool ApplyPresences(Game.Core.SaveData story)
         {
+            var placedEveryone = true;
             foreach (var presence in presences)
             {
                 var actor = presence.Actor;
-                if (!actor || actor.Walker != null || !presence.IsMet(story))
+                if (!actor)
                 {
                     continue;
                 }
 
-                var cell = ToCoord(actor.StartCell);
-                if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
+                var met = presence.IsMet(story);
+                if (!met)
                 {
+                    Withdraw(actor);
                     continue;
                 }
 
-                actor.gameObject.SetActive(true);
-                actor.Bind(new GridWalker(grid, actors.IndexOf(actor) + 1, cell, actor.StartFacing));
+                if (actor.Walker == null && !departed.Contains(actor))
+                {
+                    placedEveryone &= TryPlace(actor);
+                }
             }
+
+            return placedEveryone;
+        }
+
+        private bool TryPlace(ActorView actor)
+        {
+            var cell = ToCoord(actor.StartCell);
+            if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
+            {
+                return false;
+            }
+
+            actor.gameObject.SetActive(true);
+            actor.Bind(new GridWalker(grid, actors.IndexOf(actor) + 1, cell, actor.StartFacing));
+            return true;
+        }
+
+        private void CloseGatedExits(GridModel model, FogOfWar modelFog)
+        {
+            foreach (var exit in exits)
+            {
+                if (exit != null && exit.IsGated && CellGate.Close(model, modelFog, exit.Cell) && model == grid)
+                {
+                    closedExits.Add(exit.Cell);
+                }
+            }
+        }
+
+        private void ApplyGates(Game.Core.SaveData story)
+        {
+            foreach (var exit in exits)
+            {
+                if (exit == null || !exit.IsGated)
+                {
+                    continue;
+                }
+
+                var open = exit.IsOpenFor(story);
+                if (open && closedExits.Remove(exit.Cell))
+                {
+                    CellGate.Open(grid, fog, exit.Cell, CostAt(exit.Cell));
+                }
+                else if (!open && closedExits.Add(exit.Cell))
+                {
+                    CellGate.Close(grid, fog, exit.Cell);
+                }
+            }
+        }
+
+        private byte CostAt(Coord cell)
+        {
+            var index = cell.Y * width + cell.X;
+            return index < costs.Length ? costs[index] : (byte)PathFinder.MinimumStepCost;
         }
 
         private void TryArrive()
@@ -434,7 +515,7 @@ namespace Game.UI
             exitCheckPending = false;
             foreach (var exit in exits)
             {
-                if (exit.Cell != player.Walker.Cell)
+                if (exit.Cell != player.Walker.Cell || !IsExitOpen(exit))
                 {
                     continue;
                 }
@@ -553,7 +634,7 @@ namespace Game.UI
 
             ShowConditionalBlocks(story);
             RestorePlayer(services, cameHome);
-            PlaceConditionalActors(story);
+            ApplyStory(story);
         }
 
         private void RestorePlayer(GameServices services, bool cameHome)
@@ -808,7 +889,7 @@ namespace Game.UI
 
             foreach (var exit in exits)
             {
-                exitsTilemap.SetTile(new Vector3Int(exit.Cell.X, exit.Cell.Y, 0), FogTileRules.ShowsWhatStandsOn(model, exit.Cell) ? exit.Marker : null);
+                exitsTilemap.SetTile(new Vector3Int(exit.Cell.X, exit.Cell.Y, 0), IsExitOpen(exit) && FogTileRules.ShowsWhatStandsOn(model, exit.Cell) ? exit.Marker : null);
             }
         }
 

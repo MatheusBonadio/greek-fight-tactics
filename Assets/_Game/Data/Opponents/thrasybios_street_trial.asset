@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 667dea1425fe723409bac6b15759510d, type: 3}
+  m_Name: thrasybios_street_trial
+  m_EditorClassIdentifier: Game.Content::Game.Content.OpponentSO
+  id: thrasybios_street_trial
+  displayName: Thrasybios
+  sheet: {fileID: 2800000, guid: e377c1913e9c3fb4383fff04675bda50, type: 3}
+  maxCoherence: 60
+  initialAudience: 30
+  fallacyPool:
+  - {fileID: 11400000, guid: 52b494b19f621ed499bcd6dbee0a06da, type: 2}
+  - {fileID: 11400000, guid: 134c4ff3c09ec154a8c6d84422fcf9ff, type: 2}
+  - {fileID: 11400000, guid: 92830def39410cf47bc60eec8e8da713, type: 2}
+  act: 1
+  profile: 0
+  tutorial:
+    fallacyId: 
+    doneFlag: 
+    dialogues: []
+  sheetId: thrasybios
+  phases:
+    intro: street_trial_intro
+    victory: street_trial_victory
+    defeat: street_trial_defeat
+    phases:
+    - id: personal_attack
+      counter: 4
+      untilCoherence: 40
+      dialogue: street_trial_personal_attack
+      music: street_trial_personal_attack
+      posture: 0
+      tint: {r: 1, g: 1, b: 1, a: 1}
+      arguments:
+      - speech: "Olhem bem para ela: filha de oleiro, m\xE3os sujas de argila, pai que mal sabe ler. Quem nasceu no Cer\xE2mico n\xE3o tem nada a ensinar sobre os deuses."
+        fallacyId: ad_hominem
+        premises:
+        - "Kleia \xE9 filha de um oleiro do Cer\xE2mico"
+        - "Quem nasceu no Cer\xE2mico n\xE3o pode falar dos deuses"
+        weakPremise: 1
+        tone: mocking
+      - speech: "Uma menina que vende \xE2nforas na feira quer dar li\xE7\xE3o a homens livres? Antes de abrir a boca, que aprenda o lugar dela: atr\xE1s do forno do pai."
+        fallacyId: ad_hominem
+        premises:
+        - "Kleia vende \xE2nforas na feira"
+        - "Quem trabalha com as m\xE3os n\xE3o tem lugar no debate"
+        weakPremise: 1
+        tone: arrogant
+    - id: false_dilemma
+      counter: 1
+      untilCoherence: 20
+      dialogue: street_trial_false_dilemma
+      music: street_trial_false_dilemma
+      posture: 1
+      tint: {r: 1, g: 1, b: 1, a: 1}
+      arguments:
+      - speech: "Ou voc\xEA respeita os deuses da cidade, ou voc\xEA \xE9 como S\xF3crates, que corrompe a juventude com perguntas. Escolha, menina: de que lado voc\xEA est\xE1?"
+        fallacyId: false_dilemma
+        premises:
+        - "S\xF3 existem duas sa\xEDdas: honrar os deuses ou ser como S\xF3crates"
+        - Quem faz perguntas desonra os deuses
+        weakPremise: 0
+        tone: theatrical
+      - speech: "Nesta escadaria s\xF3 h\xE1 dois tipos de gente: os que obedecem aos costumes e os \xEDmpios. Ela n\xE3o obedece aos costumes. Logo, cidad\xE3os, ela \xE9 \xEDmpia."
+        fallacyId: false_dilemma
+        premises:
+        - "Todo mundo ou obedece aos costumes ou \xE9 \xEDmpio"
+        - "Kleia n\xE3o obedece aos costumes"
+        weakPremise: 0
+        tone: cunning
+    - id: political_fear
+      counter: 2
+      untilCoherence: 0
+      dialogue: street_trial_political_fear
+      music: street_trial_political_fear
+      posture: 0
+      tint: {r: 0.8156863, g: 0.78431374, b: 0.972549, a: 1}
+      arguments:
+      - speech: "Lembram das listas dos Trinta? Das portas arrombadas de noite? Foi gente que duvidava de tudo que abriu caminho para eles. Eu sofri aquele terror como voc\xEAs, e digo: quem pergunta demais chama os tiranos de volta!"
+        fallacyId: appeal_to_emotion
+        premises:
+        - Os Trinta aterrorizaram Atenas
+        - Thrasybios sofreu sob os Trinta como todos
+        weakPremise: 1
+        tone: theatrical
+      - speech: "Querem de novo o toque de recolher e os Onze batendo \xE0 porta? Eu fiquei do lado do povo enquanto os Trinta mandavam. Esta menina \xE9 o primeiro passo de volta \xE0 tirania!"
+        fallacyId: appeal_to_emotion
+        premises:
+        - "Ningu\xE9m quer a tirania de volta"
+        - Thrasybios ficou do lado do povo sob os Trinta
+        weakPremise: 1
+        tone: theatrical

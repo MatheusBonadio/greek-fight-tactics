@@ -12,6 +12,8 @@ namespace Game.UI
         public const string MaieuticsHitKey = "battle.maieutics_hit";
         public const string MaieuticsMissKey = "battle.maieutics_miss";
         public const string ConcedeKey = "battle.concede";
+        public const string ConcedeCounterKey = "battle.concede_counter";
+        public const string DeflectedKey = "battle.phase_deflected";
         public const string QuoteKey = "battle.quote";
         public const string VictoryKey = "battle.victory";
         public const string DefeatKey = "battle.defeat";
@@ -38,11 +40,11 @@ namespace Game.UI
             return argument.WeakPremise >= 0 && argument.WeakPremise < argument.Premises.Count ? argument.Premises[argument.WeakPremise] : opponentName;
         }
 
-        public static string OutcomeKey(Outcome outcome) => outcome.Action switch
+        public static string OutcomeKey(Outcome outcome) => outcome.Deflected ? DeflectedKey : outcome.Action switch
         {
             ActionId.Refute => outcome.Hit ? RefuteHitKey : RefuteMissKey,
             ActionId.Maieutics => outcome.Hit ? MaieuticsHitKey : MaieuticsMissKey,
-            ActionId.Concede => ConcedeKey,
+            ActionId.Concede => outcome.Hit ? ConcedeCounterKey : ConcedeKey,
             ActionId.Quote => QuoteKey,
             _ => null
         };

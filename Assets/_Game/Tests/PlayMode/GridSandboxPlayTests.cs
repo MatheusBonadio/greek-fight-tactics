@@ -54,7 +54,8 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(controller.Grid);
             Assert.AreEqual(12, controller.Grid.Width);
             Assert.IsFalse(controller.DebugPanelVisible, "the debug panel starts hidden so players never see it");
-            Assert.IsTrue(controller.Actors.All(actor => actor.Walker != null));
+            Assert.IsTrue(controller.Actors.Where(actor => controller.Presences.All(presence => presence.Actor != actor)).All(actor => actor.Walker != null), "everyone who does not wait for the story is placed at once");
+            Assert.IsTrue(controller.Presences.All(presence => presence.Actor.Walker == null || controller.ProgressLoaded), "whoever waits for the story is placed only once the progress loads");
 
             var playerCell = controller.Player.Walker.Cell;
             Assert.AreEqual(controller.Player.Walker.ActorId, controller.Grid[playerCell].OccupantId);

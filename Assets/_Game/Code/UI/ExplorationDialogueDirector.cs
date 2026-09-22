@@ -34,6 +34,7 @@ namespace Game.UI
         private GridWalker watchedWalker;
         private int openedFrame = -1;
         private int closedFrame = -1;
+        private bool mapStale = true;
 
         public DialogueBoxView DialogueBox => dialogueBox;
 
@@ -110,6 +111,7 @@ namespace Game.UI
             }
 
             sessionEffects.Add(effect);
+            RefreshMap();
             return true;
         }
 
@@ -119,6 +121,20 @@ namespace Game.UI
             {
                 sessionEffects.AddRange(appliedEffects);
             }
+
+            mapStale = true;
+        }
+
+        public bool RefreshMap()
+        {
+            mapStale = true;
+            if (Story == null || !sandbox || !sandbox.ProgressLoaded || sandbox.StateMachine.Mode != GameMode.Exploration)
+            {
+                return false;
+            }
+
+            mapStale = !sandbox.ApplyStory(Story);
+            return true;
         }
 
         public SaveData CaptureSave()
@@ -276,6 +292,11 @@ namespace Game.UI
         private void Update()
         {
             EnsureStoryLoaded();
+            if (mapStale && !IsTalking)
+            {
+                RefreshMap();
+            }
+
             if (IsTalking)
             {
                 if (sandbox.StateMachine.Mode == GameMode.Dialogue && Time.frameCount != openedFrame)
@@ -430,6 +451,7 @@ namespace Game.UI
                 pause.Input.Panel = pause;
             }
 
+            RefreshMap();
             if (AutosavePolicy.ShouldSave(from, sandbox.StateMachine.Mode))
             {
                 SaveProgress();

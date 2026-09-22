@@ -30,6 +30,7 @@ namespace Game.EditorTools
         public const string OpponentFolder = "Assets/_Game/Data/Opponents";
         public const string IconFolder = "Assets/_Game/Art/Icons/Fallacies";
         public const int MinimumFallbackArguments = 3;
+        public const int PaletteStep = 8;
 
         public static void Regenerate() => BatchRunner.Run(RegenerateAll);
 
@@ -110,6 +111,7 @@ namespace Game.EditorTools
             var source = LoadOpponentSource();
             var byId = fallacies.ToDictionary(fallacy => fallacy.Id);
             var dialogueIds = new HashSet<string>(LoadDialogueSource(DialogueSourcePath).Scripts.Select(script => script.Id));
+            var validator = new ArgumentValidator(fallacies.Where(fallacy => fallacy.IsRefutable).Select(fallacy => fallacy.Id));
             AssetFolders.Ensure(OpponentFolder);
 
             foreach (var entry in source.Opponents)
@@ -122,12 +124,110 @@ namespace Game.EditorTools
 
                 var opponent = AssetFolders.LoadOrCreate<OpponentSO>(OpponentPath(entry.Id));
                 opponent.Configure(entry.Id, entry.DisplayName, entry.MaxCoherence, entry.InitialAudience, pool, entry.Act, entry.Profile);
-                opponent.ConfigureSheet(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Id)));
+                opponent.ConfigureSheet(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.SheetId)), entry.Sheet);
                 opponent.ConfigureTutorial(ToTutorial(entry, pool, dialogueIds));
+                opponent.ConfigurePhases(ToPhases(entry, pool, dialogueIds, validator));
                 EditorUtility.SetDirty(opponent);
             }
 
             return source.Opponents.Count;
+        }
+
+        public static OpponentPhases ParsePhases(string opponentJson, IReadOnlyList<FallacySO> fallacies, ISet<string> dialogueIds)
+        {
+            var entry = JsonConvert.DeserializeObject<OpponentEntry>(opponentJson) ?? throw new InvalidOperationException("not an opponent");
+            var byId = fallacies.ToDictionary(fallacy => fallacy.Id);
+            var pool = entry.FallacyPool.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+            var validator = new ArgumentValidator(fallacies.Where(fallacy => fallacy.IsRefutable).Select(fallacy => fallacy.Id));
+            return ToPhases(entry, pool, dialogueIds, validator);
+        }
+
+        private static OpponentPhases ToPhases(OpponentEntry entry, IReadOnlyList<FallacySO> pool, ISet<string> dialogueIds, ArgumentValidator validator)
+        {
+            var source = entry.PhasedDuel;
+            if (source == null)
+            {
+                return new OpponentPhases();
+            }
+
+            var where = $"{OpponentSourcePath}: the phased duel of {entry.Id}";
+            if (entry.Tutorial != null)
+            {
+                throw new InvalidOperationException($"{where} cannot also be a tutorial");
+            }
+
+            foreach (var dialogue in new[] { source.Intro, source.Victory, source.Defeat }.Where(id => id != null))
+            {
+                RequireDialogue(where, dialogue, dialogueIds);
+            }
+
+            var phases = source.Phases.Select(phase => ToPhase($"{where}, phase {phase.Id}", phase, pool, dialogueIds, validator)).ToList();
+            var problems = PhasedDuel.Problems(phases.Select(phase => phase.ToPhase()).ToList());
+            if (problems.Count > 0)
+            {
+                throw new InvalidOperationException($"{where}: {string.Join("; ", problems)}");
+            }
+
+            if (phases[0].UntilCoherence >= entry.MaxCoherence)
+            {
+                throw new InvalidOperationException($"{where} ends its first phase at {phases[0].UntilCoherence}, but {entry.Id} starts with {entry.MaxCoherence} coherence");
+            }
+
+            return new OpponentPhases(source.Intro, source.Victory, source.Defeat, phases);
+        }
+
+        private static OpponentPhase ToPhase(string where, PhaseSource source, IReadOnlyList<FallacySO> pool, ISet<string> dialogueIds, ArgumentValidator validator)
+        {
+            RequireDialogue(where, source.Dialogue, dialogueIds);
+            if (string.IsNullOrWhiteSpace(source.Music) || !System.Text.RegularExpressions.Regex.IsMatch(source.Music, MapLayout.CutsceneIdPattern))
+            {
+                throw new InvalidOperationException($"{where} needs a music cue id in snake case, found '{source.Music}'");
+            }
+
+            var declared = source.Arguments?.Count ?? 0;
+            var arguments = new List<Argument>();
+            ArgumentJson.ParseValidList(source.Arguments?.ToString(Formatting.None) ?? "[]", validator, arguments);
+            if (arguments.Count != declared)
+            {
+                throw new InvalidOperationException($"{where}: {declared - arguments.Count} of {declared} arguments fail validation");
+            }
+
+            var outsidePool = arguments.FirstOrDefault(argument => argument.FallacyId != null && pool.All(fallacy => fallacy.Id != argument.FallacyId));
+            if (outsidePool.Speech != null)
+            {
+                throw new InvalidOperationException($"{where} argues with {outsidePool.FallacyId}, which is not in its fallacy_pool");
+            }
+
+            return new OpponentPhase(source.Id, source.Counter, source.UntilCoherence, source.Dialogue, source.Music, source.Posture, ParseTint(where, source.Tint), arguments);
+        }
+
+        private static Color ParseTint(string where, string hex)
+        {
+            if (string.IsNullOrEmpty(hex))
+            {
+                return Color.white;
+            }
+
+            if (!ColorUtility.TryParseHtmlString(hex, out var tint))
+            {
+                throw new InvalidOperationException($"{where} has the unreadable tint {hex}");
+            }
+
+            Color32 channels = tint;
+            if (channels.r % PaletteStep != 0 || channels.g % PaletteStep != 0 || channels.b % PaletteStep != 0)
+            {
+                throw new InvalidOperationException($"{where} tints with {hex}, which is outside RGB555");
+            }
+
+            return tint;
+        }
+
+        private static void RequireDialogue(string where, string dialogueId, ISet<string> dialogueIds)
+        {
+            if (!dialogueIds.Contains(dialogueId ?? string.Empty))
+            {
+                throw new InvalidOperationException($"{where} plays the unknown dialogue {dialogueId}");
+            }
         }
 
         private static OpponentTutorial ToTutorial(OpponentEntry entry, IReadOnlyList<FallacySO> pool, ISet<string> dialogueIds)
@@ -329,7 +429,7 @@ namespace Game.EditorTools
             public ScriptLine ToLine() => new(
                 Speaker,
                 Text,
-                (Conditions ?? new List<ConditionSource>()).Select(condition => new StoryCondition(condition.Flag, condition.EqualsValue, condition.Absent)),
+                (Conditions ?? new List<ConditionSource>()).Select(condition => new StoryCondition(condition.Flag, condition.EqualsValue, condition.Absent, condition.NotValue)),
                 (Effects ?? new List<EffectSource>()).Select(effect => effect.ToEffect()),
                 (Choices ?? new List<ChoiceSource>()).Select(choice => choice.ToChoice()));
         }
@@ -361,6 +461,9 @@ namespace Game.EditorTools
 
             [JsonProperty("absent")]
             public bool Absent { get; set; }
+
+            [JsonProperty("not")]
+            public string NotValue { get; set; }
         }
 
         private sealed class EffectSource
@@ -405,6 +508,56 @@ namespace Game.EditorTools
 
             [JsonProperty("tutorial")]
             public TutorialSource Tutorial { get; set; }
+
+            [JsonProperty("sheet")]
+            public string Sheet { get; set; }
+
+            [JsonProperty("phased_duel")]
+            public PhasedDuelSource PhasedDuel { get; set; }
+
+            public string SheetId => string.IsNullOrWhiteSpace(Sheet) ? Id : Sheet;
+        }
+
+        private sealed class PhasedDuelSource
+        {
+            [JsonProperty("intro")]
+            public string Intro { get; set; }
+
+            [JsonProperty("victory")]
+            public string Victory { get; set; }
+
+            [JsonProperty("defeat")]
+            public string Defeat { get; set; }
+
+            [JsonProperty("phases", Required = Required.Always)]
+            public List<PhaseSource> Phases { get; set; }
+        }
+
+        private sealed class PhaseSource
+        {
+            [JsonProperty("id", Required = Required.Always)]
+            public string Id { get; set; }
+
+            [JsonProperty("counter", Required = Required.Always)]
+            public ActionId Counter { get; set; }
+
+            [JsonProperty("until_coherence", Required = Required.Always)]
+            public int UntilCoherence { get; set; }
+
+            [JsonProperty("dialogue", Required = Required.Always)]
+            public string Dialogue { get; set; }
+
+            [JsonProperty("music", Required = Required.Always)]
+            public string Music { get; set; }
+
+            [JsonProperty("posture")]
+            public Posture Posture { get; set; } = Posture.Idle;
+
+            [JsonProperty("tint")]
+            public string Tint { get; set; }
+
+            [JsonProperty("arguments", Required = Required.Always)]
+            public JArray Arguments { get; set; }
         }
 
         private sealed class TutorialSource

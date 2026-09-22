@@ -40,8 +40,8 @@ namespace Game.Tests.EditMode.Battle
 
             Assert.AreEqual(id, opponent.Id);
             Assert.IsNotEmpty(opponent.DisplayName);
-            Assert.IsNotNull(opponent.Sheet, $"{id} has no placeholder sheet; add art/placeholders/characters/{id}_sheet.png and run ArtTools.SliceSheets");
-            Assert.AreEqual(ArtTools.SheetPathFor(id), AssetDatabase.GetAssetPath(opponent.Sheet));
+            Assert.IsNotNull(opponent.Sheet, $"{id} has no placeholder sheet; add art/placeholders/characters/{opponent.SheetId}_sheet.png and run ArtTools.SliceSheets");
+            Assert.AreEqual(ArtTools.SheetPathFor(opponent.SheetId), AssetDatabase.GetAssetPath(opponent.Sheet));
             Assert.IsNotEmpty(opponent.FallacyPool);
             Assert.LessOrEqual(opponent.FallacyPool.Count, MaxPoolSize);
             Assert.AreEqual(id, OpponentContext.From(opponent).Id);
@@ -89,6 +89,7 @@ namespace Game.Tests.EditMode.Battle
             for (var battle = 0; battle < BattlesPerOpponent; battle++)
             {
                 var source = new LibraryArgumentSource(library, pool, Seed + battle);
+                var phases = opponent.Phases.ToDuel();
                 var session = BattleSession.Start(grid, new BattleSetup
                 {
                     PlayerId = PlayerId,
@@ -101,10 +102,13 @@ namespace Game.Tests.EditMode.Battle
                     InitialAudience = opponent.InitialAudience,
                     Act = opponent.Act,
                     AudienceIds = audience,
-                    Seed = Seed + battle
+                    Seed = Seed + battle,
+                    Rules = phases?.Rules()
                 }, source);
 
-                var result = BattleSimulator.Run(session.State, new StrategicPlayerPolicy(), new OpponentBrain(new System.Random(Seed * 31 + battle)), source);
+                IPlayerPolicy player = phases == null ? new StrategicPlayerPolicy() : new CounterPlayerPolicy();
+                IOpponentPolicy brain = phases == null ? new OpponentBrain(new System.Random(Seed * 31 + battle)) : new PhasedOpponent(phases);
+                var result = BattleSimulator.Run(session.State, player, brain, source);
                 Assert.AreNotEqual(BattleStatus.Ongoing, result.Status, $"{id} battle {battle}");
                 if (result.Status != BattleStatus.PlayerWon)
                 {

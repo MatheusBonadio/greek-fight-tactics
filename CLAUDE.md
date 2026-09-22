@@ -24,7 +24,7 @@ A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Bat
 
 | Camada | Conteúdo | Unity |
 |---|---|---|
-| `Game.Core` | `Coord`, enums, `Argument`, `ArgumentValidator`, `ArgumentTones`, `FallbackArgumentPicker` | No Engine References |
+| `Game.Core` | `Coord`, enums, `Argument`, `ArgumentValidator`, `ArgumentTones`, `FallbackArgumentPicker`, `StoryCondition`, `ActGate` | No Engine References |
 | `Game.Grid` | `GridModel`, `IsoMath`, `PathFinder`, `FogOfWar`, `DuelCrowdPlanner`, `TerrainSteps`, `TerrainSorting`, `TerrainPicking` | só `Vector2` |
 | `Game.Battle` | resolver, estado e ações | No Engine References |
 | `Game.Content` | ScriptableObjects e tabelas por id | `ScriptableObject` |
@@ -186,6 +186,8 @@ namespace Game.Grid
         public int Reveal(Coord center, int radius = DefaultRevealRadius);
         public byte[] ToBitmask();
         public bool TryLoadBitmask(byte[] bitmask);
+        public void Hold(Coord cell);
+        public bool Release(Coord cell);
     }
 }
 ```
@@ -263,6 +265,12 @@ namespace Game.Battle
 
 A Plateia soma zero: `PlayerAudience` vai de 0 a 100 e a do oponente é o complemento. Todo número de balanceamento (dano, alcance, bônus posicional, limite de 50 turnos) mora em `BattleRules`, nunca espalhado pelo resolver.
 
+**Duelo em fases.** `BattleRules.Phases` (um `PhasedDuel`) liga o duelo por fases; sem ele, nada muda. As regras puras ficam em `Game.Battle`:
+- **`DuelPhase`:** id, ação que responde (`Counter`: REFUTAR, MAIÊUTICA ou CONCEDER), `UntilCoherence` (o piso da fase) e os argumentos da fase.
+- **`PhasedDuel`:** a fase vem da Coerência do oponente (`IndexFor`, a primeira cujo piso está abaixo dela), então não há estado novo no `BattleState`. `Problems` recusa fase sem argumento, contra-ataque que não responde, piso que não desce, último piso diferente de 0 e REFUTAR contra paradoxo. `Rules()` devolve as regras com `AudienceVictory` desligado: a Plateia sozinha não pula fase.
+- **`DuelPhaseRule.Apply`:** é a única linha nova do `BattleResolver.Resolve`, depois da penalidade de encurralado. A resposta da fase acerta (CONCEDER só com argumento na mesa) e leva o oponente até o piso, no máximo `PhaseCounterDamage` (20), com `PhaseCounterAudienceGain` (10) de Plateia. REFUTAR ou MAIÊUTICA certos na fase errada viram `Outcome.Deflected`: REFUTAR leva o contragolpe, MAIÊUTICA perde Plateia. Resposta errada continua sendo erro comum, e CONCEDER fora da fase é só conceder. Nenhum outro efeito passa o piso da fase.
+- **`PhasedOpponent`:** argumenta sempre com os argumentos da fase atual, em rodízio, sem LLM.
+
 ---
 
 ## Fluxo: exploração
@@ -298,7 +306,7 @@ O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirect
 - **Caixa:** `Assets/_Game/Prefabs/UI/ExplorationDialogue.prefab` é gerado por `BattleHudTools.BuildHud`, com o mesmo `DialogueBoxView` do HUD de batalha, em canvas próprio abaixo da pausa. Ela ocupa a faixa de baixo inteira (632×86), com 5 linhas de texto.
 - **Dados:** `Assets/_Game/Data/Source/dialogues.json` vira o `DialogueLibrarySO` em `DataTools.Regenerate`.
   - `speakers` dá nome e retrato (id da folha do personagem) a cada falante. Linha sem `speaker` é narração.
-  - Cada linha tem `conditions` (`flag`, com `equals` ou `absent`) e `effects` (`flag` e `value`, padrão `"true"`).
+  - Cada linha tem `conditions` (`flag`, com `equals`, `absent` ou `not`) e `effects` (`flag` e `value`, padrão `"true"`). `not` vale enquanto a flag não tem aquele valor, inclusive ausente (`StoryCondition.Not`), e é assim que se espera `damaris_branch` decidida (`"not": "undecided"`) ou um duelo ainda não vencido.
   - Os nomes seguem o `SaveFlags`: `act`, `damaris_branch`, `reputation`, `position` ou flag própria em snake case. A regeneração falha com flag inválida, falante desconhecido ou texto vazio.
 - **Regras puras (Core):** `DialogueScript`, `ScriptLine`, `StoryCondition`, `StoryEffect` e `DialogueRun`.
   - As condições são julgadas quando a conversa começa. Por isso, a linha que marca `met_x` não revela na mesma conversa as linhas que exigem `met_x`.
@@ -314,6 +322,9 @@ O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirect
   - Toca só com a exploração quieta: sem conversa, aproximação, gatilho pendente, batalha ou pausa. A `flag` é gravada no disparo (`ExplorationDialogueDirector.TryPlayOnce`), como no gatilho.
   - É assim que o Cerâmico ensina a andar, a névoa e a conversar, cada passo uma vez.
 - **NPC condicional:** `conditions` num ator do mapa vira `ActorPresenceLink` no `GridSandboxController`. O ator fica desligado e sem walker até o save ativo cumprir as condições, e só é posto na célula quando o progresso carrega. O jogador não pode ter condições.
+  - **Ao vivo:** `GridSandboxController.ApplyStory(story)` põe quem passou a cumprir as condições e tira quem deixou de cumprir. O `ExplorationDialogueDirector.RefreshMap` chama isso com a história da sessão em `Remember`, ao fechar uma conversa, ao fim de uma cena de Timeline e ao fim de um duelo, sempre com a máquina em `Exploration`. Se a célula de partida estiver ocupada, ele tenta de novo nos quadros seguintes.
+  - Quem sai por `Leave` numa cena (`TryDismiss`) não volta na mesma sessão, mesmo que as condições ainda valham.
+  - Teste PlayMode que usa o walker de um ator condicional (Thrasybios do mercado, Menexeno da Ágora) espera `ProgressLoaded`.
 - **Bloco condicional:** `conditionalBlocks` no JSON do mapa (`x`, `y`, `conditions`) aponta um bloco que já está em `blocks` e vira `BlockPresenceLink` no `GridSandboxController`.
   - A cena é gerada com o bloco. Quando o progresso carrega, antes de restaurar a posição, o bloco cujas condições falham sai do render (`BlockTileAt`) e a célula volta ao custo do chão (`SandboxTools.FloorCost`, gravado no link). O `GridModel` decide, o tilemap só desenha.
   - Serve para os dois sentidos: `absent` tira um prop (a roda vendida), e uma condição presente faz um prop aparecer (a pilha de ânforas encalhadas).
@@ -391,7 +402,14 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - Confirmar numa célula azul move a Kleia: o destino vai em `BattleMenuChoice.Destination` e é validado por `CirculateTargeting`. Cancelar volta ao menu.
     - Uma escolha sem destino ainda cai em `BattleSession.CirculateDestination`, a célula alcançável mais próxima do oponente.
   - **Dados:** o elenco vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id` e folha (`<id>_sheet.png`), e as falas vêm de `battle.*` em `ui_text.json`. `initial_audience` é a Plateia inicial da Kleia; a tabela do GDD dá a do oponente, que é o complemento.
-  - **Elenco do Ato I:** Thrasybios e os cinco duelistas de bairro do beat I.5: Óron (falso dilema), Phaidra (apelo à ignorância), Kritolaos (ad hominem), Simo (espantalho) e Bátilo (generalização apressada, perfil `Philosopher`). Cada pool tem a falácia da família e uma aparentada. Um teste simula duelos contra cada um, na célula em que ele está na Ágora e com a Kleia na célula ao lado a que ela chega andando da entrada, e exige vitória do jogador.
+  - **Elenco do Ato I:** Thrasybios e os cinco duelistas de bairro do beat I.5: Óron (falso dilema), Phaidra (apelo à ignorância), Kritolaos (ad hominem), Simo (espantalho) e Bátilo (generalização apressada, perfil `Philosopher`). Cada pool tem a falácia da família e uma aparentada. Um teste simula duelos contra cada um, na célula em que ele está na Ágora e com a Kleia na célula ao lado a que ela chega andando da entrada, e exige vitória do jogador. O julgamento de rua entra na mesma simulação com o `PhasedOpponent` e um jogador que conhece a resposta de cada fase.
+  - **Julgamento de rua (beat I.8):** `thrasybios_street_trial` é outro oponente, com a folha do Thrasybios (`sheet`), então o duelo do tutorial, o `duel_thrasybios` e os saves antigos continuam iguais.
+    - **Fases:** o `phased_duel` de `opponents.json` vira `OpponentSO.Phases` (`OpponentPhases`): diálogos `intro`, `victory` e `defeat`, e três fases. Ataque pessoal (ad hominem, piso 40, CONCEDER), falso dilema (piso 20, REFUTAR) e medo político (apelo à emoção invocando os Trinta, piso 0, só MAIÊUTICA na premissa sobre o que ele mesmo fez sob a tirania). Cada fase tem `dialogue`, `music`, `posture`, `tint` opcional e seus `arguments` escritos à mão, validados pelo `ArgumentValidator` na regeneração. O julgamento inteiro roda offline e nunca chama o LLM.
+    - **Diretor:** com `OpponentSO.IsPhased`, o `SandboxBattleDirector` usa `PhasedDuel.Rules()` e o `PhasedOpponent`, toca o `intro` no lugar da fala de abertura e, a cada fase que começa (`ContinueWithPhase`), toca o diálogo dela, aplica a postura e dispara `PhaseStarted` com um `DuelPhaseCue` (oponente, índice, fase, id da música e postura, também em `CurrentPhaseCue`). Vitória e derrota tocam `victory` e `defeat` no lugar da linha de status. Oponente em fases não é pré-aquecido (`SandboxBattleDirector.Prewarms`).
+    - **Postura:** `ActorView.Posture` troca o estado parado por `action` (a coluna de ação da folha), e `ActorView.Tint` pinta o `SpriteRenderer`. Na fase 2 ele gesticula; na 3, empalidece (`#D0C8F8`). Tudo volta ao normal no fim do duelo.
+    - **Música:** ainda não há sistema de áudio (card SND-01). O `PhaseStarted` é o gancho: quem tocar a trilha lê `MusicId` (`street_trial_personal_attack`, `street_trial_false_dilemma`, `street_trial_political_fear`).
+    - **Textos:** `battle.concede_counter` narra o CONCEDER que acerta, e `battle.phase_deflected` a resposta certa na fase errada (`BattleText.OutcomeKey`).
+    - **Derrota não é fim de jogo:** perder grava `duel_thrasybios_street_trial=lost` e, pelo `defeat`, `lost_street_trial`. Ele continua na escadaria, e o `intro` da nova tentativa tem outras falas.
   - **Tutorial do Thrasybios (beats I.2 e I.3):** o `tutorial` de `opponents.json` (`fallacy` do pool, `done_flag` e um diálogo por `TutorialCue`) vira `OpponentSO.Tutorial`. Enquanto a `done_flag` falta no save, o duelo é guiado.
     - `RefuteTutorial` (Battle, puro) decide a deixa: demonstração da ânfora ao começar, explicação do argumento no primeiro turno, dica ao abrir a lista de falácias (a cada turno), erro e lembrete depois de outra ação. A dica cita a falácia pelo `display_name` do catálogo, o mesmo rótulo da lista, e um teste garante isso.
     - O `TutorialOpponent` tira do `ScriptedArgumentSource` o primeiro argumento de fallback da falácia (na ordem do arquivo, o da ânfora) e o repete a cada turno, então o erro continua na mesa até ser refutado.
@@ -435,7 +453,7 @@ await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
   - No `Unresolvable`, o pedido sai pelo `UnityWebRequestTransport` de verdade para `https://gft-airplane-mode.invalid`, e o DNS da máquina falha de verdade. O `.invalid` é reservado e nunca resolve. Tem de ser HTTPS: fora de `127.0.0.1`, a Unity recusa HTTP antes do DNS e registra um aviso, que o `LogAssert.NoUnexpectedReceived` reprova.
   - `LoopbackHttpServer` atende o `FakeFirebase.ServedAt` em `127.0.0.1` por socket de verdade, então o `UnityWebRequestTransport` também entra no teste. Ele responde, trava (`Hang`) ou recusa conexão (`GoDown`), e as respostas saem na thread principal.
   - `AirplaneModeTests` (EditMode) e `AirplaneModePlayTests` (PlayMode) usam essas classes.
-  - `AirplaneModePlaythroughPlayTests` joga, com a rede caída desde o menu, tudo o que existe: novo jogo, Cerâmico, Ágora, todas as conversas, os seis duelos com todas as ações, a pressão sobre a oficina, a oferta de Damaris, a ausência do Menexeno, um duelo com a habilidade ganha, a pausa e o Continuar. Cada queda de rede responde a Damaris de um jeito (`Hanging` recusa, as outras aceitam), então os dois ramos rodam offline. Ao ganhar conteúdo novo, estenda esse teste.
+  - `AirplaneModePlaythroughPlayTests` joga, com a rede caída desde o menu, tudo o que existe: novo jogo, Cerâmico, Ágora, todas as conversas, os seis duelos com todas as ações, a pressão sobre a oficina, a oferta de Damaris, a ausência do Menexeno, um duelo com a habilidade ganha, o julgamento de rua perdido e depois vencido, o arquivo com a lista e o selo, a Academia, a pausa e o Continuar. Cada queda de rede responde a Damaris de um jeito (`Hanging` recusa, as outras aceitam), então os dois ramos rodam offline. Ao ganhar conteúdo novo, estenda esse teste.
   - Os testes rodam no Editor e não fecham o card sozinhos. O roteiro manual na build de Windows fica em `docs/qa/airplane-mode.md`, e cada rodada é anotada na tabela de registro dele.
 
 **Pré-aquecimento:** ao entrar num mapa, chame `PrewarmAsync` para os adversários presentes. Quando o jogador chegar perto, os argumentos já estão na fila e a latência é zero.
@@ -514,6 +532,8 @@ Escrita local primeiro, sempre por `SaveSynchronizer`:
 
 Regras em `firestore.rules`: só o dono lê e escreve `saves/{uid}` e `progress/{uid}/duels/*`. `DamarisBranch` é lido no Tribunal do Ato II.
 
+`ActFlag` só muda por efeito de diálogo (`{ "flag": "act", "value": "2" }`, hoje só no selo de bronze do arquivo). O `ExplorationSaveMapper` o preserva de save em save, e `ActGate` (Core) é a regra única de "o Ato II já começou".
+
 **Slots.** São 3 slots locais (`saves/slot0.json` a `slot2.json`, `SaveSlots`).
 - **Catálogo:** `SaveSlotCatalog` resume cada slot como vazio, ilegível ou usável, com ato, `Location` e `PlaytimeSeconds`, e guarda o slot ativo em `saves/active_slot.txt` para a escolha sobreviver à troca de cena.
 - **GameServices:** `SelectSlot`, `SaveToSlot`, `StartNewGame` (grava um save vazio no slot escolhido) e `TryLoadActiveSave`. O tempo de jogo só avança com `Time.timeScale` > 0.
@@ -538,7 +558,7 @@ Conteúdo é ScriptableObject em `Assets/_Game/Data/`, nunca código. Se você e
 |---|---|
 | `FallacySO` | `id`, `displayName`, `description`, `playerHint`, `icon`, `category` (`Informal` / `Formal` / `Paradox`) |
 | `FallacyCatalogSO` | `Dictionary<string, FallacySO>` por id |
-| `OpponentSO` | `displayName`, `sheet`, `maxCoherence`, `initialAudience`, `fallacyPool`, `act`, `profile` |
+| `OpponentSO` | `displayName`, `sheet` (e `sheetId`, quando a folha é de outro personagem), `maxCoherence`, `initialAudience`, `fallacyPool`, `act`, `profile`, `tutorial`, `phases` |
 | `ArgumentSO` | espelha o JSON do argumento |
 | `FallbackLibrarySO` | `Dictionary<string, TextAsset>`: id do catálogo → JSON com os argumentos escritos à mão |
 | `TerrainCostTableSO` | `Dictionary<TerrainId, byte>` |
@@ -572,7 +592,9 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
   - O sprite de face tem 32×32 e pendura 16 px abaixo da célula, então o tilemap `Faces` desce `FaceSpriteDrop` (1 unidade) e compensa em Z.
   - Os limites da câmera (`MapOutline`) e a captura de referência incluem a base embaixo e o nível mais alto em cima.
 - **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador. O campo opcional `dialogue` dá ao NPC um id de `dialogues.json`, e `conditions` o faz esperar flags da história. O jogador não pode ter nenhum dos dois, e um teste garante que todo id citado nos mapas (atores, gatilhos e deixas) existe.
+  - `sheet` opcional veste o ator com a folha de outro personagem (`MapActor.SheetId`), e o `character` continua sendo o id dele no elenco e nas cenas. É assim que o julgamento de rua usa a folha do Thrasybios, e o arquivista e o acadêmico usam a do `citizen`.
 - **Blocos condicionais e casa:** `conditionalBlocks` mostra ou esconde blocos pelas flags da história, e `"home": true` marca o mapa onde a volta passa um dia (ver **Diálogo na exploração**).
+- **Ato do mapa:** `act` opcional (padrão 1) diz a que ato o mapa pertence. Toda saída para um mapa do Ato II espera `ActFlag = 2` (ver **Portão** em **Saídas**).
 - **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido, ator em bloco, em água ou em célula repetida, condição inválida e deixa sem diálogo ou sem flag própria.
 - **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2, em quatro níveis. Um teste garante que toda célula andável é alcançável a partir da Kleia, degrau a degrau.
   - **Nível 0:** a estrada de terra que vem do Cerâmico, com a saída na ponta, e o mercado de pedra onde Thrasybios junta a plateia.
@@ -583,7 +605,12 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
   - **Duelistas de bairro:** Óron na ponta da stoa, junto à parede de mármore e ainda sob a névoa (10, 10), Phaidra no morro de oliveiras (1, 10), Kritolaos na rua de pedra diante das casas (6, 10), Simo na praça em xadrez (8, 8) e Bátilo junto à fonte (7, 6). Testes garantem que a Kleia consegue parar ao lado de cada desafiante e de cada NPC que conversa, e que nenhum ator bloqueia o único caminho para uma célula além do recanto logo atrás dele.
   - **A cobrança (beat I.6):** três deixas `Idle`, uma por estágio da pressão. Com `pressure_rumor`, Thrasybios sobe no caixote e acusa a Kleia de asebeia (`agora_asebeia_rumor`, flag `heard_asebeia`). Com `pressure_deserted`, a ágora repete a palavra sem ele (`agora_asebeia_spreads`, `saw_rumor_spread`). Com `pressure_tools`, a MAIÊUTICA aprendida e a oferta de Damaris em aberto, a Kleia decide voltar para ver o pai (`agora_pressure_home`, `worried_for_home`), que é onde Damaris espera.
   - O Menexeno e o Eudoro trocam de fala com o boato. O Menexeno ouve "asebeia" e lembra de um tribunal, sem dizer qual.
-  - **Menexeno ausente:** o Menexeno da Ágora tem a condição `menexeno_absent_days` ausente, então some enquanto dura a ausência que a oferta aceita grava (três voltas para casa). Nesse tempo, `agora_menexeno_gone` (`noticed_menexeno_gone`) aponta o lugar vazio junto à stoa. Ao voltar, ele comenta a bolsa; se a Kleia recusou, ele diz que soube (`menexeno_respect`).
+  - **Menexeno ausente:** o Menexeno da Ágora tem a condição `menexeno_absent_days` ausente, então some enquanto dura a ausência que a oferta aceita grava (três voltas para casa). Nesse tempo, `agora_menexeno_away` (`noticed_menexeno_gone`) aponta o lugar vazio junto à stoa. Ao voltar, ele comenta a bolsa; se a Kleia recusou, ele diz que soube (`menexeno_respect`).
+  - **Julgamento de rua (beats I.8 a I.10):** tudo fica em blocos próprios no fim de `actors`, `exits` e `cues` da Ágora.
+    - A deixa `Idle` `agora_street_trial_summons` espera `duel_thrasybios=won`, `maieutics_unlocked` e `damaris_branch` decidida (`not: undecided`, o contrato com a cena da Damaris do AT1-07) e grava `street_trial_called`.
+    - Com essa flag, o Thrasybios do mercado sai (`street_trial_called` ausente) e o `thrasybios_street_trial` aparece em (10, 8), entre as colunas da stoa, no nível 2. Kleia o desafia da praça, um degrau abaixo, ou do passeio de trás, e ali não fica encurralada. Ele fica, entre as colunas, e perde Coerência a cada fala, mas nunca abaixo do piso da fase.
+    - Menexeno fica na stoa enquanto `duel_thrasybios_street_trial` não é `won`. Vencer tira os dois do mapa ao voltar à exploração, e a deixa `agora_menexeno_gone` grava `searching_menexeno`.
+    - `searching_menexeno` abre a porta do arquivo em (11, 4), bem atrás do lugar do Menexeno. A estrada da Academia sai em (7, 11), entre as casas de tijolo, e a deixa `agora_academy_road` a anuncia no Ato II (`saw_academy_road`).
 - **Cerâmico:** `kerameikos.json` (16×16) gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina dos beats I.1, I.4, I.6 e I.7. É a casa (`"home": true`): chegar pela rua passa um dia.
   - A oficina tem chão de terra batida cercado de tijolo, com uma única porta em (4, 7), a roda de oleiro ao lado da qual a Kleia começa e ânforas no fundo. Aristeu, o pai (folha placeholder `aristeu`), fica junto a elas e a manda levar a mercadoria à Ágora (`aristeu_workshop`, flag `aristeu_errand`). O retrato dele é o dedicado `aristeu_portrait`, com a mão erguida ao lado do rosto, de dedos tortos e nós inchados.
   - O pátio é de argila seca, com o forno, as ânforas prontas junto à porta e um canto de palha com oliveiras. A rua de terra corre pela borda da frente, e as saídas dela levam à Ágora.
@@ -604,11 +631,20 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
   - **Nome:** `label` no JSON é o texto do jogador ("Para o Cerâmico", "Para a Ágora"). Com o cursor numa saída revelada e a exploração livre, o `ExitLabelView` mostra o nome num canvas próprio acima da seta (`GridSandboxController.HoveredExit`). O rótulo não recebe raycast, então nunca engole o clique no mapa. Label em branco é recusado.
   - Pisar na saída e parar dispara a troca: `SceneArrival` guarda a chegada, `LocationScenes.SceneFor` resolve a cena e o `GridSandboxController` da outra ponta teleporta o jogador no `Awake`, revela a névoa em volta e faz save automático.
   - A chegada pula a restauração do save, porque a posição dela vale mais que a gravada.
+  - **Portão:** `conditions` numa saída, no mesmo formato das linhas, e o `act` do mapa de destino (`SandboxTools.ActOf`) viram `MapExitLink.Conditions` e `RequiredAct`. `ActGate.IsOpen` (Core) decide.
+    - Fechada, a saída não tem seta nem nome, não leva a lugar nenhum e a célula fica intransponível e sob a névoa: `CellGate.Close` (Grid) segura a célula no `FogOfWar` (`Hold`), então nem o passo ao lado nem um save antigo a revelam.
+    - O `GridSandboxController` fecha todo portão no `Awake` e o `ApplyStory` abre os que a história libera, com `CellGate.Open`: a célula volta ao custo do mapa e sai da névoa.
   - **Névoa:** o save guarda a névoa de cada mapa em `SaveData.FogByLocation` (`fogByLocation` no JSON, só gravado quando existe). Ao sair, a névoa do mapa de origem viaja no `PendingArrival` e entra no autosave da chegada; ao chegar, a névoa salva do destino é somada à revelada em volta da chegada (`ExplorationRestore.TryMergeFog`). `FogBitmask` continua sendo a do mapa atual, e saves antigos migram a névoa do `Location` gravado.
+- **Arquivo (beats I.9 e I.10):** `archive.json` (8×8) gera `Assets/_Game/Scenes/Archive.unity`, o Metrôon, onde a cidade guarda leis e sentenças.
+  - A Kleia chega pela porta da frente (saída para a Ágora) e a deixa `archive_entrance` descreve o lugar. O arquivista (`archive_archivist`, flag `asked_archivist`) conta que Menexeno leu a lista do Conselho do ano dos Trinta.
+  - A mesa com a lista fica entre jarros, no fundo. Pisar diante dela toca a cena de Timeline `archive_list_scene` (flag `read_juror_list`).
+  - A cena mostra `archive_juror_list`: o processo contra Sócrates sob os Trinta, por recusar a ordem de prender Leão de Salamina, com a morte pedida. A tirania caiu antes da sentença, e Menexeno está na coluna da condenação (`knows_menexeno_vote`). Assim a revelação não contradiz Sócrates vivo em 402 a.C.
+  - O acadêmico que lia junto às colunas (só enquanto falta `bronze_seal`) anda até ela e entrega o selo de bronze (`archive_bronze_seal`, que grava `bronze_seal` e `act = 2`). Depois sai do mapa, e `archive_act_two` fecha o Ato I.
+- **Academia:** `academy.json` (8×8, `act: 2`) gera `Assets/_Game/Scenes/Academy.unity`. É um esboço, só para a estrada ter destino: jardim com oliveiras e colunas dóricas no lugar do pórtico jônico, a deixa `academy_threshold` e a saída de volta. O mapa de verdade é o card AT2-01.
 - **Menu:** Novo jogo começa em `LocationScenes.StartScene` (a oficina do Cerâmico) e Continuar abre a cena do `Location` gravado no save; save antigo de `sandbox` abre a Ágora.
 - **Uma cena por mapa:** `SandboxTools.Maps` lista local, mapa e cena.
-  - `BuildSandbox` monta todas as cenas, e `CaptureReference` fotografa a Ágora e o Cerâmico (`artifacts/reference/grid_sandbox.png` e `kerameikos.png`).
-  - Cada cena grava o próprio `GridSandboxController.LocationId` (`agora`, `kerameikos`). Esse id vai para o save e decide se `ExplorationRestore` aplica posição e névoa.
+  - `BuildSandbox` monta todas as cenas, e `CaptureReference` fotografa a Ágora, o Cerâmico, o arquivo e a Academia (`artifacts/reference/grid_sandbox.png`, `kerameikos.png`, `archive.png` e `academy.png`).
+  - Cada cena grava o próprio `GridSandboxController.LocationId` (`agora`, `kerameikos`, `archive`, `academy`). Esse id vai para o save e decide se `ExplorationRestore` aplica posição e névoa.
   - Os tiles do Cerâmico (`floor_packed_dirt`, `floor_dry_clay`, `floor_straw`, `block_kiln`, `prop_potters_wheel`, `prop_amphora_stack`) ficam em `art/placeholders/tiles`, como todo o cenário estático P1 dos dois mapas: arte do PixelLab, já na palette v2 (ver a skill `pixel-art-pipeline`).
 
 ---
@@ -704,7 +740,7 @@ unity vcs doctor
 - **Capturas da UI:** os testes PlayMode `[Explicit]` `Capture_BattleHudAndPauseMenu` e `Capture_MainMenu` gravam em `artifacts/reference/` a batalha com uma fala e com a lista de falácias, o diálogo da exploração, a pausa, o compêndio e a tela de título com slots e opções, a 1920×1080 (UI em 3×, mundo em 4×). Rode com `./tools/test.ps1 -Mode PlayMode -Filter "Capture_BattleHudAndPauseMenu;Capture_MainMenu"`. `UiCapture` troca os canvases para *Screen Space – Camera* e chama `Camera.Render`: em batch mode o `WaitForEndOfFrame` nunca volta.
 
 **Menus de sistema.** A ordem de geração é: `DataTools.Regenerate`, depois `BattleHudTools.BuildHud`, depois `SystemMenuTools.BuildMenus`, depois `SandboxTools.BuildSandbox`. A sandbox instancia o prefab da pausa, então os menus têm de existir antes.
-- **Cenas no build:** `SystemMenuTools.ApplyBuildScenes` define a ordem `MainMenu`, `GridSandbox`, `SampleScene`, e as duas ferramentas usam o mesmo método.
+- **Cenas no build:** `SystemMenuTools.ApplyBuildScenes` define a ordem `MainMenu`, `GridSandbox`, `Kerameikos`, `Archive`, `Academy`, `SampleScene`, e as duas ferramentas usam o mesmo método.
 - **Cena `MainMenu`:** tem câmera, EventSystem com `InputSystemUIInputModule`, `GameServices` e `MainMenuController`. "Continuar" só habilita quando algum slot é usável e abre `SaveSlotsView` para carregar. "Novo jogo" abre o mesmo painel para escolher o slot e pede confirmação antes de sobrescrever, com "Não" como padrão. Os dois carregam `GridSandbox` até existir o mapa do Ato I.
   - **Tela de título:** o fundo é `art/placeholders/ui/bg_title.png` (a Acrópole ao pôr do sol, 384×216), esticado por um `AspectRatioFitter` para cobrir a tela: 5× exato em 1080p.
   - O título `system.game_title` fica no alto, em dourado no dobro do tamanho da fonte, com contorno escuro, e `system.game_subtitle` embaixo dele. O céu fica livre abaixo do título, e o Partenon não é coberto.

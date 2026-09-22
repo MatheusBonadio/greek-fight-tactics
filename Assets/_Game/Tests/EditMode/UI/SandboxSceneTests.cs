@@ -177,7 +177,12 @@ namespace Game.Tests.EditMode.UI
                 Assert.IsInstanceOf<AnimatedTile>(exit.Marker, "the arrow pulses toward the edge");
                 Assert.IsFalse(string.IsNullOrWhiteSpace(exit.Label), "hovering an exit names the place it leads to");
                 Assert.AreEqual(revealed[exit.Cell] ? exit.Marker : null, markers.GetTile(new Vector3Int(exit.Cell.X, exit.Cell.Y, 0)));
+                Assert.AreEqual(SandboxTools.ActOf(exit.Location), exit.RequiredAct, $"the exit to {exit.Location} waits for the act of the map it leads to");
+                Assert.AreEqual(source.Conditions.Count, exit.Conditions.Count, $"the exit to {exit.Location} keeps its story conditions");
             }
+
+            Assert.IsTrue(controller.Exits.Any(exit => exit.RequiredAct == Act.Two), "the road to the Academy waits for the second act");
+            Assert.IsTrue(controller.Exits.Where(exit => exit.IsGated).All(exit => markers.GetTile(new Vector3Int(exit.Cell.X, exit.Cell.Y, 0)) == null), "a closed exit shows no arrow");
 
             var label = Find<ExitLabelView>();
             Assert.IsFalse(label.IsShown, "the label waits for the cursor");
@@ -402,10 +407,11 @@ namespace Game.Tests.EditMode.UI
             {
                 var entry = director.Opponents[index];
                 Assert.AreEqual(placed[index].Character, entry.Opponent.Id);
+                Assert.AreEqual(placed[index].SheetId, entry.Opponent.SheetId, $"{entry.Opponent.Id} wears the same sheet on the map and in the data");
                 CollectionAssert.Contains(controller.Actors, entry.Actor);
                 Assert.AreEqual(new Vector2Int(placed[index].X, placed[index].Y), entry.Actor.StartCell);
-                Assert.AreEqual($"{entry.Opponent.Id}_{SandboxTools.PortraitRow}_0", entry.Portrait.name);
-                Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Opponent.Id)), entry.Actor.SpriteRenderer.sprite.texture);
+                Assert.AreEqual($"{entry.Opponent.SheetId}_{SandboxTools.PortraitRow}_0", entry.Portrait.name);
+                Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Opponent.SheetId)), entry.Actor.SpriteRenderer.sprite.texture);
             }
         }
 
@@ -467,6 +473,11 @@ namespace Game.Tests.EditMode.UI
                     var cell = new Coord(x, y);
                     revealed[cell] = x + y < controller.FogRevealDepth || System.Math.Abs(x - kleia.X) + System.Math.Abs(y - kleia.Y) <= FogOfWar.DefaultRevealRadius;
                 }
+            }
+
+            foreach (var gate in controller.Exits.Where(exit => exit.IsGated))
+            {
+                revealed[gate.Cell] = false;
             }
 
             return revealed;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Core;
 
 namespace Game.Grid
@@ -10,6 +11,7 @@ namespace Game.Grid
         private const int BitsPerByte = 8;
 
         private readonly GridModel grid;
+        private readonly HashSet<Coord> held = new();
 
         public FogOfWar(GridModel grid)
         {
@@ -17,6 +19,24 @@ namespace Game.Grid
         }
 
         public int BitmaskLength => (grid.Width * grid.Height + BitsPerByte - 1) / BitsPerByte;
+
+        public IReadOnlyCollection<Coord> Held => held;
+
+        public bool IsHeld(Coord cell) => held.Contains(cell);
+
+        public void Hold(Coord cell)
+        {
+            if (!grid.TryGet(cell, out var tile))
+            {
+                return;
+            }
+
+            held.Add(cell);
+            tile.Revealed = false;
+            grid.TrySet(cell, tile);
+        }
+
+        public bool Release(Coord cell) => held.Remove(cell);
 
         public int Reveal(Coord center, int radius = DefaultRevealRadius)
         {
@@ -27,7 +47,7 @@ namespace Game.Grid
                 for (var offsetX = -span; offsetX <= span; offsetX++)
                 {
                     var cell = new Coord(center.X + offsetX, center.Y + offsetY);
-                    if (!grid.TryGet(cell, out var tile) || tile.Revealed)
+                    if (!grid.TryGet(cell, out var tile) || tile.Revealed || held.Contains(cell))
                     {
                         continue;
                     }
@@ -75,7 +95,7 @@ namespace Game.Grid
                     var cell = new Coord(x, y);
                     var bit = BitIndex(x, y);
                     var tile = grid[cell];
-                    tile.Revealed = (bitmask[bit / BitsPerByte] & (1 << (bit % BitsPerByte))) != 0;
+                    tile.Revealed = !held.Contains(cell) && (bitmask[bit / BitsPerByte] & (1 << (bit % BitsPerByte))) != 0;
                     grid.TrySet(cell, tile);
                 }
             }

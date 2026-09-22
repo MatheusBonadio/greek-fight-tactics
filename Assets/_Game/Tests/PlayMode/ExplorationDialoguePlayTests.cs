@@ -61,7 +61,7 @@ namespace Game.Tests.PlayMode
             var services = Object.FindAnyObjectByType<GameServices>();
             Assert.IsNotNull(director, "the agora must contain the exploration dialogue director");
             battle.AutosaveEnabled = false;
-            yield return WaitFor(() => director.IsStoryLoaded && services.IsBooted);
+            yield return WaitFor(() => director.IsStoryLoaded && services.IsBooted && sandbox.ProgressLoaded);
             Assert.IsTrue(director.IsStoryLoaded);
 
             var menexeno = director.Talkers.Single(link => link.Dialogue == MenexenoDialogue).Actor;

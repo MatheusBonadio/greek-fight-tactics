@@ -125,15 +125,17 @@ namespace Game.Content
         [SerializeField] private string flag;
         [SerializeField] private string value;
         [SerializeField] private bool absent;
+        [SerializeField] private string except;
 
         public static StoryConditionEntry From(StoryCondition condition) => new()
         {
             flag = condition.Flag,
             value = condition.Value,
-            absent = condition.Absent
+            absent = condition.Absent,
+            except = condition.Except
         };
 
-        public StoryCondition ToCondition() => new(flag, value, absent);
+        public StoryCondition ToCondition() => new(flag, value, absent, except);
     }
 
     [Serializable]

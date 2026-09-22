@@ -49,6 +49,14 @@ MonoBehaviour:
     value:
       displayName: Damaris
       portrait: damaris
+  - key: archivist
+    value:
+      displayName: Arquivista
+      portrait: citizen
+  - key: academic
+    value:
+      displayName: "Acad\xEAmico"
+      portrait: citizen
   dialogues:
   - key: kerameikos_first_steps
     value:
@@ -101,6 +109,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -109,6 +118,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -117,6 +127,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: 
@@ -125,6 +136,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -133,6 +145,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -141,6 +154,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -149,6 +163,7 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 1
+          except: 
         effects:
         - flag: aristeu_errand
           value: true
@@ -159,9 +174,11 @@ MonoBehaviour:
         - flag: aristeu_errand
           value: 
           absent: 0
+          except: 
         - flag: duel_thrasybios
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -170,12 +187,15 @@ MonoBehaviour:
         - flag: duel_thrasybios
           value: 
           absent: 0
+          except: 
         - flag: maieutics_unlocked
           value: 
           absent: 1
+          except: 
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -184,9 +204,11 @@ MonoBehaviour:
         - flag: maieutics_unlocked
           value: 
           absent: 0
+          except: 
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -195,9 +217,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: pressure_deserted
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -206,9 +230,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: pressure_deserted
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -217,9 +243,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: pressure_deserted
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: 
@@ -228,9 +256,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -239,9 +269,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -250,9 +282,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -261,9 +295,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -272,9 +308,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -283,9 +321,11 @@ MonoBehaviour:
         - flag: pressure_tools
           value: 
           absent: 0
+          except: 
         - flag: damaris_branch
           value: undecided
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -294,9 +334,11 @@ MonoBehaviour:
         - flag: pressure_tools
           value: 
           absent: 0
+          except: 
         - flag: damaris_branch
           value: undecided
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -305,9 +347,11 @@ MonoBehaviour:
         - flag: pressure_tools
           value: 
           absent: 0
+          except: 
         - flag: damaris_branch
           value: undecided
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -316,6 +360,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: accepted
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -324,6 +369,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: accepted
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -332,6 +378,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: accepted
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -340,6 +387,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: refused
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -348,6 +396,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: refused
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: aristeu
@@ -356,6 +405,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: refused
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -500,6 +550,7 @@ MonoBehaviour:
         - flag: talked_to_neighbor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -508,6 +559,7 @@ MonoBehaviour:
         - flag: talked_to_neighbor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: neighbor
@@ -516,6 +568,7 @@ MonoBehaviour:
         - flag: talked_to_neighbor
           value: 
           absent: 1
+          except: 
         effects:
         - flag: talked_to_neighbor
           value: true
@@ -528,9 +581,11 @@ MonoBehaviour:
         - flag: talked_to_neighbor
           value: 
           absent: 0
+          except: 
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: neighbor
@@ -539,9 +594,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: pressure_deserted
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: neighbor
@@ -550,9 +607,11 @@ MonoBehaviour:
         - flag: pressure_deserted
           value: 
           absent: 0
+          except: 
         - flag: pressure_tools
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: neighbor
@@ -561,6 +620,7 @@ MonoBehaviour:
         - flag: pressure_tools
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -573,6 +633,7 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -581,6 +642,7 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -589,12 +651,15 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 1
+          except: 
         - flag: heard_of_thrasybios
           value: 
           absent: 0
+          except: 
         - flag: headed_home
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -603,6 +668,7 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 1
+          except: 
         effects:
         - flag: met_menexeno
           value: true
@@ -613,12 +679,15 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 0
+          except: 
         - flag: headed_home
           value: 
           absent: 1
+          except: 
         - flag: maieutics_unlocked
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -627,12 +696,15 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 0
+          except: 
         - flag: headed_home
           value: 
           absent: 0
+          except: 
         - flag: maieutics_unlocked
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -641,6 +713,7 @@ MonoBehaviour:
         - flag: maieutics_unlocked
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -649,9 +722,11 @@ MonoBehaviour:
         - flag: maieutics_unlocked
           value: 
           absent: 0
+          except: 
         - flag: menexeno_avoids_past
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -660,9 +735,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: damaris_branch
           value: undecided
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -671,9 +748,11 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         - flag: damaris_branch
           value: undecided
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -682,6 +761,7 @@ MonoBehaviour:
         - flag: menexeno_respect
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -690,6 +770,7 @@ MonoBehaviour:
         - flag: menexeno_respect
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -698,6 +779,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: accepted
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: menexeno
@@ -706,9 +788,11 @@ MonoBehaviour:
         - flag: met_menexeno
           value: 
           absent: 0
+          except: 
         - flag: met_eudoro
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -721,6 +805,7 @@ MonoBehaviour:
         - flag: met_eudoro
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -729,6 +814,7 @@ MonoBehaviour:
         - flag: met_eudoro
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: eudoro
@@ -737,6 +823,7 @@ MonoBehaviour:
         - flag: met_eudoro
           value: 
           absent: 1
+          except: 
         effects:
         - flag: met_eudoro
           value: true
@@ -747,9 +834,11 @@ MonoBehaviour:
         - flag: met_eudoro
           value: 
           absent: 0
+          except: 
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: eudoro
@@ -758,9 +847,11 @@ MonoBehaviour:
         - flag: met_eudoro
           value: 
           absent: 0
+          except: 
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -773,6 +864,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: thrasybios
@@ -781,6 +873,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: thrasybios
@@ -789,6 +882,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -797,6 +891,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: thrasybios
@@ -805,6 +900,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -813,6 +909,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: 
@@ -821,6 +918,7 @@ MonoBehaviour:
         - flag: saw_thrasybios_demo
           value: 
           absent: 1
+          except: 
         effects:
         - flag: saw_thrasybios_demo
           value: true
@@ -1029,6 +1127,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -1037,6 +1136,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -1045,6 +1145,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -1053,6 +1154,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -1061,6 +1163,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -1073,6 +1176,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -1081,6 +1185,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -1089,6 +1194,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 1
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -1097,6 +1203,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: kleia
@@ -1105,6 +1212,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: customer
@@ -1113,6 +1221,7 @@ MonoBehaviour:
         - flag: pressure_rumor
           value: 
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
@@ -1238,6 +1347,7 @@ MonoBehaviour:
           - flag: menexeno_condition
             value: 
             absent: 0
+            except: 
           effects: []
           choices: []
         - speaker: kleia
@@ -1246,6 +1356,7 @@ MonoBehaviour:
           - flag: menexeno_condition
             value: 
             absent: 1
+            except: 
           effects: []
           choices: []
         - speaker: damaris
@@ -1267,6 +1378,7 @@ MonoBehaviour:
         - flag: damaris_branch
           value: accepted
           absent: 0
+          except: 
         effects: []
         choices: []
       - speaker: 
@@ -1275,10 +1387,11 @@ MonoBehaviour:
         - flag: damaris_branch
           value: refused
           absent: 0
+          except: 
         effects: []
         choices: []
       branches: []
-  - key: agora_menexeno_gone
+  - key: agora_menexeno_away
     value:
       lines:
       - speaker: 
@@ -1288,6 +1401,471 @@ MonoBehaviour:
         choices: []
       - speaker: kleia
         text: "Ele j\xE1 sabe da bolsa. N\xE3o sei como, mas sabe."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_street_trial_summons
+    value:
+      lines:
+      - speaker: 
+        text: "Um arauto bate o bast\xE3o nos degraus do P\xF3rtico. A \xE1gora inteira se vira para a escadaria."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Kleia do Cer\xE2mico! A cidade inteira repete o que dizem de voc\xEA: que ensina a duvidar dos deuses."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Suba a escadaria do P\xF3rtico e se defenda diante de todos. Ou fuja, e deixe que o seu sil\xEAncio responda."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Se eu perder, ningu\xE9m mais compra uma \xE2nfora do meu pai."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: Thrasybios espera no alto dos degraus. Aponte para ele e confirme quando estiver pronta.
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_intro
+    value:
+      lines:
+      - speaker: 
+        text: "A plateia se aperta nos degraus. Gente do mercado, gente das casas, gente que nunca comprou uma \xE2nfora."
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Cidad\xE3os, voc\xEAs me conhecem. Eu vendo a arte de vencer discuss\xF5es. Hoje dou uma aula de gra\xE7a."
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "A aula \xE9 esta menina. Vejam como termina quem pergunta o que n\xE3o devia."
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: Pergunte o que quiser. Eu respondo aqui, na frente de todos.
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "De volta \xE0 escadaria? A plateia adora ver a mesma queda duas vezes."
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 0
+          except: 
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: Deixem a menina tentar de novo! Da outra vez foi divertido.
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 0
+          except: 
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Da outra vez eu respondi ao que voc\xEA queria. Hoje respondo ao que voc\xEA disse."
+        conditions:
+        - flag: lost_street_trial
+          value: 
+          absent: 0
+          except: 
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_personal_attack
+    value:
+      lines:
+      - speaker: 
+        text: "Thrasybios n\xE3o discute ideias. Ele aponta para as m\xE3os dela, manchadas de argila, e a plateia ri."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Contra quem ataca a origem, negar s\xF3 d\xE1 muni\xE7\xE3o. \xC0s vezes a jogada certa \xE9 CONCEDER: aceitar o fato e deixar o ataque sem alvo."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_false_dilemma
+    value:
+      lines:
+      - speaker: kleia
+        text: "Sou filha de oleiro, sim. E a \xE2nfora que eu fa\xE7o continua sendo uma \xE2nfora."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Desta vez a plateia ri dele. A arma caiu da m\xE3o de Thrasybios, e ele ergue a outra."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Muito bem. Ent\xE3o responda o que importa: voc\xEA respeita os deuses, ou \xE9 como S\xF3crates?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Quando algu\xE9m oferece s\xF3 duas sa\xEDdas e existe uma terceira, o erro tem nome. Aponte-o com REFUTAR."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_political_fear
+    value:
+      lines:
+      - speaker: kleia
+        text: "Existe uma terceira sa\xEDda: respeitar os deuses e continuar perguntando. S\xF3crates n\xE3o \xE9 a \xFAnica outra porta."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Thrasybios empalidece. Ent\xE3o a voz dele desce, como quem conta um segredo \xE0 cidade inteira."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Voc\xEAs se lembram dos Trinta?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Contra o medo, apontar a fal\xE1cia n\xE3o basta: a plateia sente antes de pensar. S\xF3 uma pergunta o faz trope\xE7ar sozinho. Use a MAI\xCAUTICA e pergunte o que ele mesmo fez enquanto os Trinta mandavam."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_victory
+    value:
+      lines:
+      - speaker: kleia
+        text: "Uma pergunta s\xF3, Thrasybios. Onde voc\xEA morava enquanto os Trinta mandavam?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Numa casa boa. Comprei barato, de uma fam\xEDlia que precisou partir."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: Precisou partir. E quem pagava as suas aulas naquele ano?
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: Os filhos deles. Dos Trinta. Pagavam bem.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: Ele lucrou com os tiranos!
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Desta vez ningu\xE9m ri de Kleia. Thrasybios desce os degraus sem o rolo de papiro, e ningu\xE9m abre caminho para ele."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Kleia procura Menexeno entre as colunas do P\xF3rtico. Queria que ele tivesse visto."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: street_trial_defeat
+    value:
+      lines:
+      - speaker: 
+        text: Kleia perde o fio. Os degraus parecem mais altos do que antes.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: "\xCDmpia! A filha do oleiro \xE9 \xEDmpia!"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Viram? Quem pergunta demais acaba sem resposta. Amanh\xE3 ningu\xE9m compra uma \xE2nfora de Aristeu."
+        conditions: []
+        effects:
+        - flag: lost_street_trial
+          value: true
+        choices: []
+      - speaker: 
+        text: "Mas Thrasybios n\xE3o sai da escadaria. Ele gosta de plateia, e a plateia quer outra rodada."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Da pr\xF3xima vez, ou\xE7a o que cada ataque quer de voc\xEA antes de responder. Ele espera no alto do P\xF3rtico."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_menexeno_gone
+    value:
+      lines:
+      - speaker: kleia
+        text: Menexeno?
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "O lugar dele entre as colunas est\xE1 vazio. Nenhum bast\xE3o de oliveira encostado em lugar nenhum."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: Ele sempre desviava os olhos para o mesmo lado. Para os tribunais.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Atr\xE1s do P\xF3rtico, a porta do arquivo da cidade est\xE1 entreaberta."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: archive_entrance
+    value:
+      lines:
+      - speaker: 
+        text: "O Metr\xF4on. Aqui a cidade guarda leis, contas e senten\xE7as: tabuinhas, rolos e jarros lacrados com cera."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Junto \xE0s colunas, um homem de manto branco l\xEA um rolo e n\xE3o levanta os olhos."
+        conditions:
+        - flag: bronze_seal
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Se ele veio at\xE9 aqui, veio atr\xE1s de alguma coisa escrita."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: archive_archivist
+    value:
+      lines:
+      - speaker: archivist
+        text: "O velho do bast\xE3o de oliveira? Esteve aqui ao amanhecer."
+        conditions:
+        - flag: asked_archivist
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: O que ele queria?
+        conditions:
+        - flag: asked_archivist
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: archivist
+        text: "A lista do Conselho do ano dos Trinta. Leu de p\xE9, sem sentar. Devolveu e foi embora sem dizer nada."
+        conditions:
+        - flag: asked_archivist
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: archivist
+        text: "Ficou na mesa do fundo, entre os jarros. \xC9 documento p\xFAblico. Todo mundo esquece que \xE9."
+        conditions:
+        - flag: asked_archivist
+          value: 
+          absent: 1
+          except: 
+        effects:
+        - flag: asked_archivist
+          value: true
+        choices: []
+      - speaker: archivist
+        text: "A lista est\xE1 na mesa do fundo, entre os jarros."
+        conditions:
+        - flag: asked_archivist
+          value: 
+          absent: 0
+          except: 
+        - flag: read_juror_list
+          value: 
+          absent: 1
+          except: 
+        effects: []
+        choices: []
+      - speaker: archivist
+        text: "A anistia manda esquecer o que se fez no tempo dos Trinta. O arquivo n\xE3o sabe esquecer."
+        conditions:
+        - flag: read_juror_list
+          value: 
+          absent: 0
+          except: 
+        effects: []
+        choices: []
+      branches: []
+  - key: archive_juror_list
+    value:
+      lines:
+      - speaker: 
+        text: "Uma t\xE1bua caiada, com nomes pintados em colunas. No alto: Conselho, no ano dos Trinta."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Processo contra S\xF3crates, filho de Sofronisco, por recusar a ordem de prender Le\xE3o de Salamina. Pena pedida: a morte."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Os Trinta ca\xEDram antes que a senten\xE7a fosse cumprida. Na coluna da condena\xE7\xE3o, entre dezenas de nomes: Menexeno, ferreiro."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "S\xF3crates. A m\xE3e dele era parteira."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: Era dele que o senhor falava na porta da oficina. E votou pela morte dele.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Menexeno n\xE3o estava ensinando por bondade. Estava pagando uma d\xEDvida."
+        conditions: []
+        effects:
+        - flag: knows_menexeno_vote
+          value: true
+        choices: []
+      branches: []
+  - key: archive_bronze_seal
+    value:
+      lines:
+      - speaker: academic
+        text: "Voc\xEA \xE9 a menina da escadaria. Eu estava na plateia quando Thrasybios confessou."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Veio rir tamb\xE9m?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: academic
+        text: Vim entregar isto.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ele p\xF5e na m\xE3o dela um selo de bronze, pesado e frio, com uma coruja gravada."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: academic
+        text: "\xC9 da Academia, al\xE9m das muralhas. N\xE3o \xE9 admiss\xE3o: l\xE1 voc\xEA n\xE3o pode se inscrever. \xC9 um convite para visitar."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: E quanto custa?
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: academic
+        text: "Nada. Quem convida n\xE3o cobra."
+        conditions: []
+        effects:
+        - flag: bronze_seal
+          value: true
+        - flag: act
+          value: 2
+        choices: []
+      branches: []
+  - key: archive_act_two
+    value:
+      lines:
+      - speaker: 
+        text: "Kleia aperta o selo de bronze. Pela primeira vez, ele pesa mais que uma \xE2nfora cheia."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Na \xE1gora, atr\xE1s das casas de tijolo, a n\xE9voa se abriu sobre a estrada da Academia."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: 'Fim do Ato I. Ato II: toda pergunta tem resposta?'
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_academy_road
+    value:
+      lines:
+      - speaker: 
+        text: "Atr\xE1s das casas de tijolo, onde antes s\xF3 havia n\xE9voa, uma estrada de terra sai da cidade para o noroeste."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "A estrada da Academia. Convidada, n\xE3o aluna. J\xE1 \xE9 mais do que me deixavam ser ontem."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: academy_threshold
+    value:
+      lines:
+      - speaker: 
+        text: "Os jardins de Academo, fora das muralhas. \xC0 sombra das oliveiras, rapazes discutem geometria em voz alta."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Ningu\xE9m aqui vende respostas. Vamos ver se algu\xE9m tem alguma."
         conditions: []
         effects: []
         choices: []

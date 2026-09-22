@@ -8,7 +8,9 @@
     "thrasybios": { "name": "Thrasybios", "portrait": "thrasybios" },
     "customer": { "name": "Freguês", "portrait": "citizen" },
     "crowd": { "name": "Plateia" },
-    "damaris": { "name": "Damaris", "portrait": "damaris" }
+    "damaris": { "name": "Damaris", "portrait": "damaris" },
+    "archivist": { "name": "Arquivista", "portrait": "citizen" },
+    "academic": { "name": "Acadêmico", "portrait": "citizen" }
   },
   "dialogues": [
     {
@@ -834,7 +836,7 @@
       ]
     },
     {
-      "id": "agora_menexeno_gone",
+      "id": "agora_menexeno_away",
       "lines": [
         {
           "text": "Junto às colunas da stoa, onde Menexeno costuma se apoiar no bastão, não há ninguém."
@@ -842,6 +844,339 @@
         {
           "speaker": "kleia",
           "text": "Ele já sabe da bolsa. Não sei como, mas sabe."
+        }
+      ]
+    },
+    {
+      "id": "agora_street_trial_summons",
+      "lines": [
+        {
+          "text": "Um arauto bate o bastão nos degraus do Pórtico. A ágora inteira se vira para a escadaria."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Kleia do Cerâmico! A cidade inteira repete o que dizem de você: que ensina a duvidar dos deuses."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Suba a escadaria do Pórtico e se defenda diante de todos. Ou fuja, e deixe que o seu silêncio responda."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Se eu perder, ninguém mais compra uma ânfora do meu pai."
+        },
+        {
+          "text": "Thrasybios espera no alto dos degraus. Aponte para ele e confirme quando estiver pronta."
+        }
+      ]
+    },
+    {
+      "id": "street_trial_intro",
+      "lines": [
+        {
+          "text": "A plateia se aperta nos degraus. Gente do mercado, gente das casas, gente que nunca comprou uma ânfora.",
+          "conditions": [{ "flag": "lost_street_trial", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Cidadãos, vocês me conhecem. Eu vendo a arte de vencer discussões. Hoje dou uma aula de graça.",
+          "conditions": [{ "flag": "lost_street_trial", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "A aula é esta menina. Vejam como termina quem pergunta o que não devia.",
+          "conditions": [{ "flag": "lost_street_trial", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Pergunte o que quiser. Eu respondo aqui, na frente de todos.",
+          "conditions": [{ "flag": "lost_street_trial", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "De volta à escadaria? A plateia adora ver a mesma queda duas vezes.",
+          "conditions": [{ "flag": "lost_street_trial" }]
+        },
+        {
+          "speaker": "crowd",
+          "text": "Deixem a menina tentar de novo! Da outra vez foi divertido.",
+          "conditions": [{ "flag": "lost_street_trial" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Da outra vez eu respondi ao que você queria. Hoje respondo ao que você disse.",
+          "conditions": [{ "flag": "lost_street_trial" }]
+        }
+      ]
+    },
+    {
+      "id": "street_trial_personal_attack",
+      "lines": [
+        {
+          "text": "Thrasybios não discute ideias. Ele aponta para as mãos dela, manchadas de argila, e a plateia ri."
+        },
+        {
+          "text": "Contra quem ataca a origem, negar só dá munição. Às vezes a jogada certa é CONCEDER: aceitar o fato e deixar o ataque sem alvo."
+        }
+      ]
+    },
+    {
+      "id": "street_trial_false_dilemma",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "Sou filha de oleiro, sim. E a ânfora que eu faço continua sendo uma ânfora."
+        },
+        {
+          "text": "Desta vez a plateia ri dele. A arma caiu da mão de Thrasybios, e ele ergue a outra."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Muito bem. Então responda o que importa: você respeita os deuses, ou é como Sócrates?"
+        },
+        {
+          "text": "Quando alguém oferece só duas saídas e existe uma terceira, o erro tem nome. Aponte-o com REFUTAR."
+        }
+      ]
+    },
+    {
+      "id": "street_trial_political_fear",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "Existe uma terceira saída: respeitar os deuses e continuar perguntando. Sócrates não é a única outra porta."
+        },
+        {
+          "text": "Thrasybios empalidece. Então a voz dele desce, como quem conta um segredo à cidade inteira."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Vocês se lembram dos Trinta?"
+        },
+        {
+          "text": "Contra o medo, apontar a falácia não basta: a plateia sente antes de pensar. Só uma pergunta o faz tropeçar sozinho. Use a MAIÊUTICA e pergunte o que ele mesmo fez enquanto os Trinta mandavam."
+        }
+      ]
+    },
+    {
+      "id": "street_trial_victory",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "Uma pergunta só, Thrasybios. Onde você morava enquanto os Trinta mandavam?"
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Numa casa boa. Comprei barato, de uma família que precisou partir."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Precisou partir. E quem pagava as suas aulas naquele ano?"
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Os filhos deles. Dos Trinta. Pagavam bem."
+        },
+        {
+          "speaker": "crowd",
+          "text": "Ele lucrou com os tiranos!"
+        },
+        {
+          "text": "Desta vez ninguém ri de Kleia. Thrasybios desce os degraus sem o rolo de papiro, e ninguém abre caminho para ele."
+        },
+        {
+          "text": "Kleia procura Menexeno entre as colunas do Pórtico. Queria que ele tivesse visto."
+        }
+      ]
+    },
+    {
+      "id": "street_trial_defeat",
+      "lines": [
+        {
+          "text": "Kleia perde o fio. Os degraus parecem mais altos do que antes."
+        },
+        {
+          "speaker": "crowd",
+          "text": "Ímpia! A filha do oleiro é ímpia!"
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Viram? Quem pergunta demais acaba sem resposta. Amanhã ninguém compra uma ânfora de Aristeu.",
+          "effects": [{ "flag": "lost_street_trial" }]
+        },
+        {
+          "text": "Mas Thrasybios não sai da escadaria. Ele gosta de plateia, e a plateia quer outra rodada."
+        },
+        {
+          "text": "Da próxima vez, ouça o que cada ataque quer de você antes de responder. Ele espera no alto do Pórtico."
+        }
+      ]
+    },
+    {
+      "id": "agora_menexeno_gone",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "Menexeno?"
+        },
+        {
+          "text": "O lugar dele entre as colunas está vazio. Nenhum bastão de oliveira encostado em lugar nenhum."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ele sempre desviava os olhos para o mesmo lado. Para os tribunais."
+        },
+        {
+          "text": "Atrás do Pórtico, a porta do arquivo da cidade está entreaberta."
+        }
+      ]
+    },
+    {
+      "id": "archive_entrance",
+      "lines": [
+        {
+          "text": "O Metrôon. Aqui a cidade guarda leis, contas e sentenças: tabuinhas, rolos e jarros lacrados com cera."
+        },
+        {
+          "text": "Junto às colunas, um homem de manto branco lê um rolo e não levanta os olhos.",
+          "conditions": [{ "flag": "bronze_seal", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Se ele veio até aqui, veio atrás de alguma coisa escrita."
+        }
+      ]
+    },
+    {
+      "id": "archive_archivist",
+      "lines": [
+        {
+          "speaker": "archivist",
+          "text": "O velho do bastão de oliveira? Esteve aqui ao amanhecer.",
+          "conditions": [{ "flag": "asked_archivist", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "O que ele queria?",
+          "conditions": [{ "flag": "asked_archivist", "absent": true }]
+        },
+        {
+          "speaker": "archivist",
+          "text": "A lista do Conselho do ano dos Trinta. Leu de pé, sem sentar. Devolveu e foi embora sem dizer nada.",
+          "conditions": [{ "flag": "asked_archivist", "absent": true }]
+        },
+        {
+          "speaker": "archivist",
+          "text": "Ficou na mesa do fundo, entre os jarros. É documento público. Todo mundo esquece que é.",
+          "conditions": [{ "flag": "asked_archivist", "absent": true }],
+          "effects": [{ "flag": "asked_archivist" }]
+        },
+        {
+          "speaker": "archivist",
+          "text": "A lista está na mesa do fundo, entre os jarros.",
+          "conditions": [{ "flag": "asked_archivist" }, { "flag": "read_juror_list", "absent": true }]
+        },
+        {
+          "speaker": "archivist",
+          "text": "A anistia manda esquecer o que se fez no tempo dos Trinta. O arquivo não sabe esquecer.",
+          "conditions": [{ "flag": "read_juror_list" }]
+        }
+      ]
+    },
+    {
+      "id": "archive_juror_list",
+      "lines": [
+        {
+          "text": "Uma tábua caiada, com nomes pintados em colunas. No alto: Conselho, no ano dos Trinta."
+        },
+        {
+          "text": "Processo contra Sócrates, filho de Sofronisco, por recusar a ordem de prender Leão de Salamina. Pena pedida: a morte."
+        },
+        {
+          "text": "Os Trinta caíram antes que a sentença fosse cumprida. Na coluna da condenação, entre dezenas de nomes: Menexeno, ferreiro."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Sócrates. A mãe dele era parteira."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Era dele que o senhor falava na porta da oficina. E votou pela morte dele."
+        },
+        {
+          "text": "Menexeno não estava ensinando por bondade. Estava pagando uma dívida.",
+          "effects": [{ "flag": "knows_menexeno_vote" }]
+        }
+      ]
+    },
+    {
+      "id": "archive_bronze_seal",
+      "lines": [
+        {
+          "speaker": "academic",
+          "text": "Você é a menina da escadaria. Eu estava na plateia quando Thrasybios confessou."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Veio rir também?"
+        },
+        {
+          "speaker": "academic",
+          "text": "Vim entregar isto."
+        },
+        {
+          "text": "Ele põe na mão dela um selo de bronze, pesado e frio, com uma coruja gravada."
+        },
+        {
+          "speaker": "academic",
+          "text": "É da Academia, além das muralhas. Não é admissão: lá você não pode se inscrever. É um convite para visitar."
+        },
+        {
+          "speaker": "kleia",
+          "text": "E quanto custa?"
+        },
+        {
+          "speaker": "academic",
+          "text": "Nada. Quem convida não cobra.",
+          "effects": [{ "flag": "bronze_seal" }, { "flag": "act", "value": "2" }]
+        }
+      ]
+    },
+    {
+      "id": "archive_act_two",
+      "lines": [
+        {
+          "text": "Kleia aperta o selo de bronze. Pela primeira vez, ele pesa mais que uma ânfora cheia."
+        },
+        {
+          "text": "Na ágora, atrás das casas de tijolo, a névoa se abriu sobre a estrada da Academia."
+        },
+        {
+          "text": "Fim do Ato I. Ato II: toda pergunta tem resposta?"
+        }
+      ]
+    },
+    {
+      "id": "agora_academy_road",
+      "lines": [
+        {
+          "text": "Atrás das casas de tijolo, onde antes só havia névoa, uma estrada de terra sai da cidade para o noroeste."
+        },
+        {
+          "speaker": "kleia",
+          "text": "A estrada da Academia. Convidada, não aluna. Já é mais do que me deixavam ser ontem."
+        }
+      ]
+    },
+    {
+      "id": "academy_threshold",
+      "lines": [
+        {
+          "text": "Os jardins de Academo, fora das muralhas. À sombra das oliveiras, rapazes discutem geometria em voz alta."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ninguém aqui vende respostas. Vamos ver se alguém tem alguma."
         }
       ]
     }

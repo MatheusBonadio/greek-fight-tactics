@@ -8,6 +8,7 @@ namespace Game.UI
     {
         public const string IdleState = "idle";
         public const string WalkState = "walk";
+        public const string ActionState = "action";
         public const string DirectionXParameter = "dirX";
         public const string DirectionYParameter = "dirY";
 
@@ -18,6 +19,7 @@ namespace Game.UI
         [SerializeField] private Animator animator;
 
         private string playingState;
+        private Posture posture = Posture.Idle;
 
         public Vector2Int StartCell => startCell;
 
@@ -28,6 +30,32 @@ namespace Game.UI
         public SpriteRenderer SpriteRenderer => spriteRenderer;
 
         public GridWalker Walker { get; private set; }
+
+        public Posture Posture
+        {
+            get => posture;
+            set
+            {
+                posture = value;
+                Sync();
+            }
+        }
+
+        public Color Tint
+        {
+            get => spriteRenderer ? spriteRenderer.color : Color.white;
+            set
+            {
+                if (spriteRenderer)
+                {
+                    spriteRenderer.color = value;
+                }
+            }
+        }
+
+        public string PlayingState => playingState;
+
+        public static string StateFor(Posture posture, bool stepping) => stepping ? WalkState : posture == Posture.Action ? ActionState : IdleState;
 
         public bool IsShown
         {
@@ -85,7 +113,7 @@ namespace Game.UI
             animator.SetFloat(DirectionXParameter, 1f);
             animator.SetFloat(DirectionYParameter, FacingRules.SheetFacing(facing) == Facing.NorthEast ? 1f : -1f);
 
-            var state = stepping ? WalkState : IdleState;
+            var state = StateFor(posture, stepping);
             if (state == playingState)
             {
                 return;

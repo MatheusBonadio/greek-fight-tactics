@@ -26,3 +26,9 @@ MonoBehaviour:
     fallacyId: 
     doneFlag: 
     dialogues: []
+  sheetId: 
+  phases:
+    intro: 
+    victory: 
+    defeat: 
+    phases: []

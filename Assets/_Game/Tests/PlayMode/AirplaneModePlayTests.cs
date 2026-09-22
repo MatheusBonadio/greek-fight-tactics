@@ -184,6 +184,7 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(services, "the agora must contain GameServices");
             director.ThinkSeconds = OfflineThinkSeconds;
             services.PushRetrySeconds = FastPushRetrySeconds;
+            yield return WaitFor(() => sandbox.ProgressLoaded, GameServices.OnlineBootBudgetSeconds + StartTimeoutSeconds);
 
             var target = director.Opponents[0];
             var opponentId = target.Actor.Walker.ActorId;
@@ -270,8 +271,9 @@ namespace Game.Tests.PlayMode
             director.ThinkSeconds = OfflineThinkSeconds;
             services.PushRetrySeconds = FastPushRetrySeconds;
 
+            yield return WaitFor(() => sandbox.ProgressLoaded, RealPrewarmTimeoutSeconds);
             var target = director.Opponents[0];
-            bool EveryOpponentIsReady() => director.PreparedArguments != null && director.Opponents.All(entry => director.PreparedArguments.ReadyCount(entry.Actor.Walker.ActorId) == SandboxBattleDirector.PrewarmCount);
+            bool EveryOpponentIsReady() => director.PreparedArguments != null && director.Opponents.Where(SandboxBattleDirector.Prewarms).All(entry => director.PreparedArguments.ReadyCount(entry.Actor.Walker.ActorId) == SandboxBattleDirector.PrewarmCount);
             yield return WaitFor(EveryOpponentIsReady, RealPrewarmTimeoutSeconds);
             Assert.IsTrue(EveryOpponentIsReady(), $"the server never answered the whole prewarm: {string.Join(", ", server.Received)}");
             Assert.AreEqual(1, firebase.SignUps);

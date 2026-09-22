@@ -28,6 +28,14 @@ namespace Game.EditorTools
         public const string KerameikosMapPath = "Assets/_Game/Data/Maps/kerameikos.json";
         public const string KerameikosScenePath = "Assets/_Game/Scenes/Kerameikos.unity";
         public const string KerameikosCapturePath = "artifacts/reference/kerameikos.png";
+        public const string ArchiveLocationId = "archive";
+        public const string ArchiveMapPath = "Assets/_Game/Data/Maps/archive.json";
+        public const string ArchiveScenePath = "Assets/_Game/Scenes/Archive.unity";
+        public const string ArchiveCapturePath = "artifacts/reference/archive.png";
+        public const string AcademyLocationId = "academy";
+        public const string AcademyMapPath = "Assets/_Game/Data/Maps/academy.json";
+        public const string AcademyScenePath = "Assets/_Game/Scenes/Academy.unity";
+        public const string AcademyCapturePath = "artifacts/reference/academy.png";
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
         public const string AnimatedTileAssetFolder = TileAssetFolder + "/Animated";
@@ -86,7 +94,9 @@ namespace Game.EditorTools
         public static readonly (string LocationId, string MapPath, string ScenePath)[] Maps =
         {
             (AgoraLocationId, MapPath, ScenePath),
-            (KerameikosLocationId, KerameikosMapPath, KerameikosScenePath)
+            (KerameikosLocationId, KerameikosMapPath, KerameikosScenePath),
+            (ArchiveLocationId, ArchiveMapPath, ArchiveScenePath),
+            (AcademyLocationId, AcademyMapPath, AcademyScenePath)
         };
         public static readonly string[] FogEdgeNames = { "fog_edge_ne", "fog_edge_nw", "fog_edge_se", "fog_edge_sw" };
 
@@ -126,6 +136,14 @@ namespace Game.EditorTools
         {
             CaptureReferenceImage(ScenePath, CapturePath, MapLayout.Load(MapPath));
             CaptureReferenceImage(KerameikosScenePath, KerameikosCapturePath, MapLayout.Load(KerameikosMapPath));
+            CaptureReferenceImage(ArchiveScenePath, ArchiveCapturePath, MapLayout.Load(ArchiveMapPath));
+            CaptureReferenceImage(AcademyScenePath, AcademyCapturePath, MapLayout.Load(AcademyMapPath));
+        }
+
+        public static Act ActOf(string locationId)
+        {
+            var entry = Maps.FirstOrDefault(map => map.LocationId == locationId);
+            return entry.MapPath == null ? ActGate.FirstAct : MapLayout.Load(entry.MapPath).Act;
         }
 
 
@@ -328,7 +346,8 @@ namespace Game.EditorTools
                     exit.Facing,
                     map.HeadingOf(exit),
                     exit.Label,
-                    tiles[ExitMarkerFor(map.HeadingOf(exit))]))
+                    tiles[ExitMarkerFor(map.HeadingOf(exit))])
+                    .Gated(ActOf(exit.Location), exit.StoryConditions))
                 .ToArray());
             controller.ConfigurePresences(map.Actors
                 .Select((actor, index) => (actor, index))
@@ -519,7 +538,7 @@ namespace Game.EditorTools
         {
             var root = new GameObject("Actors");
             return map.Actors
-                .Select(actor => CreateActorView(root.transform, $"{actor.Character}_{actor.X}_{actor.Y}", actor.Character, new Vector2Int(actor.X, actor.Y), actor.Facing, map.LevelAt(actor.X, actor.Y)))
+                .Select(actor => CreateActorView(root.transform, $"{actor.Character}_{actor.X}_{actor.Y}", actor.SheetId, new Vector2Int(actor.X, actor.Y), actor.Facing, map.LevelAt(actor.X, actor.Y)))
                 .ToList();
         }
 
@@ -578,7 +597,7 @@ namespace Game.EditorTools
                 .Select((actor, index) => (actor, index))
                 .Skip(1)
                 .Where(pair => opponents.ContainsKey(pair.actor.Character))
-                .Select(pair => new MapOpponent(actors[pair.index], opponents[pair.actor.Character], PortraitFor(pair.actor.Character)))
+                .Select(pair => new MapOpponent(actors[pair.index], opponents[pair.actor.Character], PortraitFor(pair.actor.SheetId)))
                 .ToList();
         }
 
@@ -606,7 +625,7 @@ namespace Game.EditorTools
                 AssetDatabase.LoadAssetAtPath<Game.Content.UiTextSO>(DataTools.UiTextPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath),
                 AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath));
-            director.ConfigurePlayerPortrait(PortraitFor(placements[0].Character));
+            director.ConfigurePlayerPortrait(PortraitFor(placements[0].SheetId));
             return director;
         }
 

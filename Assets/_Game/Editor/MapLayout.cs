@@ -18,16 +18,25 @@ namespace Game.EditorTools
 
         public bool Absent { get; set; }
 
-        public StoryCondition ToCondition() => new(Flag, EqualsValue, Absent);
+        [JsonProperty("not")]
+        public string NotValue { get; set; }
+
+        public StoryCondition ToCondition() => new(Flag, EqualsValue, Absent, NotValue);
 
         public static MapCondition Has(string flag) => new() { Flag = flag };
 
         public static MapCondition Lacks(string flag) => new() { Flag = flag, Absent = true };
+
+        public static MapCondition Differs(string flag, string value) => new() { Flag = flag, NotValue = value };
     }
 
     public sealed class MapActor
     {
         public string Character { get; set; }
+
+        public string Sheet { get; set; }
+
+        public string SheetId => string.IsNullOrWhiteSpace(Sheet) ? Character : Sheet;
 
         public int X { get; set; }
 
@@ -137,6 +146,10 @@ namespace Game.EditorTools
         public Facing? Heading { get; set; }
 
         public string Label { get; set; }
+
+        public List<MapCondition> Conditions { get; set; } = new();
+
+        public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
     }
 
     public sealed class MapLayout
@@ -173,6 +186,8 @@ namespace Game.EditorTools
         public bool Home { get; set; }
 
         public int? FogRevealDepth { get; set; }
+
+        public Act Act { get; set; } = Act.One;
 
         public int Width => Floor.Count == 0 ? 0 : Floor[0].Length;
 
@@ -314,6 +329,19 @@ namespace Game.EditorTools
                 {
                     throw new InvalidOperationException($"map {Id}: the exit at ({exit.X}, {exit.Y}) has a blank label");
                 }
+
+                ValidateConditions($"the exit at ({exit.X}, {exit.Y})", exit.Conditions);
+            }
+
+            if (!Enum.IsDefined(typeof(Act), Act))
+            {
+                throw new InvalidOperationException($"map {Id}: act {(int)Act} is not an act of the game");
+            }
+
+            var sheetless = Actors.FirstOrDefault(actor => actor.Sheet != null && string.IsNullOrWhiteSpace(actor.Sheet));
+            if (sheetless != null)
+            {
+                throw new InvalidOperationException($"map {Id}: {sheetless.Character} at ({sheetless.X}, {sheetless.Y}) has a blank sheet");
             }
 
             if (!string.IsNullOrEmpty(Actors[0].Dialogue))

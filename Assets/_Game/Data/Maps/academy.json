@@ -1,0 +1,42 @@
+{
+  "id": "academy",
+  "act": 2,
+  "floorLegend": {
+    ".": "floor_marble",
+    "g": "floor_grass",
+    "d": "floor_dirt"
+  },
+  "blockLegend": {
+    "T": "prop_olive_trunk",
+    "C": "block_doric_column"
+  },
+  "floor": [
+    "gggddggg",
+    "gggddggg",
+    "gggddggg",
+    "ggg..ggg",
+    "gg....gg",
+    "gg....gg",
+    "gg....gg",
+    "gggggggg"
+  ],
+  "blocks": [
+    "--------",
+    "-T----T-",
+    "--------",
+    "T------T",
+    "--C--C--",
+    "--------",
+    "--C--C--",
+    "T--T--T-"
+  ],
+  "actors": [
+    { "character": "kleia", "x": 3, "y": 1, "facing": "NorthWest" }
+  ],
+  "exits": [
+    { "x": 3, "y": 0, "location": "agora", "arrivalX": 7, "arrivalY": 10, "facing": "SouthEast", "label": "Para a ágora" }
+  ],
+  "cues": [
+    { "on": "Idle", "dialogue": "academy_threshold", "flag": "reached_academy" }
+  ]
+}

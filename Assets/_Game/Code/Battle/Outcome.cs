@@ -26,6 +26,8 @@ namespace Game.Battle
 
         public bool Counterattack { get; internal set; }
 
+        public bool Deflected { get; internal set; }
+
         public int ActorCoherenceDelta { get; internal set; }
 
         public int TargetCoherenceDelta { get; internal set; }

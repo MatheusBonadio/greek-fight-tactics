@@ -26,7 +26,7 @@ namespace Game.Tests.PlayMode
         private const string DamarisCharacter = "damaris";
         private const string DamarisCutscene = "damaris_seeks_kleia";
         private const string MenexenoDialogue = "menexeno_agora";
-        private const string MenexenoGoneCue = "agora_menexeno_gone";
+        private const string MenexenoGoneCue = "agora_menexeno_away";
         private const string DuelOpponent = "simo";
         private const string CalmWorkshopCapturePath = "artifacts/reference/kerameikos_calm.png";
         private const string PressedWorkshopCapturePath = "artifacts/reference/kerameikos_pressure.png";
@@ -152,6 +152,7 @@ namespace Game.Tests.PlayMode
             var opponent = battle.Opponents.Single(entry => entry.Opponent.Id == DuelOpponent);
             yield return DuelChallenge.Engage(map.Sandbox, battle, opponent, TimeoutSeconds);
             Assert.IsTrue(battle.Session.State.HasAbility(ability), "the ability comes from the save");
+            KeepMaieuticsInReachWhereverTheOpponentWanders(battle, map.Sandbox);
 
             var shown = new List<string>();
             var firstArgument = default(BattleLogEntry);
@@ -310,6 +311,12 @@ namespace Game.Tests.PlayMode
         {
             var link = map.Sandbox.BlockPresences.Single(presence => map.Sandbox.BlockTiles[presence.Cell.Y * map.Sandbox.Width + presence.Cell.X].name == tile);
             return link.Cell;
+        }
+
+        private static void KeepMaieuticsInReachWhereverTheOpponentWanders(SandboxBattleDirector battle, GridSandboxController sandbox)
+        {
+            battle.Session.State.Rules.MaieuticsRange = sandbox.Width + sandbox.Height;
+            battle.Session.Menu.Refresh();
         }
 
         private static bool WeakPremiseGlows(SandboxBattleDirector battle)

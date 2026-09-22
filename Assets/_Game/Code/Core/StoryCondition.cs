@@ -8,12 +8,14 @@ namespace Game.Core
         public readonly string Flag;
         public readonly string Value;
         public readonly bool Absent;
+        public readonly string Except;
 
-        public StoryCondition(string flag, string value = null, bool absent = false)
+        public StoryCondition(string flag, string value = null, bool absent = false, string except = null)
         {
             Flag = flag;
             Value = string.IsNullOrEmpty(value) ? null : value;
             Absent = absent;
+            Except = string.IsNullOrEmpty(except) ? null : except;
         }
 
         public static StoryCondition Has(string flag) => new(flag);
@@ -22,7 +24,12 @@ namespace Game.Core
 
         public static StoryCondition Is(string flag, string value) => new(flag, value);
 
-        public bool IsValid => SaveFlags.IsValidName(Flag) && !(Absent && (Value != null || SaveFlags.IsKnownName(Flag)));
+        public static StoryCondition Not(string flag, string value) => new(flag, null, false, value);
+
+        public bool IsValid =>
+            SaveFlags.IsValidName(Flag)
+            && !(Absent && (Value != null || Except != null || SaveFlags.IsKnownName(Flag)))
+            && !(Except != null && Value != null);
 
         public bool IsMet(SaveData save)
         {
@@ -30,6 +37,11 @@ namespace Game.Core
             if (Absent)
             {
                 return !present;
+            }
+
+            if (Except != null)
+            {
+                return !present || !string.Equals(actual, Except, StringComparison.Ordinal);
             }
 
             return present && (Value == null || string.Equals(actual, Value, StringComparison.Ordinal));
@@ -53,6 +65,6 @@ namespace Game.Core
             return true;
         }
 
-        public override string ToString() => Absent ? $"!{Flag}" : Value == null ? Flag : $"{Flag}={Value}";
+        public override string ToString() => Absent ? $"!{Flag}" : Except != null ? $"{Flag}!={Except}" : Value == null ? Flag : $"{Flag}={Value}";
     }
 }

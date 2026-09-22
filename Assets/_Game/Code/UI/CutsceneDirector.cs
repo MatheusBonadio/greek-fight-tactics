@@ -247,6 +247,11 @@ namespace Game.UI
                 pause.Input.Panel = pause;
             }
 
+            if (dialogues)
+            {
+                dialogues.RefreshMap();
+            }
+
             if (dialogues && AutosavePolicy.ShouldSave(from, sandbox.StateMachine.Mode))
             {
                 dialogues.SaveProgress();

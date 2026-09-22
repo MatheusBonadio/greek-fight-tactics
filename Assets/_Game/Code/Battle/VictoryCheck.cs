@@ -16,7 +16,7 @@ namespace Game.Battle
                 return BattleStatus.PlayerWon;
             }
 
-            if (state.PlayerAudience >= BattleRules.MaxAudience)
+            if (state.Rules.AudienceVictory && state.PlayerAudience >= BattleRules.MaxAudience)
             {
                 return BattleStatus.PlayerWon;
             }

@@ -13,6 +13,7 @@ namespace Game.Battle
             TargetId = outcome.TargetId;
             Hit = outcome.Hit;
             Counterattack = outcome.Counterattack;
+            Deflected = outcome.Deflected;
             ActorCoherenceDelta = outcome.ActorCoherenceDelta;
             TargetCoherenceDelta = outcome.TargetCoherenceDelta;
             PlayerAudienceDelta = outcome.PlayerAudienceDelta;
@@ -39,6 +40,8 @@ namespace Game.Battle
         public bool Hit { get; }
 
         public bool Counterattack { get; }
+
+        public bool Deflected { get; }
 
         public int ActorCoherenceDelta { get; }
 

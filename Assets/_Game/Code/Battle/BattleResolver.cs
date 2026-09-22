@@ -54,7 +54,7 @@ namespace Game.Battle
             }
 
             AbilityRules.Apply(outcome, actor, state);
-            return outcome;
+            return DuelPhaseRule.Apply(outcome, actor, state);
         }
 
         public static bool IsAllowed(Side side, ActionId action) => side == Side.Player
