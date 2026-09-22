@@ -102,7 +102,7 @@
         "Unity / Core",
         "Risco"
       ],
-      "description": "Toda operação repetível do projeto — testar, buildar, inspecionar o Editor — passa pelo `unity` no terminal. É o que deixa teste e build reproduzíveis, e o que permite a um agente de IA agir no Editor e verificar o resultado.\n\n**Depende de:** [SET-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] `unity auth login` e `unity auth status` confirmando a conta; licença ativa em `unity license`\n- [x] `unity doctor` sem falha na máquina de desenvolvimento\n- [x] `unity editors default` apontando para o patch congelado no [SET-01]\n- [x] Pacote `com.unity.pipeline` instalado com `unity pipeline install`; `unity status` mostra o Editor conectado e `unity command` lista os comandos\n- [x] Scripts `tools/test.ps1` e `tools/build.ps1` chamando `unity test` e `unity build` com `--format json` — o que o CI roda, roda igual na máquina local\n- [x] Scripts tratam o exit code: `8` = teste falhou, não reintentar; `6` ou `7` = falha de operação ou de serviço, reintentar 1x\n- [ ] `unity mcp` registrado no Claude Code e `unity skill` instalado\n- [ ] Atualização do CLI só por `unity self-update` deliberado, com `UNITY_NO_UPDATE_CHECK` ligado no CI\n- [x] Plano B testado: o mesmo teste e a mesma build pelo `Unity.exe -batchmode` com `-runTests` e `-executeMethod`\n\n**Por que é Risco.** O Unity CLI e o `com.unity.pipeline` estão em beta. O ganho compensa, mas nenhum fluxo pode depender só deles: o plano B pelos argumentos de linha de comando do Editor fica testado desde o primeiro sprint.\n\n**`unity command eval` é execução remota de código.** Roda C# arbitrário no Editor, protegido por token. Fica restrito à máquina local; o token nunca vai para o repositório nem para o CI."
+      "description": "Toda operação repetível do projeto — testar, buildar, inspecionar o Editor — passa pelo `unity` no terminal. É o que deixa teste e build reproduzíveis, e o que permite a um agente de IA agir no Editor e verificar o resultado.\n\n**Depende de:** [SET-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] `unity auth login` e `unity auth status` confirmando a conta; licença ativa em `unity license`\n- [x] `unity doctor` sem falha na máquina de desenvolvimento\n- [x] `unity editors default` apontando para o patch congelado no [SET-01]\n- [x] Pacote `com.unity.pipeline` instalado com `unity pipeline install`; `unity status` mostra o Editor conectado e `unity command` lista os comandos\n- [x] Scripts `tools/test.ps1` e `tools/build.ps1` chamando `unity test` e `unity build` com `--format json` — o que o CI roda, roda igual na máquina local\n- [x] Scripts tratam o exit code: `8` = teste falhou, não reintentar; `6` ou `7` = falha de operação ou de serviço, reintentar 1x\n- [x] `unity mcp` registrado no Claude Code e `unity skill` instalado\n- [x] Atualização do CLI só por `unity self-update` deliberado, com `UNITY_NO_UPDATE_CHECK` ligado no CI\n- [x] Plano B testado: o mesmo teste e a mesma build pelo `Unity.exe -batchmode` com `-runTests` e `-executeMethod`\n\n**Por que é Risco.** O Unity CLI e o `com.unity.pipeline` estão em beta. O ganho compensa, mas nenhum fluxo pode depender só deles: o plano B pelos argumentos de linha de comando do Editor fica testado desde o primeiro sprint.\n\n**`unity command eval` é execução remota de código.** Roda C# arbitrário no Editor, protegido por token. Fica restrito à máquina local; o token nunca vai para o repositório nem para o CI."
     },
     {
       "title": "[SET-02] Pixel Perfect e presets de import",
@@ -141,7 +141,11 @@
         "Fase 1 · Entrega acadêmica",
         "QA / Testes"
       ],
-      "description": "A Definition of Done ([SET-03]) exige build verde. Sem CI, \"verde\" é o que roda na máquina de quem fechou o card.\n\n**Depende de:** [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Workflow de CI em runner Windows (GitHub Actions ou o CI do host do repositório)\n- [ ] Job instala o Editor por `unity install` com a mesma versão do `ProjectVersion.txt`\n- [ ] Autenticação por service account: `UNITY_SERVICE_ACCOUNT_ID` e `UNITY_SERVICE_ACCOUNT_SECRET` em secrets — nunca conta pessoal\n- [ ] `unity test` em Edit Mode e Play Mode a cada PR para a `main`, com `--format github` para falha virar anotação no PR\n- [ ] `unity build` do Build Profile Windows Development a cada merge na `main`, com o artefato anexado ao run\n- [ ] Cache da pasta `Library` com a chave gerada por `unity cache`\n- [ ] `UNITY_NON_INTERACTIVE` e `UNITY_BUILD_TIMEOUT` definidos — nenhum job fica pendurado num prompt\n- [ ] Branch `main` exige o check verde para merge"
+      "description": "A Definition of Done ([SET-03]) exige build verde. Sem CI, \"verde\" é o que roda na máquina de quem fechou o card.\n\n**Depende de:** [CLI-01] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Workflow de CI em runner Windows (GitHub Actions ou o CI do host do repositório)\n- [ ] Job instala o Editor por `unity install` com a mesma versão do `ProjectVersion.txt`\n- [ ] Autenticação por service account: `UNITY_SERVICE_ACCOUNT_ID` e `UNITY_SERVICE_ACCOUNT_SECRET` em secrets — nunca conta pessoal\n- [ ] `unity test` em Edit Mode e Play Mode a cada PR para a `main`, com `--format github` para falha virar anotação no PR\n- [ ] `unity build` do Build Profile Windows Development a cada merge na `main`, com o artefato anexado ao run\n- [ ] Cache da pasta `Library` com a chave gerada por `unity cache`\n- [ ] `UNITY_NON_INTERACTIVE` e `UNITY_BUILD_TIMEOUT` definidos — nenhum job fica pendurado num prompt\n- [ ] Branch `main` exige o check verde para merge",
+      "blocked": {
+        "reason": "workflow escrito e validado localmente; falta a primeira execução: segredos da service account e licença do Unity no runner (ou runner self-hosted)",
+        "since": "2026-09-22"
+      }
     },
     {
       "title": "[GRD-01] GridModel e TileData",
@@ -445,7 +449,7 @@
         "QA / Testes",
         "Risco"
       ],
-      "description": "Critério de aceite não-negociável: o jogo precisa ser completável sem internet.\n\n**Depende de:** [LLM-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Tudo que já existe jogável com Wi-Fi desligado — reexecutado no [ENT-01] com o conteúdo final da entrega\n- [ ] Nenhum diálogo vazio, nenhum travamento, nenhum popup de erro\n- [ ] Tempo de turno idêntico ao modo online (sem espera de timeout visível)\n- [ ] Save funciona e sincroniza ao reconectar"
+      "description": "Critério de aceite não-negociável: o jogo precisa ser completável sem internet.\n\n**Depende de:** [LLM-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Tudo que já existe jogável com Wi-Fi desligado — reexecutado no [ENT-01] com o conteúdo final da entrega\n- [x] Nenhum diálogo vazio, nenhum travamento, nenhum popup de erro\n- [x] Tempo de turno idêntico ao modo online (sem espera de timeout visível)\n- [x] Save funciona e sincroniza ao reconectar"
     },
     {
       "title": "[LLM-04] Moderação de conteúdo",
@@ -523,7 +527,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Beat I.1. Tutorial de movimento e névoa, sem combate.\n\n**Depende de:** [UI-03], [EXP-02], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Layout 16x16 com forno, torno, pilhas de ânfora\n- [ ] Tutorial guiado de movimento e revelação de névoa\n- [ ] Diálogo com Aristeu (mãos com artrite visíveis no retrato)\n- [x] Gatilho de saída para a Ágora"
+      "description": "Beat I.1. Tutorial de movimento e névoa, sem combate.\n\n**Depende de:** [UI-03], [EXP-02], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Layout 16x16 com forno, torno, pilhas de ânfora\n- [x] Tutorial guiado de movimento e revelação de névoa\n- [x] Diálogo com Aristeu (mãos com artrite visíveis no retrato)\n- [x] Gatilho de saída para a Ágora"
     },
     {
       "title": "[AT1-02] Mapa da Ágora",
@@ -543,7 +547,7 @@
         "Unity / Core",
         "Narrativa"
       ],
-      "description": "Beat I.2/I.3. Uma falácia (equivocação), vitória garantida.\n\n**Depende de:** [AT1-02], [UI-01], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Batalha roteirizada ensinando REFUTAR passo a passo\n- [ ] Cena I.3: a plateia ri DELA, não com ela\n- [ ] Oferta de aulas pagas (escolha registrada para o epílogo)"
+      "description": "Beat I.2/I.3. Uma falácia (equivocação), vitória garantida.\n\n**Depende de:** [AT1-02], [UI-01], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Batalha roteirizada ensinando REFUTAR passo a passo\n- [x] Cena I.3: a plateia ri DELA, não com ela\n- [x] Oferta de aulas pagas (escolha registrada para o epílogo)"
     },
     {
       "title": "[AT1-04] Cena de Menexeno",
@@ -552,7 +556,7 @@
         "Fase 1 · Entrega acadêmica",
         "Narrativa"
       ],
-      "description": "Beat I.4. Estabelece o mentor e a regra que ele impõe.\n\n**Depende de:** [AT1-03], [EXP-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Encontro na porta da oficina\n- [ ] A condição: nunca aceitar dinheiro por uma pergunta\n- [ ] Plantar a pista do twist (ele evita falar do passado)\n- [ ] Desbloqueia MAIÊUTICA no menu\n- [ ] Cena montada em Timeline (pacote core no 6.6)"
+      "description": "Beat I.4. Estabelece o mentor e a regra que ele impõe.\n\n**Depende de:** [AT1-03], [EXP-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Encontro na porta da oficina\n- [x] A condição: nunca aceitar dinheiro por uma pergunta\n- [x] Plantar a pista do twist (ele evita falar do passado)\n- [x] Desbloqueia MAIÊUTICA no menu\n- [x] Cena montada em Timeline (pacote core no 6.6)"
     },
     {
       "title": "[REL-01] Build do vertical slice (milestone)",
@@ -711,7 +715,7 @@
         "Fase 2 · Comercial",
         "Arte"
       ],
-      "description": "Automatizar a quantização agora evita inconsistência entre sprites gerados em sessões diferentes.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Aseprite com `art/palette/snes.gpl` carregada como padrão\n- [ ] Script de quantização em lote (Python/PIL) contra a paleta, dithering OFF\n- [ ] Script de verificação: falha se um PNG passar de 16 cores\n- [ ] Script de teste de encaixe: cola 4 cópias do tile e exporta preview\n- [ ] Script de quantização recebe uma pasta de PNGs brutos\n- [ ] Redimensionamento Nearest Neighbor para a dimensão exata\n- [ ] Relatório de contagem de cores por arquivo\n\n**Absorveu o card \"Script de quantização em lote\"** da trilha de arte paralela. Os dois descreviam o mesmo script — manter os dois faria o critério ser cumprido num card e continuar aberto no outro."
+      "description": "Automatizar a quantização agora evita inconsistência entre sprites gerados em sessões diferentes.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Aseprite com `art/palette/snes.gpl` carregada como padrão\n- [x] Script de quantização em lote (Python/PIL) contra a paleta, dithering OFF\n- [x] Script de verificação: falha se um PNG passar de 16 cores\n- [x] Script de teste de encaixe: cola 4 cópias do tile e exporta preview\n- [x] Script de quantização recebe uma pasta de PNGs brutos\n- [x] Redimensionamento Nearest Neighbor para a dimensão exata\n- [x] Relatório de contagem de cores por arquivo\n\n**Absorveu o card \"Script de quantização em lote\"** da trilha de arte paralela. Os dois descreviam o mesmo script — manter os dois faria o critério ser cumprido num card e continuar aberto no outro."
     },
     {
       "title": "[ART-03] Bíblia visual e referências",
