@@ -25,10 +25,10 @@ namespace Game.Tests.PlayMode
 
         private static readonly Coord MenexenoApproachStart = new(11, 8);
         private static readonly Coord BesideThrasybios = new(6, 1);
-        private static readonly Coord WorkshopDoor = new(3, 4);
-        private static readonly Coord Yard = new(3, 2);
-        private static readonly Coord Workbench = new(4, 7);
-        private static readonly Coord KilnYard = new(9, 7);
+        private static readonly Coord WorkshopDoor = new(4, 7);
+        private static readonly Coord Yard = new(4, 5);
+        private static readonly Coord Workbench = new(4, 11);
+        private static readonly Coord KilnYard = new(12, 9);
 
         private IsolatedDataDirectory data;
 
@@ -144,6 +144,7 @@ namespace Game.Tests.PlayMode
         public IEnumerator LeavingTheWorkshop_PlaysKleiasThoughtOnlyOnce()
         {
             yield return SceneManager.LoadSceneAsync(LocationScenes.KerameikosScene, LoadSceneMode.Single);
+            Object.FindAnyObjectByType<StoryCueDirector>().enabled = false;
             var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
             var director = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
             var services = Object.FindAnyObjectByType<GameServices>();

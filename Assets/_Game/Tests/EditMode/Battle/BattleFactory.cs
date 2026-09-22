@@ -33,7 +33,8 @@ namespace Game.Tests.EditMode.Battle
             int size = 8,
             IEnumerable<int> audienceMembers = null,
             BattleRules rules = null,
-            Facing opponentFacing = Facing.SouthWest)
+            Facing opponentFacing = Facing.SouthWest,
+            IEnumerable<ActionId> lockedActions = null)
         {
             var grid = GridFactory.Open(size, size);
             new FogOfWar(grid).Reveal(new Coord(size / 2, size / 2), size * 2);
@@ -46,7 +47,8 @@ namespace Game.Tests.EditMode.Battle
                 new[] { player, opponent },
                 initialPlayerAudience,
                 new[] { new QuoteItem(QuoteId, 10, 5, 1) },
-                audienceMembers);
+                audienceMembers,
+                lockedActions);
         }
 
         public static BattleState CreateWithArgument(
@@ -55,9 +57,10 @@ namespace Game.Tests.EditMode.Battle
             Facing opponentFacing = Facing.SouthWest,
             Profile opponentProfile = Profile.Sophist,
             IEnumerable<int> audienceMembers = null,
-            BattleRules rules = null)
+            BattleRules rules = null,
+            IEnumerable<ActionId> lockedActions = null)
         {
-            var state = Create(act, opponentProfile, playerInitiative: 5, opponentInitiative: 10, audienceMembers: audienceMembers, rules: rules, opponentFacing: opponentFacing);
+            var state = Create(act, opponentProfile, playerInitiative: 5, opponentInitiative: 10, audienceMembers: audienceMembers, rules: rules, opponentFacing: opponentFacing, lockedActions: lockedActions);
             var resolver = new BattleResolver();
             state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, argument), state));
             return state;

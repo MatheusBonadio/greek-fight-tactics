@@ -39,7 +39,6 @@ namespace Game.EditorTools
         public const string RangeTilemapName = "Range";
         public const string BlocksTilemapName = "Blocks";
         public const string FogTilemapName = "Fog";
-        public const int Size = 12;
         public const int FloorSortingOrder = -20;
         public const int RangeSortingOrder = -15;
         public const int HighlightSortingOrder = -10;
@@ -50,10 +49,10 @@ namespace Game.EditorTools
         public const float BlockSortLift = 0.25f;
         public const float ExplorationOrthographicSize = 7f;
         public const float BattleOrthographicSize = 5f;
-        public const int CaptureWidth = 1216;
-        public const int CaptureHeight = 672;
         public const int CapturePixelsPerUnit = 48;
-        public const float CaptureCenterY = 6.5f;
+        public const int CaptureMarginX = 64;
+        public const int CaptureMarginY = 96;
+        public const float CaptureLiftY = 1f;
 
         public static readonly Vector3 CellSize = new(2f, 1f, 1f);
         public static readonly Vector3 TileAnchor = new(-0.5f, 0.5f, 0f);
@@ -90,8 +89,8 @@ namespace Game.EditorTools
 
         private static void CaptureReferenceImages()
         {
-            CaptureReferenceImage(ScenePath, CapturePath);
-            CaptureReferenceImage(KerameikosScenePath, KerameikosCapturePath);
+            CaptureReferenceImage(ScenePath, CapturePath, MapLayout.Load(MapPath));
+            CaptureReferenceImage(KerameikosScenePath, KerameikosCapturePath, MapLayout.Load(KerameikosMapPath));
         }
 
 
@@ -202,10 +201,8 @@ namespace Game.EditorTools
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var tiles = EnsureTileAssets();
             var map = MapLayout.Load(mapPath);
-            if (map.Width != Size || map.Height != Size)
-            {
-                throw new InvalidOperationException($"{mapPath} must be {Size}x{Size}, found {map.Width}x{map.Height}");
-            }
+            var width = map.Width;
+            var height = map.Height;
 
             var gridObject = new GameObject("Grid");
             gridObject.transform.position = GridPosition;
@@ -219,16 +216,16 @@ namespace Game.EditorTools
             var blocks = CreateTilemap(gridObject, BlocksTilemapName, SortingLayer.IDToName(0), ActorSortingOrder);
             var fog = CreateTilemap(gridObject, FogTilemapName, FogSortingLayer, 0);
 
-            var terrain = new TerrainId[Size * Size];
-            var costs = new byte[Size * Size];
-            for (var y = 0; y < Size; y++)
+            var terrain = new TerrainId[width * height];
+            var costs = new byte[width * height];
+            for (var y = 0; y < height; y++)
             {
-                for (var x = 0; x < Size; x++)
+                for (var x = 0; x < width; x++)
                 {
                     var floorName = map.FloorAt(x, y);
                     floor.SetTile(new Vector3Int(x, y, 0), tiles[floorName]);
-                    terrain[y * Size + x] = FloorTerrain[floorName];
-                    costs[y * Size + x] = floorName switch
+                    terrain[y * width + x] = FloorTerrain[floorName];
+                    costs[y * width + x] = floorName switch
                     {
                         "floor_water" => BlockedCost,
                         "floor_stone" => StoneCost,
@@ -238,9 +235,9 @@ namespace Game.EditorTools
             }
 
             blocks.transform.localPosition = new Vector3(0f, 0f, BlockSortLift / RenderSetupTools.TransparencySortAxis.z);
-            for (var y = 0; y < Size; y++)
+            for (var y = 0; y < height; y++)
             {
-                for (var x = 0; x < Size; x++)
+                for (var x = 0; x < width; x++)
                 {
                     var blockName = map.BlockAt(x, y);
                     if (blockName == null)
@@ -249,7 +246,7 @@ namespace Game.EditorTools
                     }
 
                     blocks.SetTile(new Vector3Int(x, y, 0), tiles[blockName]);
-                    costs[y * Size + x] = BlockedCost;
+                    costs[y * width + x] = BlockedCost;
                 }
             }
 
@@ -258,11 +255,16 @@ namespace Game.EditorTools
             var controller = sandbox.AddComponent<GridSandboxController>();
             var actors = CreateActors(map.Actors);
 
-            controller.ConfigureLayout(Size, Size, terrain, costs, FogRevealDepth);
+            controller.ConfigureLayout(width, height, terrain, costs, map.FogRevealDepth ?? FogRevealDepth);
             controller.ConfigureLocation(locationId);
             controller.ConfigureExits(map.Exits
                 .Select(exit => new MapExitLink(new Coord(exit.X, exit.Y), exit.Location, new Coord(exit.ArrivalX, exit.ArrivalY), exit.Facing))
                 .ToArray());
+            controller.ConfigurePresences(map.Actors
+                .Select((actor, index) => (actor, index))
+                .Where(pair => pair.actor.IsConditional)
+                .Select(pair => new ActorPresenceLink(actors[pair.index], pair.actor.StoryConditions))
+                .ToList());
             controller.ConfigureViews(
                 AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath),
                 highlight,
@@ -274,11 +276,12 @@ namespace Game.EditorTools
                 gizmos);
             controller.PaintFogPreview();
 
-            var explorationCamera = CreateCamera(actors[0].transform);
+            var explorationCamera = CreateCamera(actors[0].transform, width, height);
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
-            CreateDialogueDirector(controller, map, actors);
+            var dialogues = CreateDialogueDirector(controller, map, actors);
+            CreateCueDirector(controller, dialogues, map);
             var opponents = MapOpponentsFor(map.Actors, actors);
             if (opponents.Count > 0)
             {
@@ -418,7 +421,7 @@ namespace Game.EditorTools
                 .Select(pair => new NpcDialogueLink(actors[pair.index], pair.actor.Dialogue))
                 .ToList();
             var triggers = map.Triggers
-                .Select(trigger => new DialogueTriggerLink(new Coord(trigger.X, trigger.Y), trigger.Dialogue, trigger.Flag))
+                .Select(trigger => new DialogueTriggerLink(new Coord(trigger.X, trigger.Y), trigger.Dialogue, trigger.Flag, trigger.StoryConditions))
                 .ToList();
             var portraits = library.Speakers
                 .Where(pair => pair.Value.HasPortrait)
@@ -429,6 +432,19 @@ namespace Game.EditorTools
             return director;
         }
 
+        private static void CreateCueDirector(GridSandboxController controller, ExplorationDialogueDirector dialogues, MapLayout map)
+        {
+            if (map.Cues.Count == 0)
+            {
+                return;
+            }
+
+            var cues = map.Cues
+                .Select(cue => new StoryCueLink(cue.On, cue.Dialogue, cue.Flag, cue.StoryConditions))
+                .ToList();
+            new GameObject(nameof(StoryCueDirector)).AddComponent<StoryCueDirector>().Configure(controller, dialogues, cues);
+        }
+
         private static Sprite PortraitFor(string character)
         {
             var name = $"{character}_{PortraitRow}_0";
@@ -436,7 +452,7 @@ namespace Game.EditorTools
                 ?? throw new InvalidOperationException($"missing portrait sprite {name}; run ArtTools.SliceSheets first");
         }
 
-        private static ExplorationCamera CreateCamera(Transform followTarget)
+        private static ExplorationCamera CreateCamera(Transform followTarget, int mapWidth, int mapHeight)
         {
             var rigPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(RenderSetupTools.CameraRigPrefabPath);
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(rigPrefab);
@@ -447,7 +463,7 @@ namespace Game.EditorTools
             var boundsObject = new GameObject("CameraBounds");
             var bounds = boundsObject.AddComponent<PolygonCollider2D>();
             bounds.isTrigger = true;
-            bounds.points = MapOutline();
+            bounds.points = MapOutline(mapWidth, mapHeight);
 
             var virtualCameraObject = new GameObject("ExplorationCamera");
             var virtualCamera = virtualCameraObject.AddComponent<CinemachineCamera>();
@@ -469,18 +485,23 @@ namespace Game.EditorTools
             return explorationCamera;
         }
 
-        private static Vector2[] MapOutline()
+        private static Vector2[] MapOutline(int width, int height)
         {
             var min = -0.5f;
-            var max = Size - 0.5f;
-            return new[] { ToWorld(min, min), ToWorld(max, min), ToWorld(max, max), ToWorld(min, max) };
+            var maxX = width - 0.5f;
+            var maxY = height - 0.5f;
+            return new[] { ToWorld(min, min), ToWorld(maxX, min), ToWorld(maxX, maxY), ToWorld(min, maxY) };
         }
 
         private static Vector2 ToWorld(float gridX, float gridY) =>
             new((gridX - gridY) * IsoMath.CellWidth, (gridX + gridY) * IsoMath.CellHeight);
 
-        private static void CaptureReferenceImage(string scenePath, string capturePath)
+        private static void CaptureReferenceImage(string scenePath, string capturePath, MapLayout map)
         {
+            var span = map.Width + map.Height;
+            var captureWidth = Mathf.RoundToInt(span * IsoMath.CellWidth * CapturePixelsPerUnit) + CaptureMarginX;
+            var captureHeight = Mathf.RoundToInt(span * IsoMath.CellHeight * CapturePixelsPerUnit) + CaptureMarginY;
+            var center = new Vector2((map.Width - map.Height) * 0.5f * IsoMath.CellWidth, (span - 2) * 0.5f * IsoMath.CellHeight + CaptureLiftY);
             EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var camera = UnityEngine.Object.FindAnyObjectByType<Camera>() ?? throw new InvalidOperationException("sandbox has no camera");
 
@@ -495,18 +516,18 @@ namespace Game.EditorTools
             }
 
             camera.orthographic = true;
-            camera.orthographicSize = CaptureHeight / (2f * CapturePixelsPerUnit);
-            camera.transform.position = new Vector3(0f, CaptureCenterY, RenderSetupTools.CameraDepth);
+            camera.orthographicSize = captureHeight / (2f * CapturePixelsPerUnit);
+            camera.transform.position = new Vector3(center.x, center.y, RenderSetupTools.CameraDepth);
 
-            var renderTexture = new RenderTexture(CaptureWidth, CaptureHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { filterMode = FilterMode.Point };
-            var texture = new Texture2D(CaptureWidth, CaptureHeight, TextureFormat.RGBA32, false);
+            var renderTexture = new RenderTexture(captureWidth, captureHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { filterMode = FilterMode.Point };
+            var texture = new Texture2D(captureWidth, captureHeight, TextureFormat.RGBA32, false);
             var previous = RenderTexture.active;
             try
             {
                 camera.targetTexture = renderTexture;
                 camera.Render();
                 RenderTexture.active = renderTexture;
-                texture.ReadPixels(new Rect(0, 0, CaptureWidth, CaptureHeight), 0, 0);
+                texture.ReadPixels(new Rect(0, 0, captureWidth, captureHeight), 0, 0);
                 texture.Apply();
 
                 Directory.CreateDirectory(Path.GetDirectoryName(capturePath) ?? ".");

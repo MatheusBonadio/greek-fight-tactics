@@ -35,6 +35,7 @@ namespace Game.UI
         [SerializeField] private GridGizmoView gizmos;
         [SerializeField] private string locationId = DefaultLocationId;
         [SerializeField] private MapExitLink[] exits = new MapExitLink[0];
+        [SerializeField] private List<ActorPresenceLink> presences = new();
 
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> path = new();
@@ -84,6 +85,10 @@ namespace Game.UI
         public GameStateMachine StateMachine { get; } = new();
 
         public System.Func<Coord, bool> Interaction { get; set; }
+
+        public event System.Action<int> FogRevealed;
+
+        public IReadOnlyList<ActorPresenceLink> Presences => presences;
 
         public bool ExplorationInputEnabled { get; set; } = true;
 
@@ -240,6 +245,12 @@ namespace Game.UI
 
             for (var index = 0; index < actors.Count; index++)
             {
+                if (IsConditional(actors[index]))
+                {
+                    actors[index].gameObject.SetActive(false);
+                    continue;
+                }
+
                 actors[index].Bind(new GridWalker(grid, index + 1, ToCoord(actors[index].StartCell), actors[index].StartFacing));
             }
 
@@ -247,6 +258,7 @@ namespace Game.UI
             if (player != null)
             {
                 session = new ExplorationSession(player.Walker, fog);
+                session.FogRevealed += OnFogRevealed;
                 player.Walker.CellEntered += OnPlayerCellEntered;
                 TryArrive();
             }
@@ -281,6 +293,31 @@ namespace Game.UI
         private void OnPlayerCellEntered(Coord cell)
         {
             exitCheckPending = true;
+        }
+
+        private void OnFogRevealed(int count) => FogRevealed?.Invoke(count);
+
+        private bool IsConditional(ActorView actor) => presences.Exists(presence => presence.Actor == actor);
+
+        private void PlaceConditionalActors(Game.Core.SaveData story)
+        {
+            foreach (var presence in presences)
+            {
+                var actor = presence.Actor;
+                if (!actor || actor.Walker != null || !presence.IsMet(story))
+                {
+                    continue;
+                }
+
+                var cell = ToCoord(actor.StartCell);
+                if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
+                {
+                    continue;
+                }
+
+                actor.gameObject.SetActive(true);
+                actor.Bind(new GridWalker(grid, actors.IndexOf(actor) + 1, cell, actor.StartFacing));
+            }
         }
 
         private void TryArrive()
@@ -339,11 +376,18 @@ namespace Game.UI
             exits = links ?? new MapExitLink[0];
         }
 
+        public void ConfigurePresences(List<ActorPresenceLink> links)
+        {
+            presences = links ?? new List<ActorPresenceLink>();
+        }
+
         private bool restoreChecked;
 
         public DuelProgress Duels { get; } = new();
 
         public bool ProgressLoaded => restoreChecked;
+
+        public bool ArrivedThroughExit => arrived;
 
         public Game.Core.SaveData CaptureSave()
         {
@@ -374,11 +418,18 @@ namespace Game.UI
             }
 
             restoreChecked = true;
-            if (services && services.TryLoadActiveSave(out var progress))
+            var story = services && services.TryLoadActiveSave(out var progress) ? progress : null;
+            if (story != null)
             {
-                Duels.Load(progress.Duels);
+                Duels.Load(story.Duels);
             }
 
+            RestorePlayer(services);
+            PlaceConditionalActors(story ?? new Game.Core.SaveData());
+        }
+
+        private void RestorePlayer(GameServices services)
+        {
             if (arrived)
             {
                 if (services && services.IsBooted)

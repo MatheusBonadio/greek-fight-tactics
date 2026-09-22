@@ -8,6 +8,22 @@ using Newtonsoft.Json;
 
 namespace Game.EditorTools
 {
+    public sealed class MapCondition
+    {
+        public string Flag { get; set; }
+
+        [JsonProperty("equals")]
+        public string EqualsValue { get; set; }
+
+        public bool Absent { get; set; }
+
+        public StoryCondition ToCondition() => new(Flag, EqualsValue, Absent);
+
+        public static MapCondition Has(string flag) => new() { Flag = flag };
+
+        public static MapCondition Lacks(string flag) => new() { Flag = flag, Absent = true };
+    }
+
     public sealed class MapActor
     {
         public string Character { get; set; }
@@ -19,6 +35,12 @@ namespace Game.EditorTools
         public Facing Facing { get; set; }
 
         public string Dialogue { get; set; }
+
+        public List<MapCondition> Conditions { get; set; } = new();
+
+        public bool IsConditional => Conditions.Count > 0;
+
+        public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
     }
 
     public sealed class MapTrigger
@@ -30,6 +52,23 @@ namespace Game.EditorTools
         public string Dialogue { get; set; }
 
         public string Flag { get; set; }
+
+        public List<MapCondition> Conditions { get; set; } = new();
+
+        public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
+    }
+
+    public sealed class MapCue
+    {
+        public ExplorationCue On { get; set; }
+
+        public string Dialogue { get; set; }
+
+        public string Flag { get; set; }
+
+        public List<MapCondition> Conditions { get; set; } = new();
+
+        public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
     }
 
     public sealed class MapExit
@@ -67,6 +106,10 @@ namespace Game.EditorTools
         public List<MapExit> Exits { get; set; } = new();
 
         public List<MapTrigger> Triggers { get; set; } = new();
+
+        public List<MapCue> Cues { get; set; } = new();
+
+        public int? FogRevealDepth { get; set; }
 
         public int Width => Floor.Count == 0 ? 0 : Floor[0].Length;
 
@@ -131,6 +174,18 @@ namespace Game.EditorTools
                 {
                     throw new InvalidOperationException($"map {Id}: two actors share ({actor.X}, {actor.Y})");
                 }
+
+                ValidateConditions($"{actor.Character} at ({actor.X}, {actor.Y})", actor.Conditions);
+            }
+
+            if (Actors[0].IsConditional)
+            {
+                throw new InvalidOperationException($"map {Id}: the player {Actors[0].Character} is always on the map and cannot wait for story flags");
+            }
+
+            if (FogRevealDepth is < 0)
+            {
+                throw new InvalidOperationException($"map {Id}: fogRevealDepth cannot be negative");
             }
 
             var doors = new HashSet<(int, int)>();
@@ -180,10 +235,47 @@ namespace Game.EditorTools
                 {
                     throw new InvalidOperationException($"map {Id}: the trigger at ({trigger.X}, {trigger.Y}) shares its cell with another trigger, an exit or an actor");
                 }
+
+                ValidateConditions($"the trigger at ({trigger.X}, {trigger.Y})", trigger.Conditions);
+            }
+
+            foreach (var cue in Cues)
+            {
+                if (!Enum.IsDefined(typeof(ExplorationCue), cue.On))
+                {
+                    throw new InvalidOperationException($"map {Id}: the cue {cue.Dialogue} listens to an unknown event {cue.On}");
+                }
+
+                if (string.IsNullOrWhiteSpace(cue.Dialogue))
+                {
+                    throw new InvalidOperationException($"map {Id}: a {cue.On} cue has no dialogue");
+                }
+
+                if (!SaveFlags.IsCustomName(cue.Flag))
+                {
+                    throw new InvalidOperationException($"map {Id}: the cue {cue.Dialogue} needs a story flag in snake case, found '{cue.Flag}'");
+                }
+
+                ValidateConditions($"the cue {cue.Dialogue}", cue.Conditions);
+            }
+        }
+
+        private void ValidateConditions(string owner, IEnumerable<MapCondition> conditions)
+        {
+            foreach (var condition in (conditions ?? Enumerable.Empty<MapCondition>()).Select(entry => entry.ToCondition()))
+            {
+                if (!condition.IsValid)
+                {
+                    throw new InvalidOperationException($"map {Id}: {owner} has the invalid condition '{condition}'");
+                }
             }
         }
 
         public IEnumerable<string> DialogueIds =>
-            Actors.Select(actor => actor.Dialogue).Concat(Triggers.Select(trigger => trigger.Dialogue)).Where(id => !string.IsNullOrEmpty(id)).Distinct();
+            Actors.Select(actor => actor.Dialogue)
+                .Concat(Triggers.Select(trigger => trigger.Dialogue))
+                .Concat(Cues.Select(cue => cue.Dialogue))
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct();
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.Battle;
 using Game.Content;
 using Game.Core;
 using Game.EditorTools;
@@ -12,6 +13,11 @@ namespace Game.Tests.EditMode.Content
 {
     public sealed class DialogueLibraryTests
     {
+        private const string AristeuDialogue = "aristeu_workshop";
+        private const string AristeuSpeaker = "aristeu";
+        private const string AristeuErrand = "aristeu_errand";
+        private const string MenexenoDoorDialogue = "menexeno_workshop_door";
+
         [Test]
         public void GeneratedLibrary_HoldsEverySourceDialogueLineByLine()
         {
@@ -97,6 +103,58 @@ namespace Game.Tests.EditMode.Content
 
             Assert.IsTrue(font.HasCharacters(glyphs, out uint[] missing, false, false),
                 $"missing glyphs: {string.Join(", ", (missing ?? new uint[0]).Select(code => $"U+{code:X4}"))}");
+        }
+
+        [Test]
+        public void Aristeu_SendsKleiaToTheAgoraBecauseOfHisArthriticHands()
+        {
+            var library = LoadLibrary();
+            Assert.IsTrue(library.TryGet(AristeuDialogue, out var script));
+            Assert.AreEqual("Aristeu", library.SpeakerName(AristeuSpeaker));
+            Assert.AreEqual(AristeuSpeaker, library.Speakers[AristeuSpeaker].Portrait);
+
+            var save = new SaveData();
+            var first = PlayThrough(script, save);
+            Assert.IsTrue(first.Any(line => line.SpeakerId == AristeuSpeaker));
+            Assert.IsTrue(first.Any(line => line.IsNarration && line.Text.Contains("dedos")), "the scene shows his crooked fingers");
+            Assert.IsTrue(StoryCondition.Has(AristeuErrand).IsMet(save));
+
+            var again = PlayThrough(script, save);
+            Assert.IsNotEmpty(again);
+            Assert.Less(again.Count, first.Count, "the second talk only reminds her of the errand");
+        }
+
+        [Test]
+        public void MenexenoAtTheDoor_SetsHisConditionHidesHisPastAndUnlocksMaieuticsOnce()
+        {
+            var library = LoadLibrary();
+            Assert.IsTrue(library.TryGet(MenexenoDoorDialogue, out var script));
+
+            var save = new SaveData();
+            save.Flags[DuelStoryFlags.FlagFor("thrasybios")] = DuelStoryFlags.Won;
+            var first = PlayThrough(script, save);
+
+            Assert.IsTrue(first.Any(line => line.SpeakerId == "menexeno" && line.Text.Contains("dinheiro")), "he states his condition");
+            foreach (var flag in new[] { ActionUnlocks.MaieuticsFlag, "menexeno_condition", "menexeno_avoids_past" })
+            {
+                Assert.IsTrue(StoryCondition.Has(flag).IsMet(save), flag);
+            }
+
+            var again = PlayThrough(script, save);
+            Assert.IsNotEmpty(again);
+            CollectionAssert.IsEmpty(again.Select(line => line.Text).Intersect(first.Select(line => line.Text)), "the lesson is not repeated");
+        }
+
+        private static List<ScriptLine> PlayThrough(DialogueScript script, SaveData save)
+        {
+            var run = script.Begin(save);
+            var shown = new List<ScriptLine>();
+            while (run.TryAdvance(out var line))
+            {
+                shown.Add(line);
+            }
+
+            return shown;
         }
 
         private static DialogueLibrarySO LoadLibrary()

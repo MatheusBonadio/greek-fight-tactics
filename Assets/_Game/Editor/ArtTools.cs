@@ -30,7 +30,7 @@ namespace Game.EditorTools
         public const float ActionSecondsPerFrame = 0.3f;
 
         public static readonly Vector2 CharacterPivot = new(0.5f, 0.0625f);
-        public static readonly string[] Characters = { "batilo", "citizen", "damaris", "eudoro", "kleia", "kritolaos", "menexeno", "oron", "phaidra", "pythia", "simo", "thrasybios" };
+        public static readonly string[] Characters = { "aristeu", "batilo", "citizen", "damaris", "eudoro", "kleia", "kritolaos", "menexeno", "oron", "phaidra", "pythia", "simo", "thrasybios" };
         public static readonly string[] StateNames = { IdleState, WalkState, ActionState };
 
         private const string SpriteProperty = "m_Sprite";

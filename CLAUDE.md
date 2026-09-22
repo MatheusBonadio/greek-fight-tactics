@@ -265,9 +265,14 @@ O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirect
   - As condições são julgadas quando a conversa começa. Por isso, a linha que marca `met_x` não revela na mesma conversa as linhas que exigem `met_x`.
   - Os efeitos entram no `SaveData` à medida que cada linha aparece.
   - O diretor carrega as flags do save ativo e reaplica os efeitos da sessão sobre o `CaptureSave` ao salvar. Save antigo sem `flags` continua válido e lê toda flag como ausente.
-- **Gatilho de célula:** `triggers` no JSON do mapa (`x`, `y`, `dialogue`, `flag`).
-  - Ao entrar na célula, pelo `CellEntered` do walker, a Kleia para nela e a cena toca. A `flag` é gravada no disparo, então a cena toca uma vez só. Vários gatilhos podem dividir a mesma flag, como as duas saídas da oficina do Cerâmico.
-  - `MapLayout.Validate` recusa gatilho fora do mapa, em célula bloqueada, sem diálogo, com flag que não seja própria ou na célula de outro gatilho, de uma saída ou de um ator.
+- **Gatilho de célula:** `triggers` no JSON do mapa (`x`, `y`, `dialogue`, `flag` e `conditions` opcionais, no mesmo formato das linhas).
+  - Ao entrar na célula, pelo `CellEntered` do walker, a Kleia para nela e a cena toca se as condições valem (`DialogueTriggerLink.IsDue`). A `flag` é gravada no disparo, então a cena toca uma vez só. Vários gatilhos podem dividir a mesma flag. Se um NPC ao lado fala o mesmo diálogo, os dois se viram um para o outro.
+  - `MapLayout.Validate` recusa gatilho fora do mapa, em célula bloqueada, sem diálogo, com flag que não seja própria, com condição inválida ou na célula de outro gatilho, de uma saída ou de um ator.
+- **Deixa de exploração:** `cues` no JSON do mapa (`on`, `dialogue`, `flag`, `conditions`) viram `StoryCueLink` no `StoryCueDirector`, criado só em mapa com deixas.
+  - `on` é um `ExplorationCue` (Core): `MapStart` (mapa aberto sem vir por uma saída), `FogRevealed` (passo que revela névoa, pelo `GridSandboxController.FogRevealed`, que interrompe a caminhada) e `WalkFinished` (fim de uma caminhada que não foi para conversar).
+  - Toca só com a exploração quieta: sem conversa, aproximação, gatilho pendente, batalha ou pausa. A `flag` é gravada no disparo (`ExplorationDialogueDirector.TryPlayOnce`), como no gatilho.
+  - É assim que o Cerâmico ensina a andar, a névoa e a conversar, cada passo uma vez.
+- **NPC condicional:** `conditions` num ator do mapa vira `ActorPresenceLink` no `GridSandboxController`. O ator fica desligado e sem walker até o save ativo cumprir as condições, e só é posto na célula quando o progresso carrega. O jogador não pode ter condições.
 
 ---
 
@@ -295,6 +300,8 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
   - **Entrada na batalha:** desliga `GridSandboxController.ExplorationInputEnabled` e a pausa, aproxima a câmera e mostra o `BattleHud`.
   - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo. Ao refutar certo, o ícone da falácia sobe sobre o oponente da vez e ela entra no compêndio por `GameServices.Compendium.Unlock`. As falas da Kleia e do oponente mostram o retrato de cada um (`SandboxBattleDirector.ConfigurePlayerPortrait` e `MapOpponent.Portrait`); a narração fica sem retrato. Enquanto não existe arte de retrato, `SandboxTools` usa o quadro parado de frente (`<personagem>_se_0`) da folha do personagem.
   - **Saída:** ao fim, volta à exploração e faz save automático. Depois de perder ou fugir, o oponente só volta a provocar quando a Kleia sai do raio e retorna.
+  - **Resultado como flag:** todo duelo terminado grava `duel_<id>` (`DuelStoryFlags`: `won`, `lost`, `withdrew` ou `stalemate`) nas flags da história pelo `ExplorationDialogueDirector.Remember` e no save automático da saída. Diálogos, gatilhos e NPCs condicionais leem essa flag, como o Menexeno na porta da oficina depois de `duel_thrasybios=won`.
+  - **Ação bloqueada:** `ActionUnlocks` (Core) liga ação a flag; hoje só a MAIÊUTICA, por `maieutics_unlocked`, que a cena do Menexeno grava. O diretor passa as ações bloqueadas em `BattleSetup.LockedActions` para o `BattleState`, o resolver devolve `RejectionReason.ActionLocked` para o jogador e o menu mostra `rejection.action_locked`. Teste que usa MAIÊUTICA pela sandbox grava a flag antes.
   - **Vitória gravada:** vencer grava `DuelRecord(true, victory)` em `GridSandboxController.Duels` (`DuelProgress`), e `CaptureSave` leva isso a `SaveData.Duels` pela chave do `id`. `DuelVictoryRule` classifica pelo último golpe acertado (REFUTAR ou MAIÊUTICA); sem nenhum, conta como `Concede`. Ao carregar a cena, o controlador lê os duelos do save ativo em qualquer local, e oponente vencido nunca mais provoca. Save antigo sem `duels` continua válido.
   - **Grid da batalha:** `BattleSession` roda o duelo numa cópia do grid da exploração, porque o `BattleState` exige células livres e os walkers já as ocupam. Os movimentos voltam para os walkers pelo `Outcome.Path`.
   - **CIRCULAR:** abre a fase `PlayerTargeting`.
@@ -446,17 +453,20 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 **Sem Editor, SOs são criados por script.** `Game.EditorTools.DataTools.Regenerate` lê `Assets/_Game/Data/Source/*.json` e `Assets/_Game/Data/Fallback/*.json` e (re)cria catálogo, ícones, tabela de custos e biblioteca de fallback. O conteúdo fica legível em diff, a regeneração é idempotente e falha com código diferente de zero se algum argumento de fallback não passar no `ArgumentValidator`.
 
 **Mapas.** O layout de cada mapa fica em `Assets/_Game/Data/Maps/<id>.json` e é lido por `MapLayout`.
+- **Tamanho:** vem do próprio JSON (largura da linha e número de linhas); `SandboxTools` monta grid, câmera e captura a partir dele. A Ágora tem 12×12 e o Cerâmico 16×16.
 - **Chão e blocos:** `floor` e `blocks` são linhas de texto, e `floor[y][x]` é a célula `(x, y)`. A linha 0 é a borda da frente, a mais próxima da câmera.
+- **Névoa inicial:** `fogRevealDepth` opcional revela de saída as células com `x + y` menor que ele (padrão `SandboxTools.FogRevealDepth`). No Cerâmico é 0: a oficina se revela conforme a Kleia anda.
 - **Legendas:** `floorLegend` e `blockLegend` levam cada símbolo ao nome do tile, e `-` marca a célula sem bloco.
-- **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador. O campo opcional `dialogue` dá ao NPC um id de `dialogues.json`. O jogador não pode ter um, e um teste garante que todo id citado nos mapas existe.
-- **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido e ator em bloco, em água ou em célula repetida.
+- **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador. O campo opcional `dialogue` dá ao NPC um id de `dialogues.json`, e `conditions` o faz esperar flags da história. O jogador não pode ter nenhum dos dois, e um teste garante que todo id citado nos mapas (atores, gatilhos e deixas) existe.
+- **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido, ator em bloco, em água ou em célula repetida, condição inválida e deixa sem diálogo ou sem flag própria.
 - **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2. Tem a estrada de terra que vem do Cerâmico, com a herma na entrada, o mercado de pedra onde Thrasybios junta a plateia e a praça em xadrez com borda de meandro e fonte. Tem também a stoa de colunas dóricas com degraus e as casas de tijolo com oliveiras. Um teste garante que toda célula andável é alcançável a partir da Kleia.
   - **Duelistas de bairro:** Óron na ponta da stoa, junto à parede de mármore e ainda sob a névoa (10, 10), Phaidra no morro de oliveiras (1, 10), Kritolaos na praça de pedra diante das casas (6, 10), Simo na praça em xadrez (8, 8) e Bátilo junto à fonte (7, 6). Testes garantem que os raios de provocação não se sobrepõem, não alcançam a entrada nem a saída do mapa, e que nenhum ator bloqueia o único caminho para uma célula além do recanto logo atrás dele. Os vizinhos de Menexeno e Eudoro ficam fora de qualquer raio, para a conversa não virar duelo.
-- **Cerâmico:** `kerameikos.json` gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina do beat I.1.
-  - A oficina tem chão de terra batida cercado de tijolo, com a roda de oleiro onde a Kleia começa e ânforas no fundo.
-  - O pátio é de argila seca, com o forno e um canto de palha.
-  - Na rua de terra, as ânforas esperam prontas na porta.
-  - Não há batalha: `SandboxTools` só cria o `SandboxBattleDirector` quando o mapa tem o Thrasybios.
+- **Cerâmico:** `kerameikos.json` (16×16) gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina dos beats I.1 e I.4.
+  - A oficina tem chão de terra batida cercado de tijolo, com uma única porta em (4, 7), a roda de oleiro ao lado da qual a Kleia começa e ânforas no fundo. Aristeu, o pai (folha placeholder `aristeu`), fica junto a elas e a manda levar a mercadoria à Ágora (`aristeu_workshop`, flag `aristeu_errand`).
+  - O pátio é de argila seca, com o forno, as ânforas prontas junto à porta e um canto de palha com oliveiras. A rua de terra corre pela borda da frente, e as saídas dela levam à Ágora.
+  - Tutorial por deixas: `kerameikos_first_steps` ao abrir o jogo, `kerameikos_tutorial_fog` no primeiro passo que revela névoa e `kerameikos_tutorial_talk` no fim da caminhada seguinte, cada um com a própria flag `tutorial_*`. Sair pela porta toca `kerameikos_leaving_workshop` (`left_workshop`).
+  - Menexeno (beat I.4) só aparece em (3, 6), diante da porta, com `duel_thrasybios=won`. Pisar em (4, 6) ou falar com ele toca `menexeno_workshop_door`: a condição de nunca cobrar por uma pergunta (`menexeno_condition`), a pista do passado que ele evita (`menexeno_avoids_past`) e `maieutics_unlocked`, que libera a MAIÊUTICA. A cena é uma sequência de diálogo, não um Timeline.
+  - Não há batalha: `SandboxTools` só cria o `SandboxBattleDirector` quando o mapa tem oponente.
 - **Saídas:** `exits` no JSON do mapa liga uma célula a outro local, com célula de chegada e `Facing`.
   - `MapLayout.Validate` recusa saída fora do mapa, em célula bloqueada, sem destino ou repetida, e um teste garante que a chegada cai em célula livre, sem ator e sem outra saída — senão o jogador quicaria de volta.
   - Pisar na saída e parar dispara a troca: `SceneArrival` guarda a chegada, `LocationScenes.SceneFor` resolve a cena e o `GridSandboxController` da outra ponta teleporta o jogador no `Awake`, revela a névoa em volta e faz save automático.

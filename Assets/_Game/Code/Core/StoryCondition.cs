@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Game.Core
 {
@@ -32,6 +33,24 @@ namespace Game.Core
             }
 
             return present && (Value == null || string.Equals(actual, Value, StringComparison.Ordinal));
+        }
+
+        public static bool AllMet(IEnumerable<StoryCondition> conditions, SaveData save)
+        {
+            if (conditions == null)
+            {
+                return true;
+            }
+
+            foreach (var condition in conditions)
+            {
+                if (!condition.IsMet(save))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public override string ToString() => Absent ? $"!{Flag}" : Value == null ? Flag : $"{Flag}={Value}";

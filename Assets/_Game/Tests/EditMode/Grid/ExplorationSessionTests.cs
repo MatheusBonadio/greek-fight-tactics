@@ -44,6 +44,21 @@ namespace Game.Tests.EditMode.Grid
         }
 
         [Test]
+        public void EnteringACell_ReportsOnlyNewlyRevealedFog()
+        {
+            var walker = new GridWalker(grid, ActorId, new Coord(3, 6));
+            using var session = new ExplorationSession(walker, fog);
+            var reports = new System.Collections.Generic.List<int>();
+            session.FogRevealed += reports.Add;
+
+            walker.Follow(new[] { new Coord(4, 6) });
+            walker.Advance(GridWalker.SecondsPerCell);
+            walker.Follow(new[] { new Coord(3, 6) });
+
+            CollectionAssert.AreEqual(new[] { 7 }, reports, "walking back over seen ground reveals nothing new");
+        }
+
+        [Test]
         public void Dispose_StopsRevealing()
         {
             var walker = new GridWalker(grid, ActorId, new Coord(3, 6));

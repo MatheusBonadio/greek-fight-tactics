@@ -42,12 +42,13 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void Floor_CoversTwelveByTwelveWithEveryFloorTile()
+        public void Floor_CoversTheWholeMapWithEveryFloorTile()
         {
             var floor = Tilemap(SandboxTools.FloorTilemapName);
+            var map = MapLayout.Load(SandboxTools.MapPath);
 
-            Assert.AreEqual(SandboxTools.Size * SandboxTools.Size, floor.GetUsedTilesCount() == 0 ? 0 : CountTiles(floor));
-            CollectionAssert.AreEquivalent(MapLayout.Load(SandboxTools.MapPath).FloorLegend.Values.Distinct(), UsedTileNames(floor));
+            Assert.AreEqual(map.Width * map.Height, floor.GetUsedTilesCount() == 0 ? 0 : CountTiles(floor));
+            CollectionAssert.AreEquivalent(map.FloorLegend.Values.Distinct(), UsedTileNames(floor));
         }
 
         [Test]
@@ -103,9 +104,11 @@ namespace Game.Tests.EditMode.UI
         public void Controller_IsWiredWithLayoutControlsActorsAndHud()
         {
             var controller = Find<GridSandboxController>();
+            var map = MapLayout.Load(SandboxTools.MapPath);
 
-            Assert.AreEqual(SandboxTools.Size * SandboxTools.Size, controller.Terrain.Count);
-            Assert.AreEqual(SandboxTools.Size * SandboxTools.Size, controller.Costs.Count);
+            Assert.AreEqual(map.Width * map.Height, controller.Terrain.Count);
+            Assert.AreEqual(map.Width * map.Height, controller.Costs.Count);
+            Assert.AreEqual(SandboxTools.FogRevealDepth, controller.FogRevealDepth, "the agora keeps the default fog depth");
             Assert.IsNotNull(controller.Controls);
             Assert.IsNotNull(controller.Controls.FindActionMap(GridSandboxController.ActionMapName));
             Assert.GreaterOrEqual(controller.Actors.Count, 7);

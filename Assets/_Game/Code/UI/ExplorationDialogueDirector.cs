@@ -52,6 +52,8 @@ namespace Game.UI
 
         public bool IsApproaching => pendingTalk != null;
 
+        public bool HasPendingTrigger => pendingTrigger != null;
+
         public string ActiveDialogueId => run?.Script.Id;
 
         public ScriptLine CurrentLine => run?.Current;
@@ -125,6 +127,32 @@ namespace Game.UI
             return true;
         }
 
+        public bool TryPlayOnce(string dialogueId, string onceFlag)
+        {
+            EnsureStoryLoaded();
+            if (IsTalking || Story == null || StoryCondition.Has(onceFlag).IsMet(Story))
+            {
+                return false;
+            }
+
+            Remember(new StoryEffect(onceFlag));
+            if (!TryStartDialogue(dialogueId))
+            {
+                SaveProgress();
+            }
+
+            return true;
+        }
+
+        public void Remember(StoryEffect effect)
+        {
+            EnsureStoryLoaded();
+            if (Story != null && effect.TryApply(Story, out _))
+            {
+                sessionEffects.Add(effect);
+            }
+        }
+
         public void Advance()
         {
             if (!IsTalking)
@@ -172,7 +200,7 @@ namespace Game.UI
 
         private void OnPlayerCellEntered(Coord cell)
         {
-            if (IsTalking || sandbox.StateMachine.Mode != GameMode.Exploration || !TryFindUnfiredTrigger(cell, out var trigger))
+            if (IsTalking || !sandbox.ExplorationInputEnabled || sandbox.StateMachine.Mode != GameMode.Exploration || !TryFindUnfiredTrigger(cell, out var trigger))
             {
                 return;
             }
@@ -290,11 +318,21 @@ namespace Game.UI
 
         private void Fire(DialogueTriggerLink trigger)
         {
-            Remember(new StoryEffect(trigger.Flag));
-            if (!TryStartDialogue(trigger.Dialogue))
+            FaceSpeakerBeside(trigger.Dialogue);
+            TryPlayOnce(trigger.Dialogue, trigger.Flag);
+        }
+
+        private void FaceSpeakerBeside(string dialogueId)
+        {
+            var walker = sandbox.Player.Walker;
+            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && IsBeside(walker.Cell, candidate));
+            if (talker == null)
             {
-                SaveProgress();
+                return;
             }
+
+            walker.FaceToward(talker.Actor.Walker.Cell);
+            talker.Actor.Walker.FaceToward(walker.Cell);
         }
 
         private void ShowNext()
@@ -324,14 +362,6 @@ namespace Game.UI
             if (AutosavePolicy.ShouldSave(from, sandbox.StateMachine.Mode))
             {
                 SaveProgress();
-            }
-        }
-
-        private void Remember(StoryEffect effect)
-        {
-            if (Story != null && effect.TryApply(Story, out _))
-            {
-                sessionEffects.Add(effect);
             }
         }
 
@@ -390,7 +420,7 @@ namespace Game.UI
                 return false;
             }
 
-            trigger = triggers.Find(candidate => candidate.Cell == cell && !StoryCondition.Has(candidate.Flag).IsMet(Story));
+            trigger = triggers.Find(candidate => candidate.Cell == cell && candidate.IsDue(Story));
             return trigger != null;
         }
     }

@@ -69,6 +69,7 @@ namespace Game.Tests.PlayMode
             yield return LoadSandbox(loaded => (director, sandbox) = loaded);
             Assert.IsFalse(director.Hud.gameObject.activeSelf);
             director.AutosaveEnabled = false;
+            yield return UnlockMaieutics();
 
             var target = director.Opponents[0];
             sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, target), Facing.NorthEast);
@@ -101,6 +102,7 @@ namespace Game.Tests.PlayMode
                 else if (director.Phase == BattleFlowPhase.PlayerChoosing)
                 {
                     sawPlayerTurn = true;
+                    Assert.AreNotEqual(RejectionReason.ActionLocked, MenuEntry(director, ActionId.Maieutics).Reason, "the story flag unlocked maieutics");
                     sawRange |= director.RangeView.PaintedCount > 0;
                     director.SubmitChoice(PickChoice(director.Session));
                 }
@@ -208,6 +210,7 @@ namespace Game.Tests.PlayMode
                 .First();
             var opponentId = target.Opponent.Id;
             Assert.IsFalse(director.IsDefeated(target));
+            yield return UnlockMaieutics();
 
             var approach = FreeCellOnlyWithin(sandbox.Grid, director, target);
             sandbox.Player.Walker.Teleport(approach, Facing.NorthEast);
@@ -240,6 +243,71 @@ namespace Game.Tests.PlayMode
             yield return Frames(QuietFrames);
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "a defeated opponent picked a fight when Kleia came back");
         }
+
+        [UnityTest]
+        public IEnumerator Maieutics_StaysLockedInTheMenuUntilTheStoryUnlocksIt()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            director.AutosaveEnabled = false;
+            var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            story.AutosaveEnabled = false;
+            yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
+            Assert.IsFalse(ActionUnlocks.IsUnlocked(ActionId.Maieutics, story.Story), "a new game starts without maieutics");
+            var target = director.Opponents[0];
+
+            yield return EngageUntilPlayerChooses(director, sandbox, target);
+            var locked = MenuEntry(director, ActionId.Maieutics);
+            Assert.IsFalse(locked.IsAvailable);
+            Assert.AreEqual(RejectionReason.ActionLocked, locked.Reason);
+            Assert.IsTrue(director.Session.State.IsLockedForPlayer(ActionId.Maieutics));
+            Assert.AreNotEqual(RejectionReason.ActionLocked, MenuEntry(director, ActionId.Refute).Reason, "only maieutics waits for the story");
+
+            director.Hud.Menu.HandlePoint(BattleMenuLayer.Actions, ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Maieutics));
+            var reason = director.Hud.Menu.ReasonLabel.text;
+            Assert.IsNotEmpty(reason, "the locked action explains itself");
+            StringAssert.DoesNotStartWith(Game.Content.UiTextSO.MissingPrefix, reason, "the locked reason comes from ui_text.json");
+            yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+
+            story.Remember(new StoryEffect(ActionUnlocks.MaieuticsFlag));
+            sandbox.Player.Walker.Teleport(FarCellFrom(sandbox.Grid, director, target), Facing.NorthEast);
+            yield return Frames(QuietFrames);
+            yield return EngageUntilPlayerChooses(director, sandbox, target);
+            Assert.AreNotEqual(RejectionReason.ActionLocked, MenuEntry(director, ActionId.Maieutics).Reason, "Menexeno's flag unlocks maieutics in the next battle");
+            Assert.IsFalse(director.Session.State.IsLockedForPlayer(ActionId.Maieutics));
+            yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+        }
+
+        private static IEnumerator UnlockMaieutics()
+        {
+            var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
+            Assert.IsTrue(story.IsStoryLoaded, "the story never loaded");
+            story.Remember(new StoryEffect(ActionUnlocks.MaieuticsFlag));
+        }
+
+        private static IEnumerator EngageUntilPlayerChooses(SandboxBattleDirector director, GridSandboxController sandbox, MapOpponent target)
+        {
+            sandbox.Player.Walker.Teleport(FreeCellOnlyWithin(sandbox.Grid, director, target), Facing.NorthEast);
+            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
+            Assert.AreSame(target, director.Engaged, $"{target.Opponent.Id} did not notice Kleia");
+
+            var deadline = Time.realtimeSinceStartup + BattleTimeoutSeconds;
+            while (director.Phase != BattleFlowPhase.PlayerChoosing && director.Phase != BattleFlowPhase.Exploring && Time.realtimeSinceStartup < deadline)
+            {
+                if (director.Phase == BattleFlowPhase.Dialogue)
+                {
+                    director.AdvanceDialogue();
+                }
+
+                yield return null;
+            }
+
+            Assert.AreEqual(BattleFlowPhase.PlayerChoosing, director.Phase, "Kleia never got a turn");
+        }
+
+        private static ActionMenuEntry MenuEntry(SandboxBattleDirector director, ActionId action) =>
+            director.Session.Menu.Entries.Single(entry => entry.Action == action);
 
         private static IEnumerator LoadSandbox(System.Action<(SandboxBattleDirector, GridSandboxController)> loaded)
         {

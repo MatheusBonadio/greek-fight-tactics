@@ -12,6 +12,7 @@ namespace Game.Tests.EditMode.UI
     public sealed class KerameikosSceneTests
     {
         private const string PlayerCharacter = "kleia";
+        private const string AristeuCharacter = "aristeu";
 
         private Scene scene;
 
@@ -35,9 +36,33 @@ namespace Game.Tests.EditMode.UI
 
             Assert.AreEqual(1, controllers.Length);
             Assert.AreEqual(SandboxTools.KerameikosLocationId, controllers[0].LocationId);
-            Assert.AreEqual(SandboxTools.Size * SandboxTools.Size, controllers[0].Terrain.Count);
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            Assert.AreEqual(map.Width, controllers[0].Width);
+            Assert.AreEqual(map.Height, controllers[0].Height);
+            Assert.AreEqual(map.Width * map.Height, controllers[0].Terrain.Count);
+            Assert.AreEqual(map.FogRevealDepth, controllers[0].FogRevealDepth);
             StringAssert.StartsWith(PlayerCharacter, controllers[0].Actors[0].name);
             CollectionAssert.IsEmpty(Components<SandboxBattleDirector>());
+        }
+
+        [Test]
+        public void Workshop_WiresTheTutorialCuesAristeuAndMenexenoWaitingForHisFlags()
+        {
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var controller = Components<GridSandboxController>().Single();
+            var cues = Components<StoryCueDirector>().Single();
+
+            CollectionAssert.AreEquivalent(
+                map.Cues.Select(cue => $"{cue.On}:{cue.Dialogue}:{cue.Flag}:{string.Join(",", cue.StoryConditions)}"),
+                cues.Cues.Select(link => $"{link.On}:{link.Dialogue}:{link.Flag}:{string.Join(",", link.Conditions)}"));
+
+            var conditional = map.Actors.Where(actor => actor.IsConditional).ToList();
+            CollectionAssert.AreEquivalent(
+                conditional.Select(actor => $"{actor.X},{actor.Y}:{string.Join(",", actor.StoryConditions)}"),
+                controller.Presences.Select(link => $"{link.Actor.StartCell.x},{link.Actor.StartCell.y}:{string.Join(",", link.Conditions)}"));
+
+            var aristeu = controller.Actors.Single(actor => actor.name.StartsWith(AristeuCharacter));
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(AristeuCharacter)), aristeu.SpriteRenderer.sprite.texture);
         }
 
         [Test]

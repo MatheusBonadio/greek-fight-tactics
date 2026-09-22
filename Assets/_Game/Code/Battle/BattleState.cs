@@ -12,6 +12,7 @@ namespace Game.Battle
         private readonly Dictionary<string, QuoteItem> quotes;
         private readonly Dictionary<string, int> quoteUses;
         private readonly HashSet<int> audienceMemberIds;
+        private readonly HashSet<ActionId> lockedActions;
         private readonly List<BattleLogEntry> log = new();
 
         public BattleState(
@@ -21,8 +22,10 @@ namespace Game.Battle
             IEnumerable<Debater> debaters,
             int initialPlayerAudience,
             IEnumerable<QuoteItem> quotes = null,
-            IEnumerable<int> audienceMemberIds = null)
+            IEnumerable<int> audienceMemberIds = null,
+            IEnumerable<ActionId> lockedPlayerActions = null)
         {
+            lockedActions = new HashSet<ActionId>(lockedPlayerActions ?? Enumerable.Empty<ActionId>());
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
             Rules = rules ?? throw new ArgumentNullException(nameof(rules));
             Act = act;
@@ -83,6 +86,10 @@ namespace Game.Battle
         public Debater Find(int id) => debaters.FirstOrDefault(debater => debater.Id == id);
 
         public bool IsAudienceMember(int occupantId) => audienceMemberIds.Contains(occupantId);
+
+        public IReadOnlyCollection<ActionId> LockedPlayerActions => lockedActions;
+
+        public bool IsLockedForPlayer(ActionId action) => lockedActions.Contains(action);
 
         public IReadOnlyCollection<string> QuoteIds => quotes.Keys;
 
