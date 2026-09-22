@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Game.Battle;
 using Game.Content;
 using Game.Core;
@@ -36,6 +38,27 @@ namespace Game.Tests.EditMode.UI
             Assert.IsTrue(uiText.Contains(UiTextKeys.ChooseFallacy));
             Assert.IsTrue(uiText.Contains(UiTextKeys.ChoosePremise));
             Assert.AreEqual("MAIÊUTICA", uiText.Get(UiTextKeys.For(ActionId.Maieutics)));
+        }
+
+        [Test]
+        public void GeneratedUiText_HasALineForEverythingTheBattleNarrates()
+        {
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            Assert.IsNotNull(uiText, $"run DataTools.Regenerate to create {DataTools.UiTextPath}");
+
+            var keys = typeof(BattleText)
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+                .Select(field => (string)field.GetRawConstantValue())
+                .Concat(Enum.GetValues(typeof(BattleStatus)).Cast<BattleStatus>().Select(BattleText.StatusKey))
+                .ToList();
+
+            Assert.IsNotEmpty(keys);
+            foreach (var key in keys)
+            {
+                Assert.IsTrue(uiText.Contains(key), key);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(uiText.Get(key)), key);
+            }
         }
 
         [Test]

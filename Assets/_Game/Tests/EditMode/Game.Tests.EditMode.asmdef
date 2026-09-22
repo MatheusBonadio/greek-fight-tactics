@@ -10,6 +10,7 @@
     "Game.Battle",
     "Game.Content",
     "Game.Net",
+    "Game.Tests.Support",
     "Game.EditorTools",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.2D.Sprite.Editor",

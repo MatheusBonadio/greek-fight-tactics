@@ -23,12 +23,12 @@ namespace Game.Grid
 
         public bool TryRestore(ExplorationSnapshot snapshot)
         {
-            if (!fog.TryLoadBitmask(snapshot.CopyFogBitmask()))
+            if (!walker.TryFindFreeCellNear(snapshot.PlayerCell, out var cell) || !fog.TryLoadBitmask(snapshot.CopyFogBitmask()))
             {
                 return false;
             }
 
-            walker.Teleport(snapshot.PlayerCell, snapshot.Facing);
+            walker.Teleport(cell, snapshot.Facing);
             return true;
         }
 

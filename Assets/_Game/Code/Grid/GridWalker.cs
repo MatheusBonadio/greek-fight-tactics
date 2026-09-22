@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Core;
+using Unity.Scripting.LifecycleManagement;
 using UnityEngine;
 
 namespace Game.Grid
@@ -8,6 +9,15 @@ namespace Game.Grid
     public sealed class GridWalker
     {
         public const float SecondsPerCell = 0.25f;
+
+        [NoAutoStaticsCleanup]
+        private static readonly Coord[] Steps =
+        {
+            new(1, 0),
+            new(-1, 0),
+            new(0, 1),
+            new(0, -1)
+        };
 
         private readonly GridModel grid;
         private readonly Queue<Coord> pending = new();
@@ -108,6 +118,39 @@ namespace Game.Grid
             stepOrigin = cell;
             stepElapsed = SecondsPerCell;
             Facing = facing;
+        }
+
+        public bool TryFindFreeCellNear(Coord origin, out Coord free)
+        {
+            var visited = new HashSet<Coord> { origin };
+            var frontier = new Queue<Coord>();
+            frontier.Enqueue(origin);
+            while (frontier.Count > 0)
+            {
+                var cell = frontier.Dequeue();
+                if (!grid.TryGet(cell, out var tile) || !tile.IsPassable)
+                {
+                    continue;
+                }
+
+                if (!tile.IsOccupied || tile.OccupantId == ActorId)
+                {
+                    free = cell;
+                    return true;
+                }
+
+                foreach (var step in Steps)
+                {
+                    var next = cell + step;
+                    if (visited.Add(next))
+                    {
+                        frontier.Enqueue(next);
+                    }
+                }
+            }
+
+            free = origin;
+            return false;
         }
 
         public void Advance(float deltaSeconds)
