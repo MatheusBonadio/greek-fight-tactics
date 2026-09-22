@@ -563,7 +563,7 @@ unity vcs doctor
 - **`JurorLayout`:** 1 pixel por jurado, em 3 fileiras (y 6, 8 e 10), com grupos de 10 colunas separados por 1 pixel. A absolvição entra pela esquerda e a condenação pela direita. Um teste garante que os dois lados nunca se cruzam dentro dos 200×16.
 - **`JurorMeterView`:** pinta uma `Texture2D` 200×16 com filtro Point num `RawImage` e destaca Menexeno em dourado, com uma marca acima e abaixo da coluna dele. O prefab é `Assets/_Game/Prefabs/UI/JurorMeter.prefab`, gerado por `BattleHudTools.BuildHud`.
 
-No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez:
+No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format json` e tratam o código de saída — `8` é teste falhando e não reintenta; `6` e `7` são falha de operação ou de serviço e reintentam uma vez. `-Format github` troca o formato para o CI transformar falha em anotação:
 
 ```powershell
 ./tools/test.ps1 -Mode All
@@ -573,6 +573,25 @@ No dia a dia e no CI, use os scripts de `tools/`, que chamam o CLI com `--format
 PlayMode não usa `-nographics`. `unity run` já passa `-batchmode` e `-quit` ao editor e recusa essas flags depois do `--`. Build Profiles ficam em `Assets/Settings/Build Profiles/`: `Windows Development`, `Windows Release` e `Web`.
 
 Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, namespace `Game.EditorTools`. Ele deve chamar `EditorApplication.Exit(code)` explicitamente ao final, com código diferente de zero em falha, ou o CI passa mesmo quebrado.
+
+### CI (GitHub Actions)
+
+`.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão no README.
+- **Jobs:** `functions-tests` e `unity-tests` rodam em todo push e em PR para a `main`. São os checks que o ruleset da `main` deve exigir. O ruleset é configuração do GitHub, fora do repositório: enquanto ninguém o criar, um check vermelho não bloqueia nada. `windows-build` roda só em push ou disparo manual na `main`, depois dos dois: build, `tools/scan-secrets.ps1` e upload do player.
+- **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa o serial quando o runner não tem licença e devolve a chave de `unity cache key` para o cache da `Library`.
+- **Licença:** a Unity não ativa licença para conta de serviço.
+  - Os jobs Unity rodam no runner da variável `UNITY_RUNNER` (JSON de rótulos, padrão `"windows-latest"`).
+  - Com licença já ativa no runner, o job não ativa nem devolve nada. É o caminho do projeto, que só tem a Personal: runner self-hosted na máquina de desenvolvimento, rodando com o usuário dono da licença.
+  - Nesse caminho, a licença do Editor é a Personal da conta pessoal, e a conta de serviço autentica só o CLI. O "nunca conta pessoal" do [CLI-02] só se cumpre por inteiro com assento pago (`UNITY_SERIAL`) ou servidor flutuante.
+  - Testado só com credenciais fictícias na conta de serviço: `license status` ainda vê a Personal, o CLI não passa `-accessToken` ao Editor, e o Editor valida a licença pelo cliente de licença local. Com credenciais válidas, ainda não rodou.
+  - Sem licença, o job ativa `UNITY_SERIAL` e marca `RUNNER_TEMP/unity-license-activated`. `.github/actions/return-unity-license` só devolve a licença quando essa marca existe, então a licença que já estava na máquina nunca é devolvida.
+  - `.ulf` não entra: a Personal não tem ativação manual e o arquivo fica preso ao hardware que o gerou.
+- **Push direto na `main`:** com o ruleset ativo, a `main` só aceita commit que já passou nos checks. Por isso o commit sobe antes para o branch `ci` e depois para a `main`.
+- **Fim de linha:** `functions/src/generated/*.json` é `eol=lf` no `.gitattributes`. Sem isso, um checkout novo no Windows traz CRLF e o teste de sincronia do `content.json` falha.
+- **Claude Code:**
+  - **Skill:** a skill `unity-cli` fica em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O `allowed-tools` do cabeçalho foi tirado, porque pré-aprovaria o Bash em toda sessão com a skill ativa. Ao regravar a skill, tire de novo. O `unity skill refresh` não sobrescreve a cópia editada sem `--force`.
+  - **Este arquivo vence as skills da Unity.** A skill manda dirigir o Editor aberto em vez de editar cena e asset. Aqui, cena, prefab e asset só saem das ferramentas de `Assets/_Game/Editor/` por `unity run ... -executeMethod`, nunca de `unity command` ou do MCP. O Editor conectado serve para inspecionar e verificar (inclusive os comandos `gft` de `Assets/_Game/Code/DevCommands`), e `unity command eval` fica só na máquina local.
+  - **MCP:** o `unity-editor-mcp` (`unity mcp`) fica em `.mcp.json`, no escopo do projeto, e cada pessoa o aprova na primeira sessão. `unity mcp configure claude-code` gravaria a mesma entrada no escopo do usuário.
 
 ### Plano B: editor em batch mode
 

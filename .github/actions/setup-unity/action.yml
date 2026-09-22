@@ -1,0 +1,72 @@
+name: Set up Unity
+description: Install the pinned Unity CLI and the Editor from ProjectVersion.txt, validate the service account and activate a serial license when the runner has none.
+
+inputs:
+  serial:
+    description: Unity serial number for a paid seat, activated only when the runner has no active license
+    required: false
+    default: ""
+  build-target:
+    description: Build target that scopes the Library cache key
+    required: false
+    default: StandaloneWindows64
+
+outputs:
+  cache-key:
+    description: Library cache key printed by unity cache key
+    value: ${{ steps.cache-key.outputs.key }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install the pinned Unity CLI
+      shell: pwsh
+      run: ./tools/install-cli.ps1 -InstallDirectory (Join-Path $env:RUNNER_TEMP "unity-cli")
+
+    - name: Validate the service account
+      shell: pwsh
+      run: |
+        if (-not $env:UNITY_SERVICE_ACCOUNT_ID -or -not $env:UNITY_SERVICE_ACCOUNT_SECRET) {
+          Write-Output "::error::Missing the UNITY_SERVICE_ACCOUNT_ID and UNITY_SERVICE_ACCOUNT_SECRET repository secrets"
+          exit 1
+        }
+        $env:UNITY_SERVICE_ACCOUNT_SECRET | unity auth login --client-id $env:UNITY_SERVICE_ACCOUNT_ID --secret-from-stdin --no-store
+
+    - name: Install the Editor from ProjectVersion.txt
+      shell: pwsh
+      run: |
+        $PSNativeCommandUseErrorActionPreference = $true
+        $pattern = '^m_EditorVersionWithRevision: (?<version>\S+) \((?<changeset>\w+)\)$'
+        $match = Select-String -LiteralPath ProjectSettings/ProjectVersion.txt -Pattern $pattern
+        $version = $match.Matches[0].Groups["version"].Value
+        $changeset = $match.Matches[0].Groups["changeset"].Value
+        unity install $version --changeset $changeset --architecture x86_64 --accept-eula --yes
+
+    - name: Activate an Editor license
+      shell: pwsh
+      env:
+        LICENSE_SERIAL: ${{ inputs.serial }}
+      run: |
+        unity --format json license status | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+          Write-Output "A Unity license is already active on this runner: the job neither activates nor returns it"
+          exit 0
+        }
+        if (-not $env:LICENSE_SERIAL) {
+          Write-Output "::error::No Unity license on this runner, and Unity does not activate Editor licenses for service accounts. Set the UNITY_SERIAL secret (paid seat) or point the UNITY_RUNNER variable at a self-hosted runner that already has a license"
+          exit 1
+        }
+        $PSNativeCommandUseErrorActionPreference = $true
+        New-Item -ItemType File -Force -Path (Join-Path $env:RUNNER_TEMP "unity-license-activated") | Out-Null
+        unity license activate --serial $env:LICENSE_SERIAL
+        unity license status
+
+    - name: Compute the Library cache key
+      id: cache-key
+      shell: pwsh
+      env:
+        BUILD_TARGET: ${{ inputs.build-target }}
+      run: |
+        $PSNativeCommandUseErrorActionPreference = $true
+        $result = unity --format json cache key . --target $env:BUILD_TARGET | ConvertFrom-Json
+        "key=$($result.data.key)" >> $env:GITHUB_OUTPUT

@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  UNITY_NON_INTERACTIVE: "1"
+  UNITY_NO_UPDATE_CHECK: "1"
+  UNITY_BUILD_TIMEOUT: "2700"
+  UNITY_TEST_TIMEOUT: "2700"
+
+jobs:
+  functions-tests:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: functions
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: functions/package.json
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+  unity-tests:
+    runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
+    timeout-minutes: 150
+    env:
+      UNITY_SERVICE_ACCOUNT_ID: ${{ secrets.UNITY_SERVICE_ACCOUNT_ID }}
+      UNITY_SERVICE_ACCOUNT_SECRET: ${{ secrets.UNITY_SERVICE_ACCOUNT_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - id: unity
+        uses: ./.github/actions/setup-unity
+        with:
+          serial: ${{ secrets.UNITY_SERIAL }}
+
+      - id: library
+        uses: actions/cache/restore@v6
+        with:
+          path: Library
+          key: library-${{ steps.unity.outputs.cache-key }}-${{ hashFiles('Assets/**', 'ProjectSettings/**') }}
+          restore-keys: library-${{ steps.unity.outputs.cache-key }}-
+
+      - id: editmode
+        name: EditMode tests
+        shell: pwsh
+        run: ./tools/test.ps1 -Mode EditMode -Format github
+
+      - id: playmode
+        name: PlayMode tests
+        if: ${{ !cancelled() && steps.unity.outcome == 'success' }}
+        shell: pwsh
+        run: ./tools/test.ps1 -Mode PlayMode -Format github
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: unity-test-results
+          path: artifacts/*.xml
+          if-no-files-found: ignore
+          overwrite: true
+
+      - name: Save the Library cache
+        if: ${{ !cancelled() && steps.library.outputs.cache-hit != 'true' && (steps.editmode.outcome == 'success' || steps.editmode.outcome == 'failure') }}
+        uses: actions/cache/save@v6
+        with:
+          path: Library
+          key: ${{ steps.library.outputs.cache-primary-key }}
+
+      - name: Return the Editor license
+        if: ${{ always() && steps.unity.outcome != 'skipped' }}
+        continue-on-error: true
+        uses: ./.github/actions/return-unity-license
+
+  windows-build:
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    needs: [functions-tests, unity-tests]
+    runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
+    timeout-minutes: 120
+    env:
+      UNITY_SERVICE_ACCOUNT_ID: ${{ secrets.UNITY_SERVICE_ACCOUNT_ID }}
+      UNITY_SERVICE_ACCOUNT_SECRET: ${{ secrets.UNITY_SERVICE_ACCOUNT_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - id: unity
+        uses: ./.github/actions/setup-unity
+        with:
+          serial: ${{ secrets.UNITY_SERIAL }}
+
+      - uses: actions/cache/restore@v6
+        with:
+          path: Library
+          key: library-${{ steps.unity.outputs.cache-key }}-${{ hashFiles('Assets/**', 'ProjectSettings/**') }}
+          restore-keys: library-${{ steps.unity.outputs.cache-key }}-
+
+      - name: Build Windows Development
+        shell: pwsh
+        run: ./tools/build.ps1 -BuildProfile "Windows Development" -Format github
+
+      - name: Scan the player for secrets
+        shell: pwsh
+        run: ./tools/scan-secrets.ps1 -Path Build/WindowsDevelopment
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: GFT-WindowsDevelopment-${{ github.sha }}
+          path: |
+            Build/WindowsDevelopment
+            !Build/WindowsDevelopment/*_DoNotShip
+            !Build/WindowsDevelopment/*_ButDontShipItWithYourGame
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Return the Editor license
+        if: ${{ always() && steps.unity.outcome != 'skipped' }}
+        continue-on-error: true
+        uses: ./.github/actions/return-unity-license
