@@ -158,11 +158,13 @@ class FootprintRuleTests(unittest.TestCase):
 
 class VerifyCommandTests(unittest.TestCase):
     def test_exits_with_zero_and_reports_the_colour_count(self):
+        floor = marble_floor()
+        colors = len({pixel[:3] for pixel in floor.getdata() if pixel[3]})
         with tempfile.TemporaryDirectory() as folder:
-            save(marble_floor(), folder, "floor_marble.png")
+            save(floor, folder, "floor_marble.png")
             code, output = run([folder])
         self.assertEqual(code, 0, output)
-        self.assertRegex(output, r"floor_marble\.png\s+32x16\s+4\s+yes\s+ok")
+        self.assertRegex(output, rf"floor_marble\.png\s+32x16\s+{colors}\s+yes\s+ok")
         self.assertIn("1 file: 1 ok, 0 with warnings, 0 failed", output)
 
     def test_exits_with_one_when_a_file_breaks_a_rule(self):

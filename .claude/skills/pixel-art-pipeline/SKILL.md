@@ -103,6 +103,8 @@ Não esconda essas falhas com `--skip`: ou a arte muda, ou a regra muda no GDD e
 | Prop maior que a célula | até 48×64 | Bottom Left | Ocupa 1 célula e transborda |
 | Personagem | 24×32 | Custom `(0.5, 0.0625)` | Pés na linha y = 30 a partir do topo |
 
+**Centro da célula.** Todo prop ou bloco mais estreito que a célula fica com a base no centro do losango: a linha mais larga e mais baixa da base (entre as 10 últimas linhas do sprite) vai para 8 linhas acima do fundo do canvas, que é a linha mais larga do chão, e o meio dela vai para x = 16. Numa caixa (barraca, baú), essa linha é onde terminam as arestas verticais, ou seja, as pontas laterais da base. Base desenhada na frente da célula faz o objeto parecer afundado ou deslocado para baixo. `python tools/art/anchor.py <pasta>` mede o desvio de cada `prop_` e `block_`, e `--fix` move o sprite, crescendo o canvas para cima quando falta espaço. Pixel solto na base engana a medida: limpe antes. Bloco de largura cheia (32 px na base) já é a célula e não se move.
+
 Com pivot na base, a altura extra de um bloco cresce para cima sozinha na Unity. Em coordenadas de pixel com y para baixo — no Aseprite ou no mockup — o topo do bloco sobe `altura − 16` px em relação ao chão.
 
 ### Folha de personagem
@@ -262,7 +264,8 @@ O template de prompt, os negativos e a variação para tiles estão na seção 9
    python tools/art/verify.py <pasta-de-saida> --colors
    ```
 4. Tiles: `python tools/art/tile_preview.py <tile-ou-pasta>` cola 4 cópias em losango 2×2 e grava a prévia ampliada 4× sobre magenta em `artifacts/art/tiling/<tile>_tiling.png`. Para um tile de 32×16, ele também conta os pixels opacos fora do losango e os vãos numa grade 3×3, e sai com código 1 se houver algum. Olhe a prévia: vão aparece em magenta, e contorno duplo aparece na junção.
-5. Copie para `art/placeholders/` só o que passou, com o mesmo nome e dimensão, e rode `ArtTools.SliceSheets`.
+5. Props e blocos: `python tools/art/anchor.py <pasta-de-saida> --fix` centra a base de cada um na célula (ver **Centro da célula**). Confira sobre um losango de chão com o centro marcado.
+6. Copie para `art/placeholders/` só o que passou, com o mesmo nome e dimensão, e rode `ArtTools.SliceSheets`.
 
 Os testes dos scripts rodam com `python -m unittest discover -s tools/art`. A tabela de dimensões por prefixo que o `verify.py` e o `quantize.py` usam é `SIZE_RULES`, em `tools/art/sprite_rules.py`: categoria nova de arquivo entra lá.
 
