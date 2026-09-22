@@ -49,6 +49,9 @@ Inglês, `snake_case`, com prefixo por categoria. O prefixo é o que o importer 
 | `bar_` / `box_` / `frame_` / `icon_` / `meter_` | UI | `bar_coherence.png` |
 | `<personagem>_sheet` / `<personagem>_idle_se` | Personagem | `kleia_sheet.png` |
 | `<personagem>_portrait` | Retrato 32×32 da caixa de diálogo | `aristeu_portrait.png` |
+| `<tile>_<n>` | Quadro `n` (1, 2…) de um tile animado; `<tile>.png` é o quadro 0. Vira `AnimatedTile` em que todas as células tocam juntas | `floor_water_1.png` |
+
+Tile animado que se repete no chão precisa emendar em todo quadro, não só no primeiro. Na água, cada quadro é a mesma textura deslocada sobre a grade das células (o loop soma um período da grade, (16, 8) px), com a crista também periódica na grade. Animação gerada por IA quadro a quadro não garante isso.
 
 Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem acento (`oron`, `batilo`); só a Pítia vira `pythia`. Os cinco duelistas de bairro são trocas de paleta das folhas de `citizen`, `damaris` e `thrasybios`, e `aristeu` é a de `citizen` com quíton marrom e barba grisalha, até a arte definitiva. Retrato dedicado (`<personagem>_portrait.png`, 32×32, o miolo da moldura `frame_portrait` de 40×40) vence o quadro `<personagem>_se_0` da folha no diálogo e na batalha. O de Aristeu mostra a mão erguida ao lado do rosto, com os dedos tortos, desviados para o lado do mindinho, e os nós inchados: é o detalhe obrigatório do GDD, que a folha de 24×32 não tem espaço para mostrar.
 

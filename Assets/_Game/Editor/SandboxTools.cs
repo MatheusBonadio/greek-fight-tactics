@@ -28,6 +28,8 @@ namespace Game.EditorTools
         public const string KerameikosCapturePath = "artifacts/reference/kerameikos.png";
         public const string SampleScenePath = "Assets/Scenes/SampleScene.unity";
         public const string TileAssetFolder = ArtTools.PlaceholderFolder + "/TileAssets";
+        public const string AnimatedTileAssetFolder = TileAssetFolder + "/Animated";
+        public const float AnimatedTileFramesPerSecond = 6f;
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
         public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
         public const string AudienceCharacter = "citizen";
@@ -178,10 +180,11 @@ namespace Game.EditorTools
             tagManager.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static Dictionary<string, Tile> EnsureTileAssets()
+        private static Dictionary<string, TileBase> EnsureTileAssets()
         {
             AssetFolders.Ensure(TileAssetFolder);
-            var tiles = new Dictionary<string, Tile>();
+            var tiles = new Dictionary<string, TileBase>();
+            var sprites = new Dictionary<string, Sprite>();
             foreach (var path in Directory.GetFiles(ArtTools.TileFolder, "*.png", SearchOption.AllDirectories).Select(file => file.Replace('\\', '/')))
             {
                 var name = Path.GetFileNameWithoutExtension(path);
@@ -191,9 +194,43 @@ namespace Game.EditorTools
                 tile.colliderType = Tile.ColliderType.None;
                 EditorUtility.SetDirty(tile);
                 tiles[name] = tile;
+                sprites[name] = sprite;
+            }
+
+            foreach (var name in sprites.Keys.ToArray())
+            {
+                var frames = AnimationFrames(name, sprites);
+                if (frames.Length > 1)
+                {
+                    tiles[name] = EnsureAnimatedTile(name, frames);
+                }
             }
 
             return tiles;
+        }
+
+        public static Sprite[] AnimationFrames(string name, IReadOnlyDictionary<string, Sprite> sprites)
+        {
+            var frames = new List<Sprite> { sprites[name] };
+            for (var frame = 1; sprites.TryGetValue($"{name}_{frame}", out var sprite); frame++)
+            {
+                frames.Add(sprite);
+            }
+
+            return frames.ToArray();
+        }
+
+        private static AnimatedTile EnsureAnimatedTile(string name, Sprite[] frames)
+        {
+            AssetFolders.Ensure(AnimatedTileAssetFolder);
+            var tile = AssetFolders.LoadOrCreate<AnimatedTile>($"{AnimatedTileAssetFolder}/{name}.asset");
+            tile.m_AnimatedSprites = frames;
+            tile.m_MinSpeed = AnimatedTileFramesPerSecond;
+            tile.m_MaxSpeed = AnimatedTileFramesPerSecond;
+            tile.m_AnimationStartTime = 0f;
+            tile.m_TileColliderType = Tile.ColliderType.None;
+            EditorUtility.SetDirty(tile);
+            return tile;
         }
 
         private static void BuildScene(string locationId, string mapPath, string scenePath)

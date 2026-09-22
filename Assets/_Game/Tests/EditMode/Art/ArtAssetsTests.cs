@@ -12,7 +12,7 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 62;
+        private const int PlaceholderPngCount = 69;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
         private const string PalettePath = "art/palette/snes.gpl";

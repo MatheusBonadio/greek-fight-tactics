@@ -567,7 +567,7 @@ art/incoming/
 - **Caminho:** o caminho de cada arquivo é `art/incoming/<track_a|track_b>/<category>/<file_name>`, com `category` e `file_name` tirados do CSV. A coluna `track` do CSV (`A` ou `B`) diz a pasta: `A` vai em `track_a`, `B` vai em `track_b`.
 - **Exemplo:** a linha A-012 (`track` = `A`, `category` = `characters`, `file_name` = `kleia_refute_se.png`) é entregue em `art/incoming/track_a/characters/kleia_refute_se.png`.
 - **Fonte da UI:** o arquivo da Ark Pixel Font 10px Proportional, variante latin, tirado da release oficial de [TakWolf/ark-pixel-font](https://github.com/TakWolf/ark-pixel-font), e o texto da licença SIL OFL 1.1 vão em `art/incoming/track_a/fonts/`. A amostra `font_ui_specimen.png` vai em `ui/` (§12.1).
-- **Nada em `art/placeholders/`.** O `ArtTools` copia essa pasta para a Unity, e o `ArtAssetsTests` conta exatamente 59 PNGs nela: um arquivo a mais quebra o teste. Quem move a arte aprovada para o lugar definitivo é o dev (§11).
+- **Nada em `art/placeholders/`.** O `ArtTools` copia essa pasta para a Unity, e o `ArtAssetsTests` conta exatamente 69 PNGs nela: um arquivo a mais quebra o teste. Quem move a arte aprovada para o lugar definitivo é o dev (§11).
 - **Saída bruta do PixelLab** (ZIP, quadros soltos, tentativas descartadas) e as chaves de cor de trabalho ficam fora do repositório.
 
 ### 5.2 Nomes de arquivo
@@ -3828,8 +3828,8 @@ Import-Csv docs/art/pixellab_assets.csv | Group-Object track, priority, status |
 | A | P3 | 41 | 91 | 41 | 0 | 0 | 0 | 0 | 0% |
 | B | P1 | 111 | 229 | 98 | 0 | 1 | 0 | 12 | 11% |
 | B | P2 | 97 | 169 | 97 | 0 | 0 | 0 | 0 | 0% |
-| B | P3 | 36 | 58 | 36 | 0 | 0 | 0 | 0 | 0% |
-| **Total** | | 496 | 1011 | 474 | 0 | 2 | 0 | 20 | 4% |
+| B | P3 | 36 | 62 | 35 | 0 | 0 | 0 | 1 | 3% |
+| **Total** | | 496 | 1015 | 473 | 0 | 2 | 0 | 21 | 4% |
 
 Por categoria:
 
@@ -3837,7 +3837,7 @@ Por categoria:
 |---|---:|---:|---:|---:|
 | Tiras de personagem (`characters`) | 150 | 159 | 309 | 0 |
 | Retratos (`portraits`) | 22 | 24 | 46 | 0 |
-| Chão (`floor`) | 8 | 18 | 26 | 10 |
+| Chão (`floor`) | 8 | 18 | 26 | 11 |
 | Paredes e blocos (`blocks`) | 8 | 15 | 23 | 5 |
 | Props (`props`) | 11 | 16 | 27 | 5 |
 | Overlays (`overlays`) | 7 | 0 | 7 | 0 |

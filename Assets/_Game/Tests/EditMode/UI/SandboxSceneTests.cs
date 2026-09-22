@@ -16,6 +16,8 @@ namespace Game.Tests.EditMode.UI
 {
     public sealed class SandboxSceneTests
     {
+        private const int WaterFrames = 8;
+
         private Scene scene;
 
         [OneTimeSetUp]
@@ -49,6 +51,27 @@ namespace Game.Tests.EditMode.UI
 
             Assert.AreEqual(map.Width * map.Height, floor.GetUsedTilesCount() == 0 ? 0 : CountTiles(floor));
             CollectionAssert.AreEquivalent(map.FloorLegend.Values.Distinct(), UsedTileNames(floor));
+        }
+
+        [Test]
+        public void Water_PlaysOneAnimationInStepOnEveryWaterCell()
+        {
+            var floor = Tilemap(SandboxTools.FloorTilemapName);
+            var map = MapLayout.Load(SandboxTools.MapPath);
+            var water = Enumerable.Range(0, map.Width)
+                .SelectMany(x => Enumerable.Range(0, map.Height).Select(y => new Vector3Int(x, y, 0)))
+                .Where(cell => map.FloorAt(cell.x, cell.y) == MapLayout.WaterTile)
+                .ToList();
+            Assert.IsNotEmpty(water);
+
+            var tiles = water.Select(cell => floor.GetTile(cell)).Distinct().ToList();
+            Assert.AreEqual(1, tiles.Count, "every water cell must share one tile, so the frames change together");
+            var animated = tiles[0] as AnimatedTile;
+            Assert.IsNotNull(animated, "water must be an animated tile");
+            Assert.AreEqual(WaterFrames, animated.m_AnimatedSprites.Length);
+            Assert.AreEqual(SandboxTools.AnimatedTileFramesPerSecond, animated.m_MinSpeed);
+            Assert.AreEqual(animated.m_MinSpeed, animated.m_MaxSpeed, "a random speed per cell would break the wave between tiles");
+            Assert.AreEqual(0f, animated.m_AnimationStartTime);
         }
 
         [Test]

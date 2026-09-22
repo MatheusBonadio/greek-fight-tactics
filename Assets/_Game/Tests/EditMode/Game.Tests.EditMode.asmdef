@@ -21,7 +21,8 @@
     "Unity.Timeline",
     "Game.DevCommands",
     "Unity.TextMeshPro",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.2D.Tilemap.Extras"
   ],
   "includePlatforms": [
     "Editor"
