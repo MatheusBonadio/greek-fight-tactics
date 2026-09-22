@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Game.Core;
 using Game.Grid;
@@ -8,6 +9,7 @@ namespace Game.Tests.EditMode.Grid
     public sealed class ExplorationSessionTests
     {
         private const int ActorId = 5;
+        private const int OtherActorId = 6;
 
         private GridModel grid;
         private FogOfWar fog;
@@ -77,6 +79,40 @@ namespace Game.Tests.EditMode.Grid
             Assert.IsFalse(walker.IsMoving);
             Assert.AreEqual(ActorId, grid[new Coord(4, 2)].OccupantId);
             Assert.AreEqual(TileData.NoOccupant, grid[new Coord(4, 5)].OccupantId);
+            CollectionAssert.AreEqual(revealedBefore, RevealedCells());
+        }
+
+        [Test]
+        public void Restore_OntoACellAnotherActorNowHolds_PlacesThePlayerOnTheNearestFreeCell()
+        {
+            var saved = new Coord(6, 6);
+            var walker = new GridWalker(grid, ActorId, new Coord(2, 2));
+            using var session = new ExplorationSession(walker, fog);
+            walker.Teleport(saved, Facing.SouthWest);
+            var snapshot = session.Capture();
+            walker.Teleport(new Coord(2, 2), Facing.SouthEast);
+            _ = new GridWalker(grid, OtherActorId, saved);
+
+            Assert.IsTrue(session.TryRestore(snapshot));
+
+            Assert.AreEqual(1, Math.Abs(walker.Cell.X - saved.X) + Math.Abs(walker.Cell.Y - saved.Y));
+            Assert.AreEqual(Facing.SouthWest, walker.Facing);
+            Assert.AreEqual(ActorId, grid[walker.Cell].OccupantId);
+            Assert.AreEqual(OtherActorId, grid[saved].OccupantId);
+            Assert.AreEqual(TileData.NoOccupant, grid[new Coord(2, 2)].OccupantId);
+        }
+
+        [Test]
+        public void Restore_OntoACellOutsideTheMap_KeepsThePlayerAndTheFog()
+        {
+            var walker = new GridWalker(grid, ActorId, new Coord(2, 2));
+            using var session = new ExplorationSession(walker, fog);
+            var revealedBefore = RevealedCells();
+            var outside = new ExplorationSnapshot(new Coord(grid.Width + 4, 3), Facing.NorthEast, new byte[fog.ToBitmask().Length]);
+
+            Assert.IsFalse(session.TryRestore(outside));
+
+            Assert.AreEqual(new Coord(2, 2), walker.Cell);
             CollectionAssert.AreEqual(revealedBefore, RevealedCells());
         }
 
