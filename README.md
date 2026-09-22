@@ -13,7 +13,7 @@ Tactics isométrico de dialética na Grécia Antiga. Unity 2D URP, pixel art 16-
 
 O patch do editor está congelado em `ProjectSettings/ProjectVersion.txt` até a entrega acadêmica. Nenhum upgrade antes disso.
 
-O CLI também fica fixo. O CI baixa exatamente a `1.0.0-beta.8` por `tools/install-cli.ps1`, que confere o SHA-256 gravado no script. Atualizar é sempre deliberado: `unity self-update --target <versão>` na máquina, depois a versão e o hash novos em `tools/install-cli.ps1` e nesta tabela, e `unity skill install claude-code --local --force` para regravar a skill do CLI no projeto. O `winget` instala a versão mais recente, então não use `winget upgrade` no CLI.
+O CLI também fica fixo. O CI baixa exatamente a `1.0.0-beta.8` por `tools/install-cli.ps1`, que confere o SHA-256 gravado no script. Atualizar é sempre deliberado: `unity self-update --target <versão>` na máquina, depois a versão e o hash novos em `tools/install-cli.ps1` e nesta tabela, e `unity skill install claude-code --local --force` para regravar a skill do CLI no projeto. No `SKILL.md` regravado, apague o `allowed-tools` do cabeçalho: ele pré-aprova o Bash em toda sessão com a skill ativa. O `unity skill refresh` não desfaz essa edição sem `--force`. O `winget` instala a versão mais recente, então não use `winget upgrade` no CLI.
 
 ## Preparar a máquina
 
@@ -34,6 +34,8 @@ claude mcp get unity-editor-mcp
 ```
 
 Não rode `unity mcp configure claude-code`. Ele grava a mesma entrada no escopo do usuário, porque o CLI recusa `--local` para o Claude Code.
+
+A skill é genérica e manda dirigir o Editor aberto em vez de editar cena e asset. Neste projeto vale o [CLAUDE.md](CLAUDE.md): cena, prefab e asset só saem das ferramentas de `Assets/_Game/Editor/`, e o Editor conectado serve para inspecionar e verificar.
 
 ## Clonar
 
@@ -107,7 +109,18 @@ Arquivo `.ulf` não serve no `windows-latest`. A Personal não tem ativação ma
 
 Se a Personal vencer, o passo de licença falha. Renove na máquina com `unity license activate --personal --accept-eula`, logado com a sua conta.
 
+**Nesse caminho, quem licencia o Editor é a sua conta pessoal.** A conta de serviço autentica só o CLI; a licença que o Editor valida é a Personal da sua conta, guardada pelo cliente de licença do seu usuário. O "nunca conta pessoal" do card [CLI-02] só se cumpre por inteiro com um assento pago em `UNITY_SERIAL` ou com um servidor de licença flutuante.
+
+O que já foi conferido nesta máquina, com credenciais fictícias nas variáveis da conta de serviço:
+
+- `unity --format json license status` continua listando a Personal, com `authMode` `service-account`, e sai com 0. O passo de licença, então, não tenta ativar nada.
+- `unity test` passa ao Editor o `-hubSessionId`, mas não o `-accessToken`. O Editor registra `Access token is unavailable`, valida a Personal pelo cliente de licença e os testes rodam. Sem as variáveis, o CLI passa o token da sua sessão.
+
+Com uma conta de serviço de verdade isso ainda não rodou. Com credenciais válidas, o CLI pode passar ao Editor um token da conta de serviço. O servidor de licença recusa esse token na ativação, e ninguém testou o que ele faz na validação da Personal. No primeiro run, procure as linhas `[Licensing::` no log do `unity-tests`. Se o Editor recusar a licença, o `unity test` sai com 6 e o job falha.
+
 ### Proteção da `main`
+
+O ruleset é configuração do GitHub, não fica no repositório. Enquanto ninguém o criar, um check vermelho não bloqueia push nem merge na `main`.
 
 Em **Settings → Rules → Rulesets → New branch ruleset**:
 
