@@ -23,3 +23,7 @@ MonoBehaviour:
   act: 1
   profile: 1
   aggroRadius: 1
+  tutorial:
+    fallacyId: 
+    doneFlag: 
+    dialogues: []

@@ -98,6 +98,61 @@ namespace Game.Tests.EditMode.UI
             Object.DestroyImmediate(sprite);
         }
 
+        [Test]
+        public void DialogueBox_OffersTheOptionsOnlyAfterTheQuestionIsReadAndReportsThePickedOne()
+        {
+            var view = CreateDialogue();
+            var panel = Child<Image>("choices").rectTransform;
+            var rows = Enumerable.Range(0, DialogueChoice.MaxOptions).Select(index => Child<TextMeshProUGUI>($"choice{index}", panel)).Cast<TMP_Text>().ToArray();
+            view.ConfigureChoices(panel, rows, Child<Image>("cursor", panel).rectTransform);
+            var picked = -1;
+            var finished = false;
+            view.ChoiceMade += index => picked = index;
+            view.Finished += () => finished = true;
+            view.CharactersPerSecond = 10f;
+
+            view.Show(new DialogueLine("Thrasybios", null, "Aceita as aulas?"), new[] { "Aceitar as aulas", "Recusar" });
+            Assert.IsTrue(view.HasChoices);
+            Assert.IsFalse(view.IsAwaitingChoice, "the options wait until the question is typed");
+            Assert.IsFalse(panel.gameObject.activeSelf);
+            view.HandleNavigate(Vector2.down);
+            view.HandleConfirm();
+            Assert.AreEqual(0, view.ChoiceCursor, "navigating while the text types does nothing");
+            Assert.IsTrue(view.IsOpen, "confirming from the menu input cannot skip the question");
+
+            view.Confirm();
+            Assert.IsTrue(view.IsAwaitingChoice);
+            Assert.IsTrue(panel.gameObject.activeSelf);
+            Assert.AreEqual("Aceitar as aulas", rows[0].text);
+            Assert.AreEqual("Recusar", rows[1].text);
+            Assert.IsFalse(rows[2].gameObject.activeSelf);
+            Assert.IsFalse(rows[3].gameObject.activeSelf);
+
+            view.HandleNavigate(Vector2.down);
+            Assert.AreEqual(1, view.ChoiceCursor);
+            view.HandleNavigate(Vector2.down);
+            Assert.AreEqual(0, view.ChoiceCursor, "the cursor wraps around the options");
+            view.HandlePoint(1);
+            Assert.AreEqual(1, view.ChoiceCursor);
+            view.HandlePoint(3);
+            Assert.AreEqual(1, view.ChoiceCursor, "pointing at an unused row keeps the cursor");
+            view.HandleCancel();
+            Assert.IsTrue(view.IsAwaitingChoice, "cancel cannot dodge the question");
+
+            view.HandleConfirm();
+            Assert.AreEqual(1, picked);
+            Assert.IsFalse(finished, "answering is not a plain finish");
+            Assert.IsFalse(view.IsOpen);
+            Assert.IsFalse(view.HasChoices);
+
+            view.Show(new DialogueLine(string.Empty, null, "A roda se desfaz."));
+            Assert.IsFalse(view.HasChoices);
+            Assert.IsFalse(panel.gameObject.activeSelf);
+            view.Confirm();
+            view.Confirm();
+            Assert.IsTrue(finished);
+        }
+
         [TestCase("á é í ó ú â ê ô ã õ à ç Ç Ã Õ")]
         [TestCase("\"retas\" “curvas” ‘simples’ — travessão… reticências...")]
         public void DefaultFont_CoversPortugueseAccentsQuotesDashAndEllipsis(string sample)

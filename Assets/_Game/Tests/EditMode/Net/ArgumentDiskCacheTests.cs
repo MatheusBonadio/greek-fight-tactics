@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Game.Net;
 using NUnit.Framework;
 
@@ -100,6 +102,23 @@ namespace Game.Tests.EditMode.Net
         public void Load_WithoutADirectory_StartsEmpty()
         {
             Assert.AreEqual(0, new ArgumentDiskCache(directory).Load());
+        }
+
+        [Test]
+        public void LoadWhileAnotherCacheOfTheFolderSaves_NeverCollidesNorLosesTheNewestIndex()
+        {
+            const int rounds = 100;
+            var leavingScene = new ArgumentDiskCache(directory);
+            var saves = new List<Task>();
+            for (var round = 0; round < rounds; round++)
+            {
+                leavingScene.Put($"key{round}", $"{{\"round\":{round}}}");
+                saves.Add(leavingScene.SaveAsync());
+                Assert.DoesNotThrow(() => new ArgumentDiskCache(directory).Load(), $"the next scene could not load the cache while save {round} was running");
+            }
+
+            Assert.DoesNotThrow(() => Task.WaitAll(saves.ToArray()), "two saves of the same folder collided");
+            Assert.AreEqual(rounds, new ArgumentDiskCache(directory).Load(), "an older save overwrote the newest index");
         }
     }
 }

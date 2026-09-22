@@ -288,7 +288,9 @@ namespace Game.EditorTools
             {
                 var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
                 rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
-                CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera).ConfigureRange(rangeView);
+                var battleDirector = CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera);
+                battleDirector.ConfigureRange(rangeView);
+                battleDirector.ConfigureStory(dialogues);
             }
 
             AssetFolders.Ensure(Path.GetDirectoryName(scenePath)?.Replace('\\', '/'));

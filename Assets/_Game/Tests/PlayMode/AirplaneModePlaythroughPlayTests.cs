@@ -24,6 +24,7 @@ namespace Game.Tests.PlayMode
         private const float SceneTimeoutSeconds = 10f;
         private const float WalkTimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 120f;
+        private const float CutsceneTimeoutSeconds = 60f;
         private const float SyncTimeoutSeconds = 5f;
         private const float OfflineThinkSeconds = 0.1f;
         private const float ThinkSlackSeconds = 1f;
@@ -31,6 +32,7 @@ namespace Game.Tests.PlayMode
         private const int MaxApproaches = 4;
         private const int MaxRestoreShift = 2;
         private const int QuietFrames = 30;
+        private const int IdleFramesBeforeWalkingOn = 2;
 
         private static readonly NetworkOutage[] Outages = { NetworkOutage.Refused, NetworkOutage.Hanging, NetworkOutage.Unresolvable };
 
@@ -48,6 +50,7 @@ namespace Game.Tests.PlayMode
 
         private readonly HashSet<string> battleLinesShown = new();
         private readonly HashSet<string> dialoguesPlayed = new();
+        private readonly HashSet<string> cutscenesPlayed = new();
         private readonly Dictionary<string, BattleStatus> duelResults = new();
         private IsolatedDataDirectory data;
         private FakeFirebase firebase;
@@ -73,6 +76,7 @@ namespace Game.Tests.PlayMode
             OnlineBackendOverride.Set(new OnlineBackend(network, firebase.Endpoints, firebase.Firestore, (_, _) => Task.CompletedTask));
             battleLinesShown.Clear();
             dialoguesPlayed.Clear();
+            cutscenesPlayed.Clear();
             duelResults.Clear();
             longestOpponentTurnSeconds = 0f;
             opponentLines = 0;
@@ -106,9 +110,11 @@ namespace Game.Tests.PlayMode
             var workshop = default(MapScene);
             yield return EnterMap(loaded => workshop = loaded);
             Assert.AreEqual(LocationScenes.Kerameikos, workshop.Sandbox.LocationId);
+            yield return SettleTheStory(workshop);
             yield return WalkIntoEveryTrigger(workshop);
             yield return TalkToEveryone(workshop);
-            var workshopFlags = workshop.Dialogue.Triggers.Select(trigger => trigger.Flag).Distinct().ToList();
+            var workshopFlags = workshop.Dialogue.Story.Flags.Keys.ToList();
+            Assert.IsNotEmpty(workshopFlags, "the workshop's story recorded nothing");
             var road = workshop.Sandbox.Exits.First(link => link.Location == LocationScenes.Agora);
             yield return WalkThroughExit(workshop, road);
 
@@ -119,7 +125,24 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(LocationScenes.Agora, arrival.Location);
             CollectionAssert.IsSubsetOf(workshopFlags, arrival.Flags.Keys, "the workshop's story survives the trip");
             refutableIds = agora.Services.Catalog.RefutableIds.ToList();
+            yield return SettleTheStory(agora);
             yield return TalkToEveryone(agora);
+            yield return TakeEveryLesson(agora);
+            Assert.IsFalse(ActionUnlocks.IsUnlocked(ActionId.Maieutics, agora.Dialogue.Story), "only Menexeno teaches maieutics");
+
+            var home = agora.Sandbox.Exits.First(link => link.Location == LocationScenes.Kerameikos);
+            yield return WalkThroughExit(agora, home);
+            yield return EnterMap(loaded => workshop = loaded);
+            Assert.AreEqual(home.Arrival, workshop.Player.Cell, "the workshop puts Kleia at the road's arrival");
+            yield return SettleTheStory(workshop);
+            yield return WalkIntoEveryTrigger(workshop);
+            Assert.IsTrue(ActionUnlocks.IsUnlocked(ActionId.Maieutics, workshop.Dialogue.Story), "Menexeno's door scene teaches maieutics while offline");
+            CollectionAssert.IsSubsetOf(workshop.Dialogue.Triggers.Where(trigger => trigger.IsCutscene).Select(trigger => trigger.Cutscene).Distinct(), cutscenesPlayed, "every cutscene of the workshop plays offline");
+            yield return WalkThroughExit(workshop, road);
+
+            yield return EnterMap(loaded => agora = loaded);
+            Assert.AreEqual(road.Arrival, agora.Player.Cell);
+            yield return SettleTheStory(agora);
             yield return DuelEveryone(agora);
 
             AssertEveryBattleLineWasShown();
@@ -141,7 +164,7 @@ namespace Game.Tests.PlayMode
             AssertRestored(agora, quitSave);
 
             network.Reconnect();
-            var home = agora.Sandbox.Exits.First(link => link.Location == LocationScenes.Kerameikos);
+            home = agora.Sandbox.Exits.First(link => link.Location == LocationScenes.Kerameikos);
             yield return WalkThroughExit(agora, home);
             yield return EnterMap(loaded => workshop = loaded);
             Assert.AreEqual(home.Arrival, workshop.Player.Cell);
@@ -152,7 +175,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(newest.Timestamp, firebase.RemoteSave.Timestamp, "the newest local save is the one in the cloud");
             CollectionAssert.IsOrdered(firebase.Commits.Select(save => save.Timestamp), "an older save overwrote a newer one in the cloud");
             CollectionAssert.IsSupersetOf(firebase.RemoteSave.Duels.Keys, duelResults.Where(result => result.Value == BattleStatus.PlayerWon).Select(result => result.Key));
-            TestContext.WriteLine($"{outage}: {dialoguesPlayed.Count} conversations, {duelResults.Count} duels, {opponentLines} opponent lines, longest opponent turn {longestOpponentTurnSeconds:0.000}s");
+            TestContext.WriteLine($"{outage}: {dialoguesPlayed.Count} conversations, {cutscenesPlayed.Count} cutscenes, {duelResults.Count} duels, {opponentLines} opponent lines, longest opponent turn {longestOpponentTurnSeconds:0.000}s");
             LogAssert.NoUnexpectedReceived();
         }
 
@@ -177,7 +200,8 @@ namespace Game.Tests.PlayMode
                 Object.FindAnyObjectByType<GameServices>(),
                 Object.FindAnyObjectByType<ExplorationDialogueDirector>(),
                 Object.FindAnyObjectByType<SandboxBattleDirector>(),
-                Object.FindAnyObjectByType<PauseMenuController>());
+                Object.FindAnyObjectByType<PauseMenuController>(),
+                Object.FindAnyObjectByType<StoryCueDirector>());
             Assert.IsNotNull(map.Sandbox);
             Assert.IsNotNull(map.Services, $"{map.Sandbox.LocationId} must contain GameServices");
             Assert.IsNotNull(map.Dialogue, $"{map.Sandbox.LocationId} must contain the dialogue director");
@@ -188,7 +212,9 @@ namespace Game.Tests.PlayMode
             }
 
             yield return WaitFor(() => map.Services.IsBooted && map.Sandbox.ProgressLoaded && map.Dialogue.IsStoryLoaded, GameServices.OnlineBootBudgetSeconds + SceneTimeoutSeconds);
-            Assert.IsTrue(map.Services.IsBooted && map.Sandbox.ProgressLoaded && map.Dialogue.IsStoryLoaded, $"{map.Sandbox.LocationId} never finished loading");
+            Assert.IsTrue(
+                map.Services.IsBooted && map.Sandbox.ProgressLoaded && map.Dialogue.IsStoryLoaded,
+                $"{map.Sandbox.LocationId} never finished loading: booted {map.Services.IsBooted} ({map.Services.BootTask?.Status}: {map.Services.BootTask?.Exception}), progress {map.Sandbox.ProgressLoaded}, story {map.Dialogue.IsStoryLoaded}");
             Assert.LessOrEqual(Time.realtimeSinceStartup - started, GameServices.OnlineBootBudgetSeconds + BootSlackSeconds, $"{map.Sandbox.LocationId} waited on the network past the boot budget");
             loaded(map);
         }
@@ -197,32 +223,106 @@ namespace Game.Tests.PlayMode
         {
             foreach (var flag in map.Dialogue.Triggers.Select(trigger => trigger.Flag).Distinct().ToList())
             {
-                if (StoryCondition.Has(flag).IsMet(map.Dialogue.Story))
+                var due = map.Dialogue.Triggers.Where(candidate => candidate.Flag == flag && candidate.IsDue(map.Dialogue.Story)).ToList();
+                if (due.Count == 0)
                 {
                     continue;
                 }
 
-                var trigger = default(DialogueTriggerLink);
-                foreach (var candidate in map.Dialogue.Triggers.Where(candidate => candidate.Flag == flag))
+                var trigger = due.FirstOrDefault(candidate => map.Sandbox.TryMovePlayerTo(candidate.Cell));
+                Assert.IsNotNull(trigger, $"no trigger for {flag} can be reached on foot");
+                var scene = trigger.IsCutscene ? trigger.Cutscene : trigger.Dialogue;
+                bool Plays() => trigger.IsCutscene ? map.IsPlayingCutscene && map.Cutscenes.ActiveCutscene == trigger.Cutscene : map.Dialogue.ActiveDialogueId == trigger.Dialogue;
+                yield return WalkUntil(map, trigger.Cell, Plays, $"the walk toward {trigger.Cell}");
+                Assert.IsTrue(Plays(), $"walking toward {trigger.Cell} never played {scene}");
+                if (trigger.IsCutscene)
                 {
-                    if (map.Sandbox.TryMovePlayerTo(candidate.Cell))
-                    {
-                        trigger = candidate;
-                        break;
-                    }
+                    yield return PlayCutscene(map);
+                }
+                else
+                {
+                    yield return PlayConversation(map);
                 }
 
-                Assert.IsNotNull(trigger, $"no trigger for {flag} can be reached on foot");
-                yield return WaitFor(() => map.Dialogue.IsTalking, WalkTimeoutSeconds);
-                Assert.IsTrue(map.Dialogue.IsTalking, $"walking toward {trigger.Cell} never played {trigger.Dialogue}");
-                Assert.AreEqual(trigger.Dialogue, map.Dialogue.ActiveDialogueId);
-                yield return PlayConversation(map);
+                Assert.IsTrue(StoryCondition.Has(flag).IsMet(map.Dialogue.Story), $"{scene} did not record {flag}");
             }
+        }
+
+        private IEnumerator WalkUntil(MapScene map, Coord destination, Func<bool> arrived, string walk)
+        {
+            var player = map.Player;
+            var idleFrames = 0;
+            var deadline = Time.realtimeSinceStartup + WalkTimeoutSeconds;
+            while (!arrived() && Time.realtimeSinceStartup < deadline && map.Sandbox)
+            {
+                if (map.Dialogue.IsTalking)
+                {
+                    AssertIsStoryCue(map, map.Dialogue.ActiveDialogueId, walk);
+                    yield return PlayConversation(map);
+                    idleFrames = 0;
+                    continue;
+                }
+
+                var idle = !player.IsMoving && !map.Dialogue.HasPendingTrigger && !map.IsPlayingCutscene && map.Sandbox.StateMachine.Mode == GameMode.Exploration;
+                idleFrames = idle ? idleFrames + 1 : 0;
+                if (idleFrames >= IdleFramesBeforeWalkingOn && player.Cell != destination)
+                {
+                    Assert.IsTrue(map.Sandbox.TryMovePlayerTo(destination), $"{walk} has no path left from {player.Cell}");
+                    idleFrames = 0;
+                }
+
+                yield return null;
+            }
+        }
+
+        private IEnumerator SettleTheStory(MapScene map)
+        {
+            var quietFrames = 0;
+            while (quietFrames < QuietFrames)
+            {
+                if (map.Dialogue.IsTalking)
+                {
+                    AssertIsStoryCue(map, map.Dialogue.ActiveDialogueId, $"the quiet in {map.Sandbox.LocationId}");
+                    yield return PlayConversation(map);
+                    quietFrames = 0;
+                    continue;
+                }
+
+                quietFrames++;
+                yield return null;
+            }
+        }
+
+        private static void AssertIsStoryCue(MapScene map, string dialogueId, string interrupted)
+        {
+            var isCue = map.Cues && map.Cues.Cues.Any(cue => cue.Dialogue == dialogueId);
+            Assert.IsTrue(isCue, $"{dialogueId} started during {interrupted}, but it is not one of the story cues of {map.Sandbox.LocationId}");
+        }
+
+        private IEnumerator PlayCutscene(MapScene map)
+        {
+            var cutscene = map.Cutscenes.ActiveCutscene;
+            var deadline = Time.realtimeSinceStartup + CutsceneTimeoutSeconds;
+            while (map.IsPlayingCutscene && Time.realtimeSinceStartup < deadline)
+            {
+                if (map.Dialogue.IsTalking)
+                {
+                    yield return PlayConversation(map);
+                    continue;
+                }
+
+                yield return null;
+            }
+
+            Assert.IsFalse(map.IsPlayingCutscene, $"{cutscene} never finished");
+            Assert.AreEqual(GameMode.Exploration, map.Sandbox.StateMachine.Mode, $"{cutscene} did not hand the map back to exploration");
+            cutscenesPlayed.Add(cutscene);
         }
 
         private IEnumerator TalkToEveryone(MapScene map)
         {
             Assert.IsNotEmpty(map.Dialogue.Talkers, $"{map.Sandbox.LocationId} has nobody to talk to");
+            yield return SettleTheStory(map);
             foreach (var talker in map.Dialogue.Talkers)
             {
                 var npc = talker.Actor.Walker.Cell;
@@ -258,7 +358,7 @@ namespace Game.Tests.PlayMode
             yield return null;
         }
 
-        private static IEnumerator WalkThroughExit(MapScene map, MapExitLink exit)
+        private IEnumerator WalkThroughExit(MapScene map, MapExitLink exit)
         {
             var player = map.Sandbox.Player.Walker;
             var beside = Neighbours(exit.Cell)
@@ -267,20 +367,39 @@ namespace Game.Tests.PlayMode
             player.Teleport(beside, Facing.SouthWest);
             yield return null;
 
+            var scene = LocationScenes.SceneFor(exit.Location);
             Assert.IsTrue(map.Sandbox.TryMovePlayerTo(exit.Cell), $"no path onto the exit to {exit.Location}");
-            yield return WaitForScene(LocationScenes.SceneFor(exit.Location));
+            yield return WalkUntil(map, exit.Cell, () => SceneManager.GetActiveScene().name == scene, $"the walk onto the exit to {exit.Location}");
+            yield return WaitForScene(scene);
+        }
+
+        private IEnumerator TakeEveryLesson(MapScene map)
+        {
+            var battle = map.Battle;
+            Assert.IsNotNull(battle, "the agora hosts the duels");
+            var teachers = battle.Opponents.Where(entry => entry.Opponent.Tutorial.IsPending(map.Dialogue.Story)).ToList();
+            Assert.IsNotEmpty(teachers, "a new game starts with a lesson in the agora");
+            foreach (var teacher in teachers)
+            {
+                yield return ProvokeByWalkingIn(map, teacher);
+                Assert.IsNotNull(battle.Tutorial, $"the first duel with {teacher.Opponent.Id} is the lesson");
+                yield return PlayDuel(map, DuelPlan.Win);
+                Assert.AreEqual(BattleStatus.PlayerWon, duelResults[teacher.Opponent.Id], $"naming the right fallacy must win the lesson with {teacher.Opponent.Id} offline");
+                Assert.IsFalse(teacher.Opponent.Tutorial.IsPending(map.Dialogue.Story), $"winning the lesson with {teacher.Opponent.Id} finishes it");
+            }
         }
 
         private IEnumerator DuelEveryone(MapScene map)
         {
             var battle = map.Battle;
             Assert.IsNotNull(battle, "the agora hosts the duels");
-            var winner = battle.Opponents
+            var rivals = battle.Opponents.Where(entry => !battle.IsDefeated(entry)).ToList();
+            var winner = rivals
                 .Where(entry => entry.Opponent.Profile == Profile.Sophist)
                 .OrderBy(entry => entry.Opponent.MaxCoherence)
                 .First();
-            var quitter = battle.Opponents.Last(entry => entry != winner);
-            var explorers = battle.Opponents.Where(entry => entry != winner && entry != quitter).ToList();
+            var quitter = rivals.Last(entry => entry != winner);
+            var explorers = rivals.Where(entry => entry != winner && entry != quitter).ToList();
 
             yield return ProvokeByWalkingIn(map, winner);
             yield return PlayDuel(map, DuelPlan.Win);
@@ -292,7 +411,7 @@ namespace Game.Tests.PlayMode
             yield return ProvokeByWalkingIn(map, quitter);
             yield return PlayDuel(map, DuelPlan.Withdraw);
             Assert.AreEqual(BattleStatus.PlayerWithdrew, duelResults[quitter.Opponent.Id]);
-            yield return ProvokeByWalkingIn(map, quitter);
+            yield return Provoke(map, quitter);
             yield return PlayDuel(map, DuelPlan.Withdraw);
 
             foreach (var entry in explorers)
@@ -331,6 +450,7 @@ namespace Game.Tests.PlayMode
         {
             var director = map.Battle;
             var opponent = director.Engaged;
+            var lesson = director.Tutorial != null;
             var argumentRequests = network.RequestsTo(firebase.Endpoints.ArgumentUrl);
             var approaches = 0;
             var playerEntry = -1;
@@ -381,9 +501,14 @@ namespace Game.Tests.PlayMode
 
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, $"the duel against {opponent.Opponent.Id} did not finish in time");
             duelResults[opponent.Opponent.Id] = director.LastResult;
-            battleLinesShown.Add(BattleText.StatusKey(director.LastResult));
+            var closedByTheLessonScene = lesson && director.LastResult == BattleStatus.PlayerWon;
+            if (!closedByTheLessonScene)
+            {
+                battleLinesShown.Add(BattleText.StatusKey(director.LastResult));
+            }
+
             map.Player.Teleport(QuietCell(map), Facing.NorthEast);
-            yield return Frames(QuietFrames);
+            yield return SettleTheStory(map);
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "stepping away after a duel must not start another one");
         }
 
@@ -690,13 +815,14 @@ namespace Game.Tests.PlayMode
 
         private sealed class MapScene
         {
-            public MapScene(GridSandboxController sandbox, GameServices services, ExplorationDialogueDirector dialogue, SandboxBattleDirector battle, PauseMenuController pause)
+            public MapScene(GridSandboxController sandbox, GameServices services, ExplorationDialogueDirector dialogue, SandboxBattleDirector battle, PauseMenuController pause, StoryCueDirector cues)
             {
                 Sandbox = sandbox;
                 Services = services;
                 Dialogue = dialogue;
                 Battle = battle;
                 Pause = pause;
+                Cues = cues;
             }
 
             public GridSandboxController Sandbox { get; }
@@ -708,6 +834,12 @@ namespace Game.Tests.PlayMode
             public SandboxBattleDirector Battle { get; }
 
             public PauseMenuController Pause { get; }
+
+            public StoryCueDirector Cues { get; }
+
+            public CutsceneDirector Cutscenes => Dialogue.Cutscenes;
+
+            public bool IsPlayingCutscene => Cutscenes && Cutscenes.IsPlaying;
 
             public GridWalker Player => Sandbox.Player.Walker;
         }

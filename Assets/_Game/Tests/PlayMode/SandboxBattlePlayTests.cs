@@ -231,7 +231,7 @@ namespace Game.Tests.PlayMode
 
             yield return LoadSandbox(loaded => (director, sandbox) = loaded);
             target = director.Opponents.Single(entry => entry.Opponent.Id == opponentId);
-            Assert.AreEqual(standing, sandbox.Player.Walker.Cell, "the reload must put Kleia back where she won");
+            AssertBackWhereSheWon(sandbox, standing);
             Assert.IsTrue(director.IsDefeated(target), "the reloaded map forgot the won duel");
 
             yield return Frames(QuietFrames);
@@ -276,6 +276,21 @@ namespace Game.Tests.PlayMode
             Assert.AreNotEqual(RejectionReason.ActionLocked, MenuEntry(director, ActionId.Maieutics).Reason, "Menexeno's flag unlocks maieutics in the next battle");
             Assert.IsFalse(director.Session.State.IsLockedForPlayer(ActionId.Maieutics));
             yield return PlayUntilExploring(director, _ => new BattleMenuChoice(ActionId.Withdraw));
+        }
+
+        private static void AssertBackWhereSheWon(GridSandboxController sandbox, Coord won)
+        {
+            var kleia = sandbox.Player.Walker;
+            var holder = sandbox.Grid[won].OccupantId;
+            if (holder == TileData.NoOccupant || holder == kleia.ActorId)
+            {
+                Assert.AreEqual(won, kleia.Cell, "the reload must put Kleia back where she won");
+                return;
+            }
+
+            var startsThere = sandbox.Actors.Any(actor => actor.Walker != null && actor.Walker.ActorId == holder && new Coord(actor.StartCell.x, actor.StartCell.y) == won);
+            Assert.IsTrue(startsThere, $"actor {holder} took the cell where Kleia won, but the map does not start it there");
+            Assert.AreEqual(1, PositionalModifiers.Distance(won, kleia.Cell), $"the duel ended with Kleia on the cell where actor {holder} starts, so the reload puts her beside it");
         }
 
         private static IEnumerator UnlockMaieutics()

@@ -39,6 +39,7 @@ namespace Game.UI
         [SerializeField] private float thinkSeconds = DefaultThinkSeconds;
         [SerializeField] private RangeHighlightView rangeView;
         [SerializeField] private Sprite playerPortrait;
+        [SerializeField] private ExplorationDialogueDirector story;
 
         private readonly AggroWatch aggro = new();
         private readonly List<AggroCandidate> aggroCandidates = new();
@@ -51,6 +52,10 @@ namespace Game.UI
         private BattleMenuInput menuInput;
         private InputAction confirmAction;
         private InputAction cancelAction;
+        private InputAction navigateAction;
+        private DialoguePlayer scripts;
+        private RefuteTutorial tutorial;
+        private OpponentTutorial tutorialData;
         private int targetingFrame = -1;
         private BattleMenuController controller;
         private FallacyRevealView reveal;
@@ -92,6 +97,14 @@ namespace Game.UI
 
         public PrewarmedArgumentSource PreparedArguments => preparedArguments;
 
+        public ExplorationDialogueDirector Story => story;
+
+        public RefuteTutorial Tutorial => tutorial;
+
+        public bool IsPlayingScript => scripts != null && scripts.IsPlaying;
+
+        public string ActiveScriptId => scripts?.Run?.Script.Id;
+
         public float ThinkSeconds
         {
             get => thinkSeconds;
@@ -128,6 +141,11 @@ namespace Game.UI
             playerPortrait = player;
         }
 
+        public void ConfigureStory(ExplorationDialogueDirector storyDirector)
+        {
+            story = storyDirector;
+        }
+
         public bool IsDefeated(MapOpponent entry) =>
             entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
 
@@ -156,6 +174,8 @@ namespace Game.UI
             }
 
             var seed = Environment.TickCount;
+            tutorialData = PendingTutorial(opponent);
+            tutorial = tutorialData != null ? new RefuteTutorial() : null;
             Session = BattleSession.Start(sandbox.Grid, new BattleSetup
             {
                 PlayerId = playerWalker.ActorId,
@@ -170,8 +190,11 @@ namespace Game.UI
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
                 LockedActions = ActionUnlocks.LockedIn(CurrentStory(), ActionMenuModel.PlayerActions),
-                Seed = seed
-            }, CreateArgumentSource(target, seed));
+                Seed = seed,
+                Rules = tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : null
+            },
+            tutorial != null ? TutorialArguments(tutorialData) : CreateArgumentSource(target, seed),
+            tutorial != null ? new TutorialOpponent() : null);
 
             controller = new BattleMenuController(Session.Menu, catalog.RefutableIds);
             hud.gameObject.SetActive(true);
@@ -194,11 +217,12 @@ namespace Game.UI
             reveal = RevealFor(target.Actor);
             reveal.Hide();
 
-            ShowLine(string.Empty, string.Format(text.Get(BattleText.IntroKey), opponent.DisplayName), () =>
+            if (tutorial != null && TryPlayCue(tutorial.OnBattleStart(), BeginFirstTurn))
             {
-                StateMachine.TryTransition(GameMode.BattleTurn);
-                NextTurn();
-            });
+                return;
+            }
+
+            ShowLine(string.Empty, string.Format(text.Get(BattleText.IntroKey), opponent.DisplayName), BeginFirstTurn);
         }
 
         public void SubmitChoice(BattleMenuChoice choice)
@@ -237,6 +261,12 @@ namespace Game.UI
                 return;
             }
 
+            if (IsPlayingScript)
+            {
+                scripts.Confirm();
+                return;
+            }
+
             hud.Dialogue.Confirm();
             if (hud.Dialogue.IsOpen)
             {
@@ -253,8 +283,14 @@ namespace Game.UI
             services = FindAnyObjectByType<GameServices>();
             storyteller = FindAnyObjectByType<ExplorationDialogueDirector>();
             pause = FindAnyObjectByType<PauseMenuController>();
+            if (!story)
+            {
+                story = FindAnyObjectByType<ExplorationDialogueDirector>();
+            }
+
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
             cancelAction = sandbox.Controls.FindAction(BattleMenuInput.CancelAction, true);
+            navigateAction = sandbox.Controls.FindAction(BattleMenuInput.NavigateAction, true);
             if (hud)
             {
                 hud.gameObject.SetActive(false);
@@ -267,6 +303,8 @@ namespace Game.UI
             {
                 hud.Menu.ChoiceMade -= OnChoiceMade;
             }
+
+            scripts?.Dispose();
         }
 
         private void Update()
@@ -278,11 +316,23 @@ namespace Game.UI
                     TryTriggerBattle();
                     break;
                 case BattleFlowPhase.Dialogue:
-                    if (confirmAction.WasPressedThisFrame() && Time.frameCount != dialogueFrame)
+                    if (Time.frameCount == dialogueFrame)
+                    {
+                        break;
+                    }
+
+                    if (IsPlayingScript)
+                    {
+                        scripts.Poll(confirmAction, navigateAction);
+                    }
+                    else if (confirmAction.WasPressedThisFrame())
                     {
                         AdvanceDialogue();
                     }
 
+                    break;
+                case BattleFlowPhase.PlayerChoosing:
+                    HintFallaciesDuringTutorial();
                     break;
                 case BattleFlowPhase.OpponentThinking:
                     thinkTimer -= Time.deltaTime;
@@ -413,6 +463,79 @@ namespace Game.UI
             return offline;
         }
 
+        private IArgumentSource TutorialArguments(OpponentTutorial data)
+        {
+            var arguments = new List<Argument>();
+            if (fallbackLibrary.TryGetJson(data.FallacyId, out var json))
+            {
+                ArgumentJson.ParseValidList(json, new ArgumentValidator(catalog.RefutableIds), arguments);
+            }
+
+            return new ScriptedArgumentSource(arguments);
+        }
+
+        private OpponentTutorial PendingTutorial(OpponentSO opponent)
+        {
+            var data = opponent ? opponent.Tutorial : null;
+            if (data == null || !data.IsDefined || !story || !story.Library || !hud.Dialogue)
+            {
+                return null;
+            }
+
+            return data.IsPending(story.LoadStory()) ? data : null;
+        }
+
+        private bool TryPlayCue(TutorialCue cue, Action continuation)
+        {
+            var dialogueId = cue == TutorialCue.None ? null : tutorialData?.DialogueFor(cue);
+            var storyData = dialogueId != null && story ? story.LoadStory() : null;
+            if (storyData == null || !story.Library.TryGet(dialogueId, out var script))
+            {
+                return false;
+            }
+
+            var cueRun = script.Begin(storyData);
+            scripts ??= new DialoguePlayer(hud.Dialogue, story.SpeakerName, story.PortraitFor);
+            if (cueRun.IsEmpty || scripts.IsPlaying)
+            {
+                return false;
+            }
+
+            Phase = BattleFlowPhase.Dialogue;
+            dialogueFrame = Time.frameCount;
+            dialogueContinuation = null;
+            return scripts.TryPlay(cueRun, run =>
+            {
+                story.Record(run.AppliedEffects);
+                continuation();
+            });
+        }
+
+        private void PlayCue(TutorialCue cue, Action continuation)
+        {
+            if (!TryPlayCue(cue, continuation))
+            {
+                continuation();
+            }
+        }
+
+        private void HintFallaciesDuringTutorial()
+        {
+            if (tutorial == null || controller == null || controller.Layer != BattleMenuLayer.Fallacies)
+            {
+                return;
+            }
+
+            var cue = tutorial.OnFallaciesOpened();
+            if (cue == TutorialCue.None)
+            {
+                return;
+            }
+
+            menuInput.enabled = false;
+            PlayCue(cue, ResumeChoosing);
+        }
+
         private FallacyRevealView RevealFor(ActorView actor)
         {
             if (!reveals.TryGetValue(actor, out var view) || !view)
@@ -422,6 +545,12 @@ namespace Game.UI
             }
 
             return view;
+        }
+
+        private void BeginFirstTurn()
+        {
+            StateMachine.TryTransition(GameMode.BattleTurn);
+            NextTurn();
         }
 
         private void NextTurn()
@@ -435,11 +564,7 @@ namespace Game.UI
 
             if (Session.IsPlayerTurn)
             {
-                Phase = BattleFlowPhase.PlayerChoosing;
-                controller.Refresh();
-                hud.Menu.Render();
-                hud.BindPreview(highlighter);
-                menuInput.enabled = true;
+                PlayCue(tutorial?.OnPlayerTurn(Session.State) ?? TutorialCue.None, BeginChoosing);
                 return;
             }
 
@@ -447,6 +572,27 @@ namespace Game.UI
             menuInput.enabled = false;
             thinkTimer = thinkSeconds;
             Phase = BattleFlowPhase.OpponentThinking;
+        }
+
+        private void BeginChoosing()
+        {
+            Phase = BattleFlowPhase.PlayerChoosing;
+            controller.Refresh();
+            hud.Menu.Render();
+            hud.BindPreview(highlighter);
+            menuInput.enabled = true;
+        }
+
+        private void ResumeChoosing()
+        {
+            Phase = BattleFlowPhase.PlayerChoosing;
+            hud.Menu.Render();
+            menuInput.enabled = true;
+        }
+
+        private void ContinueAfter(Outcome outcome)
+        {
+            PlayCue(tutorial?.OnOutcome(outcome, Session.State) ?? TutorialCue.None, NextTurn);
         }
 
         private void OnChoiceMade(BattleMenuChoice choice)
@@ -487,22 +633,24 @@ namespace Game.UI
         {
             hud.Sync();
 
+            void Continue() => ContinueAfter(outcome);
+
             void Speak()
             {
                 if (outcome.PresentedArgument.HasValue)
                 {
-                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, NextTurn);
+                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, Continue);
                     return;
                 }
 
                 var key = BattleText.OutcomeKey(outcome);
                 if (key == null)
                 {
-                    NextTurn();
+                    Continue();
                     return;
                 }
 
-                ShowLine(string.Empty, string.Format(text.Get(key), speaker), NextTurn);
+                ShowLine(string.Empty, string.Format(text.Get(key), speaker), Continue);
             }
 
             if (outcome.Moves && actor?.Walker != null)
@@ -568,6 +716,17 @@ namespace Game.UI
 
             StateMachine.TryTransition(GameMode.BattleResolve);
             StateMachine.TryTransition(GameMode.BattleOutro);
+            var cue = tutorial?.OnBattleOver(Session.State) ?? TutorialCue.None;
+            if (cue != TutorialCue.None)
+            {
+                story.Remember(new StoryEffect(tutorialData.DoneFlag));
+            }
+
+            if (TryPlayCue(cue, FinishBattle))
+            {
+                return;
+            }
+
             ShowLine(string.Empty, text.Get(BattleText.StatusKey(LastResult)), FinishBattle);
         }
 
@@ -607,12 +766,14 @@ namespace Game.UI
             Phase = BattleFlowPhase.Exploring;
             Session = null;
             controller = null;
+            tutorial = null;
+            tutorialData = null;
 
             var result = duelResult;
             duelResult = null;
             if (AutosaveEnabled && services && services.IsBooted && AutosavePolicy.ShouldSave(from, GameMode.Exploration))
             {
-                var save = sandbox.CaptureSave();
+                var save = story ? story.CaptureSave() : sandbox.CaptureSave();
                 if (result.HasValue)
                 {
                     result.Value.TryApply(save, out _);

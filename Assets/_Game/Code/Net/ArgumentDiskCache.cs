@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Unity.Scripting.LifecycleManagement;
 
 namespace Game.Net
 {
@@ -16,6 +18,9 @@ namespace Game.Net
 
         private const string EntryExtension = ".json";
         private const int KeyBytes = 16;
+
+        [NoAutoStaticsCleanup]
+        private static readonly Dictionary<string, Task> PendingWrites = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly string directory;
         private readonly long maxBytes;
@@ -120,6 +125,7 @@ namespace Game.Net
 
         public int Load()
         {
+            WaitForPendingWrites();
             if (!Directory.Exists(directory))
             {
                 return 0;
@@ -176,8 +182,34 @@ namespace Game.Net
             Persist(toWrite, toDelete, order);
             return Task.CompletedTask;
 #else
-            return Task.Run(() => Persist(toWrite, toDelete, order));
+            return EnqueueWrite(() => Persist(toWrite, toDelete, order));
 #endif
+        }
+
+        private Task EnqueueWrite(Action write)
+        {
+            lock (PendingWrites)
+            {
+                var folder = Path.GetFullPath(directory);
+                var previous = PendingWrites.TryGetValue(folder, out var pending) ? pending : Task.CompletedTask;
+                var next = previous.ContinueWith(_ => write(), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                PendingWrites[folder] = next;
+                return next;
+            }
+        }
+
+        private void WaitForPendingWrites()
+        {
+            Task pending;
+            lock (PendingWrites)
+            {
+                if (!PendingWrites.TryGetValue(Path.GetFullPath(directory), out pending))
+                {
+                    return;
+                }
+            }
+
+            Task.WhenAny(pending).Wait();
         }
 
         private void Persist(List<KeyValuePair<string, string>> toWrite, List<string> toDelete, List<string> order)

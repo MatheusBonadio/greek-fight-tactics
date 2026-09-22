@@ -30,5 +30,20 @@ namespace Game.EditorTools
             AssetDatabase.CreateAsset(asset, path);
             return asset;
         }
+
+        public static void Overwrite<T>(T asset, System.Action<T> configure) where T : ScriptableObject
+        {
+            var fresh = ScriptableObject.CreateInstance<T>();
+            try
+            {
+                configure(fresh);
+                fresh.name = asset.name;
+                EditorUtility.CopySerialized(fresh, asset);
+            }
+            finally
+            {
+                Object.DestroyImmediate(fresh);
+            }
+        }
     }
 }

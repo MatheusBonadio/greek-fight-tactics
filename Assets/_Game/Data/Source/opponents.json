@@ -8,7 +8,19 @@
       "max_coherence": 40,
       "initial_audience": 40,
       "aggro_radius": 3,
-      "fallacy_pool": ["equivocation", "ad_hominem", "straw_man"]
+      "fallacy_pool": ["equivocation", "ad_hominem", "straw_man"],
+      "tutorial": {
+        "fallacy": "equivocation",
+        "done_flag": "thrasybios_tutorial_done",
+        "dialogues": {
+          "intro": "thrasybios_tutorial_intro",
+          "argument": "thrasybios_tutorial_argument",
+          "fallacies": "thrasybios_tutorial_fallacies",
+          "miss": "thrasybios_tutorial_miss",
+          "reminder": "thrasybios_tutorial_reminder",
+          "victory": "agora_wrong_laughter"
+        }
+      }
     },
     {
       "id": "oron",

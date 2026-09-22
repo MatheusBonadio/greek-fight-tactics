@@ -24,3 +24,19 @@ MonoBehaviour:
   act: 1
   profile: 0
   aggroRadius: 3
+  tutorial:
+    fallacyId: equivocation
+    doneFlag: thrasybios_tutorial_done
+    dialogues:
+    - key: 1
+      value: thrasybios_tutorial_intro
+    - key: 2
+      value: thrasybios_tutorial_argument
+    - key: 3
+      value: thrasybios_tutorial_fallacies
+    - key: 4
+      value: thrasybios_tutorial_miss
+    - key: 5
+      value: thrasybios_tutorial_reminder
+    - key: 6
+      value: agora_wrong_laughter

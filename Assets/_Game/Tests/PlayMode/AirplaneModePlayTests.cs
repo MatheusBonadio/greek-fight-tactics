@@ -190,6 +190,7 @@ namespace Game.Tests.PlayMode
             yield return WaitFor(() => director.PreparedArguments != null && director.PreparedArguments.ReadyCount(opponentId) == SandboxBattleDirector.PrewarmCount, StartTimeoutSeconds);
             Assert.IsTrue(director.PreparedArguments.IsOnline, "the map boots online through the fake backend");
             Assert.AreEqual(SandboxBattleDirector.PrewarmCount, director.PreparedArguments.ReadyCount(opponentId), "the opponent's arguments are prewarmed while online");
+            yield return FinishTheTutorialOf(dialogue, target);
 
             network.GoDown(NetworkOutage.Hanging);
             sandbox.Player.Walker.Teleport(CellNoticedOnlyBy(sandbox.Grid, director, target), Facing.NorthEast);
@@ -267,6 +268,7 @@ namespace Game.Tests.PlayMode
             var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
             var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
             var services = Object.FindAnyObjectByType<GameServices>();
+            var dialogue = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
             director.ThinkSeconds = OfflineThinkSeconds;
             services.PushRetrySeconds = FastPushRetrySeconds;
 
@@ -275,6 +277,7 @@ namespace Game.Tests.PlayMode
             yield return WaitFor(EveryOpponentIsReady, RealPrewarmTimeoutSeconds);
             Assert.IsTrue(EveryOpponentIsReady(), $"the server never answered the whole prewarm: {string.Join(", ", server.Received)}");
             Assert.AreEqual(1, firebase.SignUps);
+            yield return FinishTheTutorialOf(dialogue, target);
 
             server.Hang();
             sandbox.Player.Walker.Teleport(CellNoticedOnlyBy(sandbox.Grid, director, target), Facing.NorthEast);
@@ -312,8 +315,20 @@ namespace Game.Tests.PlayMode
             OnlineBackendOverride.Set(new OnlineBackend(new UnityWebRequestTransport(), firebase.Endpoints, firebase.Firestore));
         }
 
+        private static IEnumerator FinishTheTutorialOf(ExplorationDialogueDirector story, MapOpponent entry)
+        {
+            yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
+            Assert.IsTrue(story.IsStoryLoaded, "the story never loaded");
+            var tutorial = entry.Opponent.Tutorial;
+            if (tutorial.IsPending(story.Story))
+            {
+                Assert.IsTrue(story.Remember(new StoryEffect(tutorial.DoneFlag)), $"the lesson of {entry.Opponent.Id} could not be marked as done");
+            }
+        }
+
         private static IEnumerator PlayOfflineBattle(SandboxBattleDirector director, Func<int> requests, BattleTally tally)
         {
+            Assert.IsNull(director.Tutorial, "the lesson is scripted and never draws the prewarmed arguments, so these duels come after it");
             var requestsAtStart = requests();
             var opponentName = director.Opponent.DisplayName;
             var opponentId = director.Engaged.Actor.Walker.ActorId;

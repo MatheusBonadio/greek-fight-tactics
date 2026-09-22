@@ -6,7 +6,7 @@ namespace Game.Battle
     {
         public const int MaxConsecutiveRejections = 200;
 
-        public static SimulationResult Run(BattleState state, IPlayerPolicy player, OpponentBrain opponent, IArgumentSource arguments)
+        public static SimulationResult Run(BattleState state, IPlayerPolicy player, IOpponentPolicy opponent, IArgumentSource arguments)
         {
             var resolver = new BattleResolver();
             var rejections = 0;

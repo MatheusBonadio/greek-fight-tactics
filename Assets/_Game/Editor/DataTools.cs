@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Game.Battle;
 using Game.Content;
 using Game.Core;
 using Game.Net;
@@ -71,7 +72,7 @@ namespace Game.EditorTools
             foreach (var script in scripts)
             {
                 errors.AddRange(script.Validate());
-                errors.AddRange(script.Lines
+                errors.AddRange(script.AllLines()
                     .Where(line => !line.IsNarration && !speakers.ContainsKey(line.SpeakerId))
                     .Select(line => $"{script.Id}: unknown speaker {line.SpeakerId}"));
             }
@@ -88,7 +89,7 @@ namespace Game.EditorTools
         {
             var (speakers, scripts) = LoadDialogueSource(DialogueSourcePath);
             var library = AssetFolders.LoadOrCreate<DialogueLibrarySO>(DialogueLibraryPath);
-            library.SetEntries(speakers, scripts);
+            AssetFolders.Overwrite(library, fresh => fresh.SetEntries(speakers, scripts));
             EditorUtility.SetDirty(library);
             return scripts.Count;
         }
@@ -108,6 +109,7 @@ namespace Game.EditorTools
         {
             var source = LoadOpponentSource();
             var byId = fallacies.ToDictionary(fallacy => fallacy.Id);
+            var dialogueIds = new HashSet<string>(LoadDialogueSource(DialogueSourcePath).Scripts.Select(script => script.Id));
             AssetFolders.Ensure(OpponentFolder);
 
             foreach (var entry in source.Opponents)
@@ -126,10 +128,53 @@ namespace Game.EditorTools
                 var opponent = AssetFolders.LoadOrCreate<OpponentSO>(OpponentPath(entry.Id));
                 opponent.Configure(entry.Id, entry.DisplayName, entry.MaxCoherence, entry.InitialAudience, pool, entry.Act, entry.Profile);
                 opponent.ConfigurePresence(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Id)), entry.AggroRadius);
+                opponent.ConfigureTutorial(ToTutorial(entry, pool, dialogueIds));
                 EditorUtility.SetDirty(opponent);
             }
 
             return source.Opponents.Count;
+        }
+
+        private static OpponentTutorial ToTutorial(OpponentEntry entry, IReadOnlyList<FallacySO> pool, ISet<string> dialogueIds)
+        {
+            var source = entry.Tutorial;
+            if (source == null)
+            {
+                return new OpponentTutorial();
+            }
+
+            var where = $"{OpponentSourcePath}: the tutorial of {entry.Id}";
+            var fallacy = pool.FirstOrDefault(candidate => candidate.Id == source.Fallacy)
+                ?? throw new InvalidOperationException($"{where} teaches {source.Fallacy}, which is not in its fallacy_pool");
+            if (!fallacy.IsRefutable)
+            {
+                throw new InvalidOperationException($"{where} teaches {fallacy.Id}, a paradox that REFUTE cannot answer");
+            }
+
+            if (!SaveFlags.IsCustomName(source.DoneFlag))
+            {
+                throw new InvalidOperationException($"{where} has the invalid done_flag {source.DoneFlag}");
+            }
+
+            var dialogues = new Dictionary<TutorialCue, string>();
+            foreach (var pair in source.Dialogues ?? new Dictionary<string, string>())
+            {
+                var cue = Enum.GetValues(typeof(TutorialCue)).Cast<TutorialCue>()
+                    .FirstOrDefault(value => string.Equals(value.ToString(), pair.Key, StringComparison.OrdinalIgnoreCase));
+                if (cue == TutorialCue.None)
+                {
+                    throw new InvalidOperationException($"{where} has the unknown cue {pair.Key}");
+                }
+
+                if (!dialogueIds.Contains(pair.Value ?? string.Empty))
+                {
+                    throw new InvalidOperationException($"{where} plays the unknown dialogue {pair.Value} on {pair.Key}");
+                }
+
+                dialogues[cue] = pair.Value;
+            }
+
+            return new OpponentTutorial(fallacy.Id, source.DoneFlag, dialogues);
         }
 
         private static OpponentSource LoadOpponentSource()
@@ -283,11 +328,32 @@ namespace Game.EditorTools
             [JsonProperty("effects")]
             public List<EffectSource> Effects { get; set; } = new();
 
+            [JsonProperty("choices")]
+            public List<ChoiceSource> Choices { get; set; } = new();
+
             public ScriptLine ToLine() => new(
                 Speaker,
                 Text,
-                Conditions.Select(condition => new StoryCondition(condition.Flag, condition.EqualsValue, condition.Absent)),
-                Effects.Select(effect => new StoryEffect(effect.Flag, effect.Value)));
+                (Conditions ?? new List<ConditionSource>()).Select(condition => new StoryCondition(condition.Flag, condition.EqualsValue, condition.Absent)),
+                (Effects ?? new List<EffectSource>()).Select(effect => effect.ToEffect()),
+                (Choices ?? new List<ChoiceSource>()).Select(choice => choice.ToChoice()));
+        }
+
+        private sealed class ChoiceSource
+        {
+            [JsonProperty("text", Required = Required.Always)]
+            public string Text { get; set; }
+
+            [JsonProperty("effects")]
+            public List<EffectSource> Effects { get; set; } = new();
+
+            [JsonProperty("lines")]
+            public List<DialogueLineSource> Lines { get; set; } = new();
+
+            public DialogueChoice ToChoice() => new(
+                Text,
+                (Effects ?? new List<EffectSource>()).Select(effect => effect.ToEffect()),
+                (Lines ?? new List<DialogueLineSource>()).Select(line => line.ToLine()));
         }
 
         private sealed class ConditionSource
@@ -309,6 +375,8 @@ namespace Game.EditorTools
 
             [JsonProperty("value")]
             public string Value { get; set; }
+
+            public StoryEffect ToEffect() => new(Flag, Value);
         }
 
         private sealed class OpponentSource
@@ -342,6 +410,21 @@ namespace Game.EditorTools
 
             [JsonProperty("aggro_radius")]
             public int AggroRadius { get; set; } = AggroRule.DefaultRadius;
+
+            [JsonProperty("tutorial")]
+            public TutorialSource Tutorial { get; set; }
+        }
+
+        private sealed class TutorialSource
+        {
+            [JsonProperty("fallacy", Required = Required.Always)]
+            public string Fallacy { get; set; }
+
+            [JsonProperty("done_flag", Required = Required.Always)]
+            public string DoneFlag { get; set; }
+
+            [JsonProperty("dialogues")]
+            public Dictionary<string, string> Dialogues { get; set; } = new();
         }
     }
 }

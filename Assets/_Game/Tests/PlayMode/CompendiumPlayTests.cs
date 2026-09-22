@@ -48,10 +48,15 @@ namespace Game.Tests.PlayMode
 
             var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
             var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
+            var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
             director.ThinkSeconds = 0f;
-            sandbox.Player.Walker.Teleport(FreeCellNear(sandbox.Grid, director.Opponents[0].Actor.Walker.Cell), Facing.NorthEast);
+            var thrasybios = director.Opponents[0];
+            yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
+            Assert.IsTrue(story.Remember(new StoryEffect(thrasybios.Opponent.Tutorial.DoneFlag)), "the lesson with Thrasybios could not be marked as done");
+            sandbox.Player.Walker.Teleport(FreeCellNear(sandbox.Grid, thrasybios.Actor.Walker.Cell), Facing.NorthEast);
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
             Assert.AreNotEqual(BattleFlowPhase.Exploring, director.Phase, "walking up to Thrasybios must start the battle");
+            Assert.IsNull(director.Tutorial, "after the lesson one refutation does not end the duel, so Kleia can still withdraw");
 
             string refuted = null;
             yield return PlayUntilRefutedThenWithdraw(director, id => refuted = id);

@@ -26,7 +26,8 @@ namespace Game.UI
         private GameServices services;
         private PauseMenuController pause;
         private InputAction confirmAction;
-        private DialogueRun run;
+        private InputAction navigateAction;
+        private DialoguePlayer player;
         private NpcDialogueLink pendingTalk;
         private DialogueTriggerLink pendingTrigger;
         private GridWalker watchedWalker;
@@ -51,15 +52,17 @@ namespace Game.UI
 
         public bool IsStoryLoaded => Story != null;
 
-        public bool IsTalking => run != null;
+        public bool IsTalking => player != null && player.IsPlaying;
+
+        public bool IsAwaitingChoice => player != null && player.IsAwaitingChoice;
 
         public bool IsApproaching => pendingTalk != null;
 
         public bool HasPendingTrigger => pendingTrigger != null;
 
-        public string ActiveDialogueId => run?.Script.Id;
+        public string ActiveDialogueId => player?.Run?.Script.Id;
 
-        public ScriptLine CurrentLine => run?.Current;
+        public ScriptLine CurrentLine => player?.Run?.Current;
 
         public void Configure(
             GridSandboxController controller,
@@ -75,6 +78,8 @@ namespace Game.UI
             talkers = npcs;
             triggers = cellTriggers;
             portraits = speakerPortraits;
+            player?.Dispose();
+            player = null;
         }
 
         public void ConfigureCutscenes(CutsceneDirector director)
@@ -84,6 +89,45 @@ namespace Game.UI
 
         public Sprite PortraitFor(string speakerId) =>
             !string.IsNullOrEmpty(speakerId) && portraits.TryGetValue(speakerId, out var portrait) ? portrait : null;
+
+        public string SpeakerName(string speakerId) => library ? library.SpeakerName(speakerId) : string.Empty;
+
+        public SaveData LoadStory()
+        {
+            EnsureStoryLoaded();
+            return Story;
+        }
+
+        public bool Remember(StoryEffect effect)
+        {
+            EnsureStoryLoaded();
+            if (Story == null || !effect.TryApply(Story, out _))
+            {
+                return false;
+            }
+
+            sessionEffects.Add(effect);
+            return true;
+        }
+
+        public void Record(IEnumerable<StoryEffect> appliedEffects)
+        {
+            if (appliedEffects != null)
+            {
+                sessionEffects.AddRange(appliedEffects);
+            }
+        }
+
+        public SaveData CaptureSave()
+        {
+            var save = sandbox.CaptureSave();
+            foreach (var effect in sessionEffects)
+            {
+                effect.TryApply(save, out _);
+            }
+
+            return save;
+        }
 
         public bool HandleConfirm(Coord cell)
         {
@@ -117,7 +161,6 @@ namespace Game.UI
                 return false;
             }
 
-            run = candidate;
             pendingTalk = null;
             sandbox.Player?.Walker?.Cancel();
             if (pause)
@@ -131,7 +174,7 @@ namespace Game.UI
             }
 
             openedFrame = Time.frameCount;
-            ShowNext();
+            Player.TryPlay(candidate, Finish);
             return true;
         }
 
@@ -164,34 +207,22 @@ namespace Game.UI
             return true;
         }
 
-        public void Remember(StoryEffect effect)
-        {
-            EnsureStoryLoaded();
-            if (Story != null && effect.TryApply(Story, out _))
-            {
-                sessionEffects.Add(effect);
-            }
-        }
-
         public void Advance()
         {
-            if (!IsTalking)
+            if (IsTalking)
             {
-                return;
-            }
-
-            dialogueBox.Confirm();
-            if (!dialogueBox.IsOpen)
-            {
-                ShowNext();
+                player.Confirm();
             }
         }
+
+        private DialoguePlayer Player => player ??= new DialoguePlayer(dialogueBox, SpeakerName, PortraitFor);
 
         private void Awake()
         {
             services = FindAnyObjectByType<GameServices>();
             pause = FindAnyObjectByType<PauseMenuController>();
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
+            navigateAction = sandbox.Controls.FindAction(BattleMenuInput.NavigateAction, true);
             interaction = HandleConfirm;
             sandbox.Interaction = interaction;
         }
@@ -216,6 +247,8 @@ namespace Game.UI
             {
                 sandbox.Interaction = null;
             }
+
+            player?.Dispose();
         }
 
         private void OnPlayerCellEntered(Coord cell)
@@ -235,9 +268,9 @@ namespace Game.UI
             EnsureStoryLoaded();
             if (IsTalking)
             {
-                if (sandbox.StateMachine.Mode == GameMode.Dialogue && confirmAction.WasPressedThisFrame() && Time.frameCount != openedFrame)
+                if (sandbox.StateMachine.Mode == GameMode.Dialogue && Time.frameCount != openedFrame)
                 {
-                    Advance();
+                    player.Poll(confirmAction, navigateAction);
                 }
 
                 return;
@@ -361,21 +394,9 @@ namespace Game.UI
             talker.Actor.Walker.FaceToward(walker.Cell);
         }
 
-        private void ShowNext()
+        private void Finish(DialogueRun finished)
         {
-            if (!run.TryAdvance(out var line))
-            {
-                Finish();
-                return;
-            }
-
-            dialogueBox.Show(new DialogueLine(library.SpeakerName(line.SpeakerId), PortraitFor(line.SpeakerId), line.Text));
-        }
-
-        private void Finish()
-        {
-            sessionEffects.AddRange(run.AppliedEffects);
-            run = null;
+            sessionEffects.AddRange(finished.AppliedEffects);
             closedFrame = Time.frameCount;
 
             var from = sandbox.StateMachine.Mode;
@@ -393,18 +414,10 @@ namespace Game.UI
 
         public void SaveProgress()
         {
-            if (!AutosaveEnabled || !services || !services.IsBooted)
+            if (AutosaveEnabled && services && services.IsBooted)
             {
-                return;
+                services.Autosave(CaptureSave());
             }
-
-            var save = sandbox.CaptureSave();
-            foreach (var effect in sessionEffects)
-            {
-                effect.TryApply(save, out _);
-            }
-
-            services.Autosave(save);
         }
 
         private static bool CanOpenFrom(GameMode mode) => mode is GameMode.Exploration or GameMode.Cutscene;

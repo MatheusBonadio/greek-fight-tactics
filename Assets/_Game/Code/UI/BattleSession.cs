@@ -50,14 +50,14 @@ namespace Game.UI
         private readonly BattleResolver resolver = new();
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> reachable = new();
-        private readonly OpponentBrain brain;
+        private readonly IOpponentPolicy opponentPolicy;
         private readonly IArgumentSource arguments;
 
-        private BattleSession(BattleState state, IArgumentSource arguments, int seed)
+        private BattleSession(BattleState state, IArgumentSource arguments, IOpponentPolicy opponentPolicy)
         {
             State = state;
             this.arguments = arguments;
-            brain = new OpponentBrain(new Random(seed));
+            this.opponentPolicy = opponentPolicy;
             Menu = new ActionMenuModel(state, resolver);
         }
 
@@ -96,7 +96,7 @@ namespace Game.UI
             return copy;
         }
 
-        public static BattleSession Start(GridModel exploration, BattleSetup setup, IArgumentSource arguments)
+        public static BattleSession Start(GridModel exploration, BattleSetup setup, IArgumentSource arguments, IOpponentPolicy opponentPolicy = null)
         {
             if (setup == null)
             {
@@ -116,13 +116,13 @@ namespace Game.UI
                 setup.AudienceIds,
                 setup.LockedActions);
 
-            return new BattleSession(state, arguments, setup.Seed);
+            return new BattleSession(state, arguments, opponentPolicy ?? new OpponentBrain(new Random(setup.Seed)));
         }
 
         public Outcome PlayOpponentTurn()
         {
             var self = State.Find(State.Queue.Current) ?? State.Opponent;
-            return Commit(brain.Decide(State, self, arguments));
+            return Commit(opponentPolicy.Decide(State, self, arguments));
         }
 
         public Outcome PlayChoice(BattleMenuChoice choice) => Commit(ToPlay(choice));

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using Game.Content;
 using Game.Core;
 using Game.Grid;
 using Game.UI;
@@ -20,6 +22,9 @@ namespace Game.Tests.PlayMode
         private const float TimeoutSeconds = 5f;
         private const float WalkWindowSeconds = GridWalker.SecondsPerCell * 2f;
         private const float DebugPanelInset = 20f;
+        private const int MaxDialogueTaps = 16;
+        private const string ChoiceDialogue = "test_choice";
+        private const string ChoiceFlag = "test_choice_answer";
 
         private static readonly Coord Target = new(1, 1);
 
@@ -164,6 +169,62 @@ namespace Game.Tests.PlayMode
             yield return WaitFor(() => !sandbox.Player.Walker.IsMoving);
 
             Assert.AreEqual(Target, sandbox.Player.Walker.Cell, "a click outside the debug panel must still walk");
+        }
+
+        [UnityTest]
+        public IEnumerator ArrowsAndEnter_PickADialogueChoiceAndItsFlagIsSaved()
+        {
+            var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            yield return WaitFor(() => story.IsStoryLoaded);
+            var library = ScriptableObject.CreateInstance<DialogueLibrarySO>();
+            try
+            {
+                library.SetEntries(
+                    new Dictionary<string, DialogueSpeaker> { ["kleia"] = new("Kleia", "kleia") },
+                    new[]
+                    {
+                        new DialogueScript(ChoiceDialogue, new[]
+                        {
+                            new ScriptLine("kleia", "Levo as ânforas agora ou depois?", choices: new[]
+                            {
+                                new DialogueChoice("Agora", new[] { new StoryEffect(ChoiceFlag, "now") }),
+                                new DialogueChoice("Depois", new[] { new StoryEffect(ChoiceFlag, "later") }, new[] { new ScriptLine("kleia", "Primeiro, a ágora.") })
+                            })
+                        })
+                    });
+                story.Configure(sandbox, story.DialogueBox, library, story.Talkers.ToList(), story.Triggers.ToList(), story.Portraits.ToDictionary(pair => pair.Key, pair => pair.Value));
+                Assert.IsTrue(story.TryStartDialogue(ChoiceDialogue));
+
+                for (var taps = 0; taps < MaxDialogueTaps && !story.IsAwaitingChoice; taps++)
+                {
+                    yield return Tap(keyboard.enterKey);
+                }
+
+                Assert.IsTrue(story.IsAwaitingChoice, "the question never offered its options");
+                Assert.AreEqual(0, story.DialogueBox.ChoiceCursor);
+                yield return Tap(keyboard.downArrowKey);
+                Assert.AreEqual(1, story.DialogueBox.ChoiceCursor, "the arrows move between the options");
+                Assert.AreEqual(Target, sandbox.Cursor.Cell, "navigating the options must not move the grid cursor");
+                yield return Tap(keyboard.enterKey);
+
+                Assert.IsFalse(story.IsAwaitingChoice);
+                Assert.AreEqual("Primeiro, a ágora.", story.CurrentLine?.Text, "the chosen option plays its own reply");
+                for (var taps = 0; taps < MaxDialogueTaps && story.IsTalking; taps++)
+                {
+                    yield return Tap(keyboard.enterKey);
+                }
+
+                Assert.IsFalse(story.IsTalking);
+                Assert.AreEqual("later", story.Story.Flags[ChoiceFlag]);
+                Assert.IsTrue(pause.Services.TryLoadActiveSave(out var saved), "closing the dialogue autosaves");
+                Assert.AreEqual("later", saved.Flags[ChoiceFlag]);
+                yield return WaitRealtime(WalkWindowSeconds);
+                AssertKleiaStayed("the enter that answered the question");
+            }
+            finally
+            {
+                Object.Destroy(library);
+            }
         }
 
         private IEnumerator Tap(ButtonControl button)
