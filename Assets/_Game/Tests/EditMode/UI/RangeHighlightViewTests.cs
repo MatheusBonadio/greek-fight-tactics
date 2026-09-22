@@ -12,8 +12,12 @@ namespace Game.Tests.EditMode.UI
     {
         private const int Size = 7;
 
+        private static readonly Coord Raised = new(4, 3);
+
         private GameObject host;
-        private Tilemap tilemap;
+        private LevelTilemaps tilemap;
+        private Tilemap ground;
+        private Tilemap upper;
         private RangeHighlightView view;
         private Tile move;
         private Tile refute;
@@ -24,9 +28,14 @@ namespace Game.Tests.EditMode.UI
         public void CreateView()
         {
             host = new GameObject("grid", typeof(UnityEngine.Grid));
-            var tilemapObject = new GameObject("range", typeof(Tilemap), typeof(TilemapRenderer));
+            var tilemapObject = new GameObject("range");
             tilemapObject.transform.SetParent(host.transform, false);
-            tilemap = tilemapObject.GetComponent<Tilemap>();
+            ground = CreateLevel(tilemapObject, "range_0");
+            upper = CreateLevel(tilemapObject, "range_1");
+            var levels = new byte[Size * Size];
+            levels[Raised.Y * Size + Raised.X] = 1;
+            tilemap = tilemapObject.AddComponent<LevelTilemaps>();
+            tilemap.Configure(Size, levels, 0, new[] { ground, upper });
 
             move = ScriptableObject.CreateInstance<Tile>();
             refute = ScriptableObject.CreateInstance<Tile>();
@@ -39,7 +48,8 @@ namespace Game.Tests.EditMode.UI
             {
                 for (var x = 0; x < Size; x++)
                 {
-                    grid.TrySet(new Coord(x, y), new TileData { Cost = (byte)PathFinder.MinimumStepCost, Revealed = true });
+                    var cell = new Coord(x, y);
+                    grid.TrySet(cell, new TileData { Cost = (byte)PathFinder.MinimumStepCost, Revealed = true, Level = (byte)(cell == Raised ? 1 : 0) });
                 }
             }
 
@@ -66,6 +76,26 @@ namespace Game.Tests.EditMode.UI
             {
                 Assert.AreSame(refute, tilemap.GetTile(new Vector3Int(cell.X, cell.Y, 0)));
             }
+        }
+
+        [Test]
+        public void RaisedCells_ArePaintedOnTheTilemapOfTheirLevel()
+        {
+            view.Bind(highlighter);
+            highlighter.ShowRefute(new Coord(3, 3), 1);
+
+            var raised = new Vector3Int(Raised.X, Raised.Y, 0);
+            Assert.AreSame(refute, upper.GetTile(raised), "the raised cell is highlighted on its own level");
+            Assert.IsNull(ground.GetTile(raised));
+            Assert.AreSame(refute, ground.GetTile(new Vector3Int(2, 3, 0)));
+            Assert.IsNull(upper.GetTile(new Vector3Int(2, 3, 0)));
+        }
+
+        private static Tilemap CreateLevel(GameObject parent, string name)
+        {
+            var level = new GameObject(name, typeof(Tilemap), typeof(TilemapRenderer));
+            level.transform.SetParent(parent.transform, false);
+            return level.GetComponent<Tilemap>();
         }
 
         [Test]

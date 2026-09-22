@@ -28,6 +28,8 @@ namespace Game.Grid
 
         public int Height { get; }
 
+        public int MaxLevel { get; private set; }
+
         public TileData this[Coord cell] => Contains(cell) ? tiles[cell.X, cell.Y] : TileData.OutOfBounds;
 
         public bool Contains(Coord cell) => (uint)cell.X < (uint)Width && (uint)cell.Y < (uint)Height;
@@ -52,6 +54,7 @@ namespace Game.Grid
             }
 
             tiles[cell.X, cell.Y] = tile;
+            MaxLevel = Math.Max(MaxLevel, tile.Level);
             return true;
         }
     }

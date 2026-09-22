@@ -25,7 +25,7 @@ A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Bat
 | Camada | Conteúdo | Unity |
 |---|---|---|
 | `Game.Core` | `Coord`, enums, `Argument`, `ArgumentValidator`, `ArgumentTones`, `FallbackArgumentPicker` | No Engine References |
-| `Game.Grid` | `GridModel`, `IsoMath`, `PathFinder`, `FogOfWar`, `DuelCrowdPlanner` | só `Vector2` |
+| `Game.Grid` | `GridModel`, `IsoMath`, `PathFinder`, `FogOfWar`, `DuelCrowdPlanner`, `TerrainSteps`, `TerrainSorting`, `TerrainPicking` | só `Vector2` |
 | `Game.Battle` | resolver, estado e ações | No Engine References |
 | `Game.Content` | ScriptableObjects e tabelas por id | `ScriptableObject` |
 | `Game.Net` | JSON (Newtonsoft), fallback, cliente da Cloud Function | I/O |
@@ -117,6 +117,7 @@ namespace Game.Grid
     {
         public const byte ImpassableCost = byte.MaxValue;
         public const int NoOccupant = 0;
+        public const byte GroundLevel = 0;
 
         public static readonly TileData OutOfBounds;
 
@@ -124,6 +125,7 @@ namespace Game.Grid
         public byte Cost;
         public bool Revealed;
         public int OccupantId;
+        public byte Level;
 
         public readonly bool IsPassable => Cost != ImpassableCost;
         public readonly bool IsOccupied => OccupantId != NoOccupant;
@@ -133,6 +135,7 @@ namespace Game.Grid
     {
         public int Width { get; }
         public int Height { get; }
+        public int MaxLevel { get; }
         public TileData this[Coord cell] { get; }
         public bool Contains(Coord cell);
         public bool TryGet(Coord cell, out TileData tile);
@@ -144,18 +147,33 @@ namespace Game.Grid
         public const float CellWidth = 1.0f;
         public const float CellHeight = 0.5f;
         public const int SortingStep = 10;
+        public const int LevelPixels = 8;
+        public const float LevelHeight = 0.5f;
 
         public static Vector2 GridToWorld(Coord cell) =>
             new((cell.X - cell.Y) * CellWidth, (cell.X + cell.Y) * CellHeight);
+
+        public static Vector2 GridToSurface(Coord cell, float level) => GridToWorld(cell) + new Vector2(0f, Lift(level));
+        public static float Lift(float level) => level * LevelHeight;
 
         public static Coord WorldToGrid(Vector2 world);
 
         public static int SortingOrder(Coord cell) => -(cell.X + cell.Y) * SortingStep;
     }
 
+    public static class TerrainSteps
+    {
+        public const int MaxClimb = 1;
+        public const int ClimbCost = 1;
+
+        public static bool CanStep(in TileData from, in TileData to);
+        public static int StepCost(in TileData from, in TileData to);
+    }
+
     public sealed class PathFinder
     {
         public static bool AreBeside(Coord first, Coord second);
+        public static bool AreBesideOnFoot(GridModel grid, Coord first, Coord second);
         public bool FindPath(GridModel grid, Coord from, Coord to, List<Coord> path);
         public bool FindPathBeside(GridModel grid, Coord from, Coord target, List<Coord> path);
         public void Reachable(GridModel grid, Coord from, int maxCost, List<Coord> cells);
@@ -174,6 +192,13 @@ namespace Game.Grid
 
 Tile 32×16 com PPU 16 é um losango de 2 × 1 unidades; `CellWidth`/`CellHeight` são o **meio passo** por eixo, e `GridToWorld` devolve o centro do losango. Na Unity o eixo Y cresce para cima, então a célula de maior `X + Y` está mais ao fundo e recebe sorting order menor. `SortingStep` deixa folga para sub-ordenar ator, prop e overlay dentro da mesma célula. O bitmask da névoa usa 1 bit por célula.
 
+**Níveis de terreno.** `TileData.Level` é a altura da célula, de 0 a `TerrainSorting.MaxLevel` (3), em degraus de 8 px (`IsoMath.LevelPixels`; `LevelHeight` é 0,5 unidade, meia célula). `GridToWorld` continua sendo o chão; `GridToSurface(cell, level)` é o topo levantado.
+- **Passo:** vizinhos com um nível de diferença são um degrau; mais que isso é penhasco, intransponível (`TerrainSteps.CanStep`). Subir custa 1 a mais (`TerrainSteps.ClimbCost`), descer não.
+- **Quem respeita:** `PathFinder` (`FindPath`, `Reachable` e `FindPathBeside`), `GridWalker`, `DuelCrowdPlanner.StepsFrom` e, por eles, a CIRCULAR, o realce de alcance, as cenas de Timeline e o público do duelo.
+- **Ao lado:** `PathFinder.AreBesideOnFoot` é o "ao lado" de conversa e desafio: vizinho a no máximo um degrau, nunca no pé de um penhasco.
+- **Batalha:** `BattleRules` não muda. Altura não dá bônus; ela só pesa no custo do movimento.
+- **Mapa:** o nível vem de `heights` no JSON do mapa (ver **Mapas**), e `GridSandboxController.Levels` o leva ao `GridModel`. O save não guarda altura.
+
 **Alinhamento com o `Grid` da Unity** — validado na captura da GridSandbox, não mude sem capturar de novo:
 
 | Ajuste | Valor | Por quê |
@@ -182,8 +207,10 @@ Tile 32×16 com PPU 16 é um losango de 2 × 1 unidades; `CellWidth`/`CellHeight
 | `Grid.cellSize` | `(2, 1, 1)` | com PPU 16 o tile mede 2 × 1 unidades; `(1, 0.5, 1)` só valeria com PPU 32 |
 | posição do `Grid` | `(0, -0.5, 0)` | a Unity ancora a célula no vértice inferior; `IsoMath` usa o centro |
 | `Tilemap.tileAnchor` | `(-0.5, 0.5, 0)` | faz o pivot *Bottom Left* dos sprites de tile cair no canto do losango |
-| ordenação | `TilemapRenderer.Mode.Individual` + ator com `SpriteSortPoint.Pivot` na mesma camada e ordem dos blocos | o Transparency Sort Axis (0, 1, -1) decide pela altura do pé (o Z fica em 0 para tudo, exceto os blocos), e o ator passa atrás de coluna e à frente de prop sem sorting order manual |
+| ordenação | `TilemapRenderer.Mode.Individual` + ator com `SpriteSortPoint.Pivot` na mesma camada e ordem dos blocos | o Transparency Sort Axis (0, 1, -1) decide pela altura do pé (o Z fica em 0 no chão plano; blocos, níveis levantados e o ator no meio do passo usam o Z só para ordenar), e o ator passa atrás de coluna e à frente de prop sem sorting order manual |
 | tilemap `Blocks` | Transparency Sort Axis `(0, 1, -1)` e posição local `(0, 0, -BlockSortLift)`, com `BlockSortLift = 0.25` | o tile ordena pelo vértice de baixo do losango e o ator pelo centro da célula; sem o ajuste, o ator nas células da frente à esquerda e à direita empata com o bloco e aparece atrás dele. Com câmera ortográfica o Z não move o desenho, só o ponto de ordenação. Deslocar Y e compensar com a matriz do tile não funciona: a matriz também entra na ordenação |
+| camadas por nível | cada camada é um `LevelTilemaps` com um tilemap filho por nível (`<Camada>_<nível>`), e `SetTile(cell, tile)` escolhe o filho pelo nível da célula | o nível 0 de chão, saídas, véu, alcance, cursor e névoa fica onde sempre esteve (ordens −20, −19, −18, −15, −10 e −5, posição zero); os níveis acima deles e todos os níveis de blocos e faces ordenam junto com os atores, na ordem 0 |
+| nível levantado | posição local `(0, IsoMath.Lift(L), TerrainSorting.TilemapDepth(L, deslocamento))` | o filho sobe `Lift(L)` e anda o mesmo tanto em Z, então o eixo (0, 1, −1) continua ordenando pelo chão da célula. Só o desenho sobe |
 
 ```csharp
 namespace Game.Battle
@@ -248,7 +275,15 @@ Exploration → (confirmar no desafiante) → BattleIntro → BattleTurn ⇄ Bat
                                                           Dialogue / Paused
 ```
 
-Movimento: `PathFinder.FindPath` devolve células; o ator percorre a 250 ms por célula com interpolação **linear** entre centros. Easing faz o pixel tremer. `TileData.OccupantId` é atualizado na saída e na entrada de cada célula, nunca no meio.
+Movimento: `PathFinder.FindPath` devolve células; o ator percorre a 250 ms por célula com interpolação **linear** entre centros, e o nível também é interpolado no degrau (`GridWalker.Level`). Easing faz o pixel tremer. `TileData.OccupantId` é atualizado na saída e na entrada de cada célula, nunca no meio.
+
+**Altura e ordenação.** O ponto de ordenação é sempre o chão da célula; só o desenho sobe.
+- **Valor de ordenação:** com o eixo (0, 1, −1), vale `y − z`, e o maior é desenhado primeiro. Um tile vale `y do chão + deslocamento da camada − TerrainSorting.LevelStep × nível` (`TerrainSorting.TileSortValue`).
+- **Deslocamentos:** chão e faces 0,06, seta de saída 0,055, véu 0,05, alcance 0,04, cursor 0,03 e névoa 0,02, todos logo atrás do ator da mesma célula. Bloco −0,25 (o antigo `BlockSortLift`) e véu do bloco −0,26.
+- **`LevelStep` (0,07):** é maior que qualquer deslocamento. Na mesma profundidade, a célula mais alta é desenhada depois do ator mais baixo.
+- **Ator:** `ActorView` põe o sprite em `GridWalker.SurfacePosition` (chão mais `Lift` do nível interpolado) com Z = `GridWalker.SortDepth`. No passo, o ator ordena como a mais da frente das duas células, com no máximo `StepSlack` (0,015) da interpolação, menos `LevelStep × nível`. Assim ele nunca afunda sob o chão em que entra ou de que sai, e um degrau mais alto ao lado do passo continua na frente dele. `GridWalker.WorldPosition` continua no chão, e é ele que a névoa (`FogTileRules.ShowsWhatStandsAt`) e a regra usam.
+- **Testes:** `TerrainLevelTests` cobre os quatro casos difíceis nos níveis 0 e 2, o ator na frente e atrás de uma célula levantada, a caminhada sobre um platô, a subida de um degrau, o degrau mais alto ao lado do passo e a coluna em cima de um penhasco.
+- **Ponteiro:** `GridCursor.TryHover` usa `TerrainPicking.CellAt`. Ele desce do nível mais alto até o chão, pixel a pixel, e fica com a primeira coluna que chega àquela altura sob o ponteiro, então o topo levantado, o penhasco e o que ele esconde resolvem certo. `GridCursor.TryPoint(cell)` aponta sem geometria: restauração do save, alvo da CIRCULAR e testes.
 
 O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirector` usa essa mesma instância, e a pausa a recebe no `Start`. A exploração só lê input com `ExplorationInputEnabled` ligado e a máquina em `Exploration`.
 
@@ -307,6 +342,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 **A virada do Ato II** mora inteiramente no passo 3: quando `Argument.IsRefutable == false`, `ActionId.Refute` é rejeitada pelo resolver e a UI desabilita o botão. Nenhuma outra camada precisa saber que o Ato II existe. Isso vale defender — é a tese do jogo virando mecânica num ponto só do código.
 
 - **Painel de depuração da sandbox:** o `OnGUI` do `GridSandboxController` (descrição da célula, spawn e remoção de ator de teste, gizmos) começa oculto em `DebugPanelVisible`. F3 alterna o painel só em build de desenvolvimento e no Editor (`Debug.isDebugBuild`). Os métodos por trás dele continuam públicos para os testes. Com o painel visível, o ponteiro sobre ele (`IsOverDebugPanel`) não move o cursor do grid, e o clique nele não anda com a Kleia.
+- **Ponteiro sobre a UI:** do mesmo jeito, o ponteiro sobre qualquer elemento de UI (`GridSandboxController.IsPointerOverUi`, que pergunta `EventSystem.current.IsPointerOverGameObject()`) não move o cursor e o clique não anda. Vale para a faixa do HUD, a caixa de diálogo e os menus sobre o mapa, inclusive na mira da CIRCULAR. Teclado e gamepad não mudam. `ExplorationInputPlayTests` clica com o mouse de verdade num painel sobre o mapa.
 - **Input da exploração x menus:** exploração e menus leem o mesmo mapa `Grid`. Enquanto `PauseMenuController.CapturesInput` for verdadeiro (pausa aberta ou fechada neste quadro), o `GridSandboxController` ignora Confirm, Cancel, ponteiro e navegação. O quadro do fechamento conta porque o callback do menu roda antes do `Update`: sem isso, o Enter que escolhe "Voltar ao jogo" também mandaria a Kleia andar. Os testes de `ExplorationInputPlayTests` apertam teclas e o mouse de verdade pelo `InputTestFixture`. O `GridControls` é um asset compartilhado e guarda o estado de ações criado por testes anteriores, fora do mundo do fixture; por isso o teste re-resolve os bindings (`InputActionAsset.devices`) depois de carregar a cena e de novo depois do `TearDown`, senão as ações ficam sem controles.
 - **Batalha jogável na sandbox:** um único `SandboxBattleDirector` por cena conduz o duelo contra qualquer `OpponentSO` do mapa, sem código por nome.
   - **Quem é oponente:** `SandboxTools` liga ao diretor, como `MapOpponent` (ator, `OpponentSO` e retrato), todo ator do mapa cujo `character` é um `id` de `opponents.json`. Mapa sem oponente (o Cerâmico) não ganha diretor.
@@ -316,7 +352,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - Depois de perder ou fugir, basta confirmar nele de novo. Oponente não conversa: ator com `dialogue` não pode ser oponente.
   - **Entrada na batalha:** desliga `GridSandboxController.ExplorationInputEnabled` e a pausa, mostra o `BattleHud`, chama o público, escurece o mundo fora da arena e centraliza a câmera no duelo, sem zoom.
     - **Câmera:** são duas `CinemachineCamera`. A da exploração segue a Kleia com o `CinemachineConfiner2D` do mapa. A `DuelCamera` segue o `DuelFocus`, não tem confiner, tem prioridade maior e fica desligada fora do duelo.
-    - `ExplorationCamera.FrameDuel` põe o foco no ponto médio dos dois debatedores, descido `HudLayout.BottomStripFraction` (0,25) × o tamanho ortográfico, e liga a `DuelCamera`. Assim a arena fica no meio da área acima da faixa do HUD (`ExplorationCamera.FramingFor`), mesmo encostada na borda do mapa, e fora dele aparece o preto do fundo. O foco fica preso à grade de pixels da arte e acompanha o tamanho ortográfico real da câmera.
+    - `ExplorationCamera.FrameDuel` põe o foco no ponto médio dos dois debatedores (`DuelArena.WorldCenter`, levantado pelo nível médio deles), descido `HudLayout.BottomStripFraction` (0,25) × o tamanho ortográfico, e liga a `DuelCamera`. Assim a arena fica no meio da área acima da faixa do HUD (`ExplorationCamera.FramingFor`), mesmo encostada na borda do mapa, e fora dele aparece o preto do fundo. O foco fica preso à grade de pixels da arte e acompanha o tamanho ortográfico real da câmera.
     - O `CinemachineBrain` desliza entre as duas com `DefaultBlend` EaseInOut de 0,6 s (`DefaultGlideSeconds`), e `IsGliding` é o blend em andamento. O `PixelSnappedCamera` segura a saída na grade de pixels durante o blend.
     - A câmera da exploração fica com `StandbyUpdate.Always`, então continua seguindo a Kleia presa aos limites durante o duelo. Na saída, `FrameExploration` desliga a `DuelCamera`, e o blend volta exatamente para onde o confiner a segura, sem salto.
     - O tamanho ortográfico nunca muda. O `CinemachinePixelPerfect` só corrige a câmera que já está ao vivo, então o primeiro quadro de cada blend misturaria o tamanho cru da lente com o corrigido. Por isso, antes da troca, a câmera que entra recebe o tamanho que a tela já usa, e a da exploração volta ao tamanho de projeto quando o blend termina (`CinemachineCore.BlendFinishedEvent`).
@@ -325,7 +361,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - **Público chegando (`BattleCrowd`):** cada lugar tem uma entrada na borda do mapa, fora da arena iluminada, e um cidadão (`citizen`, clone do `SpectatorTemplate` que o `SandboxTools` gera) anda dali até o lugar, a 0,2 s por célula, sem cortar o miolo da arena. Enquanto está no escuro, ele usa o material do véu. Ao chegar, vira para o centro.
     - **Espera:** os turnos só começam quando todos chegam ou quando passam 3 s (`ArrivalCapSeconds`), e quem atrasou vai direto para o lugar. Nesse meio tempo, a fase do diretor é `Gathering`, e a fala de abertura já pode estar na caixa. Teste que quer pular a chegada zera `ArrivalCapSeconds`, e `SandboxBattleDirector.CrowdSeed` fixa a seed.
     - **Fora do mundo da exploração:** os espectadores andam em grades próprias, cópias do terreno, e nunca ocupam o grid da exploração. Por isso não são desafiantes, não conversam, não entram no save nem nos duelos gravados, e também não contam como plateia para o bônus de adjacência. No grid da batalha, `BattleSetup.Spectators` ocupa os lugares deles, então a CIRCULAR não os alcança.
-    - **Escuro fora da arena (`ArenaVeilView`):** um xadrez de 50% de `void` cobre tudo o que fica fora do raio iluminado. É efeito de código, sem arte, feito pelo shader `Game/Arena Veil` (`Assets/_Game/Shaders/ArenaVeil.shader`), com o padrão preso à grade de pixels do mundo. O chão de fora ganha o tile `fog` no tilemap `ArenaVeil`, entre o chão e o `Range`. Os blocos de fora são copiados no tilemap `BlocksVeil`, 0,01 à frente dos `Blocks` na ordenação, e escurecem na altura inteira, não só no losango do chão. Só entra bloco visível: bloco sob a névoa não está nos `Blocks`, e o que se revela durante o duelo é copiado na hora (`Tilemap.tilemapTileChanged`). Os atores de fora trocam de material. Os debatedores e o público ficam sempre na luz. A densidade sobe em degraus (Bayer 4×4) enquanto o público chega e some em 0,4 s na saída. É só render: não toca `FogOfWar` nem `TileData.Revealed`.
+    - **Escuro fora da arena (`ArenaVeilView`):** um xadrez de 50% de `void` cobre tudo o que fica fora do raio iluminado. É efeito de código, sem arte, feito pelo shader `Game/Arena Veil` (`Assets/_Game/Shaders/ArenaVeil.shader`), com o padrão preso à grade de pixels do mundo. O chão de fora ganha o tile `fog` no tilemap `ArenaVeil` do nível da célula, entre o chão e o `Range`. Os blocos de fora são copiados no tilemap `BlocksVeil`, 0,01 à frente dos `Blocks` na ordenação, e escurecem na altura inteira, não só no losango do chão. As faces de fora são copiadas do mesmo jeito no `FacesVeil`. Só entra bloco visível: bloco sob a névoa não está nos `Blocks`, e o que se revela durante o duelo é copiado na hora (`Tilemap.tilemapTileChanged`). Os atores de fora trocam de material. Os debatedores e o público ficam sempre na luz. A densidade sobe em degraus (Bayer 4×4) enquanto o público chega e some em 0,4 s na saída. É só render: não toca `FogOfWar` nem `TileData.Revealed`.
     - **Geração:** o `SandboxTools` só cria o `BattleCrowd` e os dois tilemaps do véu em mapa com oponente.
   - **Turnos:** o oponente pensa `ThinkSeconds` antes de jogar pela `OpponentBrain`; o jogador escolhe no menu. As falas e os resultados aparecem na caixa de diálogo. Ao refutar certo, o ícone da falácia sobe sobre o oponente da vez e ela entra no compêndio por `GameServices.Compendium.Unlock`. As falas da Kleia e do oponente mostram o retrato de cada um (`SandboxBattleDirector.ConfigurePlayerPortrait` e `MapOpponent.Portrait`); a narração fica sem retrato. Os mesmos retratos, o nome da Kleia (`battle.player_name`) e o `DisplayName` do oponente vão para os painéis do HUD por `BattleHud.Introduce`. `SandboxTools.PortraitFor` usa o retrato dedicado `art/placeholders/portraits/<personagem>_portrait.png` (32×32) quando ele existe e, senão, o quadro parado de frente (`<personagem>_se_0`) da folha do personagem.
   - **Saída:** ao fim, volta à exploração e faz save automático. Nada recomeça sozinho: a Kleia pode ficar ao lado do oponente sem novo duelo.
@@ -505,23 +541,40 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 - **Névoa inicial:** `fogRevealDepth` opcional revela de saída as células com `x + y` menor que ele (padrão `SandboxTools.FogRevealDepth`). No Cerâmico é 0: a oficina se revela conforme a Kleia anda.
 - **Névoa no render:** o `GridModel` decide, e o render só lê `TileData.Revealed` (`FogTileRules`).
   - O tilemap `Fog` fica na camada `Default` com ordem `SandboxTools.FogSortingOrder` (-5): acima do chão, do véu do chão, do `Range` e do cursor, e abaixo de blocos e atores. Assim, bloco ou ator de célula revelada nunca é cortado pela névoa das células de trás.
-  - Célula não revelada não mostra nada do que está nela. O bloco sai dos `Blocks`: a fonte fica em `GridSandboxController.BlockTiles` (gerado por `SandboxTools`), e o tilemap só recebe o bloco quando a célula é revelada. O ator some por `ActorView.IsShown` (o `SpriteRenderer`), pela célula sob o pivô (`FogTileRules.ShowsWhatStandsAt`), então aparece e some no meio do passo. Os espectadores do `BattleCrowd` seguem a mesma regra.
+  - Célula não revelada não mostra nada do que está nela. O bloco sai dos `Blocks`: a fonte fica em `GridSandboxController.BlockTiles` (gerado por `SandboxTools`), e o tilemap só recebe o bloco quando a célula é revelada. As faces e a seta de saída seguem a mesma regra (`FaceTiles` e `Exits`). O ator some por `ActorView.IsShown` (o `SpriteRenderer`), pela célula sob o pivô (`FogTileRules.ShowsWhatStandsAt`), então aparece e some no meio do passo. Os espectadores do `BattleCrowd` seguem a mesma regra.
   - A borda pontilhada da névoa é só do chão: a célula da borda ainda não foi revelada, então o bloco e o ator dela também ficam escondidos. Um bloco alto meio pontilhado flutuaria no escuro como antes, e ainda entregaria quem está ali.
   - `PaintFogPreview` aplica a mesma regra na cena gerada, e é isso que `CaptureReference` fotografa.
 - **Legendas:** `floorLegend` e `blockLegend` levam cada símbolo ao nome do tile, e `-` marca a célula sem bloco.
+- **Alturas:** `heights` opcional são linhas de dígitos paralelas a `floor`, com o nível de cada célula. Sem `heights`, o mapa é plano.
+  - `MapLayout.Validate` recusa linhas de outro tamanho e dígito fora de 0 a `TerrainSorting.MaxLevel`.
+  - `MapLayout.CanStep` é a regra do degrau nos testes de alcance e de "ao lado" dos mapas.
+- **Espessura e penhascos:** toda célula pendura faces até o nível do vizinho da frente, e na borda da frente do mapa até `-SandboxTools.BaseDepthLevels` (2 níveis, 16 px), então o chão lê como uma laje e não como uma folha.
+  - O vizinho SW é `x − 1` e o SE é `y − 1`. `SandboxTools.FaceSegmentsOf` gera um segmento de um nível (8 px) por nível descoberto, no tilemap `Faces` daquele nível.
+  - O segmento de cima leva o friso (`lip`) e os outros, o corpo (`body`): `side_<earth|stone>_<lip|body>_<sw|se|sw_se>`.
+  - A terra fica sob terra, terra batida, argila, palha e grama; a pedra, sob mármore, mármore ocre, mosaico, pedra e água (`SandboxTools.SideMaterialFor`).
+  - O sprite de face tem 32×32 e pendura 16 px abaixo da célula, então o tilemap `Faces` desce `FaceSpriteDrop` (1 unidade) e compensa em Z.
+  - Os limites da câmera (`MapOutline`) e a captura de referência incluem a base embaixo e o nível mais alto em cima.
 - **Atores:** `actors` lista personagem, célula e `Facing`, e o primeiro é o jogador. O campo opcional `dialogue` dá ao NPC um id de `dialogues.json`, e `conditions` o faz esperar flags da história. O jogador não pode ter nenhum dos dois, e um teste garante que todo id citado nos mapas (atores, gatilhos e deixas) existe.
 - **Validação:** `MapLayout.Validate` recusa linhas de larguras diferentes, símbolo desconhecido, ator em bloco, em água ou em célula repetida, condição inválida e deixa sem diálogo ou sem flag própria.
-- **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2. Tem a estrada de terra que vem do Cerâmico, com a herma na entrada, o mercado de pedra onde Thrasybios junta a plateia e a praça em xadrez com borda de meandro e fonte. Tem também a stoa de colunas dóricas com degraus e as casas de tijolo com oliveiras. Um teste garante que toda célula andável é alcançável a partir da Kleia.
-  - **Duelistas de bairro:** Óron na ponta da stoa, junto à parede de mármore e ainda sob a névoa (10, 10), Phaidra no morro de oliveiras (1, 10), Kritolaos na praça de pedra diante das casas (6, 10), Simo na praça em xadrez (8, 8) e Bátilo junto à fonte (7, 6). Testes garantem que a Kleia consegue parar ao lado de cada desafiante e de cada NPC que conversa, e que nenhum ator bloqueia o único caminho para uma célula além do recanto logo atrás dele.
+- **GridSandbox:** a cena é montada a partir de `agora.json`, a Ágora do beat I.2, em quatro níveis. Um teste garante que toda célula andável é alcançável a partir da Kleia, degrau a degrau.
+  - **Nível 0:** a estrada de terra que vem do Cerâmico, com a saída na ponta, e o mercado de pedra onde Thrasybios junta a plateia.
+  - **Nível 1:** a praça em xadrez com borda de meandro, um degrau acima da estrada e do mercado, com a herma no canto. A fonte é um tanque rebaixado ao nível 0, com as paredes de pedra de trás à mostra.
+  - **Stoa:** sobe em degraus da praça. A colunata fica no nível 2 e o passeio de trás, no 3. Diante do mercado, a plataforma cai dois níveis num muro de pedra.
+  - **Morro das oliveiras:** a borda do caminho está no nível 2, com um muro de terra de dois níveis sobre a estrada, e o topo no 3. Sobe-se pela praça, e o topo cai dois níveis sobre o fundo da praça.
+  - **Rua das casas de tijolo:** fica no nível 2, um degrau acima da praça.
+  - **Duelistas de bairro:** Óron na ponta da stoa, junto à parede de mármore e ainda sob a névoa (10, 10), Phaidra no morro de oliveiras (1, 10), Kritolaos na rua de pedra diante das casas (6, 10), Simo na praça em xadrez (8, 8) e Bátilo junto à fonte (7, 6). Testes garantem que a Kleia consegue parar ao lado de cada desafiante e de cada NPC que conversa, e que nenhum ator bloqueia o único caminho para uma célula além do recanto logo atrás dele.
 - **Cerâmico:** `kerameikos.json` (16×16) gera `Assets/_Game/Scenes/Kerameikos.unity`, a oficina dos beats I.1 e I.4.
   - A oficina tem chão de terra batida cercado de tijolo, com uma única porta em (4, 7), a roda de oleiro ao lado da qual a Kleia começa e ânforas no fundo. Aristeu, o pai (folha placeholder `aristeu`), fica junto a elas e a manda levar a mercadoria à Ágora (`aristeu_workshop`, flag `aristeu_errand`). O retrato dele é o dedicado `aristeu_portrait`, com a mão erguida ao lado do rosto, de dedos tortos e nós inchados.
   - O pátio é de argila seca, com o forno, as ânforas prontas junto à porta e um canto de palha com oliveiras. A rua de terra corre pela borda da frente, e as saídas dela levam à Ágora.
+  - A rua fica no nível 0 e todo o resto (pátio, caminho da porta e oficina) um degrau acima, no nível 1.
   - Tutorial por deixas: `kerameikos_first_steps` ao abrir o jogo, `kerameikos_tutorial_fog` no primeiro passo que revela névoa e `kerameikos_tutorial_talk` no fim da caminhada seguinte, cada um com a própria flag `tutorial_*`. Sair pela porta toca `kerameikos_leaving_workshop` (`left_workshop`).
   - Menexeno (beat I.4) só aparece em (3, 6), diante da porta, com `duel_thrasybios=won` e sem `maieutics_unlocked`. Ele não tem `dialogue`: pisar numa das três células livres ao lado dele toca a cena de Timeline `menexeno_follows_home` (flag `menexeno_door_scene`).
   - A cena vira os dois um para o outro e toca `menexeno_door_offer` (a condição de nunca cobrar por uma pergunta, `menexeno_condition`). Ele olha para a rua e `menexeno_door_glance` planta a pista do passado (`menexeno_avoids_past`). Depois vem `menexeno_door_lesson`, ele desce a rua e sai do mapa, e `menexeno_door_learned` grava `maieutics_unlocked`, que libera a MAIÊUTICA.
   - Não há batalha: `SandboxTools` só cria o `SandboxBattleDirector` quando o mapa tem oponente.
 - **Saídas:** `exits` no JSON do mapa liga uma célula a outro local, com célula de chegada e `Facing`.
   - `MapLayout.Validate` recusa saída fora do mapa, em célula bloqueada, sem destino ou repetida, e um teste garante que a chegada cai em célula livre, sem ator e sem outra saída — senão o jogador quicaria de volta.
+  - **Seta:** toda saída mostra a seta dourada animada `overlay_exit_<ne|nw|se|sw>` (tile animado de 4 quadros que pulsa para a ponta), no tilemap `Exits` do nível da célula, entre o chão e o véu. Ela aponta para fora da borda em que a saída está (`MapLayout.HeadingOf`: x = 0 é SW, x máximo é NE, y = 0 é SE, y máximo é NW) ou para o `heading` do JSON. Sob a névoa, a seta não aparece.
+  - **Nome:** `label` no JSON é o texto do jogador ("Para o Cerâmico", "Para a Ágora"). Com o cursor numa saída revelada e a exploração livre, o `ExitLabelView` mostra o nome num canvas próprio acima da seta (`GridSandboxController.HoveredExit`). O rótulo não recebe raycast, então nunca engole o clique no mapa. Label em branco é recusado.
   - Pisar na saída e parar dispara a troca: `SceneArrival` guarda a chegada, `LocationScenes.SceneFor` resolve a cena e o `GridSandboxController` da outra ponta teleporta o jogador no `Awake`, revela a névoa em volta e faz save automático.
   - A chegada pula a restauração do save, porque a posição dela vale mais que a gravada.
   - **Névoa:** o save guarda a névoa de cada mapa em `SaveData.FogByLocation` (`fogByLocation` no JSON, só gravado quando existe). Ao sair, a névoa do mapa de origem viaja no `PendingArrival` e entra no autosave da chegada; ao chegar, a névoa salva do destino é somada à revelada em volta da chegada (`ExplorationRestore.TryMergeFog`). `FogBitmask` continua sendo a do mapa atual, e saves antigos migram a névoa do `Location` gravado.
@@ -545,6 +598,7 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
 - Um Animator Controller por personagem em `Assets/_Game/Art/Placeholder/Animations/`, com estados `idle`, `walk` e `action`, cada um um blend tree 2D por `dirX`/`dirY`. Os clipes só trocam sprite (curva de referência de objeto, sem interpolação); curvas numéricas, quando existirem, usam tangentes `Constant`.
 - `Game.EditorTools.RenderSetupTools.Apply` gera `Assets/_Game/Prefabs/Camera/PixelPerfectCameraRig.prefab` (URP `PixelPerfectCamera`, referência 224×224, PPU 16, *Upscale Render Texture*, *Crop Frame* `None`) e põe o `Renderer2D.asset` em Transparency Sort *Custom Axis* (0, 1, -1). *Crop Frame* `Windowbox` recorta nos dois eixos para manter a área quadrada de 224×224: em tela cheia 16:9 isso corta parte do mapa e põe barras. Com `None`, a tela inteira é usada e as bordas mostram um pouco mais do mapa, sem quebrar o pixel perfect.
 - Tile de chão contorna só as bordas de cima; a de baixo é desenhada pelo vizinho da frente, e contorno nas quatro bordas vira linha dupla na junção. A junta é sutil: um tom abaixo do tom dominante do próprio material, nunca `outline_blue`, para os tiles se emendarem e só uma linha leve marcar a grade. `ArtTools.RegenerateAll` roda `FloorTileSeams.ApplyToSourceFloors` antes de copiar, e um teste EditMode garante que nenhum chão em `art/` tem a cor da junta na borda de baixo do losango. O mesmo tom no miolo do tile é textura e fica.
+- **Faces laterais:** `tools/art/side_faces.py` desenha `side_earth.png` e `side_stone.png` (32×32, dois níveis de face sob o losango: terra em estratos paralelos à borda, pedra em fiadas de cantaria). `SideFaceTiles.GenerateSources`, dentro de `SandboxTools.BuildSandbox`, corta delas os segmentos de um nível (`side_<material>_<lip|body>_<sw|se|sw_se>.png`). O corpo repete a cada 8 px e a cada célula, então faces vizinhas viram um muro contínuo, sem linha de grade.
 - **Tile animado:** `<tile>_1.png`, `<tile>_2.png`… ao lado de `<tile>.png`, que é o quadro 0, viram um `AnimatedTile` do `com.unity.2d.tilemap.extras` em `TileAssets/Animated/<tile>.asset`, gerado por `SandboxTools`. Todos tocam a `SandboxTools.AnimatedTileFramesPerSecond` (6) com velocidade fixa e início 0, então todas as células trocam de quadro juntas. A água da Ágora usa isso com 8 quadros de água parada mexida pela brisa: a textura fica imóvel, riscos curtos de `aegean_light` balançam 1 px e somem aos poucos, e um brilho aparece num quadro só. Riscos e brilho são posicionados sobre a grade das células, então cada quadro emenda com os vizinhos. As juntas ficam paradas.
 - Paredes (`wall_*`, `block_step`) usam o tom mais escuro do material como junta, para paredes vizinhas virarem um muro contínuo. O `BlockTileSeams` lê a cor da junta no pixel mais alto da coluna 0 de cada bloco e apaga a borda vertical direita nessa cor; bloco que não chega à coluna 0 usa `outline` ou `outline_blue`. Props e objetos soltos mantêm o contorno escuro.
 - Trocar o modo de import de uma textura muda o fileID do sprite. Depois de mexer no importer, rode `ArtTools.SliceSheets` **e** `DataTools.Regenerate`, que religa os ícones dos `FallacySO`.
@@ -552,6 +606,7 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
   - `quantize.py` leva uma pasta de PNGs brutos para a `snes.gpl` sem dithering, redimensiona com Nearest Neighbor para a dimensão exata (`--size`, `--like art/placeholders` ou prefixo do nome) e deixa no máximo 15 cores.
   - `verify.py` imprime a contagem de cores por arquivo e sai com 1 quando um PNG tem mais de 15 cores + transparente, alfa parcial, cor fora do RGB555 ou da paleta, dimensão errada para o prefixo (`SIZE_RULES` em `sprite_rules.py`), pixel opaco fora do losango num chão, névoa ou realce (`FLOOR_FOOTPRINT`, o fundo que a IA esquece) ou chão que deixa vão ao repetir.
   - `tile_preview.py` cola 4 cópias do tile na grade e grava a prévia em `artifacts/art/tiling/`.
+  - `side_faces.py` desenha as duas fontes das faces laterais (`side_earth`, `side_stone`) e `exit_arrows.py` desenha os 16 quadros das setas de saída. Os testes conferem que os PNGs versionados são o que os scripts desenham.
   - `anchor.py` mede quanto a base de cada `prop_` e `block_` está fora do centro da célula (a linha mais larga e mais baixa da base vai para 8 linhas acima do fundo do canvas e x = 16), e `--fix` move o sprite. Todo objeto mais estreito que a célula passa por ele antes de entrar em `art/`.
   - `aseprite_palette.py` copia a `snes.gpl` para `palettes/default.gpl` na pasta do usuário do Aseprite e põe o `default.ase` antigo de lado, e o Aseprite a adota na próxima abertura. O `--check` confere o `default.ase` gravado.
   - Testes: `python -m unittest discover -s tools/art`. Hoje `verify.py art/placeholders` falha em 35 arquivos por pendências conhecidas, listadas na skill.

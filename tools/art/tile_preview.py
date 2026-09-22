@@ -80,6 +80,17 @@ def count_outside_footprint(tile):
     return sum(1 for index, pixel in enumerate(pixels) if pixel[3] != TRANSPARENT and not in_footprint(index % CELL_WIDTH, index // CELL_WIDTH))
 
 
+def count_inside_footprint(tile):
+    if tile.width != CELL_WIDTH or tile.height < CELL_HEIGHT:
+        return None
+    pixels = rgba_pixels(tile)
+    return sum(
+        1
+        for index, pixel in enumerate(pixels[: CELL_WIDTH * CELL_HEIGHT])
+        if pixel[3] != TRANSPARENT and in_footprint(index % CELL_WIDTH, index // CELL_WIDTH)
+    )
+
+
 def cell_problems(tile):
     gaps = count_gaps(tile)
     if gaps is None:

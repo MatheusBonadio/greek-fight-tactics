@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Core;
 using Game.Grid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
@@ -24,15 +25,19 @@ namespace Game.UI
         [SerializeField] private int height = 12;
         [SerializeField] private TerrainId[] terrain = new TerrainId[0];
         [SerializeField] private byte[] costs = new byte[0];
+        [SerializeField] private byte[] levels = new byte[0];
         [SerializeField] private int fogRevealDepth = 18;
         [SerializeField] private InputActionAsset controls;
-        [SerializeField] private Tilemap highlightTilemap;
-        [SerializeField] private Tilemap fogTilemap;
+        [SerializeField] private LevelTilemaps highlightTilemap;
+        [SerializeField] private LevelTilemaps fogTilemap;
         [SerializeField] private TileBase[] selectionFrames = new TileBase[0];
         [SerializeField] private TileBase fogTile;
         [SerializeField] private TileBase[] fogEdgeTiles = new TileBase[0];
-        [SerializeField] private Tilemap blocksTilemap;
+        [SerializeField] private LevelTilemaps blocksTilemap;
         [SerializeField] private TileBase[] blockTiles = new TileBase[0];
+        [SerializeField] private LevelTilemaps facesTilemap;
+        [SerializeField] private FaceTile[] faceTiles = new FaceTile[0];
+        [SerializeField] private LevelTilemaps exitsTilemap;
         [SerializeField] private List<ActorView> actors = new();
         [SerializeField] private GridGizmoView gizmos;
         [SerializeField] private string locationId = DefaultLocationId;
@@ -74,15 +79,46 @@ namespace Game.UI
 
         public IReadOnlyList<byte> Costs => costs;
 
+        public IReadOnlyList<byte> Levels => levels;
+
         public InputActionAsset Controls => controls;
 
         public IReadOnlyList<ActorView> Actors => actors;
 
-        public Tilemap FogTilemap => fogTilemap;
+        public LevelTilemaps FogTilemap => fogTilemap;
 
-        public Tilemap BlocksTilemap => blocksTilemap;
+        public LevelTilemaps BlocksTilemap => blocksTilemap;
 
         public IReadOnlyList<TileBase> BlockTiles => blockTiles;
+
+        public LevelTilemaps FacesTilemap => facesTilemap;
+
+        public IReadOnlyList<FaceTile> FaceTiles => faceTiles;
+
+        public LevelTilemaps ExitsTilemap => exitsTilemap;
+
+        public LevelTilemaps HighlightTilemap => highlightTilemap;
+
+        public MapExitLink HoveredExit
+        {
+            get
+            {
+                if (!IsReady || !ExplorationInputEnabled || !StateMachine.IsExplorationInputEnabled || !FogTileRules.ShowsWhatStandsOn(grid, cursor.Cell))
+                {
+                    return null;
+                }
+
+                foreach (var exit in exits)
+                {
+                    if (exit.Cell == cursor.Cell)
+                    {
+                        return exit;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         public GridCursor Cursor => cursor;
 
@@ -127,7 +163,7 @@ namespace Game.UI
             }
 
             var occupant = tile.IsOccupied ? tile.OccupantId.ToString() : "none";
-            return $"gx {cell.X}  gy {cell.Y}\nterrain {tile.Terrain}  cost {tile.Cost}\noccupant {occupant}\nrevealed {tile.Revealed}";
+            return $"gx {cell.X}  gy {cell.Y}  level {tile.Level}\nterrain {tile.Terrain}  cost {tile.Cost}\noccupant {occupant}\nrevealed {tile.Revealed}";
         }
 
         public bool TryMovePlayerTo(Coord cell)
@@ -202,19 +238,20 @@ namespace Game.UI
             return true;
         }
 
-        public void ConfigureLayout(int newWidth, int newHeight, TerrainId[] newTerrain, byte[] newCosts, int newFogRevealDepth)
+        public void ConfigureLayout(int newWidth, int newHeight, TerrainId[] newTerrain, byte[] newCosts, int newFogRevealDepth, byte[] newLevels = null)
         {
             width = newWidth;
             height = newHeight;
             terrain = newTerrain;
             costs = newCosts;
             fogRevealDepth = newFogRevealDepth;
+            levels = newLevels ?? new byte[0];
         }
 
         public void ConfigureViews(
             InputActionAsset newControls,
-            Tilemap newHighlightTilemap,
-            Tilemap newFogTilemap,
+            LevelTilemaps newHighlightTilemap,
+            LevelTilemaps newFogTilemap,
             TileBase[] newSelectionFrames,
             TileBase newFogTile,
             TileBase[] newFogEdgeTiles,
@@ -231,10 +268,21 @@ namespace Game.UI
             gizmos = newGizmos;
         }
 
-        public void ConfigureBlocks(Tilemap newBlocksTilemap, TileBase[] newBlockTiles)
+        public void ConfigureBlocks(LevelTilemaps newBlocksTilemap, TileBase[] newBlockTiles)
         {
             blocksTilemap = newBlocksTilemap;
             blockTiles = newBlockTiles ?? new TileBase[0];
+        }
+
+        public void ConfigureFaces(LevelTilemaps newFacesTilemap, FaceTile[] newFaceTiles)
+        {
+            facesTilemap = newFacesTilemap;
+            faceTiles = newFaceTiles ?? new FaceTile[0];
+        }
+
+        public void ConfigureExitMarkers(LevelTilemaps newExitsTilemap)
+        {
+            exitsTilemap = newExitsTilemap;
         }
 
         public GridModel BuildGrid()
@@ -248,7 +296,8 @@ namespace Game.UI
                     model.TrySet(new Coord(x, y), new TileData
                     {
                         Terrain = index < terrain.Length ? terrain[index] : TerrainId.Marble,
-                        Cost = index < costs.Length ? costs[index] : (byte)PathFinder.MinimumStepCost
+                        Cost = index < costs.Length ? costs[index] : (byte)PathFinder.MinimumStepCost,
+                        Level = index < levels.Length ? levels[index] : TileData.GroundLevel
                     });
                 }
             }
@@ -483,7 +532,7 @@ namespace Game.UI
 
             if (services && player != null && services.TryLoadActiveSave(out var save) && ExplorationRestore.TryApply(session, save, LocationId, player.Walker.Facing))
             {
-                cursor.TryHover(IsoMath.GridToWorld(player.Walker.Cell), Vector2.zero);
+                cursor.TryPoint(player.Walker.Cell);
                 PaintFog(grid);
             }
         }
@@ -592,7 +641,7 @@ namespace Game.UI
             }
 
             lastPointer = screen;
-            if (IsOverDebugPanel(screen))
+            if (IsOverDebugPanel(screen) || IsPointerOverUi())
             {
                 return;
             }
@@ -615,8 +664,10 @@ namespace Game.UI
             }
 
             var mouse = Mouse.current;
-            return mouse == null || !mouse.leftButton.wasPressedThisFrame || !IsOverDebugPanel(mouse.position.ReadValue());
+            return mouse == null || !mouse.leftButton.wasPressedThisFrame || (!IsOverDebugPanel(mouse.position.ReadValue()) && !IsPointerOverUi());
         }
+
+        public static bool IsPointerOverUi() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
         private void ReadNavigation()
         {
@@ -670,21 +721,45 @@ namespace Game.UI
                 {
                     var cell = new Coord(x, y);
                     var position = new Vector3Int(x, y, 0);
-                    if (fogTilemap != null)
+                    if (fogTilemap)
                     {
                         fogTilemap.SetTile(position, FogTileFor(FogTileRules.KindAt(model, cell)));
                     }
 
-                    PaintBlock(position, FogTileRules.ShowsWhatStandsOn(model, cell) ? BlockTileAt(x, y) : null);
+                    if (blocksTilemap)
+                    {
+                        blocksTilemap.SetTile(position, FogTileRules.ShowsWhatStandsOn(model, cell) ? BlockTileAt(x, y) : null);
+                    }
                 }
+            }
+
+            PaintFaces(model);
+            PaintExitMarkers(model);
+        }
+
+        private void PaintFaces(GridModel model)
+        {
+            if (!facesTilemap)
+            {
+                return;
+            }
+
+            foreach (var face in faceTiles)
+            {
+                facesTilemap.SetTile(face.Position, face.Level, FogTileRules.ShowsWhatStandsOn(model, face.Cell) ? face.Tile : null);
             }
         }
 
-        private void PaintBlock(Vector3Int position, TileBase block)
+        private void PaintExitMarkers(GridModel model)
         {
-            if (blocksTilemap != null && blocksTilemap.GetTile(position) != block)
+            if (!exitsTilemap)
             {
-                blocksTilemap.SetTile(position, block);
+                return;
+            }
+
+            foreach (var exit in exits)
+            {
+                exitsTilemap.SetTile(new Vector3Int(exit.Cell.X, exit.Cell.Y, 0), FogTileRules.ShowsWhatStandsOn(model, exit.Cell) ? exit.Marker : null);
             }
         }
 
@@ -726,7 +801,7 @@ namespace Game.UI
 
         private void PaintSelection()
         {
-            if (highlightTilemap == null)
+            if (!highlightTilemap)
             {
                 return;
             }

@@ -49,7 +49,8 @@ namespace Game.Grid
             var candidates = SeatCandidates(grid, probe, rules, random);
             var chosen = ChooseSeats(candidates, rules, random);
             var litRadius = chosen.Aggregate(rules.OuterRadius, (radius, candidate) => Math.Max(radius, candidate.Distance));
-            return new DuelArena(player, opponent, rules.InnerRadius, litRadius, AssignSpawns(grid, probe, chosen, litRadius, rules));
+            var centerLevel = (grid[player].Level + grid[opponent].Level) * 0.5f;
+            return new DuelArena(player, opponent, rules.InnerRadius, litRadius, AssignSpawns(grid, probe, chosen, litRadius, rules), centerLevel);
         }
 
         public static GridModel CopyTerrain(GridModel grid, Func<Coord, bool> blocked = null, bool keepOccupants = false)
@@ -148,7 +149,7 @@ namespace Game.Grid
                 foreach (var step in Steps)
                 {
                     var neighbour = cell + step;
-                    if (!grid.Contains(neighbour) || steps[IndexOf(grid, neighbour)] != Unreachable || !canEnter(neighbour))
+                    if (!grid.Contains(neighbour) || steps[IndexOf(grid, neighbour)] != Unreachable || !TerrainSteps.CanStep(grid[cell], grid[neighbour]) || !canEnter(neighbour))
                     {
                         continue;
                     }

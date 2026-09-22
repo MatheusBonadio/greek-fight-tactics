@@ -24,7 +24,7 @@ namespace Game.Tests.PlayMode
 
         private static readonly Coord FreeCell = new(4, 4);
         private static readonly Coord JitterWalkStart = new(0, 1);
-        private static readonly Coord JitterWalkEnd = new(0, 6);
+        private static readonly Coord JitterWalkEnd = new(0, 5);
 
         private GridSandboxController controller;
         private IsolatedDataDirectory data;
@@ -203,7 +203,7 @@ namespace Game.Tests.PlayMode
             {
                 yield return null;
                 elapsed += Time.deltaTime;
-                Assert.AreEqual(start, camera.transform.position, "the confined camera must not wiggle while the player walks");
+                Assert.AreEqual((Vector2)start, (Vector2)camera.transform.position, "the confined camera must not wiggle while the player walks; its depth follows the walker's sort depth and never shows on an orthographic view");
             }
         }
 
@@ -223,7 +223,7 @@ namespace Game.Tests.PlayMode
             yield return null;
 
             Assert.AreEqual(target, controller.Player.Walker.Cell);
-            Assert.Less(Vector3.Distance(IsoMath.GridToWorld(target), controller.Player.transform.position), PositionTolerance);
+            Assert.Less(Vector2.Distance(IsoMath.GridToSurface(target, controller.Grid[target].Level), controller.Player.transform.position), PositionTolerance, "Kleia stands on the raised surface of the cell");
             Assert.IsTrue(controller.Grid[new Coord(2, 9)].Revealed);
             Assert.GreaterOrEqual(elapsed, GridWalker.SecondsPerCell * 3f);
         }

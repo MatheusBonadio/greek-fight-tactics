@@ -27,6 +27,7 @@ namespace Game.Tests.PlayMode
         private const string ChoiceFlag = "test_choice_answer";
         private const string ThrasybiosId = "thrasybios";
         private const float DuelTimeoutSeconds = 10f;
+        private const float UiPanelSize = 48f;
 
         private static readonly Coord Target = new(1, 1);
 
@@ -35,6 +36,7 @@ namespace Game.Tests.PlayMode
         private Keyboard keyboard;
         private Mouse mouse;
         private InputActionAsset controls;
+        private InputActionAsset uiActions;
         private GridSandboxController sandbox;
         private PauseMenuController pause;
         private Coord start;
@@ -57,6 +59,12 @@ namespace Game.Tests.PlayMode
 
             controls = sandbox.Controls;
             ResolveBindingsAgainstCurrentDevices(controls);
+            uiActions = Object.FindAnyObjectByType<UnityEngine.InputSystem.UI.InputSystemUIInputModule>()?.actionsAsset;
+            if (uiActions)
+            {
+                ResolveBindingsAgainstCurrentDevices(uiActions);
+            }
+
             Assert.IsNotEmpty(controls.FindAction(BattleMenuInput.ConfirmAction, true).controls, "the scene's input actions must bind to the test keyboard");
 
             yield return WaitFor(() => pause.Services && pause.Services.IsBooted);
@@ -64,7 +72,7 @@ namespace Game.Tests.PlayMode
 
             start = sandbox.Player.Walker.Cell;
             Assert.AreNotEqual(Target, start);
-            Assert.IsTrue(sandbox.Cursor.TryHover(IsoMath.GridToWorld(Target), Vector2.zero));
+            Assert.IsTrue(sandbox.Cursor.TryPoint(Target));
         }
 
         [UnityTearDown]
@@ -79,9 +87,15 @@ namespace Game.Tests.PlayMode
                 ResolveBindingsAgainstCurrentDevices(controls);
             }
 
+            if (uiActions)
+            {
+                ResolveBindingsAgainstCurrentDevices(uiActions);
+            }
+
             data?.Dispose();
             data = null;
             controls = null;
+            uiActions = null;
             sandbox = null;
             pause = null;
             keyboard = null;
@@ -163,7 +177,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(Target, sandbox.Cursor.Cell, "pointing at the debug panel must not move the grid cursor");
             AssertKleiaStayed("a click on the debug panel");
 
-            var targetOnScreen = (Vector2)Camera.main.WorldToScreenPoint(IsoMath.GridToWorld(Target));
+            var targetOnScreen = ScreenPointOf(Target);
             Assert.IsFalse(sandbox.IsOverDebugPanel(targetOnScreen));
             input.Set(mouse.position, targetOnScreen);
             yield return null;
@@ -171,6 +185,63 @@ namespace Game.Tests.PlayMode
             yield return WaitFor(() => !sandbox.Player.Walker.IsMoving);
 
             Assert.AreEqual(Target, sandbox.Player.Walker.Cell, "a click outside the debug panel must still walk");
+        }
+
+        [UnityTest]
+        public IEnumerator Click_OnAUiElementOverTheMap_NeitherMovesTheCursorNorWalks()
+        {
+            var other = Target + new Coord(1, 0);
+            Assert.IsTrue(sandbox.Grid[other].IsPassable && !sandbox.Grid[other].IsOccupied, $"{other} must be free to walk to");
+            var otherOnScreen = ScreenPointOf(other);
+            var overlay = new GameObject("UiOverTheMap", typeof(Canvas), typeof(UnityEngine.UI.GraphicRaycaster));
+            overlay.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var panel = new GameObject("Panel", typeof(RectTransform), typeof(UnityEngine.UI.Image)).GetComponent<RectTransform>();
+            panel.SetParent(overlay.transform, false);
+            panel.anchorMin = Vector2.zero;
+            panel.anchorMax = Vector2.zero;
+            panel.sizeDelta = new Vector2(UiPanelSize, UiPanelSize);
+            panel.anchoredPosition = otherOnScreen;
+
+            input.Set(mouse.position, otherOnScreen - Vector2.one);
+            yield return null;
+            input.Set(mouse.position, otherOnScreen);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(GridSandboxController.IsPointerOverUi(), "the test panel must sit under the mouse");
+            yield return Tap(mouse.leftButton);
+            yield return WaitRealtime(WalkWindowSeconds);
+
+            Assert.AreEqual(Target, sandbox.Cursor.Cell, "pointing at a UI element must not move the grid cursor");
+            AssertKleiaStayed("a click on a UI element over the map");
+
+            Object.Destroy(overlay);
+            yield return null;
+            input.Set(mouse.position, otherOnScreen + Vector2.one);
+            yield return null;
+            yield return Tap(mouse.leftButton);
+            yield return WaitFor(() => !sandbox.Player.Walker.IsMoving);
+
+            Assert.AreEqual(other, sandbox.Player.Walker.Cell, "without the UI in the way the same click walks");
+        }
+
+        [UnityTest]
+        public IEnumerator Hover_OnAnExit_NamesThePlaceItLeadsTo()
+        {
+            var labels = Object.FindAnyObjectByType<ExitLabelView>();
+            Assert.IsNotNull(labels, "the map shows where each exit leads");
+            yield return WaitFor(() => sandbox.ProgressLoaded);
+            var exit = sandbox.Exits[0];
+            Assert.IsTrue(sandbox.Grid[exit.Cell].Revealed, "the road home is in plain sight");
+
+            yield return PointWithTheMouse(exit.Cell);
+            yield return null;
+            Assert.IsTrue(labels.IsShown);
+            Assert.AreEqual(exit.Label, labels.Text);
+            Assert.AreSame(exit, labels.Shown);
+
+            yield return PointWithTheMouse(Target);
+            yield return null;
+            Assert.IsFalse(labels.IsShown, "the label leaves with the cursor");
         }
 
         [UnityTest]
@@ -196,7 +267,7 @@ namespace Game.Tests.PlayMode
             var (battle, challenger) = default((SandboxBattleDirector, MapOpponent));
             yield return FindChallenger(found => (battle, challenger) = found);
             var below = challenger.Actor.Walker.Cell + new Coord(-1, -1);
-            Assert.IsTrue(sandbox.Cursor.TryHover(IsoMath.GridToWorld(below), Vector2.zero));
+            Assert.IsTrue(sandbox.Cursor.TryPoint(below));
 
             yield return Tap(keyboard.upArrowKey);
             Assert.AreEqual(challenger.Actor.Walker.Cell, sandbox.Cursor.Cell, "up moves the cursor one cell up the screen, onto the challenger");
@@ -293,9 +364,11 @@ namespace Game.Tests.PlayMode
             found((battle, challenger));
         }
 
+        private Vector2 ScreenPointOf(Coord cell) => Camera.main.WorldToScreenPoint(IsoMath.GridToSurface(cell, sandbox.Grid[cell].Level));
+
         private IEnumerator PointWithTheMouse(Coord cell)
         {
-            var onScreen = (Vector2)Camera.main.WorldToScreenPoint(IsoMath.GridToWorld(cell));
+            var onScreen = ScreenPointOf(cell);
             Assert.IsTrue(new Rect(0f, 0f, Screen.width, Screen.height).Contains(onScreen), $"{cell} must be on screen to click it");
             input.Set(mouse.position, onScreen);
             yield return null;

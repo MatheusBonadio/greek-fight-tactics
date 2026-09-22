@@ -5,7 +5,7 @@ from typing import Optional
 
 from images import OPAQUE, TRANSPARENT, rgba_pixels, stem
 from palette import is_rgb555, to_hex
-from tile_preview import CELL_HEIGHT, CELL_WIDTH, count_gaps, count_outside_footprint
+from tile_preview import CELL_HEIGHT, CELL_WIDTH, count_gaps, count_inside_footprint, count_outside_footprint
 
 MAX_OPAQUE_COLORS = 15
 BACKGROUND_MAX_COLORS = 64
@@ -36,6 +36,7 @@ class SizeRule:
     max_height: Optional[int]
     diamond: bool = False
     max_colors: int = MAX_OPAQUE_COLORS
+    hangs_below: bool = False
 
     def matches(self, name):
         return re.search(self.pattern, name) is not None
@@ -60,14 +61,16 @@ class SizeRule:
         return f"{width}x{height}"
 
 
-def exact(label, pattern, width, height, diamond=False, max_colors=MAX_OPAQUE_COLORS):
-    return SizeRule(label, pattern, width, width, height, height, diamond, max_colors)
+def exact(label, pattern, width, height, diamond=False, max_colors=MAX_OPAQUE_COLORS, hangs_below=False):
+    return SizeRule(label, pattern, width, width, height, height, diamond, max_colors=max_colors, hangs_below=hangs_below)
 
 
 SIZE_RULES = (
     exact("floor tile", r"^floor_", CELL_WIDTH, CELL_HEIGHT, diamond=True),
     exact("fog overlay", r"^fog(_edge_(ne|nw|se|sw))?$", CELL_WIDTH, CELL_HEIGHT, diamond=True),
     exact("range highlight", r"^hl_", CELL_WIDTH, CELL_HEIGHT, diamond=True),
+    exact("exit marker", r"^overlay_exit_(ne|nw|se|sw)(_\d+)?$", CELL_WIDTH, CELL_HEIGHT, diamond=True),
+    exact("side face", r"^side_", CELL_WIDTH, 2 * CELL_HEIGHT, hangs_below=True),
     exact("tall wall", r"^wall_.+_tall(_door_(left|right))?$", 32, 48),
     exact("wall", r"^wall_", 32, 32),
     exact("kiln glow strip", r"^block_kiln_glow$", 64, 40),
@@ -217,9 +220,18 @@ def check_tiling(report, image):
 
 def check_footprint(report, image):
     rule = size_rule_for(report.path)
+    if rule is not None and rule.hangs_below:
+        return check_hangs_below(image)
     if rule is None or not rule.diamond:
         return []
     outside = count_outside_footprint(image)
     if not outside:
         return []
     return [Issue(FOOTPRINT_RULE, ERROR, f"{plural(outside, 'opaque pixel')} outside the {CELL_WIDTH}x{CELL_HEIGHT} diamond, clear the background around it")]
+
+
+def check_hangs_below(image):
+    inside = count_inside_footprint(image)
+    if not inside:
+        return []
+    return [Issue(FOOTPRINT_RULE, ERROR, f"{plural(inside, 'opaque pixel')} inside the {CELL_WIDTH}x{CELL_HEIGHT} diamond, a side face hangs below the cell and leaves the floor clear")]

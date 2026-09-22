@@ -30,6 +30,13 @@ namespace Game.Tests.EditMode.Grid
 
         public static void Block(GridModel grid, Coord cell) => SetCost(grid, cell, TileData.ImpassableCost);
 
+        public static void Raise(GridModel grid, Coord cell, int level)
+        {
+            var tile = grid[cell];
+            tile.Level = (byte)level;
+            grid.TrySet(cell, tile);
+        }
+
         public static void Occupy(GridModel grid, Coord cell, int occupantId)
         {
             var tile = grid[cell];

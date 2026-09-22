@@ -35,7 +35,8 @@ namespace Game.UI
             {
                 for (var y = 0; y < rows; y++)
                 {
-                    DrawDiamond(origin + IsoMath.GridToWorld(new Coord(x, y)));
+                    var cell = new Coord(x, y);
+                    DrawDiamond(origin + IsoMath.GridToSurface(cell, Model?[cell].Level ?? 0));
                 }
             }
         }

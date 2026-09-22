@@ -6,6 +6,7 @@ using Game.Battle;
 using Game.Content;
 using Game.Core;
 using Game.EditorTools;
+using Game.Grid;
 using Game.UI;
 using NUnit.Framework;
 using UnityEditor;
@@ -196,6 +197,7 @@ namespace Game.Tests.EditMode.UI
             {
                 var beside = new[] { (actor.X + 1, actor.Y), (actor.X - 1, actor.Y), (actor.X, actor.Y + 1), (actor.X, actor.Y - 1) }
                     .Where(reached.Contains)
+                    .Where(cell => IsBesideOnFoot(map, cell, (actor.X, actor.Y)))
                     .ToList();
 
                 Assert.IsNotEmpty(beside, $"nobody can stand beside {actor.Character}");
@@ -218,7 +220,7 @@ namespace Game.Tests.EditMode.UI
 
             foreach (var opponent in Opponents(map))
             {
-                Assert.IsTrue(reached.Any(cell => Distance(cell, (opponent.X, opponent.Y)) == 1), $"Kleia can never walk up to {opponent.Character}");
+                Assert.IsTrue(reached.Any(cell => IsBesideOnFoot(map, cell, (opponent.X, opponent.Y))), $"Kleia can never walk up to {opponent.Character}");
             }
         }
 
@@ -251,6 +253,105 @@ namespace Game.Tests.EditMode.UI
                     Assert.IsFalse(target.Exits.Any(other => other.X == exit.ArrivalX && other.Y == exit.ArrivalY), "the arrival lands on another exit, which would bounce the player back");
                 }
             }
+        }
+
+        [Test]
+        public void Agora_ClimbsFromTheRoadIntoTheSquareAndUpToTheStoaAndTheOliveTerrace()
+        {
+            var map = MapLayout.Load(SandboxTools.MapPath);
+            var kleia = map.Actors[0];
+            var menexeno = map.Actors.Single(actor => actor.Character == MenexenoCharacter);
+            var phaidra = map.Actors.Single(actor => actor.Character == "phaidra");
+            var cliffs = Cells(map)
+                .SelectMany(cell => new[] { (cell.X + 1, cell.Y), (cell.X, cell.Y + 1) }.Where(next => map.Contains(next.Item1, next.Item2)).Select(next => (cell, next)))
+                .Count(pair => Math.Abs(map.LevelAt(pair.cell.X, pair.cell.Y) - map.LevelAt(pair.next.Item1, pair.next.Item2)) > TerrainSteps.MaxClimb);
+
+            Assert.GreaterOrEqual(map.MaxLevel, 2, "the agora has at least three levels");
+            Assert.AreEqual(0, map.LevelAt(kleia.X, kleia.Y), "the road from the Kerameikos starts at the bottom");
+            Assert.Greater(map.LevelAt(menexeno.X, menexeno.Y), map.LevelAt(kleia.X, kleia.Y), "the stoa stands above the road");
+            Assert.Greater(map.LevelAt(phaidra.X, phaidra.Y), 1, "the olive terrace stands high");
+            Assert.Greater(cliffs, 0, "somewhere the terrain drops more than a step and walls off a level");
+            foreach (var exit in map.Exits)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(exit.Label), $"the exit at ({exit.X}, {exit.Y}) names where it leads");
+            }
+        }
+
+        [Test]
+        public void Levels_ReadDigitRowsAndLetKleiaClimbOnlyOneStepAtATime()
+        {
+            var map = Tiny();
+            Assert.AreEqual(0, map.LevelAt(1, 1), "a map without heights is flat");
+            map.Heights = new List<string> { "01", "13" };
+            map.Validate();
+
+            Assert.AreEqual(1, map.LevelAt(1, 0));
+            Assert.AreEqual(3, map.LevelAt(1, 1));
+            Assert.AreEqual(3, map.MaxLevel);
+            Assert.IsTrue(map.CanStep((0, 0), (1, 0)), "one level is a step");
+            Assert.IsFalse(map.CanStep((1, 0), (1, 1)), "two levels are a cliff");
+            Assert.IsFalse(map.CanStep((0, 0), (1, 1)), "only side neighbours are steps");
+        }
+
+        [Test]
+        public void Validate_RejectsHeightsThatDoNotMatchTheFloorOrLeaveTheSortedRange()
+        {
+            var ragged = Tiny();
+            ragged.Heights = new List<string> { "00", "0" };
+            Assert.Throws<InvalidOperationException>(() => ragged.Validate(), "ragged heights");
+
+            var missingRow = Tiny();
+            missingRow.Heights = new List<string> { "00" };
+            Assert.Throws<InvalidOperationException>(() => missingRow.Validate(), "one row too few");
+
+            var tooHigh = Tiny();
+            tooHigh.Heights = new List<string> { "00", "0" + (char)('0' + TerrainSorting.MaxLevel + 1) };
+            Assert.Throws<InvalidOperationException>(() => tooHigh.Validate(), "above the highest sorted level");
+
+            var letter = Tiny();
+            letter.Heights = new List<string> { "0a", "00" };
+            Assert.Throws<InvalidOperationException>(() => letter.Validate(), "not a digit");
+        }
+
+        [Test]
+        public void Exits_PointOffTheEdgeTheyStandOnUnlessTheMapSaysOtherwise()
+        {
+            var map = new MapLayout { Floor = new List<string> { "...", "...", "..." } };
+
+            Assert.AreEqual(Facing.SouthWest, map.HeadingOf(new MapExit { X = 0, Y = 1 }));
+            Assert.AreEqual(Facing.SouthEast, map.HeadingOf(new MapExit { X = 1, Y = 0 }));
+            Assert.AreEqual(Facing.NorthEast, map.HeadingOf(new MapExit { X = 2, Y = 1 }));
+            Assert.AreEqual(Facing.NorthWest, map.HeadingOf(new MapExit { X = 1, Y = 2 }));
+            Assert.AreEqual(Facing.SouthEast, map.HeadingOf(new MapExit { X = 0, Y = 0, Heading = Facing.SouthEast }));
+
+            var blank = Tiny();
+            blank.Exits.Add(new MapExit { X = 1, Y = 0, Location = "agora", Label = " " });
+            Assert.Throws<InvalidOperationException>(() => blank.Validate(), "a blank label");
+        }
+
+        [Test]
+        public void FaceSegments_HangFromEachCellDownToItsLowerFrontNeighboursAndTheMapBase()
+        {
+            var map = Tiny();
+            map.Heights = new List<string> { "00", "02" };
+            var faces = SandboxTools.FaceSegmentsOf(map).ToList();
+            var baseLevels = SandboxTools.BaseDepthLevels;
+
+            var raised = faces.Where(face => face.Cell == new Coord(1, 1)).ToList();
+            CollectionAssert.AreEqual(new[] { 2, 1 }, raised.Select(face => face.Level), "a two level cliff hangs two segments");
+            Assert.AreEqual(SideFaceTiles.TileName(SideFaceTiles.Stone, SideFaceTiles.LipBand, true, true), raised[0].Tile, "the top segment carries the lip on both lower sides");
+            Assert.AreEqual(SideFaceTiles.TileName(SideFaceTiles.Stone, SideFaceTiles.BodyBand, true, true), raised[1].Tile);
+
+            var corner = faces.Where(face => face.Cell == new Coord(0, 0)).ToList();
+            Assert.AreEqual(baseLevels, corner.Count, "the front corner shows the whole base");
+            Assert.IsTrue(corner.All(face => face.Tile.EndsWith("_sw_se")));
+
+            var beside = faces.Where(face => face.Cell == new Coord(1, 0)).ToList();
+            Assert.AreEqual(baseLevels, beside.Count);
+            Assert.IsTrue(beside.All(face => face.Tile.EndsWith("_se") && !face.Tile.EndsWith("_sw_se")), "the cell beside the corner only hangs over the south east edge");
+            CollectionAssert.AreEqual(Enumerable.Range(0, baseLevels).Select(step => -step), beside.Select(face => face.Level));
+
+            CollectionAssert.IsEmpty(faces.Where(face => face.Cell == new Coord(0, 1) && face.Level > 0), "a ground cell beside a lower neighbour off the map only shows the base");
         }
 
         [Test]
@@ -514,7 +615,7 @@ namespace Game.Tests.EditMode.UI
                 var (x, y) = frontier.Dequeue();
                 foreach (var next in new[] { (x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1) })
                 {
-                    if (next.Item1 >= 0 && next.Item2 >= 0 && next.Item1 < map.Width && next.Item2 < map.Height && map.IsWalkable(next.Item1, next.Item2) && canEnter(next) && reached.Add(next))
+                    if (map.CanStep((x, y), next) && canEnter(next) && reached.Add(next))
                     {
                         frontier.Enqueue(next);
                     }
@@ -538,5 +639,8 @@ namespace Game.Tests.EditMode.UI
         }
 
         private static int Distance((int X, int Y) a, (int X, int Y) b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+
+        private static bool IsBesideOnFoot(MapLayout map, (int X, int Y) cell, (int X, int Y) actor) =>
+            Distance(cell, actor) == 1 && Math.Abs(map.LevelAt(cell.X, cell.Y) - map.LevelAt(actor.X, actor.Y)) <= TerrainSteps.MaxClimb;
     }
 }

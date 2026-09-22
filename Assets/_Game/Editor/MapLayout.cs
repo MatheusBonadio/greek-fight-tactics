@@ -122,6 +122,10 @@ namespace Game.EditorTools
         public int ArrivalY { get; set; }
 
         public Facing Facing { get; set; }
+
+        public Facing? Heading { get; set; }
+
+        public string Label { get; set; }
     }
 
     public sealed class MapLayout
@@ -129,6 +133,7 @@ namespace Game.EditorTools
         public const char EmptyBlock = '-';
         public const string WaterTile = "floor_water";
         public const string CutsceneIdPattern = "^[a-z][a-z0-9_]*$";
+        public const char GroundLevelSymbol = '0';
 
         public string Id { get; set; }
 
@@ -139,6 +144,8 @@ namespace Game.EditorTools
         public List<string> Floor { get; set; } = new();
 
         public List<string> Blocks { get; set; } = new();
+
+        public List<string> Heights { get; set; } = new();
 
         public List<MapActor> Actors { get; set; } = new();
 
@@ -174,6 +181,40 @@ namespace Game.EditorTools
 
         public bool IsWalkable(int x, int y) => FloorAt(x, y) != WaterTile && BlockAt(x, y) == null;
 
+        public int LevelAt(int x, int y) => Heights.Count == 0 ? TileData.GroundLevel : Heights[y][x] - GroundLevelSymbol;
+
+        public int MaxLevel => Enumerable.Range(0, Height).SelectMany(y => Enumerable.Range(0, Width).Select(x => LevelAt(x, y))).DefaultIfEmpty(0).Max();
+
+        public bool Contains(int x, int y) => x >= 0 && y >= 0 && x < Width && y < Height;
+
+        public bool CanStep((int X, int Y) from, (int X, int Y) to) =>
+            Contains(from.X, from.Y)
+            && Contains(to.X, to.Y)
+            && Math.Abs(from.X - to.X) + Math.Abs(from.Y - to.Y) == 1
+            && IsWalkable(from.X, from.Y)
+            && IsWalkable(to.X, to.Y)
+            && Math.Abs(LevelAt(from.X, from.Y) - LevelAt(to.X, to.Y)) <= TerrainSteps.MaxClimb;
+
+        public Facing HeadingOf(MapExit exit)
+        {
+            if (exit.Heading.HasValue)
+            {
+                return exit.Heading.Value;
+            }
+
+            if (exit.X == 0)
+            {
+                return Facing.SouthWest;
+            }
+
+            if (exit.X == Width - 1)
+            {
+                return Facing.NorthEast;
+            }
+
+            return exit.Y == Height - 1 ? Facing.NorthWest : Facing.SouthEast;
+        }
+
         public void Validate()
         {
             if (Height == 0 || Floor.Any(row => row.Length != Width))
@@ -197,6 +238,8 @@ namespace Game.EditorTools
             {
                 throw new InvalidOperationException($"map {Id}: unknown block symbol '{unknownBlock}'");
             }
+
+            ValidateHeights();
 
             if (Actors.Count == 0)
             {
@@ -245,6 +288,16 @@ namespace Game.EditorTools
                 if (!doors.Add((exit.X, exit.Y)))
                 {
                     throw new InvalidOperationException($"map {Id}: two exits share ({exit.X}, {exit.Y})");
+                }
+
+                if (exit.Heading.HasValue && !Enum.IsDefined(typeof(Facing), exit.Heading.Value))
+                {
+                    throw new InvalidOperationException($"map {Id}: the exit at ({exit.X}, {exit.Y}) points to the unknown heading {exit.Heading}");
+                }
+
+                if (exit.Label != null && string.IsNullOrWhiteSpace(exit.Label))
+                {
+                    throw new InvalidOperationException($"map {Id}: the exit at ({exit.X}, {exit.Y}) has a blank label");
                 }
             }
 
@@ -305,6 +358,25 @@ namespace Game.EditorTools
                 }
 
                 ValidateConditions($"the cue {cue.Dialogue}", cue.Conditions);
+            }
+        }
+
+        private void ValidateHeights()
+        {
+            if (Heights.Count == 0)
+            {
+                return;
+            }
+
+            if (Heights.Count != Height || Heights.Any(row => row.Length != Width))
+            {
+                throw new InvalidOperationException($"map {Id}: height rows must match the floor size");
+            }
+
+            var invalid = Heights.SelectMany(row => row).FirstOrDefault(symbol => symbol < GroundLevelSymbol || symbol > GroundLevelSymbol + TerrainSorting.MaxLevel);
+            if (invalid != default)
+            {
+                throw new InvalidOperationException($"map {Id}: the height '{invalid}' is not a level from 0 to {TerrainSorting.MaxLevel}");
             }
         }
 

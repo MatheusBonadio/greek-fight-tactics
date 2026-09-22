@@ -778,7 +778,7 @@ namespace Game.UI
             menuInput.enabled = false;
             hud.BindPreview(null);
             highlighter.ShowMove(player, Session.State.Rules.MoveRange);
-            sandbox.Cursor.TryHover(IsoMath.GridToWorld(player), Vector2.zero);
+            sandbox.Cursor.TryPoint(player);
             sandbox.CursorInputEnabled = true;
             targetingFrame = Time.frameCount;
             Phase = BattleFlowPhase.PlayerTargeting;

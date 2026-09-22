@@ -1,3 +1,4 @@
+using Game.Core;
 using Game.Grid;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace Game.UI
 
         [SerializeField] private Vector2Int startCell;
         [SerializeField] private Facing startFacing = Facing.SouthEast;
+        [SerializeField] private int startLevel;
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Animator animator;
 
@@ -20,6 +22,8 @@ namespace Game.UI
         public Vector2Int StartCell => startCell;
 
         public Facing StartFacing => startFacing;
+
+        public int StartLevel => startLevel;
 
         public SpriteRenderer SpriteRenderer => spriteRenderer;
 
@@ -37,13 +41,16 @@ namespace Game.UI
             }
         }
 
-        public void Configure(Vector2Int cell, Facing facing, SpriteRenderer renderer, Animator actorAnimator)
+        public void Configure(Vector2Int cell, Facing facing, SpriteRenderer renderer, Animator actorAnimator, int level = TileData.GroundLevel)
         {
             startCell = cell;
             startFacing = facing;
+            startLevel = level;
             spriteRenderer = renderer;
             animator = actorAnimator;
-            ApplyPose(IsoMath.GridToWorld(new Game.Core.Coord(cell.x, cell.y)), facing, false);
+            var coord = new Coord(cell.x, cell.y);
+            var ground = IsoMath.GridToWorld(coord);
+            ApplyPose(ground, level, TerrainSorting.ActorDepth(ground, level, IsoMath.Depth(coord)), facing, false);
         }
 
         public void Bind(GridWalker walker)
@@ -58,13 +65,13 @@ namespace Game.UI
         {
             if (Walker != null)
             {
-                ApplyPose(Walker.WorldPosition, Walker.Facing, Walker.IsStepping);
+                ApplyPose(Walker.WorldPosition, Walker.Level, Walker.SortDepth, Walker.Facing, Walker.IsStepping);
             }
         }
 
-        private void ApplyPose(Vector2 world, Facing facing, bool stepping)
+        private void ApplyPose(Vector2 ground, float level, float depth, Facing facing, bool stepping)
         {
-            transform.position = new Vector3(world.x, world.y, 0f);
+            transform.position = new Vector3(ground.x, ground.y + IsoMath.Lift(level), depth);
             if (spriteRenderer != null)
             {
                 spriteRenderer.flipX = FacingRules.IsMirrored(facing);

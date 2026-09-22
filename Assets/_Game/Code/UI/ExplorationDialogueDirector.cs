@@ -323,7 +323,7 @@ namespace Game.UI
             var target = approachTarget;
             var arrival = approachArrival;
             StopApproaching();
-            if (target.Walker != null && PathFinder.AreBeside(walker.Cell, target.Walker.Cell))
+            if (target.Walker != null && PathFinder.AreBesideOnFoot(sandbox.Grid, walker.Cell, target.Walker.Cell))
             {
                 arrival();
             }
@@ -411,7 +411,7 @@ namespace Game.UI
         private void FaceSpeakerBeside(string dialogueId)
         {
             var walker = sandbox.Player.Walker;
-            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && PathFinder.AreBeside(walker.Cell, candidate.Actor.Walker.Cell));
+            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && PathFinder.AreBesideOnFoot(sandbox.Grid, walker.Cell, candidate.Actor.Walker.Cell));
             if (talker != null)
             {
                 FaceEachOther(talker.Actor);

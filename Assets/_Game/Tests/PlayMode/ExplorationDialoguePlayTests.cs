@@ -67,7 +67,7 @@ namespace Game.Tests.PlayMode
             var menexeno = director.Talkers.Single(link => link.Dialogue == MenexenoDialogue).Actor;
             var player = sandbox.Player.Walker;
             player.Teleport(MenexenoApproachStart, Facing.NorthWest);
-            sandbox.Cursor.TryHover(IsoMath.GridToWorld(menexeno.Walker.Cell), Vector2.zero);
+            sandbox.Cursor.TryPoint(menexeno.Walker.Cell);
             sandbox.ConfirmCursor();
             Assert.IsTrue(director.IsApproaching, "confirming on a distant npc walks up to him");
             Assert.IsTrue(player.IsMoving);
@@ -83,7 +83,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(MenexenoDialogue, director.ActiveDialogueId);
 
             var talkingFrom = player.Cell;
-            sandbox.Cursor.TryHover(IsoMath.GridToWorld(MenexenoApproachStart), Vector2.zero);
+            sandbox.Cursor.TryPoint(MenexenoApproachStart);
             sandbox.ConfirmCursor();
             yield return null;
             Assert.AreEqual(talkingFrom, player.Cell, "confirming a cell while the box is open does not walk");
@@ -104,7 +104,7 @@ namespace Game.Tests.PlayMode
             Assert.AreEqual(StoryEffect.DefaultValue, saved.Flags[MetMenexeno]);
 
             yield return null;
-            sandbox.Cursor.TryHover(IsoMath.GridToWorld(menexeno.Walker.Cell), Vector2.zero);
+            sandbox.Cursor.TryPoint(menexeno.Walker.Cell);
             sandbox.ConfirmCursor();
             yield return WaitFor(() => director.IsTalking);
             var again = new List<DialogueLine>();

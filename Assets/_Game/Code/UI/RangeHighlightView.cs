@@ -6,7 +6,7 @@ namespace Game.UI
 {
     public sealed class RangeHighlightView : MonoBehaviour
     {
-        [SerializeField] private Tilemap tilemap;
+        [SerializeField] private LevelTilemaps tilemap;
         [SerializeField] private TileBase moveTile;
         [SerializeField] private TileBase refuteTile;
         [SerializeField] private TileBase maieuticsTile;
@@ -15,7 +15,7 @@ namespace Game.UI
 
         public int PaintedCount { get; private set; }
 
-        public void Configure(Tilemap target, TileBase move, TileBase refute, TileBase maieutics)
+        public void Configure(LevelTilemaps target, TileBase move, TileBase refute, TileBase maieutics)
         {
             tilemap = target;
             moveTile = move;
@@ -51,7 +51,7 @@ namespace Game.UI
 
         private void Paint()
         {
-            if (tilemap == null)
+            if (!tilemap)
             {
                 return;
             }

@@ -119,7 +119,7 @@ namespace Game.Tests.PlayMode
             var aristeu = map.Dialogues.Talkers.Single(link => link.Dialogue == AristeuDialogue).Actor;
             Assert.IsNotNull(aristeu.Walker, "Aristeu is always home");
 
-            map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(aristeu.Walker.Cell), Vector2.zero);
+            map.Sandbox.Cursor.TryPoint(aristeu.Walker.Cell);
             map.Sandbox.ConfirmCursor();
             yield return WaitFor(() => map.Dialogues.IsTalking);
             Assert.AreEqual(AristeuDialogue, map.Dialogues.ActiveDialogueId);
@@ -137,7 +137,7 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(StoryCondition.Has("aristeu_errand").IsMet(saved), "the errand is remembered");
 
             yield return null;
-            map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(aristeu.Walker.Cell), Vector2.zero);
+            map.Sandbox.Cursor.TryPoint(aristeu.Walker.Cell);
             map.Sandbox.ConfirmCursor();
             yield return WaitFor(() => map.Dialogues.IsTalking);
             var again = new List<DialogueLine>();
@@ -294,7 +294,7 @@ namespace Game.Tests.PlayMode
             Assert.AreSame(map.Sandbox.Player, map.Cutscenes.Cast[KleiaCharacter]);
             if (clickMenexeno)
             {
-                map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(menexeno.Cell), Vector2.zero);
+                map.Sandbox.Cursor.TryPoint(menexeno.Cell);
                 map.Sandbox.ConfirmCursor();
                 Assert.IsTrue(player.IsMoving, "clicking Menexeno sends Kleia to the cell beside him");
             }

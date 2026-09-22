@@ -14,7 +14,7 @@ namespace Game.Tests.PlayMode
 
         public static void Confirm(GridSandboxController sandbox, Coord cell)
         {
-            Assert.IsTrue(sandbox.Cursor.TryHover(IsoMath.GridToWorld(cell), Vector2.zero), $"the cursor cannot point at {cell}");
+            Assert.IsTrue(sandbox.Cursor.TryPoint(cell), $"the cursor cannot point at {cell}");
             sandbox.ConfirmCursor();
         }
 
@@ -25,7 +25,7 @@ namespace Game.Tests.PlayMode
             {
                 var cell = target + side;
                 var isFree = sandbox.Grid.TryGet(cell, out var tile) && tile.IsPassable && (!tile.IsOccupied || tile.OccupantId == player.ActorId);
-                if (isFree && sandbox.Exits.All(exit => exit.Cell != cell))
+                if (isFree && PathFinder.AreBesideOnFoot(sandbox.Grid, cell, target) && sandbox.Exits.All(exit => exit.Cell != cell))
                 {
                     free = cell;
                     return true;
@@ -40,7 +40,7 @@ namespace Game.Tests.PlayMode
         {
             var player = sandbox.Player.Walker;
             var target = entry.Actor.Walker.Cell;
-            if (!PathFinder.AreBeside(player.Cell, target))
+            if (!PathFinder.AreBesideOnFoot(sandbox.Grid, player.Cell, target))
             {
                 Assert.IsTrue(TryFindFreeCellBeside(sandbox, target, out var beside), $"nobody can stand beside {entry.Opponent.Id}");
                 player.Teleport(beside, Facing.NorthEast);

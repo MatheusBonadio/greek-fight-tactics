@@ -27,9 +27,11 @@ namespace Game.Grid
 
         public bool TryHover(Vector2 worldPoint, Vector2 gridOrigin)
         {
-            var cell = IsoMath.WorldToGrid(worldPoint - gridOrigin);
+            var cell = TerrainPicking.CellAt(grid, worldPoint - gridOrigin);
             return TryMoveTo(cell);
         }
+
+        public bool TryPoint(Coord cell) => TryMoveTo(cell);
 
         public bool TryStep(Vector2 screenDirection)
         {

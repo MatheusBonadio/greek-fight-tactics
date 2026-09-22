@@ -9,11 +9,12 @@ namespace Game.Grid
     {
         private readonly List<CrowdSeat> seats;
 
-        public DuelArena(Coord player, Coord opponent, float innerRadius, float litRadius, IEnumerable<CrowdSeat> crowdSeats)
+        public DuelArena(Coord player, Coord opponent, float innerRadius, float litRadius, IEnumerable<CrowdSeat> crowdSeats, float centerLevel = 0f)
         {
             Player = player;
             Opponent = opponent;
             Center = new Vector2((player.X + opponent.X) * 0.5f, (player.Y + opponent.Y) * 0.5f);
+            CenterLevel = centerLevel;
             InnerRadius = innerRadius;
             LitRadius = Math.Max(innerRadius, litRadius);
             seats = new List<CrowdSeat>(crowdSeats ?? Array.Empty<CrowdSeat>());
@@ -25,7 +26,9 @@ namespace Game.Grid
 
         public Vector2 Center { get; }
 
-        public Vector2 WorldCenter => new((Center.x - Center.y) * IsoMath.CellWidth, (Center.x + Center.y) * IsoMath.CellHeight);
+        public float CenterLevel { get; }
+
+        public Vector2 WorldCenter => new((Center.x - Center.y) * IsoMath.CellWidth, (Center.x + Center.y) * IsoMath.CellHeight + IsoMath.Lift(CenterLevel));
 
         public float InnerRadius { get; }
 

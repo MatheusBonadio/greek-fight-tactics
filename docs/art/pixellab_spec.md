@@ -567,7 +567,7 @@ art/incoming/
 - **Caminho:** o caminho de cada arquivo é `art/incoming/<track_a|track_b>/<category>/<file_name>`, com `category` e `file_name` tirados do CSV. A coluna `track` do CSV (`A` ou `B`) diz a pasta: `A` vai em `track_a`, `B` vai em `track_b`.
 - **Exemplo:** a linha A-012 (`track` = `A`, `category` = `characters`, `file_name` = `kleia_refute_se.png`) é entregue em `art/incoming/track_a/characters/kleia_refute_se.png`.
 - **Fonte da UI:** o arquivo da Ark Pixel Font 10px Proportional, variante latin, tirado da release oficial de [TakWolf/ark-pixel-font](https://github.com/TakWolf/ark-pixel-font), e o texto da licença SIL OFL 1.1 vão em `art/incoming/track_a/fonts/`. A amostra `font_ui_specimen.png` vai em `ui/` (§12.1).
-- **Nada em `art/placeholders/`.** O `ArtTools` copia essa pasta para a Unity, e o `ArtAssetsTests` conta exatamente 72 PNGs nela: um arquivo a mais quebra o teste. Quem move a arte aprovada para o lugar definitivo é o dev (§11).
+- **Nada em `art/placeholders/`.** O `ArtTools` copia essa pasta para a Unity, e o `ArtAssetsTests` conta exatamente 102 PNGs nela: um arquivo a mais quebra o teste. Quem move a arte aprovada para o lugar definitivo é o dev (§11).
 - **Saída bruta do PixelLab** (ZIP, quadros soltos, tentativas descartadas) e as chaves de cor de trabalho ficam fora do repositório.
 
 ### 5.2 Nomes de arquivo

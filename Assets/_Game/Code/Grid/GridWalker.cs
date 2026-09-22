@@ -60,19 +60,19 @@ namespace Game.Grid
 
         public bool WasBlocked { get; private set; }
 
-        public Vector2 WorldPosition
-        {
-            get
-            {
-                if (!IsStepping)
-                {
-                    return IsoMath.GridToWorld(Cell);
-                }
+        public Coord StepOrigin => IsStepping ? stepOrigin : Cell;
 
-                var progress = Mathf.Clamp01(stepElapsed / SecondsPerCell);
-                return Vector2.Lerp(IsoMath.GridToWorld(stepOrigin), IsoMath.GridToWorld(Cell), progress);
-            }
-        }
+        public float StepProgress => IsStepping ? Mathf.Clamp01(stepElapsed / SecondsPerCell) : 1f;
+
+        public Vector2 WorldPosition =>
+            IsStepping ? Vector2.Lerp(IsoMath.GridToWorld(stepOrigin), IsoMath.GridToWorld(Cell), StepProgress) : IsoMath.GridToWorld(Cell);
+
+        public float Level =>
+            IsStepping ? Mathf.Lerp(grid[stepOrigin].Level, grid[Cell].Level, StepProgress) : grid[Cell].Level;
+
+        public Vector2 SurfacePosition => WorldPosition + new Vector2(0f, IsoMath.Lift(Level));
+
+        public float SortDepth => TerrainSorting.ActorDepth(WorldPosition, Level, Math.Min(IsoMath.Depth(StepOrigin), IsoMath.Depth(Cell)));
 
         public void Follow(IReadOnlyList<Coord> path)
         {
@@ -179,8 +179,7 @@ namespace Game.Grid
             }
 
             var next = pending.Peek();
-            var isAdjacent = Math.Abs(next.X - Cell.X) + Math.Abs(next.Y - Cell.Y) == 1;
-            if (!isAdjacent || !grid.TryGet(next, out var tile) || !tile.IsPassable || tile.IsOccupied)
+            if (!TerrainSteps.CanStep(grid, Cell, next) || !grid.TryGet(next, out var tile) || !tile.IsPassable || tile.IsOccupied)
             {
                 pending.Clear();
                 WasBlocked = true;

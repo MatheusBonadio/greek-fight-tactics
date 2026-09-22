@@ -274,6 +274,7 @@ namespace Game.Tests.PlayMode
             Assert.Greater(outside, 0);
             Assert.AreEqual(outside, veil.VeiledCellCount);
             Assert.Greater(veil.VeiledBlockCount, 0, "columns and walls outside the arena are darkened too");
+            Assert.Greater(veil.VeiledFaceCount, 0, "cliffs and the edge of the ground outside the arena are darkened too");
             foreach (var actor in sandbox.Actors.Where(actor => actor.Walker != null))
             {
                 var veiled = actor != sandbox.Player && actor != target.Actor && !arena.IsLit(actor.Walker.Cell);
@@ -292,6 +293,7 @@ namespace Game.Tests.PlayMode
             Assert.IsFalse(veil.IsShown, "the veil lifts after the battle");
             Assert.AreEqual(0, CountTiles(veil.FloorVeil));
             Assert.AreEqual(0, CountTiles(veil.BlocksVeil));
+            Assert.AreEqual(0, CountTiles(veil.FacesVeil));
             foreach (var (actor, material) in materials)
             {
                 Assert.AreSame(material, actor.SpriteRenderer.sharedMaterial, $"{actor.name} kept the veil");
@@ -578,16 +580,7 @@ namespace Game.Tests.PlayMode
             return cells;
         }
 
-        private static int CountTiles(UnityEngine.Tilemaps.Tilemap tilemap)
-        {
-            var count = 0;
-            foreach (var position in tilemap.cellBounds.allPositionsWithin)
-            {
-                count += tilemap.HasTile(position) ? 1 : 0;
-            }
-
-            return count;
-        }
+        private static int CountTiles(LevelTilemaps tilemap) => tilemap.CountTiles();
 
         private static Vector2 Snap(Vector2 position) =>
             new(Mathf.Round(position.x * ArtPixelsPerUnit) / ArtPixelsPerUnit, Mathf.Round(position.y * ArtPixelsPerUnit) / ArtPixelsPerUnit);

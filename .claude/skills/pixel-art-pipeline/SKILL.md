@@ -23,7 +23,8 @@ art/
     tiles/
       floor/     10 tiles 32x16
       blocks/    10 blocos e props 32x(16+altura)
-      overlays/  névoa + 4 realces de alcance
+      overlays/  névoa, 4 realces de alcance e as setas de saída (4 direções x 4 quadros)
+      sides/     faces laterais 32x32: 2 fontes e 12 segmentos de um nível
     ui/          caixas, barras, cursor, moldura e o fundo da tela de título
   incoming/
     track_a/  track_b/   arte entregue que o jogo ainda não usa + generation_log.csv
@@ -45,6 +46,8 @@ Inglês, `snake_case`, com prefixo por categoria. O prefixo é o que o importer 
 | `block_` / `wall_` | Bloco com altura que ocupa a célula | `block_doric_column.png` |
 | `prop_` | Objeto sobre a célula, pode transbordar | `prop_market_stall.png` |
 | `overlay_` / `fog` | Camada acima do chão | `fog.png` |
+| `overlay_exit_<ne\|nw\|se\|sw>` | Seta de saída de mapa, tile animado de 4 quadros | `overlay_exit_sw_2.png` |
+| `side_<material>` / `side_<material>_<lip\|body>_<sw\|se\|sw_se>` | Face lateral sob uma célula mais alta que o vizinho da frente | `side_earth_lip_sw.png` |
 | `hl_` | Realce de alcance | `hl_refute.png` |
 | `bar_` / `box_` / `frame_` / `icon_` / `meter_` | UI | `bar_coherence.png` |
 | `bg_` | Fundo de tela no quadro nativo de 384×216 | `bg_title.png` |
@@ -88,7 +91,7 @@ Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qual
 3. A grade é marcada por uma linha sutil, nunca por contorno escuro. A junta do tile de chão é o tom da rampa logo abaixo do tom dominante do próprio material (mármore `marble_light` → `marble_mid`, grama `olive_light` → `olive_mid`, terra `ochre_mid` → `ochre_shade`), e a de parede e degrau é o tom mais escuro do material (`ochre_dark` no tijolo, `marble_cold_dark` no mármore), para os tiles se emendarem. Props e personagens levam `outline`, e objetos de mármore soltos, `outline_blue`. O tile de chão só marca as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com junta nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`, olhando só a borda de baixo do losango, então o tom da junta pode aparecer como textura no miolo.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
-O `verify.py` cobre as regras 1, 2 e 4 (com o limite de cores de cada prefixo), o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa e realce (`floor_`, `fog*`, `hl_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em três pontos, todos pendentes de decisão e não regressão:
+O `verify.py` cobre as regras 1, 2 e 4 (com o limite de cores de cada prefixo), o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa, realce e seta de saída (`floor_`, `fog*`, `hl_`, `overlay_exit_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A face lateral (`side_`) faz o contrário: nenhum pixel opaco dentro do losango, porque ela pendura abaixo da célula e o chão fica por cima. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em três pontos, todos pendentes de decisão e não regressão:
 - A sombra dos personagens é translúcida, em `#101020`: 16 px com alfa 90 nos `_idle_se` e 208 px em `#06060B` com alfa 32 nas folhas, que também saem do RGB555.
 - Névoa (`fog*`) em `#101020`, a cor que o GDD 6.5 pede mas que não está na paleta.
 - Realces `hl_*` a 55% de alfa, como o GDD 6.5 especifica, contra a regra 4.
@@ -106,6 +109,8 @@ Não esconda essas falhas com `--skip`: ou a arte muda, ou a regra muda no GDD e
 | Prop maior que a célula | até 48×64 | Bottom Left | Ocupa 1 célula e transborda |
 | Personagem | 24×32 | Custom `(0.5, 0.0625)` | Pés na linha y = 30 a partir do topo |
 | Fundo de tela (`bg_`) | 384×216 | Center | Quadro nativo; a tela de título o estica para cobrir a tela (5× em 1080p) |
+| Face lateral | 32×32 | Bottom Left | As 16 linhas de cima são o losango da célula, vazio; a face pendura logo abaixo da borda de baixo. O tilemap `Faces` desce 1 unidade para o losango do sprite cair no da célula |
+| Seta de saída | 32×16 losango | Bottom Left | Fica dentro do losango, como o realce |
 
 **Centro da célula.** Todo prop ou bloco mais estreito que a célula fica com a base no centro do losango: a linha mais larga e mais baixa da base (entre as 10 últimas linhas do sprite) vai para 8 linhas acima do fundo do canvas, que é a linha mais larga do chão, e o meio dela vai para x = 16. Numa caixa (barraca, baú), essa linha é onde terminam as arestas verticais, ou seja, as pontas laterais da base. Base desenhada na frente da célula faz o objeto parecer afundado ou deslocado para baixo. `python tools/art/anchor.py <pasta>` mede o desvio de cada `prop_` e `block_`, e `--fix` move o sprite, crescendo o canvas para cima quando falta espaço. Pixel solto na base engana a medida: limpe antes. Bloco de largura cheia (32 px na base) já é a célula e não se move.
 
@@ -239,6 +244,20 @@ Grid com **Isometric Z as Y** e Cell Size `(2, 1, 1)`: com tile 32×16 e PPU 16 
 Em pixel, com y para baixo, profundidade cresce com `x + y`. Na Unity, com y para cima, a célula de maior `x + y` está mais ao fundo e precisa de sorting order *menor* — por isso `IsoMath.SortingOrder` é negativo. `TilemapRenderer` em modo *Individual*.
 
 Ao mexer em sorting, teste os quatro casos difíceis: prop que transborda a célula na frente e atrás de um ator, três atores em diagonal adjacente, ator atrás de `block_doric_column`, e bloco ocupando visualmente duas células.
+
+### Altura do terreno
+
+Cada célula tem um nível de 0 a 3 (`TileData.Level`, `heights` no JSON do mapa). Um nível mede **8 px** (`IsoMath.LevelPixels`), meia altura de célula, então um bloco de parede de 16 px equivale a dois níveis.
+
+- **Só o desenho sobe.** Cada camada tem um tilemap por nível, levantado `8 px × nível` e deslocado o mesmo tanto em Z. Com o eixo (0, 1, −1), a ordenação continua pelo chão da célula. Os deslocamentos e o `LevelStep` ficam em `TerrainSorting` (ver `CLAUDE.md`), e `TerrainLevelTests` cobre os quatro casos difíceis também sobre terreno levantado.
+- **Nível 0 e acima:** o nível 0 do chão e dos overlays continua nas ordens baixas de antes. Os níveis acima e todos os blocos e faces ordenam com os atores, porque um topo levantado na frente precisa esconder o pé de quem está atrás e abaixo dele.
+- **Faces:** toda célula mais alta que o vizinho da frente (SW é `x − 1`, SE é `y − 1`) pendura faces até o nível dele. Na borda da frente do mapa, desce até dois níveis abaixo do chão, para o mapa ler como uma laje e não como uma folha.
+  - Cada nível de face é um segmento de 8 px. O de cima leva o friso (`lip`), os de baixo o corpo (`body`).
+  - O corpo repete a cada 8 px na vertical e a cada célula na horizontal, então faces vizinhas viram um muro contínuo. Nenhuma linha escura marca a junta entre células.
+  - Terra (`side_earth`): estratos paralelos à borda, na rampa ocre, e o lado SE um tom abaixo do SW. Pedra (`side_stone`): fiadas de cantaria em mármore e mármore frio, com juntas verticais desencontradas.
+  - As fontes saem de `python tools/art/side_faces.py`. Os 12 segmentos são cortados delas por `SideFaceTiles.GenerateSources` a cada `SandboxTools.BuildSandbox`: não edite os segmentos à mão, edite o desenho no script e rode de novo.
+  - Face de célula sob a névoa não aparece, como bloco.
+- **Setas de saída:** `python tools/art/exit_arrows.py` desenha um triângulo dourado (`gold_light` e `gold_mid`, contorno `outline`) deitado no chão, apontando pelo eixo da direção. Os quatro quadros o empurram 0, 1, 2 e 1 passos (2 px na horizontal, 1 na vertical) para a ponta. O `verify.py` prende a seta ao losango.
 
 ---
 

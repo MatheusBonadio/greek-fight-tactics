@@ -8,6 +8,7 @@ from tile_preview import CELL_HEIGHT, CELL_WIDTH, in_footprint
 
 FLOOR_FOLDER = os.path.join(ROOT, "art", "placeholders", "tiles", "floor")
 OVERLAY_FOLDER = os.path.join(ROOT, "art", "placeholders", "tiles", "overlays")
+SIDE_FOLDER = os.path.join(ROOT, "art", "placeholders", "tiles", "sides")
 MARBLE_FLOOR = os.path.join(FLOOR_FOLDER, "floor_marble.png")
 
 

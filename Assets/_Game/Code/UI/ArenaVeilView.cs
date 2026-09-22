@@ -17,9 +17,11 @@ namespace Game.UI
         private const float OverlayMode = 1f;
         private const float SpriteMode = 0f;
 
-        [SerializeField] private Tilemap floorVeil;
-        [SerializeField] private Tilemap blocksVeil;
-        [SerializeField] private Tilemap blocks;
+        [SerializeField] private LevelTilemaps floorVeil;
+        [SerializeField] private LevelTilemaps blocksVeil;
+        [SerializeField] private LevelTilemaps blocks;
+        [SerializeField] private LevelTilemaps facesVeil;
+        [SerializeField] private LevelTilemaps faces;
         [SerializeField] private TileBase floorTile;
         [SerializeField] private Shader shader;
         [SerializeField] private float fadeOutSeconds = DefaultFadeOutSeconds;
@@ -44,23 +46,33 @@ namespace Game.UI
 
         public int VeiledBlockCount { get; private set; }
 
+        public int VeiledFaceCount { get; private set; }
+
         public IReadOnlyCollection<SpriteRenderer> VeiledActors => veiledActors.Keys;
 
-        public Tilemap FloorVeil => floorVeil;
+        public LevelTilemaps FloorVeil => floorVeil;
 
-        public Tilemap BlocksVeil => blocksVeil;
+        public LevelTilemaps BlocksVeil => blocksVeil;
+
+        public LevelTilemaps FacesVeil => facesVeil;
 
         public Material ActorMaterial => actorMaterial;
 
         public Material OverlayMaterial => overlayMaterial;
 
-        public void Configure(Tilemap floorVeilTilemap, Tilemap blocksVeilTilemap, Tilemap blocksTilemap, TileBase floorVeilTile, Shader veilShader)
+        public void Configure(LevelTilemaps floorVeilTilemap, LevelTilemaps blocksVeilTilemap, LevelTilemaps blocksTilemap, TileBase floorVeilTile, Shader veilShader)
         {
             floorVeil = floorVeilTilemap;
             blocksVeil = blocksVeilTilemap;
             blocks = blocksTilemap;
             floorTile = floorVeilTile;
             shader = veilShader;
+        }
+
+        public void ConfigureFaces(LevelTilemaps facesVeilTilemap, LevelTilemaps facesTilemap)
+        {
+            facesVeil = facesVeilTilemap;
+            faces = facesTilemap;
         }
 
         public void Show(int width, int height, Func<Coord, bool> isLit, IEnumerable<SpriteRenderer> outsideActors, float fadeInSeconds)
@@ -120,6 +132,11 @@ namespace Game.UI
                 blocksVeil.ClearAllTiles();
             }
 
+            if (facesVeil)
+            {
+                facesVeil.ClearAllTiles();
+            }
+
             foreach (var (actor, material) in veiledActors)
             {
                 if (actor)
@@ -132,6 +149,7 @@ namespace Game.UI
             lit = null;
             VeiledCellCount = 0;
             VeiledBlockCount = 0;
+            VeiledFaceCount = 0;
             IsShown = false;
             fading = false;
             hiding = false;
@@ -146,16 +164,32 @@ namespace Game.UI
 
         private void OnTilemapTileChanged(Tilemap changed, Tilemap.SyncTile[] tiles)
         {
-            if (!IsShown || hiding || lit == null || changed != blocks || !blocksVeil)
+            if (!IsShown || hiding || lit == null)
+            {
+                return;
+            }
+
+            var isBlock = blocks && blocks.Contains(changed);
+            var isFace = faces && faces.Contains(changed);
+            if (!isBlock && !isFace)
             {
                 return;
             }
 
             foreach (var tile in tiles)
             {
-                if (!lit(new Coord(tile.position.x, tile.position.y)))
+                if (lit(new Coord(tile.position.x, tile.position.y)))
+                {
+                    continue;
+                }
+
+                if (isBlock)
                 {
                     VeilBlock(tile.position);
+                }
+                else
+                {
+                    VeilFace(tile.position, faces.LevelOf(changed));
                 }
             }
         }
@@ -200,6 +234,38 @@ namespace Game.UI
             }
 
             VeilBlock(position);
+            VeilFaces(position);
+        }
+
+        private void VeilFaces(Vector3Int position)
+        {
+            if (!faces || !facesVeil)
+            {
+                return;
+            }
+
+            for (var level = faces.LowestLevel; level <= faces.HighestLevel; level++)
+            {
+                VeilFace(position, level);
+            }
+        }
+
+        private void VeilFace(Vector3Int position, int level)
+        {
+            if (!faces || !facesVeil)
+            {
+                return;
+            }
+
+            var face = faces.GetTile(position, level);
+            var veiled = facesVeil.GetTile(position, level);
+            if (face == veiled)
+            {
+                return;
+            }
+
+            VeiledFaceCount += (face ? 1 : 0) - (veiled ? 1 : 0);
+            facesVeil.SetTile(position, level, face);
         }
 
         private void VeilBlock(Vector3Int position)
@@ -256,11 +322,19 @@ namespace Game.UI
 
             overlayMaterial = CreateMaterial(OverlayMode);
             actorMaterial = CreateMaterial(SpriteMode);
-            foreach (var tilemap in new[] { floorVeil, blocksVeil })
+            foreach (var layer in new[] { floorVeil, blocksVeil, facesVeil })
             {
-                if (tilemap && tilemap.TryGetComponent<TilemapRenderer>(out var renderer))
+                if (!layer)
                 {
-                    renderer.sharedMaterial = overlayMaterial;
+                    continue;
+                }
+
+                foreach (var tilemap in layer.Tilemaps)
+                {
+                    if (tilemap && tilemap.TryGetComponent<TilemapRenderer>(out var renderer))
+                    {
+                        renderer.sharedMaterial = overlayMaterial;
+                    }
                 }
             }
 

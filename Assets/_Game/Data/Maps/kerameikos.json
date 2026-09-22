@@ -50,6 +50,24 @@
     "BAA---AAB-----T-",
     "BBBBBBBBB-------"
   ],
+  "heights": [
+    "0000000000000000",
+    "0000000000000000",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111",
+    "1111111111111111"
+  ],
   "actors": [
     { "character": "kleia", "x": 4, "y": 11, "facing": "SouthWest" },
     { "character": "aristeu", "x": 6, "y": 13, "facing": "SouthWest", "dialogue": "aristeu_workshop" },
@@ -63,8 +81,8 @@
     }
   ],
   "exits": [
-    { "x": 15, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" },
-    { "x": 15, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" }
+    { "x": 15, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast", "label": "Para a Ágora" },
+    { "x": 15, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast", "label": "Para a Ágora" }
   ],
   "triggers": [
     { "x": 4, "y": 7, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" },

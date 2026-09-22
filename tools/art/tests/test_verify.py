@@ -7,7 +7,7 @@ import unittest
 from images import CLEAR, load_rgba, png_files
 from palette import ROOT, load_gpl
 from sprite_rules import ALPHA_RULE, BACKGROUND_MAX_COLORS, COLORS_RULE, ERROR, FOOTPRINT_RULE, MAX_OPAQUE_COLORS, PALETTE_RULE, RGB555_RULE, SIZE_RULE, TILING_RULE, WARNING, color_limit_for, inspect, size_rule_for
-from tests.builders import FLOOR_FOLDER, OVERLAY_FOLDER, diamond, filled, marble_floor, on_background, save, shrink_diamond, strip
+from tests.builders import FLOOR_FOLDER, OVERLAY_FOLDER, SIDE_FOLDER, diamond, filled, marble_floor, on_background, save, shrink_diamond, strip
 from verify import main
 
 BAR_SIZE = (64, 8)
@@ -134,6 +134,10 @@ class SizeTests(unittest.TestCase):
             "icon_ad_hominem.png": (16, 16),
             "meter_jurors.png": (200, 16),
             "bg_title.png": (384, 216),
+            "overlay_exit_ne.png": (32, 16),
+            "overlay_exit_sw_3.png": (32, 16),
+            "side_earth.png": (32, 32),
+            "side_stone_body_sw_se.png": (32, 32),
         }
         for name, size in expectations.items():
             self.assertEqual(size_rule_for(name).fixed_size(), size, name)
@@ -186,6 +190,23 @@ class FootprintRuleTests(unittest.TestCase):
         for name in ("hl_test.png", "fog.png"):
             report = inspect(name, filled((32, 16), MARBLE_LIGHT), self.palette)
             self.assertEqual(rules_of(report), {FOOTPRINT_RULE}, name)
+
+    def test_exit_markers_are_held_to_the_diamond(self):
+        report = inspect("overlay_exit_ne_2.png", filled((32, 16), MARBLE_LIGHT), self.palette)
+        self.assertEqual(rules_of(report), {FOOTPRINT_RULE})
+
+    def test_placeholder_side_faces_hang_below_the_cell(self):
+        paths = [path for path, _ in png_files([SIDE_FOLDER])]
+        self.assertTrue(paths)
+        for path in paths:
+            report = inspect(path, load_rgba(path), self.palette)
+            self.assertNotIn(FOOTPRINT_RULE, rules_of(report), path)
+            self.assertNotIn(SIZE_RULE, rules_of(report), path)
+
+    def test_a_side_face_that_paints_over_the_floor_fails(self):
+        report = inspect("side_test.png", filled((32, 32), MARBLE_LIGHT), self.palette)
+        self.assertEqual(rules_of(report), {FOOTPRINT_RULE})
+        self.assertIn("268 opaque pixels inside the 32x16 diamond", report.issues[0].message)
 
     def test_blocks_may_fill_their_canvas(self):
         report = inspect("wall_test.png", filled((32, 32), MARBLE_LIGHT), self.palette)

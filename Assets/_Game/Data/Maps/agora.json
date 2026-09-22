@@ -11,7 +11,6 @@
   },
   "blockLegend": {
     "C": "block_doric_column",
-    "S": "block_step",
     "M": "prop_market_stall",
     "H": "prop_statue_base",
     "T": "prop_olive_trunk",
@@ -35,16 +34,30 @@
   "blocks": [
     "----M-M-M---",
     "----------C-",
-    "--H-------S-",
+    "--H---------",
     "----------C-",
     "------------",
     "----------C-",
     "------------",
     "----------C-",
-    "----------S-",
+    "------------",
     "-T--------C-",
     "------------",
     "T--T-BB-BBWW"
+  ],
+  "heights": [
+    "000000000023",
+    "000000000023",
+    "001111111123",
+    "001111111123",
+    "001111111123",
+    "001110011123",
+    "221110011123",
+    "221111111123",
+    "331111111123",
+    "331111111123",
+    "333332222223",
+    "333332222223"
   ],
   "actors": [
     { "character": "kleia", "x": 0, "y": 1, "facing": "NorthEast" },
@@ -61,7 +74,7 @@
     { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" }
   ],
   "exits": [
-    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest" }
+    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest", "heading": "SouthWest", "label": "Para o Cerâmico" }
   ],
   "cues": [
     {

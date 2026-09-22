@@ -329,7 +329,7 @@ namespace Game.Tests.PlayMode
                 map.Sandbox.Player.Walker.Teleport(FreeNeighbour(map, npc), Facing.NorthEast);
                 yield return null;
 
-                map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(npc), Vector2.zero);
+                map.Sandbox.Cursor.TryPoint(npc);
                 map.Sandbox.ConfirmCursor();
                 yield return WaitFor(() => map.Dialogue.IsTalking, WalkTimeoutSeconds);
                 Assert.IsTrue(map.Dialogue.IsTalking, $"{talker.Dialogue} never started while offline");

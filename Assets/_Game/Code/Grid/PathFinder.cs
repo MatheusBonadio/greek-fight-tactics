@@ -79,18 +79,21 @@ namespace Game.Grid
         public static bool AreBeside(Coord first, Coord second) =>
             Math.Abs(first.X - second.X) + Math.Abs(first.Y - second.Y) == 1;
 
+        public static bool AreBesideOnFoot(GridModel grid, Coord first, Coord second) => TerrainSteps.CanStep(grid, first, second);
+
         public bool FindPathBeside(GridModel grid, Coord from, Coord target, List<Coord> path)
         {
             path.Clear();
-            if (AreBeside(from, target))
+            if (AreBesideOnFoot(grid, from, target))
             {
-                return grid.Contains(from);
+                return true;
             }
 
             var found = false;
             foreach (var direction in Directions)
             {
-                if (!FindPath(grid, from, target + direction, besidePath) || (found && besidePath.Count >= path.Count))
+                var side = target + direction;
+                if (!AreBesideOnFoot(grid, side, target) || !FindPath(grid, from, side, besidePath) || (found && besidePath.Count >= path.Count))
                 {
                     continue;
                 }
@@ -143,8 +146,6 @@ namespace Game.Grid
         private static bool CanEnter(GridModel grid, Coord cell) =>
             grid.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied;
 
-        private static int StepCost(TileData tile) => Math.Max(MinimumStepCost, (int)tile.Cost);
-
         private static int Heuristic(Coord from, Coord to) =>
             (Math.Abs(from.X - to.X) + Math.Abs(from.Y - to.Y)) * MinimumStepCost;
 
@@ -156,7 +157,8 @@ namespace Game.Grid
         {
             nextIndex = NoParent;
             nextCost = 0;
-            if (!CanEnter(grid, next))
+            var origin = grid[CoordOf(current, grid.Width)];
+            if (!CanEnter(grid, next) || !TerrainSteps.CanStep(origin, grid[next]))
             {
                 return false;
             }
@@ -167,7 +169,7 @@ namespace Game.Grid
                 return false;
             }
 
-            nextCost = costs[current] + StepCost(grid[next]);
+            nextCost = costs[current] + TerrainSteps.StepCost(origin, grid[next]);
             if (visitStamps[nextIndex] == stamp && nextCost >= costs[nextIndex])
             {
                 return false;

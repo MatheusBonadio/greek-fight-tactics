@@ -268,6 +268,7 @@ namespace Game.Tests.EditMode.Grid
                     {
                         Terrain = TerrainId.Marble,
                         Cost = map.IsWalkable(x, y) ? (byte)PathFinder.MinimumStepCost : TileData.ImpassableCost,
+                        Level = (byte)map.LevelAt(x, y),
                         Revealed = x + y < (map.FogRevealDepth ?? SandboxTools.FogRevealDepth)
                     });
                 }
