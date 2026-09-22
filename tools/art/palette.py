@@ -19,8 +19,8 @@ def to_hex(color):
     return "#{:02X}{:02X}{:02X}".format(*color[:3])
 
 
-def weigh(color):
-    return tuple(weight * channel for weight, channel in zip(LUMA_WEIGHTS, color[:3]))
+def weighted_distance(color, other):
+    return sum(weight * (channel - other_channel) ** 2 for weight, channel, other_channel in zip(LUMA_WEIGHTS, color[:3], other[:3]))
 
 
 class Palette:
@@ -33,7 +33,6 @@ class Palette:
                 self._names[color] = name
                 colors.append(color)
         self.colors = tuple(colors)
-        self._weighted = tuple((color, weigh(color)) for color in self.colors)
         self._nearest = {}
 
     def __len__(self):
@@ -57,11 +56,10 @@ class Palette:
         return found
 
     def _closest(self, color):
-        red, green, blue = weigh(color)
         found = None
         shortest = None
-        for candidate, (candidate_red, candidate_green, candidate_blue) in self._weighted:
-            distance = (red - candidate_red) ** 2 + (green - candidate_green) ** 2 + (blue - candidate_blue) ** 2
+        for candidate in self.colors:
+            distance = weighted_distance(color, candidate)
             if shortest is None or distance < shortest:
                 found, shortest = candidate, distance
         return found

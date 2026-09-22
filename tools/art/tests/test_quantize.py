@@ -39,6 +39,10 @@ class QuantizeImageTests(unittest.TestCase):
         result = quantize_image(filled((8, 8), between_two_entries), self.palette)
         self.assertEqual(len(set(rgba_pixels(result.image))), 1)
 
+    def test_a_violet_raw_tile_stays_purple(self):
+        result = quantize_image(filled((8, 8), (200, 80, 220)), self.palette)
+        self.assertEqual(set(rgba_pixels(result.image)), {(192, 120, 224, OPAQUE)})
+
     def test_each_column_of_a_horizontal_gradient_stays_uniform(self):
         width, height = 64, 8
         gradient = from_pixels((width, height), [(column * 4, column * 3, 255 - column * 2, OPAQUE) for _ in range(height) for column in range(width)])

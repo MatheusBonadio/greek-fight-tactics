@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from palette import Palette, is_rgb555, load_gpl, to_hex
+from palette import LUMA_WEIGHTS, Palette, is_rgb555, load_gpl, to_hex, weighted_distance
 
 PROJECT_PALETTE_ENTRIES = 33
 PROJECT_PALETTE_COLORS = 32
@@ -66,6 +66,23 @@ class NearestColourTests(unittest.TestCase):
         self.assertEqual(self.palette.nearest((250, 251, 245)), (248, 248, 240))
         self.assertEqual(self.palette.nearest((70, 198, 226)), (72, 200, 224))
         self.assertEqual(self.palette.nearest((190, 60, 44)), (192, 56, 40))
+
+    def test_violets_and_navies_keep_their_hue(self):
+        purple_light = (192, 120, 224)
+        aegean_dark = (16, 48, 80)
+        self.assertEqual(self.palette.nearest((200, 80, 220)), purple_light)
+        self.assertEqual(self.palette.nearest((227, 72, 255)), purple_light)
+        self.assertEqual(self.palette.nearest((40, 40, 90)), aegean_dark)
+        self.assertEqual(self.palette.nearest((48, 48, 96)), aegean_dark)
+
+    def test_luminance_weights_scale_the_squared_channel_differences(self):
+        self.assertEqual(weighted_distance((0, 0, 0), (1, 1, 1)), sum(LUMA_WEIGHTS))
+        self.assertEqual(weighted_distance((0, 0, 0), (10, 0, 0)), LUMA_WEIGHTS[0] * 100)
+        self.assertEqual(weighted_distance((0, 0, 30), (0, 0, 0)), LUMA_WEIGHTS[2] * 900)
+
+    def test_green_counts_about_five_times_more_than_blue(self):
+        palette = Palette([("blue", (0, 0, 30)), ("green", (0, 10, 0))])
+        self.assertEqual(palette.nearest((0, 0, 0)), (0, 10, 0))
 
     def test_a_tie_resolves_to_the_first_entry(self):
         palette = Palette([("dark", (0, 0, 0)), ("light", (16, 0, 0))])

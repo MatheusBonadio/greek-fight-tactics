@@ -241,7 +241,7 @@ O template de prompt, os negativos e a variação para tiles estão na seção 9
    ```
    - A dimensão vem de `--size WxH`, do PNG de mesmo nome na pasta de `--like` ou, na falta dele, do prefixo do nome.
    - O redimensionamento é Nearest Neighbor. Como cada pixel é mapeado sozinho, dá no mesmo que quantizar primeiro.
-   - Cada pixel vai para a cor mais próxima da paleta, pela distância RGB ponderada por luminância (30/59/11), sem dithering.
+   - Cada pixel vai para a cor mais próxima da paleta pela distância RGB ponderada por luminância, `30·ΔR² + 59·ΔG² + 11·ΔB²` (`weighted_distance` em `tools/art/palette.py`), sem dithering. O peso multiplica a diferença já elevada ao quadrado: pesar o canal antes de elevar ao quadrado eleva o peso também, e aí o azul quase não conta e violeta vira marrom.
    - Se sobrarem mais de 15 cores, ficam as 15 mais usadas e o resto é remapeado entre elas (`--max-colors 0` desliga).
    - Ao final, o script já roda as mesmas checagens do `verify.py` sobre a saída.
 3. Confira o lote com o relatório de cores por arquivo; ele sai com código 1 se algo quebrar as regras:
