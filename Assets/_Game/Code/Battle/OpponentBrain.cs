@@ -5,7 +5,7 @@ using Game.Grid;
 
 namespace Game.Battle
 {
-    public sealed class OpponentBrain
+    public sealed class OpponentBrain : IOpponentPolicy
     {
         public const double ActOneMistakeChance = 0.25;
         public const double SophistLowCoherenceRatio = 0.3;

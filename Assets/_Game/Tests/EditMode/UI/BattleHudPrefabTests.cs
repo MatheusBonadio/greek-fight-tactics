@@ -7,6 +7,7 @@ using Game.UI;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Game.Tests.EditMode.UI
 {
@@ -94,6 +95,35 @@ namespace Game.Tests.EditMode.UI
             Assert.Less(hud.OpponentCoherence.Bar.Target, BattleArena.OpponentMaxCoherence);
             Assert.IsTrue(hud.OpponentCoherence.Bar.IsAnimating);
             Assert.AreEqual(state.PlayerAudience, hud.Audience.Meter.TargetPlayerShare);
+        }
+
+        [TestCase(BattleHudTools.HudPrefabPath)]
+        [TestCase(BattleHudTools.ExplorationDialoguePrefabPath)]
+        public void DialogueBox_OffersChoicesThatTheMouseCanPick(string prefabPath)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            Assert.IsNotNull(prefab, $"run BattleHudTools.BuildHud to create {prefabPath}");
+            host = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            var box = host.GetComponentInChildren<DialogueBoxView>(true);
+
+            Assert.IsNotNull(box.ChoicePanel);
+            Assert.IsFalse(box.ChoicePanel.gameObject.activeSelf);
+            Assert.IsNotNull(box.ChoiceCursorRect);
+            Assert.AreEqual(DialogueChoice.MaxOptions, box.ChoiceRows.Count);
+            Assert.IsTrue(box.ChoiceRows.All(row => row.raycastTarget && row.GetComponent<PanelRowPointer>() != null));
+
+            var picked = -1;
+            box.ChoiceMade += index => picked = index;
+            box.Show(new DialogueLine("Thrasybios", null, "Aulas comigo, três dracmas por semana. Aceita?"), new[] { "Aceitar as aulas", "Recusar" });
+            box.Confirm();
+
+            Assert.IsTrue(box.IsAwaitingChoice);
+            Assert.IsTrue(box.ChoicePanel.gameObject.activeInHierarchy);
+            Assert.AreEqual("Recusar", box.ChoiceRows[1].text);
+            box.ChoiceRows[1].GetComponent<PanelRowPointer>().OnPointerClick(new PointerEventData(null) { button = PointerEventData.InputButton.Left });
+
+            Assert.AreEqual(1, picked);
+            Assert.IsFalse(box.IsOpen);
         }
 
         private BattleHud InstantiateHud()

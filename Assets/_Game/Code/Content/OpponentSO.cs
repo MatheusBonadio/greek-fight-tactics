@@ -17,6 +17,7 @@ namespace Game.Content
         [SerializeField] private Act act = Act.One;
         [SerializeField] private Profile profile = Profile.Sophist;
         [SerializeField, Min(0)] private int aggroRadius = AggroRule.DefaultRadius;
+        [SerializeField] private OpponentTutorial tutorial = new();
 
         public string Id => id;
 
@@ -36,6 +37,8 @@ namespace Game.Content
 
         public int AggroRadius => aggroRadius;
 
+        public OpponentTutorial Tutorial => tutorial;
+
         public void Configure(string newId, string newDisplayName, int newMaxCoherence, int newInitialAudience, IEnumerable<FallacySO> newFallacyPool, Act newAct, Profile newProfile)
         {
             id = newId;
@@ -51,6 +54,11 @@ namespace Game.Content
         {
             sheet = newSheet;
             aggroRadius = Mathf.Max(0, newAggroRadius);
+        }
+
+        public void ConfigureTutorial(OpponentTutorial newTutorial)
+        {
+            tutorial = newTutorial ?? new OpponentTutorial();
         }
     }
 }

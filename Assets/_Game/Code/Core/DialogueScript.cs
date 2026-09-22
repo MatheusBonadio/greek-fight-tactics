@@ -18,6 +18,10 @@ namespace Game.Core
 
         public DialogueRun Begin(SaveData save) => new(this, save);
 
+        public IEnumerable<ScriptLine> AllLines() => Flatten(Lines);
+
+        public IEnumerable<DialogueChoice> AllChoices() => AllLines().SelectMany(line => line.Choices);
+
         public IReadOnlyList<string> Validate()
         {
             var errors = new List<string>();
@@ -31,25 +35,67 @@ namespace Game.Core
                 errors.Add($"{Id}: dialogue has no lines");
             }
 
-            for (var index = 0; index < Lines.Count; index++)
+            ValidateLines(Lines, Id, errors);
+            return errors;
+        }
+
+        private static IEnumerable<ScriptLine> Flatten(IEnumerable<ScriptLine> lines) =>
+            lines.SelectMany(line => new[] { line }.Concat(line.Choices.SelectMany(choice => Flatten(choice.Lines))));
+
+        private static void ValidateLines(IReadOnlyList<ScriptLine> lines, string path, List<string> errors)
+        {
+            for (var index = 0; index < lines.Count; index++)
             {
-                var line = Lines[index];
+                var line = lines[index];
+                var where = $"{path} line {index}";
                 if (string.IsNullOrWhiteSpace(line.Text))
                 {
-                    errors.Add($"{Id} line {index}: text is empty");
+                    errors.Add($"{where}: text is empty");
                 }
 
-                errors.AddRange(line.Conditions.Where(condition => !condition.IsValid).Select(condition => $"{Id} line {index}: invalid condition {condition}"));
-                foreach (var effect in line.Effects)
+                errors.AddRange(line.Conditions.Where(condition => !condition.IsValid).Select(condition => $"{where}: invalid condition {condition}"));
+                ValidateEffects(line.Effects, where, errors);
+                if (line.HasChoices)
                 {
-                    if (!effect.TryApply(new SaveData(), out var error))
-                    {
-                        errors.Add($"{Id} line {index}: invalid effect {effect}: {error}");
-                    }
+                    ValidateChoices(line.Choices, where, errors);
                 }
             }
+        }
 
-            return errors;
+        private static void ValidateChoices(IReadOnlyList<DialogueChoice> choices, string where, List<string> errors)
+        {
+            if (choices.Count < DialogueChoice.MinOptions || choices.Count > DialogueChoice.MaxOptions)
+            {
+                errors.Add($"{where}: a choice needs {DialogueChoice.MinOptions} to {DialogueChoice.MaxOptions} options, has {choices.Count}");
+            }
+
+            for (var index = 0; index < choices.Count; index++)
+            {
+                var option = choices[index];
+                var at = $"{where} option {index}";
+                if (string.IsNullOrWhiteSpace(option.Text))
+                {
+                    errors.Add($"{at}: text is empty");
+                }
+                else if (option.Text.Length > DialogueChoice.MaxTextLength)
+                {
+                    errors.Add($"{at}: \"{option.Text}\" is longer than {DialogueChoice.MaxTextLength} characters");
+                }
+
+                ValidateEffects(option.Effects, at, errors);
+                ValidateLines(option.Lines, at, errors);
+            }
+        }
+
+        private static void ValidateEffects(IEnumerable<StoryEffect> effects, string where, List<string> errors)
+        {
+            foreach (var effect in effects)
+            {
+                if (!effect.TryApply(new SaveData(), out var error))
+                {
+                    errors.Add($"{where}: invalid effect {effect}: {error}");
+                }
+            }
         }
     }
 }

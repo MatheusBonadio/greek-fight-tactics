@@ -3,7 +3,10 @@
     "kleia": { "name": "Kleia", "portrait": "kleia" },
     "menexeno": { "name": "Menexeno", "portrait": "menexeno" },
     "eudoro": { "name": "Eudoro", "portrait": "eudoro" },
-    "neighbor": { "name": "Vizinho", "portrait": "citizen" }
+    "neighbor": { "name": "Vizinho", "portrait": "citizen" },
+    "thrasybios": { "name": "Thrasybios", "portrait": "thrasybios" },
+    "customer": { "name": "Freguês", "portrait": "citizen" },
+    "crowd": { "name": "Plateia" }
   },
   "dialogues": [
     {
@@ -106,6 +109,161 @@
           "speaker": "eudoro",
           "text": "Ainda aqui? Platão diria que a ágora é o reino da opinião. Eu apenas concordo com ele.",
           "conditions": [{ "flag": "met_eudoro" }]
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_intro",
+      "lines": [
+        {
+          "text": "No meio do mercado, um homem de manto púrpura sobe num caixote e junta gente à sua volta.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Cidadãos! A arte de vencer qualquer discussão, por apenas três dracmas. Duvidam? Eu demonstro.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Você aí, freguês. O que leva debaixo do braço?",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Uma ânfora. Acabei de comprar da filha de Aristeu.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Uma ânfora? Pois vou provar, diante de todos, que isso não é uma ânfora.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Espere. Essa ânfora saiu da minha roda. Se vai falar dela, fale comigo.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }]
+        },
+        {
+          "text": "A plateia abre uma roda em volta dos dois. O debate começou.",
+          "conditions": [{ "flag": "saw_thrasybios_demo", "absent": true }],
+          "effects": [{ "flag": "saw_thrasybios_demo" }]
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_argument",
+      "lines": [
+        {
+          "text": "Todo argumento se apoia em premissas. Se uma delas troca o sentido de uma palavra, a conclusão desaba junto."
+        },
+        {
+          "text": "Thrasybios chamou de ânfora só o vaso ritual das Panateneias. Mas todo oleiro chama de ânfora qualquer vaso de duas alças."
+        },
+        {
+          "text": "Para apontar o erro, escolha REFUTAR no menu."
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_fallacies",
+      "lines": [
+        {
+          "text": "Agora diga qual falácia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, é Equivocação."
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_hit",
+      "lines": [
+        {
+          "text": "Acertou. Cada refutação certa custa Coerência a ele e puxa a plateia para o seu lado."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Um tropeço de retórica, nada mais. Escute esta, menina."
+        },
+        {
+          "text": "Ele vai tentar de novo. Agora é com você: ache a palavra que muda de sentido e refute."
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_miss",
+      "lines": [
+        {
+          "text": "Não era essa. Nesta primeira vez o erro não custa nada: procure a palavra que muda de sentido entre as premissas."
+        }
+      ]
+    },
+    {
+      "id": "thrasybios_tutorial_reminder",
+      "lines": [
+        {
+          "text": "O erro de Thrasybios continua na mesa. Escolha REFUTAR para apontá-lo."
+        }
+      ]
+    },
+    {
+      "id": "agora_wrong_laughter",
+      "lines": [
+        {
+          "text": "Thrasybios fica sem resposta. Por um instante, a ágora inteira se cala."
+        },
+        {
+          "text": "Então a plateia explode em gargalhadas. Mas ninguém aponta para ele: todos apontam para Kleia."
+        },
+        {
+          "speaker": "crowd",
+          "text": "A filha do oleiro dando aula de lógica! Amanhã a ânfora sobe na tribuna!"
+        },
+        {
+          "text": "Riem dela, não com ela. Uma garota do Cerâmico vencer um mestre é piada, não feito."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Eu estava certa. Por que estão rindo?"
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Porque estar certa não enche bolsa, menina. Viu só? Até perdendo eu junto plateia. Publicidade é publicidade."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Tenho uma proposta: aulas comigo, três dracmas por semana. Você aprende a vencer e a ser aplaudida. Aceita?",
+          "choices": [
+            {
+              "text": "Aceitar as aulas",
+              "effects": [{ "flag": "thrasybios_lessons", "value": "accepted" }],
+              "lines": [
+                {
+                  "speaker": "kleia",
+                  "text": "Está bem. Quero entender por que aplaudem você e riem de mim."
+                },
+                {
+                  "speaker": "thrasybios",
+                  "text": "Primeira lição, de graça: a verdade é o que a plateia leva para casa."
+                }
+              ]
+            },
+            {
+              "text": "Recusar",
+              "effects": [{ "flag": "thrasybios_lessons", "value": "refused" }],
+              "lines": [
+                {
+                  "speaker": "kleia",
+                  "text": "Não. O que aprendi hoje não me custou nada, e não vou vender."
+                },
+                {
+                  "speaker": "thrasybios",
+                  "text": "Orgulho também tem preço. Quando a bolsa apertar, você volta."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "text": "A roda se desfaz. Alguém ainda imita a voz dela ao passar pelas bancas."
         }
       ]
     }

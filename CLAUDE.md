@@ -268,6 +268,10 @@ O `GameStateMachine` pertence ao `GridSandboxController`. O `SandboxBattleDirect
 - **Gatilho de célula:** `triggers` no JSON do mapa (`x`, `y`, `dialogue`, `flag`).
   - Ao entrar na célula, pelo `CellEntered` do walker, a Kleia para nela e a cena toca. A `flag` é gravada no disparo, então a cena toca uma vez só. Vários gatilhos podem dividir a mesma flag, como as duas saídas da oficina do Cerâmico.
   - `MapLayout.Validate` recusa gatilho fora do mapa, em célula bloqueada, sem diálogo, com flag que não seja própria ou na célula de outro gatilho, de uma saída ou de um ator.
+- **Escolhas:** uma linha com `choices` (2 a 4 opções, texto de até 24 caracteres) para a conversa até a Kleia responder.
+  - Cada opção tem `effects` e, opcionalmente, `lines` próprias, que tocam logo depois; em seguida a conversa continua após a linha da pergunta. As condições dessas linhas são julgadas quando a opção é escolhida.
+  - Regras puras em `DialogueChoice` e `DialogueRun.Choose` (Core). `DialoguePlayer` (UI) conduz a `DialogueBoxView` na exploração e na batalha: as opções só aparecem depois que a pergunta termina de ser digitada, Navigate move o cursor, Confirm escolhe e o clique numa linha (`PanelRowPointer`) também. Clique fora das opções não escolhe nada.
+  - O `DialogueEntry` guarda os ramos achatados em `branches`, por índice. Entrada antiga sem `choices` continua válida, e `DataTools.Regenerate` valida opções, efeitos e falantes dentro dos ramos.
 
 ---
 
@@ -303,6 +307,12 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - Uma escolha sem destino ainda cai em `BattleSession.CirculateDestination`, a célula alcançável mais próxima do oponente.
   - **Dados:** o elenco vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id`, folha (`<id>_sheet.png`) e raio de provocação, e as falas vêm de `battle.*` em `ui_text.json`. `initial_audience` é a Plateia inicial da Kleia; a tabela do GDD dá a do oponente, que é o complemento.
   - **Elenco do Ato I:** Thrasybios (raio 3) e os cinco duelistas de bairro do beat I.5, todos de raio 1: Óron (falso dilema), Phaidra (apelo à ignorância), Kritolaos (ad hominem), Simo (espantalho) e Bátilo (generalização apressada, perfil `Philosopher`). Cada pool tem a falácia da família e uma aparentada. Um teste simula duelos contra cada um, na célula em que ele está na Ágora, e exige vitória do jogador.
+  - **Tutorial do Thrasybios (beats I.2 e I.3):** o `tutorial` de `opponents.json` (`fallacy` do pool, `done_flag` e um diálogo por `TutorialCue`) vira `OpponentSO.Tutorial`. Enquanto a `done_flag` falta no save, o duelo é guiado.
+    - `RefuteTutorial` (Battle, puro) decide a deixa: demonstração da ânfora ao começar, explicação do argumento no primeiro turno, dica ao abrir a lista de falácias, erro, acerto e lembrete depois de outra ação. Depois do primeiro acerto, a Kleia refuta sozinha.
+    - O `TutorialOpponent` argumenta com um `ScriptedArgumentSource`: os argumentos de fallback da falácia, na ordem do arquivo, então o primeiro é sempre o da ânfora. `RefuteTutorial.Rules()` zera o contra-ataque e a penalidade de encurralado, e a vitória fica garantida.
+    - As deixas tocam na caixa do HUD pelo `DialoguePlayer`, com as flags do `ExplorationDialogueDirector` da cena (`SandboxBattleDirector.ConfigureStory`), e o autosave da saída passa pelo `CaptureSave` dele.
+    - Vencer grava a `done_flag` e toca `agora_wrong_laughter` (I.3: a plateia ri dela) no lugar da mensagem de vitória. A cena termina na oferta de aulas pagas, que grava `thrasybios_lessons` = `accepted` ou `refused` para o epílogo.
+    - Fugir deixa o tutorial pendente, mas a demonstração toca uma vez só (`saw_thrasybios_demo`). Com a `done_flag` gravada, os duelos seguintes contra ele são normais.
 - **Realce de alvo:** `BattleTargetPreview.Apply` desenha o realce a partir da entrada selecionada no menu. REFUTAR indisponível limpa o realce, então o vermelho nunca aparece num paradoxo. A maiêutica usa `BattleResolver.MaieuticsRange`, que já inclui o bônus do Ato II. `BattleHud.BindPreview(highlighter)` liga isso ao `SelectionChanged` do menu, e a mensagem de indisponível é "não há erro a apontar". Na sandbox, o `RangeHighlightView` pinta essas células no tilemap `Range` (entre o chão e o cursor) com `hl_move`, `hl_refute` e `hl_maieutics`, só enquanto o jogador escolhe; o diretor limpa o realce no turno do oponente e ao sair da batalha.
 - **Oferta de Damaris:** `DamarisOffer.Apply` grava a escolha no save uma única vez.
   - Aceitar dá a flag `ability_inversion`, soma 200 em `drachmas` e grava `menexeno_absent_days`.

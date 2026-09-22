@@ -1,5 +1,6 @@
 using System;
 using Game.Content;
+using Game.Core;
 using Game.UI;
 using TMPro;
 using UnityEditor;
@@ -30,6 +31,7 @@ namespace Game.EditorTools
         public const int PortraitSize = 40;
         public const int PortraitInner = 32;
         public const int DialogueReserve = Margin + DialogueHeight + 4;
+        public const int ChoiceBottom = Margin + DialogueHeight + 2 + RowHeight + 2;
         public const int MenuRows = 6;
         public const int SubmenuRows = 5;
         public const int CompendiumRows = 12;
@@ -185,8 +187,19 @@ namespace Game.EditorTools
 
             var view = container.AddComponent<DialogueBoxView>();
             view.Configure(container, body, speaker, portrait, frame.gameObject);
+            CreateChoices(container.transform, view);
             container.SetActive(false);
             return view;
+        }
+
+        private static void CreateChoices(Transform parent, DialogueBoxView view)
+        {
+            var height = 2 * DialogueBoxView.ChoicePadding + DialogueChoice.MaxOptions * DialogueBoxView.ChoiceRowHeight;
+            var panel = CreateImage(parent, "Choices", UiSprite("box_menu"), BottomRight, new Vector2(-Margin, ChoiceBottom), new Vector2(DialogueBoxView.ChoicePanelWidth, height), Color.white);
+            var width = DialogueBoxView.ChoicePanelWidth - RowInset - DialogueBoxView.ChoicePadding;
+            var (rows, cursor) = CreatePanelRows(panel.transform, DialogueChoice.MaxOptions, new Vector2(RowInset, -DialogueBoxView.ChoicePadding), width, view);
+            view.ConfigureChoices(panel.rectTransform, rows, cursor);
+            panel.gameObject.SetActive(false);
         }
 
         private static TMP_Text CreateRow(Transform parent, string name, Vector2 position, ActionMenuView view, BattleMenuLayer layer, int index)

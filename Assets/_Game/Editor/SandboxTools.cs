@@ -278,13 +278,15 @@ namespace Game.EditorTools
             CreateGameServices();
             SystemMenuTools.CreateEventSystem();
             SystemMenuTools.InstantiatePauseMenu();
-            CreateDialogueDirector(controller, map, actors);
+            var dialogueDirector = CreateDialogueDirector(controller, map, actors);
             var opponents = MapOpponentsFor(map.Actors, actors);
             if (opponents.Count > 0)
             {
                 var rangeView = range.gameObject.AddComponent<RangeHighlightView>();
                 rangeView.Configure(range, tiles["hl_move"], tiles["hl_refute"], tiles["hl_maieutics"]);
-                CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera).ConfigureRange(rangeView);
+                var battleDirector = CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera);
+                battleDirector.ConfigureRange(rangeView);
+                battleDirector.ConfigureStory(dialogueDirector);
             }
 
             AssetFolders.Ensure(Path.GetDirectoryName(scenePath)?.Replace('\\', '/'));

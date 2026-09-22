@@ -29,6 +29,18 @@ MonoBehaviour:
     value:
       displayName: Vizinho
       portrait: citizen
+  - key: thrasybios
+    value:
+      displayName: Thrasybios
+      portrait: thrasybios
+  - key: customer
+    value:
+      displayName: "Fregu\xEAs"
+      portrait: citizen
+  - key: crowd
+    value:
+      displayName: Plateia
+      portrait: 
   dialogues:
   - key: kerameikos_leaving_workshop
     value:
@@ -37,14 +49,18 @@ MonoBehaviour:
         text: "As m\xE3os do meu pai j\xE1 n\xE3o fecham em volta de uma \xE2nfora. Hoje sou eu quem leva a mercadoria \xE0 \xE1gora."
         conditions: []
         effects: []
+        choices: []
       - speaker: kleia
         text: "Pela rua de terra at\xE9 a herma, depois o mercado. Vender, receber e voltar. Sem parar para ouvir discuss\xE3o alheia."
         conditions: []
         effects: []
+        choices: []
       - speaker: 
         text: Ela sabe que vai parar.
         conditions: []
         effects: []
+        choices: []
+      branches: []
   - key: neighbor_kerameikos
     value:
       lines:
@@ -55,6 +71,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: kleia
         text: Que sujeito?
         conditions:
@@ -62,6 +79,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: neighbor
         text: "Um tal de Thrasybios. Vende a arte de vencer qualquer discuss\xE3o por tr\xEAs dracmas. E vence mesmo quando est\xE1 errado."
         conditions:
@@ -73,6 +91,7 @@ MonoBehaviour:
           value: true
         - flag: heard_of_thrasybios
           value: true
+        choices: []
       - speaker: neighbor
         text: "A \xE1gora fica depois da herma, no fim da rua. Boas vendas, menina."
         conditions:
@@ -80,6 +99,8 @@ MonoBehaviour:
           value: 
           absent: 0
         effects: []
+        choices: []
+      branches: []
   - key: menexeno_agora
     value:
       lines:
@@ -90,6 +111,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: kleia
         text: Procura alguma coisa, senhor?
         conditions:
@@ -97,6 +119,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: kleia
         text: "Ou veio ouvir o tal Thrasybios, que vende vit\xF3rias por tr\xEAs dracmas?"
         conditions:
@@ -107,6 +130,7 @@ MonoBehaviour:
           value: 
           absent: 0
         effects: []
+        choices: []
       - speaker: menexeno
         text: "Procuro quem saiba perguntar. Por enquanto, s\xF3 achei quem venda respostas."
         conditions:
@@ -116,6 +140,7 @@ MonoBehaviour:
         effects:
         - flag: met_menexeno
           value: true
+        choices: []
       - speaker: menexeno
         text: "Deixe o homem de p\xFArpura terminar de falar. Quem erra costuma avisar antes."
         conditions:
@@ -123,6 +148,7 @@ MonoBehaviour:
           value: 
           absent: 0
         effects: []
+        choices: []
       - speaker: menexeno
         text: "E o rapaz do compasso? Repete Plat\xE3o como quem decora uma receita. Ainda n\xE3o provou o prato."
         conditions:
@@ -133,6 +159,8 @@ MonoBehaviour:
           value: 
           absent: 0
         effects: []
+        choices: []
+      branches: []
   - key: eudoro_agora
     value:
       lines:
@@ -143,6 +171,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: kleia
         text: "\xC2nforas n\xE3o discutem. Por isso fazem boa companhia."
         conditions:
@@ -150,6 +179,7 @@ MonoBehaviour:
           value: 
           absent: 1
         effects: []
+        choices: []
       - speaker: eudoro
         text: "Na Academia aprendemos que toda coisa imita a sua ideia. A sua, suponho, \xE9 a de vaso."
         conditions:
@@ -159,6 +189,7 @@ MonoBehaviour:
         effects:
         - flag: met_eudoro
           value: true
+        choices: []
       - speaker: eudoro
         text: "Ainda aqui? Plat\xE3o diria que a \xE1gora \xE9 o reino da opini\xE3o. Eu apenas concordo com ele."
         conditions:
@@ -166,3 +197,208 @@ MonoBehaviour:
           value: 
           absent: 0
         effects: []
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_intro
+    value:
+      lines:
+      - speaker: 
+        text: "No meio do mercado, um homem de manto p\xFArpura sobe num caixote e junta gente \xE0 sua volta."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Cidad\xE3os! A arte de vencer qualquer discuss\xE3o, por apenas tr\xEAs dracmas. Duvidam? Eu demonstro."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Voc\xEA a\xED, fregu\xEAs. O que leva debaixo do bra\xE7o?"
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Uma \xE2nfora. Acabei de comprar da filha de Aristeu."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Uma \xE2nfora? Pois vou provar, diante de todos, que isso n\xE3o \xE9 uma \xE2nfora."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Espere. Essa \xE2nfora saiu da minha roda. Se vai falar dela, fale comigo."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: 
+        text: "A plateia abre uma roda em volta dos dois. O debate come\xE7ou."
+        conditions:
+        - flag: saw_thrasybios_demo
+          value: 
+          absent: 1
+        effects:
+        - flag: saw_thrasybios_demo
+          value: true
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_argument
+    value:
+      lines:
+      - speaker: 
+        text: "Todo argumento se apoia em premissas. Se uma delas troca o sentido de uma palavra, a conclus\xE3o desaba junto."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Thrasybios chamou de \xE2nfora s\xF3 o vaso ritual das Panateneias. Mas todo oleiro chama de \xE2nfora qualquer vaso de duas al\xE7as."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: Para apontar o erro, escolha REFUTAR no menu.
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_fallacies
+    value:
+      lines:
+      - speaker: 
+        text: "Agora diga qual fal\xE1cia ele cometeu. Quando a mesma palavra muda de sentido no meio do argumento, \xE9 Equivoca\xE7\xE3o."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_hit
+    value:
+      lines:
+      - speaker: 
+        text: "Acertou. Cada refuta\xE7\xE3o certa custa Coer\xEAncia a ele e puxa a plateia para o seu lado."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Um trope\xE7o de ret\xF3rica, nada mais. Escute esta, menina."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ele vai tentar de novo. Agora \xE9 com voc\xEA: ache a palavra que muda de sentido e refute."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_miss
+    value:
+      lines:
+      - speaker: 
+        text: "N\xE3o era essa. Nesta primeira vez o erro n\xE3o custa nada: procure a palavra que muda de sentido entre as premissas."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: thrasybios_tutorial_reminder
+    value:
+      lines:
+      - speaker: 
+        text: "O erro de Thrasybios continua na mesa. Escolha REFUTAR para apont\xE1-lo."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_wrong_laughter
+    value:
+      lines:
+      - speaker: 
+        text: "Thrasybios fica sem resposta. Por um instante, a \xE1gora inteira se cala."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ent\xE3o a plateia explode em gargalhadas. Mas ningu\xE9m aponta para ele: todos apontam para Kleia."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: "A filha do oleiro dando aula de l\xF3gica! Amanh\xE3 a \xE2nfora sobe na tribuna!"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Riem dela, n\xE3o com ela. Uma garota do Cer\xE2mico vencer um mestre \xE9 piada, n\xE3o feito."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Eu estava certa. Por que est\xE3o rindo?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Porque estar certa n\xE3o enche bolsa, menina. Viu s\xF3? At\xE9 perdendo eu junto plateia. Publicidade \xE9 publicidade."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Tenho uma proposta: aulas comigo, tr\xEAs dracmas por semana. Voc\xEA aprende a vencer e a ser aplaudida. Aceita?"
+        conditions: []
+        effects: []
+        choices:
+        - text: Aceitar as aulas
+          effects:
+          - flag: thrasybios_lessons
+            value: accepted
+          branch: 0
+        - text: Recusar
+          effects:
+          - flag: thrasybios_lessons
+            value: refused
+          branch: 1
+      - speaker: 
+        text: "A roda se desfaz. Algu\xE9m ainda imita a voz dela ao passar pelas bancas."
+        conditions: []
+        effects: []
+        choices: []
+      branches:
+      - lines:
+        - speaker: kleia
+          text: "Est\xE1 bem. Quero entender por que aplaudem voc\xEA e riem de mim."
+          conditions: []
+          effects: []
+          choices: []
+        - speaker: thrasybios
+          text: "Primeira li\xE7\xE3o, de gra\xE7a: a verdade \xE9 o que a plateia leva para casa."
+          conditions: []
+          effects: []
+          choices: []
+      - lines:
+        - speaker: kleia
+          text: "N\xE3o. O que aprendi hoje n\xE3o me custou nada, e n\xE3o vou vender."
+          conditions: []
+          effects: []
+          choices: []
+        - speaker: thrasybios
+          text: "Orgulho tamb\xE9m tem pre\xE7o. Quando a bolsa apertar, voc\xEA volta."
+          conditions: []
+          effects: []
+          choices: []
