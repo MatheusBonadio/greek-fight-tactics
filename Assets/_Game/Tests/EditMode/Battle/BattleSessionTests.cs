@@ -60,6 +60,34 @@ namespace Game.Tests.EditMode.Battle
         }
 
         [Test]
+        public void Spectators_BlockTheirCellsOnlyInTheBattleGrid()
+        {
+            var grid = GridFactory.Open(8, 8);
+            new GridWalker(grid, PlayerActor, new Coord(2, 2));
+            new GridWalker(grid, OpponentActor, new Coord(3, 2));
+            var seat = new Coord(2, 3);
+            var spectators = new[]
+            {
+                new System.Collections.Generic.KeyValuePair<int, Coord>(BattleCrowd.FirstSpectatorId, seat),
+                new System.Collections.Generic.KeyValuePair<int, Coord>(BattleCrowd.FirstSpectatorId + 1, new Coord(3, 2))
+            };
+
+            var session = BattleSession.Start(grid, new BattleSetup { PlayerId = PlayerActor, PlayerCell = new Coord(2, 2), OpponentId = OpponentActor, OpponentCell = new Coord(3, 2), Spectators = spectators }, Source());
+
+            Assert.AreEqual(BattleCrowd.FirstSpectatorId, session.State.Grid[seat].OccupantId);
+            Assert.AreEqual(OpponentActor, session.State.Grid[new Coord(3, 2)].OccupantId, "a spectator never takes a debater's cell");
+            Assert.IsFalse(grid[seat].IsOccupied, "the exploration grid never holds spectators");
+            Assert.IsFalse(session.State.IsAudienceMember(BattleCrowd.FirstSpectatorId), "spectators do not change the adjacency bonus");
+            for (var exchange = 0; exchange < MaxExchanges && !session.IsPlayerTurn && !session.IsOver; exchange++)
+            {
+                session.PlayOpponentTurn();
+            }
+
+            Assert.IsTrue(session.IsPlayerTurn);
+            Assert.AreEqual(RejectionReason.DestinationUnreachable, session.PlayChoice(new BattleMenuChoice(ActionId.Circulate, destination: seat)).Rejection, "CIRCULAR cannot enter a spectator's cell");
+        }
+
+        [Test]
         public void Circulate_StepsTowardTheOpponent()
         {
             var grid = GridFactory.Open(12, 12);

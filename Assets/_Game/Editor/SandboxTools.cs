@@ -41,7 +41,14 @@ namespace Game.EditorTools
         public const string RangeTilemapName = "Range";
         public const string BlocksTilemapName = "Blocks";
         public const string FogTilemapName = "Fog";
+        public const string ArenaVeilTilemapName = "ArenaVeil";
+        public const string BlocksVeilTilemapName = "BlocksVeil";
+        public const string ArenaVeilShaderPath = "Assets/_Game/Shaders/ArenaVeil.shader";
+        public const string CrowdObjectName = "BattleCrowd";
+        public const string SpectatorTemplateName = "SpectatorTemplate";
+        public const string ArenaVeilTileName = "fog";
         public const int FloorSortingOrder = -20;
+        public const int ArenaVeilSortingOrder = -18;
         public const int RangeSortingOrder = -15;
         public const int HighlightSortingOrder = -10;
         public const int ActorSortingOrder = 0;
@@ -49,8 +56,8 @@ namespace Game.EditorTools
         public const byte BlockedCost = TileData.ImpassableCost;
         public const byte StoneCost = 2;
         public const float BlockSortLift = 0.25f;
+        public const float BlockVeilSortNudge = 0.01f;
         public const float ExplorationOrthographicSize = 7f;
-        public const float BattleOrthographicSize = 5f;
         public const int CapturePixelsPerUnit = 48;
         public const int CaptureMarginX = 64;
         public const int CaptureMarginY = 96;
@@ -328,6 +335,7 @@ namespace Game.EditorTools
                 var battleDirector = CreateBattleDirector(controller, map.Actors, actors, opponents, explorationCamera);
                 battleDirector.ConfigureRange(rangeView);
                 battleDirector.ConfigureStory(dialogues);
+                battleDirector.ConfigureArena(CreateCrowd(), CreateArenaVeil(gridObject, blocks, tiles[ArenaVeilTileName]));
             }
 
             AssetFolders.Ensure(Path.GetDirectoryName(scenePath)?.Replace('\\', '/'));
@@ -373,29 +381,52 @@ namespace Game.EditorTools
         private static List<ActorView> CreateActors(IReadOnlyList<MapActor> placements)
         {
             var root = new GameObject("Actors");
-            var views = new List<ActorView>();
-            foreach (var actor in placements)
-            {
-                var sprites = AssetDatabase.LoadAllAssetsAtPath(ArtTools.SheetPathFor(actor.Character)).OfType<Sprite>().ToDictionary(sprite => sprite.name);
-                var row = FacingRules.SheetFacing(actor.Facing) == Facing.NorthEast ? "ne" : "se";
+            return placements
+                .Select(actor => CreateActorView(root.transform, $"{actor.Character}_{actor.X}_{actor.Y}", actor.Character, new Vector2Int(actor.X, actor.Y), actor.Facing))
+                .ToList();
+        }
 
-                var actorObject = new GameObject($"{actor.Character}_{actor.X}_{actor.Y}");
-                actorObject.transform.SetParent(root.transform, false);
+        private static ActorView CreateActorView(Transform parent, string name, string character, Vector2Int cell, Facing facing)
+        {
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(ArtTools.SheetPathFor(character)).OfType<Sprite>().ToDictionary(sprite => sprite.name);
+            var row = FacingRules.SheetFacing(facing) == Facing.NorthEast ? "ne" : "se";
 
-                var renderer = actorObject.AddComponent<SpriteRenderer>();
-                renderer.sprite = sprites[$"{actor.Character}_{row}_0"];
-                renderer.spriteSortPoint = SpriteSortPoint.Pivot;
-                renderer.sortingOrder = ActorSortingOrder;
+            var actorObject = new GameObject(name);
+            actorObject.transform.SetParent(parent, false);
 
-                var animator = actorObject.AddComponent<Animator>();
-                animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<AnimatorController>(ArtTools.ControllerPathFor(actor.Character));
+            var renderer = actorObject.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprites[$"{character}_{row}_0"];
+            renderer.spriteSortPoint = SpriteSortPoint.Pivot;
+            renderer.sortingOrder = ActorSortingOrder;
 
-                var view = actorObject.AddComponent<ActorView>();
-                view.Configure(new Vector2Int(actor.X, actor.Y), actor.Facing, renderer, animator);
-                views.Add(view);
-            }
+            var animator = actorObject.AddComponent<Animator>();
+            animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<AnimatorController>(ArtTools.ControllerPathFor(character));
 
-            return views;
+            var view = actorObject.AddComponent<ActorView>();
+            view.Configure(cell, facing, renderer, animator);
+            return view;
+        }
+
+        private static BattleCrowd CreateCrowd()
+        {
+            var crowd = new GameObject(CrowdObjectName).AddComponent<BattleCrowd>();
+            var template = CreateActorView(crowd.transform, SpectatorTemplateName, AudienceCharacter, Vector2Int.zero, Facing.SouthEast);
+            template.gameObject.SetActive(false);
+            crowd.Configure(template);
+            return crowd;
+        }
+
+        private static ArenaVeilView CreateArenaVeil(GameObject gridObject, Tilemap blocks, TileBase veilTile)
+        {
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(ArenaVeilShaderPath)
+                ?? throw new InvalidOperationException($"missing {ArenaVeilShaderPath}");
+            var floorVeil = CreateTilemap(gridObject, ArenaVeilTilemapName, SortingLayer.IDToName(0), ArenaVeilSortingOrder);
+            var blocksVeil = CreateTilemap(gridObject, BlocksVeilTilemapName, SortingLayer.IDToName(0), ActorSortingOrder);
+            blocksVeil.transform.localPosition = blocks.transform.localPosition + new Vector3(0f, 0f, BlockVeilSortNudge);
+
+            var veil = floorVeil.gameObject.AddComponent<ArenaVeilView>();
+            veil.Configure(floorVeil, blocksVeil, blocks, veilTile, shader);
+            return veil;
         }
 
         private static List<MapOpponent> MapOpponentsFor(IReadOnlyList<MapActor> placements, IReadOnlyList<ActorView> actors)
@@ -513,6 +544,9 @@ namespace Game.EditorTools
             bounds.isTrigger = true;
             bounds.points = MapOutline(mapWidth, mapHeight);
 
+            var focus = new GameObject(ExplorationCamera.DuelFocusName).transform;
+            focus.position = new Vector3(followTarget.position.x, followTarget.position.y, 0f);
+
             var virtualCameraObject = new GameObject("ExplorationCamera");
             var virtualCamera = virtualCameraObject.AddComponent<CinemachineCamera>();
             var lens = virtualCamera.Lens;
@@ -529,7 +563,7 @@ namespace Game.EditorTools
             confiner.BoundingShape2D = bounds;
 
             var explorationCamera = virtualCameraObject.AddComponent<ExplorationCamera>();
-            explorationCamera.Configure(virtualCamera, ExplorationOrthographicSize, BattleOrthographicSize);
+            explorationCamera.Configure(virtualCamera, ExplorationOrthographicSize, focus);
             return explorationCamera;
         }
 

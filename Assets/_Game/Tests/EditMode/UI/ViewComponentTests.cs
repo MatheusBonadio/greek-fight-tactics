@@ -55,23 +55,31 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void ExplorationCamera_ExposesTheBattleZoomHook()
+        public void ExplorationCamera_CentresTheDuelWithoutZoomingAndFollowsThePlayerAfter()
         {
             host = new GameObject("camera");
+            var player = new GameObject("player").transform;
+            player.SetParent(host.transform);
+            player.position = new Vector3(1f, 0.5f, 0f);
+            var focus = new GameObject(ExplorationCamera.DuelFocusName).transform;
+            focus.SetParent(host.transform);
             var virtualCamera = host.AddComponent<CinemachineCamera>();
             var explorationCamera = host.AddComponent<ExplorationCamera>();
-            explorationCamera.Configure(virtualCamera, 7f, 5f);
-            var requested = 0f;
-            explorationCamera.ZoomRequested += size => requested = size;
+            explorationCamera.Configure(virtualCamera, 7f, focus);
+            explorationCamera.GlideSeconds = 0f;
+            virtualCamera.Follow = player;
 
-            explorationCamera.FrameBattle();
+            explorationCamera.FrameDuel(new Vector2(3.04f, 1.5f));
 
-            Assert.AreEqual(5f, requested);
-            Assert.AreEqual(5f, virtualCamera.Lens.OrthographicSize);
+            Assert.IsTrue(explorationCamera.IsFramingDuel);
+            Assert.AreSame(focus, virtualCamera.Follow, "the camera follows the duel, not Kleia");
+            Assert.AreEqual(new Vector3(3.0625f, 1.5f, 0f), focus.position, "the duel centre is snapped to the art pixel grid");
+            Assert.AreEqual(7f, virtualCamera.Lens.OrthographicSize, "the battle keeps the exploration zoom");
 
             explorationCamera.FrameExploration();
 
-            Assert.AreEqual(7f, explorationCamera.TargetOrthographicSize);
+            Assert.IsFalse(explorationCamera.IsFramingDuel);
+            Assert.AreSame(player, virtualCamera.Follow);
             Assert.AreEqual(7f, virtualCamera.Lens.OrthographicSize);
         }
     }

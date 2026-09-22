@@ -19,7 +19,8 @@ namespace Game.UI
         OpponentThinking,
         PlayerChoosing,
         PlayerTargeting,
-        Animating
+        Animating,
+        Gathering
     }
 
     public sealed class SandboxBattleDirector : MonoBehaviour
@@ -27,6 +28,7 @@ namespace Game.UI
         public const float DefaultThinkSeconds = 0.6f;
         public const int PrewarmCount = 3;
         public const string OfflineCacheFolder = "battle_cache";
+        public const float MinimumVeilFadeSeconds = 0.5f;
 
         [SerializeField] private GridSandboxController sandbox;
         [SerializeField] private List<MapOpponent> opponents = new();
@@ -40,6 +42,8 @@ namespace Game.UI
         [SerializeField] private RangeHighlightView rangeView;
         [SerializeField] private Sprite playerPortrait;
         [SerializeField] private ExplorationDialogueDirector story;
+        [SerializeField] private BattleCrowd crowd;
+        [SerializeField] private ArenaVeilView veil;
 
         private readonly AggroWatch aggro = new();
         private readonly List<AggroCandidate> aggroCandidates = new();
@@ -66,6 +70,7 @@ namespace Game.UI
         private int dialogueFrame = -1;
         private MapOpponent engaged;
         private PrewarmedArgumentSource preparedArguments;
+        private int crowdSeed;
 
         public GameStateMachine StateMachine => sandbox.StateMachine;
 
@@ -100,6 +105,16 @@ namespace Game.UI
         public ExplorationDialogueDirector Story => story;
 
         public RefuteTutorial Tutorial => tutorial;
+
+        public BattleCrowd Crowd => crowd;
+
+        public ArenaVeilView Veil => veil;
+
+        public ExplorationCamera ExplorationCamera => explorationCamera;
+
+        public DuelArena Arena { get; private set; }
+
+        public int? CrowdSeed { get; set; }
 
         public bool IsPlayingScript => scripts != null && scripts.IsPlaying;
 
@@ -146,6 +161,12 @@ namespace Game.UI
             story = storyDirector;
         }
 
+        public void ConfigureArena(BattleCrowd battleCrowd, ArenaVeilView arenaVeil)
+        {
+            crowd = battleCrowd;
+            veil = arenaVeil;
+        }
+
         public bool IsDefeated(MapOpponent entry) =>
             entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
 
@@ -168,12 +189,8 @@ namespace Game.UI
             }
 
             StateMachine.TryTransition(GameMode.BattleIntro);
-            if (explorationCamera)
-            {
-                explorationCamera.FrameBattle();
-            }
-
             var seed = Environment.TickCount;
+            GatherCrowd(playerWalker.Cell, opponentWalker.Cell, CrowdSeed ?? seed);
             tutorialData = PendingTutorial(opponent);
             tutorial = tutorialData != null ? new RefuteTutorial() : null;
             Session = BattleSession.Start(sandbox.Grid, new BattleSetup
@@ -190,6 +207,7 @@ namespace Game.UI
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
                 LockedActions = ActionUnlocks.LockedIn(CurrentStory(), ActionMenuModel.PlayerActions),
+                Spectators = crowd ? crowd.Reservations : Array.Empty<KeyValuePair<int, Coord>>(),
                 Seed = seed,
                 Rules = tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : null
             },
@@ -355,6 +373,13 @@ namespace Game.UI
                     else if (cancelAction.WasPressedThisFrame())
                     {
                         CancelTargeting();
+                    }
+
+                    break;
+                case BattleFlowPhase.Gathering:
+                    if (!crowd || crowd.HasArrived)
+                    {
+                        StartTurns();
                     }
 
                     break;
@@ -547,7 +572,66 @@ namespace Game.UI
             return view;
         }
 
+        private void GatherCrowd(Coord player, Coord opponent, int seed)
+        {
+            crowdSeed = seed;
+            Arena = DuelCrowdPlanner.Plan(sandbox.Grid, player, opponent, crowd ? crowd.Rules : null, seed);
+            if (crowd)
+            {
+                crowd.OutsideMaterial = veil ? veil.ActorMaterial : null;
+                crowd.Gather(sandbox.Grid, Arena);
+            }
+
+            if (explorationCamera)
+            {
+                explorationCamera.FrameDuel(Arena.WorldCenter);
+            }
+
+            if (!veil)
+            {
+                return;
+            }
+
+            var outside = sandbox.Actors
+                .Where(actor => actor && actor.gameObject.activeInHierarchy && actor.Walker != null && actor != sandbox.Player && actor != engaged.Actor && !Arena.IsLit(actor.Walker.Cell))
+                .Select(actor => actor.SpriteRenderer)
+                .ToList();
+            var fadeIn = Mathf.Max(MinimumVeilFadeSeconds, crowd ? crowd.ExpectedArrivalSeconds : 0f);
+            veil.Show(sandbox.Grid.Width, sandbox.Grid.Height, Arena.IsLit, outside, fadeIn);
+        }
+
+        private void DisperseCrowd()
+        {
+            if (crowd)
+            {
+                crowd.Disperse(unchecked(crowdSeed + 1));
+            }
+
+            if (veil)
+            {
+                veil.Hide();
+            }
+
+            if (explorationCamera)
+            {
+                explorationCamera.FrameExploration();
+            }
+
+            Arena = null;
+        }
+
         private void BeginFirstTurn()
+        {
+            if (crowd && !crowd.HasArrived)
+            {
+                Phase = BattleFlowPhase.Gathering;
+                return;
+            }
+
+            StartTurns();
+        }
+
+        private void StartTurns()
         {
             StateMachine.TryTransition(GameMode.BattleTurn);
             NextTurn();
@@ -751,11 +835,7 @@ namespace Game.UI
 
             var from = StateMachine.Mode;
             StateMachine.TryTransition(GameMode.Exploration);
-            if (explorationCamera)
-            {
-                explorationCamera.FrameExploration();
-            }
-
+            DisperseCrowd();
             sandbox.CursorInputEnabled = false;
             sandbox.ExplorationInputEnabled = true;
             if (pause)

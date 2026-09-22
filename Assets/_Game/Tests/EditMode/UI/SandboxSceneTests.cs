@@ -85,8 +85,55 @@ namespace Game.Tests.EditMode.UI
         {
             var renderers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<TilemapRenderer>()).ToList();
 
-            Assert.AreEqual(5, renderers.Count);
+            Assert.AreEqual(7, renderers.Count, "floor, range, highlight, blocks, fog and the two arena veils");
             Assert.IsTrue(renderers.All(renderer => renderer.mode == TilemapRenderer.Mode.Individual));
+        }
+
+        [Test]
+        public void ArenaVeil_DarkensFloorAboveTheFloorAndBlocksRightAfterEachBlock()
+        {
+            var director = Find<SandboxBattleDirector>();
+            var veil = director.Veil;
+            var floor = Tilemap(SandboxTools.FloorTilemapName).GetComponent<TilemapRenderer>();
+            var range = Tilemap(SandboxTools.RangeTilemapName).GetComponent<TilemapRenderer>();
+            var blocks = Tilemap(SandboxTools.BlocksTilemapName);
+
+            Assert.IsNotNull(veil, "the battle director must darken the world outside the arena");
+            Assert.AreSame(Tilemap(SandboxTools.ArenaVeilTilemapName), veil.FloorVeil);
+            Assert.AreSame(Tilemap(SandboxTools.BlocksVeilTilemapName), veil.BlocksVeil);
+            Assert.AreEqual(0, CountTiles(veil.FloorVeil), "the veil only exists during a battle");
+            Assert.AreEqual(0, CountTiles(veil.BlocksVeil));
+
+            var floorVeil = veil.FloorVeil.GetComponent<TilemapRenderer>();
+            Assert.AreEqual(floor.sortingLayerID, floorVeil.sortingLayerID);
+            Assert.Greater(floorVeil.sortingOrder, floor.sortingOrder, "the veil covers the floor");
+            Assert.Less(floorVeil.sortingOrder, range.sortingOrder, "range highlights stay readable over the veil");
+
+            var blocksVeil = veil.BlocksVeil.GetComponent<TilemapRenderer>();
+            var blockLift = blocks.transform.localPosition.z * RenderSetupTools.TransparencySortAxis.z;
+            var veilLift = veil.BlocksVeil.transform.localPosition.z * RenderSetupTools.TransparencySortAxis.z;
+            Assert.AreEqual(blocks.GetComponent<TilemapRenderer>().sortingOrder, blocksVeil.sortingOrder);
+            Assert.Less(veilLift, blockLift, "each block veil is drawn right after its block");
+            Assert.Greater(veilLift, blockLift - IsoMath.CellHeight, "and before the actor on the cell in front");
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Shader>(SandboxTools.ArenaVeilShaderPath));
+        }
+
+        [Test]
+        public void BattleDirector_BringsACitizenCrowdAndFramesTheDuelWithoutZooming()
+        {
+            var director = Find<SandboxBattleDirector>();
+            var crowd = director.Crowd;
+
+            Assert.IsNotNull(crowd, "the battle director must gather a crowd");
+            Assert.IsNotNull(crowd.Template);
+            Assert.IsFalse(crowd.Template.gameObject.activeSelf, "the template never walks on the map itself");
+            Assert.AreSame(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(SandboxTools.AudienceCharacter)), crowd.Template.SpriteRenderer.sprite.texture);
+            Assert.AreEqual(SpriteSortPoint.Pivot, crowd.Template.SpriteRenderer.spriteSortPoint);
+            CollectionAssert.DoesNotContain(Find<GridSandboxController>().Actors, crowd.Template, "spectators are not map actors");
+
+            var explorationCamera = director.ExplorationCamera;
+            Assert.IsNotNull(explorationCamera.DuelFocus);
+            Assert.AreEqual(SandboxTools.ExplorationOrthographicSize, explorationCamera.VirtualCamera.Lens.OrthographicSize);
         }
 
         [Test]

@@ -33,6 +33,8 @@ namespace Game.UI
 
         public IEnumerable<ActionId> LockedActions { get; set; } = Array.Empty<ActionId>();
 
+        public IEnumerable<KeyValuePair<int, Coord>> Spectators { get; set; } = Array.Empty<KeyValuePair<int, Coord>>();
+
         public int Seed { get; set; }
 
         public BattleRules Rules { get; set; }
@@ -69,7 +71,22 @@ namespace Game.UI
 
         public bool IsPlayerTurn => !IsOver && State.Queue.Current == State.Player.Id;
 
-        public static GridModel CopyForBattle(GridModel exploration, IEnumerable<int> debaterIds)
+        public static GridModel CopyForBattle(GridModel exploration, IEnumerable<int> debaterIds, IEnumerable<KeyValuePair<int, Coord>> spectators = null)
+        {
+            var copy = CopyWithout(exploration, debaterIds);
+            foreach (var (spectatorId, cell) in spectators ?? Enumerable.Empty<KeyValuePair<int, Coord>>())
+            {
+                if (spectatorId != TileData.NoOccupant && copy.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied)
+                {
+                    tile.OccupantId = spectatorId;
+                    copy.TrySet(cell, tile);
+                }
+            }
+
+            return copy;
+        }
+
+        private static GridModel CopyWithout(GridModel exploration, IEnumerable<int> debaterIds)
         {
             if (exploration == null)
             {
@@ -103,7 +120,9 @@ namespace Game.UI
                 throw new ArgumentNullException(nameof(setup));
             }
 
-            var grid = CopyForBattle(exploration, new[] { setup.PlayerId, setup.OpponentId });
+            var spectators = (setup.Spectators ?? Enumerable.Empty<KeyValuePair<int, Coord>>())
+                .Where(spectator => spectator.Value != setup.PlayerCell && spectator.Value != setup.OpponentCell);
+            var grid = CopyForBattle(exploration, new[] { setup.PlayerId, setup.OpponentId }, spectators);
             var player = new Debater(setup.PlayerId, Side.Player, Profile.Philosopher, PlayerMaxCoherence, PlayerInitiative, setup.PlayerCell, setup.PlayerFacing);
             var opponent = new Debater(setup.OpponentId, Side.Opponent, setup.OpponentProfile, setup.OpponentMaxCoherence, OpponentInitiative, setup.OpponentCell, setup.OpponentFacing);
             var state = new BattleState(
