@@ -15,6 +15,8 @@ namespace Game.UI
         public const string ArgumentCacheFolder = "argument_cache";
         public const string SaveFolder = "saves";
         public const string DataDirectoryVariable = "GFT_DATA_DIRECTORY";
+        public const float OnlineBootBudgetSeconds = 2f;
+        public const float DefaultPushRetrySeconds = 30f;
 
         [SerializeField] private NetworkConfigSO network;
         [SerializeField] private FallacyCatalogSO catalog;
@@ -23,8 +25,15 @@ namespace Game.UI
 
         private ArgumentValidator validator;
         private FallacyCompendium compendium;
+        private SaveData sessionSave;
+        private Task<bool> pushing;
+        private float nextPushRetry;
 
         public event Action<GameSettings> SettingsChanged;
+
+        public float PushRetrySeconds { get; set; } = DefaultPushRetrySeconds;
+
+        public bool IsPushing => pushing is { IsCompleted: false };
 
         public ArgumentDiskCache ArgumentCache { get; private set; }
 
@@ -140,7 +149,8 @@ namespace Game.UI
             }
 
             Saves.SaveLocal(save);
-            _ = Saves.PushPendingAsync(destroyCancellationToken);
+            sessionSave = save;
+            PushSessionSave();
         }
 
         public PrewarmedArgumentSource CreateArgumentSource(int seed)
@@ -176,6 +186,11 @@ namespace Game.UI
             {
                 Playtime += Time.unscaledDeltaTime;
             }
+
+            if (IsBooted && Time.unscaledTime >= nextPushRetry)
+            {
+                PushSessionSave();
+            }
         }
 
         private void OnApplicationPause(bool paused)
@@ -208,26 +223,38 @@ namespace Game.UI
             Settings = SettingsStore.Load();
             ApplySettings();
 
-            if (!network || !network.IsConfigured)
+            var backend = OnlineBackendOverride.Current ?? OnlineBackend.FromConfig(network);
+            if (backend == null)
             {
                 return;
             }
 
-            var transport = new UnityWebRequestTransport();
-            var endpoints = network.UseEmulator
-                ? FirebaseEndpoints.Emulator(network.ProjectId, network.EmulatorHost, network.Region)
-                : FirebaseEndpoints.Production(network.WebApiKey, network.ProjectId, network.Region);
-            var firestore = network.UseEmulator
-                ? FirestoreEndpoints.Emulator(network.ProjectId, network.EmulatorHost)
-                : FirestoreEndpoints.Production(network.ProjectId);
-
-            Auth = new FirebaseAnonymousAuth(transport, endpoints, new FileAuthSessionStore(DataDirectory));
-            Saves = new SaveSynchronizer(SlotCatalog.StoreFor(SaveSlots.DefaultIndex), new FirestoreSaveClient(transport, Auth, firestore));
+            Auth = new FirebaseAnonymousAuth(backend.Transport, backend.Endpoints, new FileAuthSessionStore(DataDirectory));
+            Saves = new SaveSynchronizer(SlotCatalog.StoreFor(SaveSlots.DefaultIndex), new FirestoreSaveClient(backend.Transport, Auth, backend.Firestore), backend.Delay);
             if (catalog)
             {
-                Arguments = new ArgumentServiceClient(transport, Auth, endpoints.ArgumentUrl, Validator());
+                Arguments = new ArgumentServiceClient(backend.Transport, Auth, backend.Endpoints.ArgumentUrl, Validator(), backend.Delay);
             }
 
+            await ConnectWithinBudgetAsync(cancellation);
+        }
+
+        private async Task ConnectWithinBudgetAsync(CancellationToken cancellation)
+        {
+            using var online = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            var connecting = ConnectAsync(online.Token);
+            var deadline = Time.realtimeSinceStartup + OnlineBootBudgetSeconds;
+            while (!connecting.IsCompleted && Time.realtimeSinceStartup < deadline)
+            {
+                await Awaitable.NextFrameAsync(cancellation);
+            }
+
+            online.Cancel();
+            await connecting;
+        }
+
+        private async Task ConnectAsync(CancellationToken cancellation)
+        {
             try
             {
                 await Auth.GetIdTokenAsync(false, cancellation);
@@ -244,6 +271,17 @@ namespace Game.UI
             {
                 Debug.LogWarning($"Online services unavailable, continuing offline: {exception.Message}");
             }
+        }
+
+        private void PushSessionSave()
+        {
+            nextPushRetry = Time.unscaledTime + PushRetrySeconds;
+            if (IsPushing || sessionSave == null || Saves is not { HasPendingPush: true } || !ReferenceEquals(Saves.Current, sessionSave))
+            {
+                return;
+            }
+
+            pushing = Saves.PushPendingAsync(destroyCancellationToken);
         }
 
         private void RequireBoot()

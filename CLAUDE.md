@@ -65,7 +65,7 @@ Nunca consulte `Tilemap` para decidir regra. Ocupação, custo, transponibilidad
 
 ### 5. O jogo é completável offline
 
-Cada entrada do catálogo tem no mínimo 3 argumentos escritos à mão em `Assets/_Game/Data/Fallback/{id}.json`, referenciados como `TextAsset` pelo `FallbackLibrarySO` — sem pasta `Resources/`. Timeout de 2 s, 1 retry, falha silenciosa — o jogador nunca espera nem vê erro. Modo avião faz parte do critério de aceite de todo card que toca rede.
+Cada entrada do catálogo tem no mínimo 3 argumentos escritos à mão em `Assets/_Game/Data/Fallback/{id}.json`, referenciados como `TextAsset` pelo `FallbackLibrarySO` — sem pasta `Resources/`. Timeout de 2 s, 1 retry, falha silenciosa — o jogador nunca espera nem vê erro. Modo avião faz parte do critério de aceite de todo card que toca rede, com o roteiro de `docs/qa/airplane-mode.md`.
 
 ---
 
@@ -332,11 +332,17 @@ await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
 - A seed do pedido fica em `0..SeedVariants-1` (8) para o cache compartilhado do servidor ter acerto alto.
 - `FirebaseAnonymousAuth` usa a REST do Identity Toolkit (`accounts:signUp`) e do Secure Token (`grant_type=refresh_token`), guarda uid e refresh token em `auth.json`, renova o ID token 5 min antes de expirar, cria conta nova se o refresh for recusado (4xx) e devolve `null` offline. `FirebaseEndpoints` recusa chave começando com `sk-`; `FirebaseEndpoints.Emulator("demo-gft")` aponta para os emuladores locais.
 - Testes EditMode usam `IHttpTransport` e `IIdTokenProvider` falsos que completam na hora, então as `Task` terminam síncronas.
+- **Modo avião ([QA-02]):** `Assets/_Game/Tests/Support` (assembly `Game.Tests.Support`) tem `FlakyNetwork`, `FlakyIdTokenProvider` e `FakeFirebase`.
+  - A rede cai com timeout, conexão recusada, 5xx ou pedido travado, e volta com `Reconnect`.
+  - `AirplaneModeTests` (EditMode) e `AirplaneModePlayTests` (PlayMode) usam essas classes.
+  - O roteiro manual na build de Windows fica em `docs/qa/airplane-mode.md`.
 
 **Pré-aquecimento:** ao entrar num mapa, chame `PrewarmAsync` para os adversários presentes. Quando o jogador chegar perto, os argumentos já estão na fila e a latência é zero.
 
 **Boot:** `Game.UI.GameServices` é quem monta tudo isso numa cena.
 - **No `Start`:** carrega o `ArgumentDiskCache` de `persistentDataPath/argument_cache` e cria o `LocalSaveStore`. Se `NetworkConfigSO.IsConfigured`, faz sign-in anônimo e roda `SaveSynchronizer.ReconcileAsync`.
+- **Orçamento do boot:** o sign-in e a reconciliação têm `OnlineBootBudgetSeconds` (2 s). Passado o prazo, são cancelados, e o `IsBooted` libera o jogo com o save local, sem que o menu ou o mapa esperem timeout.
+- **Backend:** vem de `OnlineBackend.FromConfig(network)` (transporte, endpoints do Firebase e do Firestore, espera de backoff). `OnlineBackendOverride.Set` troca o backend de todo `GameServices` que iniciar depois. É a costura dos testes de modo avião, e o teardown chama `Clear`.
 - **Salvamento do cache:** em pause, quit e destroy, e depois de cada `GameServices.PrewarmAsync`.
 - **Fonte de argumentos:** `CreateArgumentSource(seed)` devolve um `PrewarmedArgumentSource`. Sem configuração de rede, ele fica sem cliente (`IsOnline == false`) e serve só o fallback.
 - **Configuração de rede:** fica em `Assets/_Game/Data/NetworkConfig.asset`, que `SandboxTools.BuildSandbox` cria vazio só se não existir. A chave web do Firebase não é segredo; a da OpenAI nunca entra ali. `useEmulator` aponta para os emuladores locais.
@@ -417,7 +423,7 @@ Regras em `firestore.rules`: só o dono lê e escreve `saves/{uid}` e `progress/
   - Saves antigos sem o campo continuam válidos, e id em branco é rejeitado.
   - `GameServices.Compendium` é o `FallacyCompendium` da sessão, com os ids do catálogo. O boot, `SelectSlot` e `SaveToSlot` o restauram do save do slot, junto com o tempo de jogo, e `StartNewGame` o esvazia. Depois do `ReconcileAsync`, as falácias do save remoto são somadas.
   - `GridSandboxController.CaptureSave` passa as desbloqueadas para `ExplorationSaveMapper.ToSave`, que soma com as do save anterior.
-- **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. Cada mapa usa o `GridSandboxController.LocationId` gravado na própria cena (`agora`, `kerameikos`).
+- **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. Cada mapa usa o `GridSandboxController.LocationId` gravado na própria cena (`agora`, `kerameikos`). Se a célula salva estiver ocupada, como a de partida de um oponente que andou na batalha, a Kleia volta na célula livre mais próxima (`GridWalker.TryFindFreeCellNear`). Célula fora do mapa ou bloqueada não restaura nada.
 
 O formato de `FogOfWar.ToBitmask` virou schema de banco. Mudá-lo invalida saves de playtest — se precisar, escreva migração.
 
@@ -542,7 +548,7 @@ unity vcs doctor
 - **Cena `MainMenu`:** tem câmera, EventSystem com `InputSystemUIInputModule`, `GameServices` e `MainMenuController`. "Continuar" só habilita quando algum slot é usável e abre `SaveSlotsView` para carregar. "Novo jogo" abre o mesmo painel para escolher o slot e pede confirmação antes de sobrescrever, com "Não" como padrão. Os dois carregam `GridSandbox` até existir o mapa do Ato I.
 - **Painéis:** `MenuListModel` pula entradas desabilitadas. `MenuListView`, `OptionsView`, `CreditsView` e `CompendiumView` implementam `IMenuPanel`. `SystemMenuInput` repassa teclado e gamepad ao painel ativo, e `PanelRowPointer` repassa o mouse.
 - **Opções:** `GameSettings` (Core) guarda volume em passos de 10%, velocidade do texto (15, 30 ou 60 caracteres por segundo) e modo assistido, persistidos em `settings.json` por `LocalSettingsStore`, com JSON tolerante que volta ao padrão. `GameServices.UpdateSettings` grava, aplica em `AudioListener.volume` e dispara `SettingsChanged`. `BattleHud.ApplySettings` leva velocidade e modo assistido para o diálogo e o menu.
-- **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot`, preserva o progresso do save anterior e acrescenta as falácias desbloqueadas e os duelos vencidos na sessão (`DuelProgress`).
+- **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. Se o envio falhar, o `Update` reenvia o save da sessão a cada `PushRetrySeconds` (30 s) até ele subir. Um save pendente que a sessão não gravou, carregado num boot offline, espera a reconciliação do próximo boot, para nunca sobrescrever um save mais novo da nuvem. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot`, preserva o progresso do save anterior e acrescenta as falácias desbloqueadas e os duelos vencidos na sessão (`DuelProgress`).
 - **Pausa:** `PauseMenu.prefab` fica em toda cena de mapa. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Salvar, Opções, Compêndio e Menu principal. Salvar só habilita com `SaveProvider` e serviços prontos e abre os slots com confirmação de sobrescrita. Menu principal salva no slot ativo por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
   - **Compêndio:** o painel vem dentro do prefab da pausa. No `Start`, o `PauseMenuController` chama `BindCompendium` com o `GameServices.Compendium` da cena, então a entrada fica habilitada em toda cena com `GameServices`. Sem painel ou sem serviços, ela fica desabilitada.
 - **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
