@@ -142,6 +142,16 @@ class QuantizeCommandTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("error footprint", output)
 
+    def test_a_background_keeps_up_to_its_own_colour_limit(self):
+        colors = sorted(set(load_gpl().colors))
+        pixels = [color + (OPAQUE,) for color in colors] * (384 * 216 // len(colors) + 1)
+        with tempfile.TemporaryDirectory() as folder:
+            save(from_pixels((384, 216), pixels[:384 * 216]), os.path.join(folder, "raw"), "bg_new.png")
+            code, output = run([os.path.join(folder, "raw"), "--out", os.path.join(folder, "out")])
+            quantized = {pixel[:3] for pixel in rgba_pixels(load_rgba(os.path.join(folder, "out", "bg_new.png")))}
+        self.assertEqual(code, 0, output)
+        self.assertEqual(quantized, set(colors))
+
     def test_exits_with_two_when_the_input_is_missing(self):
         with tempfile.TemporaryDirectory() as folder:
             code, _ = run([os.path.join(folder, "missing"), "--out", folder])

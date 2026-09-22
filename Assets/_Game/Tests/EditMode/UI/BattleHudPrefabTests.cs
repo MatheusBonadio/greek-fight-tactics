@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Game.Tests.EditMode.UI
 {
@@ -40,6 +41,105 @@ namespace Game.Tests.EditMode.UI
             Assert.IsNotNull(host.GetComponent<BattleMenuInput>().Controls);
             Assert.IsNotNull(hud.Dialogue);
             Assert.IsFalse(hud.Dialogue.IsOpen);
+        }
+
+        [Test]
+        public void Prefab_DrawsEveryPieceInsideTheBottomStrip()
+        {
+            var hud = InstantiateHud();
+            var strip = (RectTransform)host.transform.Find("Strip");
+            Assert.IsNotNull(strip, "the HUD keeps its pieces under a Strip rect");
+            Assert.AreEqual(BattleHudTools.StripHeight, strip.rect.height);
+            Assert.AreEqual(Mathf.RoundToInt(BattleHudTools.CanvasHeight * HudLayout.BottomStripFraction), BattleHudTools.StripHeight);
+
+            var graphics = host.GetComponentsInChildren<Graphic>(true);
+            Assert.IsNotEmpty(graphics);
+            foreach (var graphic in graphics)
+            {
+                Assert.IsTrue(graphic.transform.IsChildOf(strip), $"{graphic.name} is outside the strip");
+                var (bottom, top) = VerticalSpan(graphic.rectTransform, strip);
+                Assert.GreaterOrEqual(bottom, 0f, graphic.name);
+                Assert.LessOrEqual(top, BattleHudTools.StripHeight, graphic.name);
+            }
+
+            Assert.IsTrue(hud.Dialogue.transform.IsChildOf(strip));
+            Assert.IsTrue(hud.Menu.transform.IsChildOf(strip));
+        }
+
+        [Test]
+        public void Prefab_GivesKleiaAndTheChallengerTheirOwnSideColourAndBar()
+        {
+            var hud = InstantiateHud();
+            var player = hud.PlayerPanel;
+            var opponent = hud.OpponentPanel;
+
+            Assert.AreEqual(0f, ((RectTransform)player.transform).anchorMin.x, "Kleia sits on the left");
+            Assert.AreEqual(1f, ((RectTransform)opponent.transform).anchorMin.x, "the challenger sits on the right");
+
+            var playerPlate = player.NameLabel.GetComponentInParent<UiPlate>().Background.color;
+            var opponentPlate = opponent.NameLabel.GetComponentInParent<UiPlate>().Background.color;
+            Assert.Greater(playerPlate.b, playerPlate.r, "Kleia's plate is aegean blue");
+            Assert.Greater(opponentPlate.r, opponentPlate.b, "the challenger's plate is red");
+            Assert.AreEqual(playerPlate, ColorOf(player.transform, "FaceFrame"));
+            Assert.AreEqual(opponentPlate, ColorOf(opponent.transform, "FaceFrame"));
+
+            var playerFill = FillOf(player.Coherence);
+            var opponentFill = FillOf(opponent.Coherence);
+            Assert.AreEqual(BattleHudTools.PlayerBarSprite, playerFill.sprite.name);
+            Assert.AreEqual(BattleHudTools.ChallengerBarSprite, opponentFill.sprite.name);
+            Assert.AreEqual((int)Image.OriginHorizontal.Left, playerFill.fillOrigin);
+            Assert.AreEqual((int)Image.OriginHorizontal.Right, opponentFill.fillOrigin);
+
+            var audienceFill = hud.Audience.GetComponentsInChildren<Image>(true).First(image => image.type == Image.Type.Filled);
+            Assert.AreEqual(BattleHudTools.PlayerBarSprite, audienceFill.sprite.name, "Kleia's share of the crowd fills in her colour");
+            Assert.AreEqual(BattleHudTools.ChallengerBarSprite, audienceFill.transform.parent.GetComponent<Image>().sprite.name, "the rest of the crowd shows the challenger's colour");
+
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            var captions = host.GetComponentsInChildren<UiTextLabel>(true).Select(label => label.Key).ToList();
+            Assert.AreEqual(2, captions.Count(key => key == UiTextKeys.CoherenceCaption));
+            Assert.AreEqual(1, captions.Count(key => key == UiTextKeys.AudienceCaption));
+            Assert.AreEqual(uiText.Get(UiTextKeys.CoherenceCaption), player.transform.Find("Caption").GetComponent<TMPro.TMP_Text>().text);
+        }
+
+        [Test]
+        public void Introduce_LabelsEachPanelWithItsDebaterAndValue()
+        {
+            var hud = InstantiateHud();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            hud.Bind(state, new BattleMenuController(new ActionMenuModel(state, new BattleResolver()), catalog.RefutableIds));
+
+            hud.Introduce(new DebaterBadge("Kleia", null), new DebaterBadge("Thrasybios", null));
+
+            Assert.AreEqual("Kleia", hud.PlayerPanel.NameLabel.text);
+            Assert.AreEqual("Thrasybios", hud.OpponentPanel.NameLabel.text);
+            Assert.AreEqual(TMPro.FontStyles.UpperCase, hud.OpponentPanel.NameLabel.fontStyle & TMPro.FontStyles.UpperCase);
+            Assert.AreEqual(DebaterPanelView.ValueText(state.Player.Coherence, state.Player.MaxCoherence), hud.PlayerPanel.ValueLabel.text);
+            Assert.AreEqual(DebaterPanelView.ValueText(state.Opponent.Coherence, state.Opponent.MaxCoherence), hud.OpponentPanel.ValueLabel.text);
+            Assert.AreEqual(AudienceMeterView.ShareText(state.PlayerAudience), hud.Audience.PlayerShareLabel.text);
+        }
+
+        [Test]
+        public void OpeningASubmenu_MovesTheDialogueBesideItAndBackWhenItCloses()
+        {
+            var hud = InstantiateHud();
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "a", "b" }, 1, ArgumentTones.Mocking)), state));
+            hud.Bind(state, new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds));
+            Assert.AreEqual(hud.DialogueLeft, hud.DialogueArea.offsetMin.x);
+
+            hud.Menu.HandleNavigate(Vector2.down);
+            hud.Menu.HandleConfirm();
+            Assert.IsTrue(hud.Menu.SubmenuPanel.activeSelf);
+            Assert.AreEqual(hud.DialogueLeftBesideSubmenu, hud.DialogueArea.offsetMin.x);
+            var submenu = (RectTransform)hud.Menu.SubmenuPanel.transform;
+            Assert.LessOrEqual(submenu.anchoredPosition.x + submenu.sizeDelta.x, hud.DialogueLeftBesideSubmenu, "the dialogue never covers the list it talks about");
+
+            hud.Menu.HandleCancel();
+            Assert.IsFalse(hud.Menu.SubmenuPanel.activeSelf);
+            Assert.AreEqual(hud.DialogueLeft, hud.DialogueArea.offsetMin.x);
         }
 
         [Test]
@@ -124,6 +224,30 @@ namespace Game.Tests.EditMode.UI
 
             Assert.AreEqual(1, picked);
             Assert.IsFalse(box.IsOpen);
+        }
+
+        private static Image FillOf(BarView bar) =>
+            bar.GetComponentsInChildren<Image>(true).First(image => image.type == Image.Type.Filled);
+
+        private static Color ColorOf(Transform root, string name) =>
+            root.GetComponentsInChildren<Image>(true).First(image => image.name == name).color;
+
+        private static (float Bottom, float Top) VerticalSpan(RectTransform rect, RectTransform space)
+        {
+            var corners = new Vector3[4];
+            rect.GetLocalCorners(corners);
+            var heights = corners.Select(corner => InSpace(rect, corner, space).y - space.rect.yMin).ToList();
+            return (heights.Min(), heights.Max());
+        }
+
+        private static Vector3 InSpace(Transform transform, Vector3 point, Transform space)
+        {
+            for (var current = transform; current != space; current = current.parent)
+            {
+                point = current.localRotation * Vector3.Scale(point, current.localScale) + current.localPosition;
+            }
+
+            return point;
         }
 
         private BattleHud InstantiateHud()

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: cd1059f1a76df6540bb461940174736f
+guid: 7d450a6acb9d12048a7cb6e55974e17d
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Press Start 2P
+  - Ark Pixel 10px Prop latin
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

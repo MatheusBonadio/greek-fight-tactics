@@ -7,10 +7,10 @@ namespace Game.UI
     public sealed class JurorMeterView : MonoBehaviour
     {
         [SerializeField] private RawImage image;
-        [SerializeField] private Color trackColor = new Color32(24, 24, 40, 255);
+        [SerializeField] private Color trackColor = new Color32(0, 0, 0, 255);
         [SerializeField] private Color acquittalColor = new Color32(72, 200, 224, 255);
         [SerializeField] private Color condemnationColor = new Color32(192, 56, 40, 255);
-        [SerializeField] private Color menexenoColor = new Color32(248, 224, 88, 255);
+        [SerializeField] private Color menexenoColor = new Color32(248, 216, 48, 255);
 
         private Texture2D texture;
         private int painted;

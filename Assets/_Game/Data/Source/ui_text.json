@@ -39,7 +39,7 @@
     "compendium.counter": "{0}/{1} descobertas",
     "compendium.empty": "Nenhuma falácia descoberta ainda.",
     "credits.title": "CRÉDITOS",
-    "credits.body": "Greek Fight Tactics\nUm tactics de dialética em Atenas, 402 a.C.\n\nFONTES\nPress Start 2P, The Press Start 2P Project Authors, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licença MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 própria em art/palette.\n\nSERVIÇOS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor.",
+    "credits.body": "Greek Fight Tactics\nUm tactics de dialética em Atenas, 402 a.C.\n\nFONTES\nArk Pixel Font, Copyright (c) 2021, TakWolf, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licença MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 própria em art/palette.\nCenários e tela de título gerados com PixelLab e ajustados à mesma paleta.\n\nSERVIÇOS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor.",
     "menu.choose_fallacy": "Qual falácia?",
     "options.title": "OPÇÕES",
     "options.volume": "Volume",
@@ -52,6 +52,7 @@
     "options.on": "Ligado",
     "options.off": "Desligado",
     "system.game_title": "GREEK FIGHT TACTICS",
+    "system.game_subtitle": "Atenas, 402 a.C.",
     "system.continue": "CONTINUAR",
     "system.new_game": "NOVO JOGO",
     "system.options": "OPÇÕES",
@@ -74,6 +75,8 @@
     "rejection.invalid_premise": "Essa premissa não existe.",
     "rejection.no_quote_uses": "Nenhum pergaminho restante.",
     "rejection.missing_argument": "Falta um argumento para responder.",
-    "rejection.action_locked": "Kleia ainda não aprendeu a perguntar assim."
+    "rejection.action_locked": "Kleia ainda não aprendeu a perguntar assim.",
+    "hud.coherence": "COERÊNCIA",
+    "hud.audience": "PLATEIA"
   }
 }

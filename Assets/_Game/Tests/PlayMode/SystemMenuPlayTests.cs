@@ -20,6 +20,9 @@ namespace Game.Tests.PlayMode
         private const int ResumeRow = 0;
         private const int SaveRow = 1;
         private const int CompendiumRow = 3;
+        private const string MainMenuCapturePath = "artifacts/reference/main_menu.png";
+        private const string SlotsCapturePath = "artifacts/reference/main_menu_slots.png";
+        private const string OptionsCapturePath = "artifacts/reference/main_menu_options.png";
 
         private GameServices services;
         private GameSettings originalSettings;
@@ -150,6 +153,27 @@ namespace Game.Tests.PlayMode
             Assert.IsNotEmpty(save.FogBitmask);
             Assert.GreaterOrEqual(save.PlaytimeSeconds, 0);
             Assert.Greater(save.Timestamp, 0);
+        }
+
+        [UnityTest]
+        [Explicit("renders the title screen and its panels under artifacts/reference for a visual review")]
+        public IEnumerator Capture_MainMenu()
+        {
+            var controller = default(MainMenuController);
+            yield return LoadMainMenu(loaded => controller = loaded);
+            yield return UiCapture.Screen(MainMenuCapturePath);
+
+            controller.MainMenu.HandlePoint(NewGameRow);
+            controller.MainMenu.HandleConfirm();
+            yield return null;
+            yield return UiCapture.Screen(SlotsCapturePath);
+            controller.Slots.HandleCancel();
+            yield return null;
+
+            controller.MainMenu.HandlePoint(OptionsRow);
+            controller.MainMenu.HandleConfirm();
+            yield return null;
+            yield return UiCapture.Screen(OptionsCapturePath);
         }
 
         private IEnumerator LoadMainMenu(Action<MainMenuController> loaded)

@@ -9,8 +9,8 @@ namespace Game.UI
     public sealed class ActionMenuView : MonoBehaviour
     {
         public const float CursorBlinkSeconds = 0.5f;
-        public const float CursorOffsetX = -10f;
-        public const float CursorOffsetY = -2f;
+        public const float CursorOffsetX = -8f;
+        public const float CursorOffsetY = -3f;
 
         [SerializeField] private TMP_Text[] actionRows = Array.Empty<TMP_Text>();
         [SerializeField] private RectTransform actionCursor;
@@ -21,9 +21,9 @@ namespace Game.UI
         [SerializeField] private RectTransform submenuCursor;
         [SerializeField] private UiTextSO text;
         [SerializeField] private FallacyCatalogSO catalog;
-        [SerializeField] private Color availableColor = new Color32(248, 248, 240, 255);
+        [SerializeField] private Color availableColor = new Color32(248, 248, 248, 255);
         [SerializeField] private Color unavailableColor = new Color32(120, 120, 128, 255);
-        [SerializeField] private Color hintColor = new Color32(248, 224, 88, 255);
+        [SerializeField] private Color hintColor = new Color32(248, 216, 48, 255);
         [SerializeField] private bool assistedMode;
 
         private float blinkClock;
@@ -33,6 +33,8 @@ namespace Game.UI
         public event Action<BattleMenuChoice> ChoiceMade;
 
         public event Action<ActionMenuEntry> SelectionChanged;
+
+        public event Action<bool> SubmenuToggled;
 
         public BattleMenuController Controller { get; private set; }
 
@@ -178,7 +180,12 @@ namespace Game.UI
             RenderActions();
             NotifySelection();
             var inSubmenu = Controller.Layer != BattleMenuLayer.Actions;
-            submenuPanel.SetActive(inSubmenu);
+            if (submenuPanel.activeSelf != inSubmenu)
+            {
+                submenuPanel.SetActive(inSubmenu);
+                SubmenuToggled?.Invoke(inSubmenu);
+            }
+
             if (inSubmenu)
             {
                 RenderSubmenu();

@@ -1,3 +1,5 @@
+using System.Globalization;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,8 +10,18 @@ namespace Game.UI
         [SerializeField] private Image playerFill;
         [SerializeField] private RectTransform marker;
         [SerializeField] private int pixelWidth = BarView.DefaultPixelWidth;
+        [SerializeField] private TMP_Text playerShareLabel;
+        [SerializeField] private TMP_Text opponentShareLabel;
+
+        private int shownPlayerShare = -1;
 
         public AudienceMeter Meter { get; private set; }
+
+        public TMP_Text PlayerShareLabel => playerShareLabel;
+
+        public TMP_Text OpponentShareLabel => opponentShareLabel;
+
+        public static string ShareText(int share) => string.Format(CultureInfo.InvariantCulture, "{0}%", share);
 
         public void Configure(Image playerFillImage, RectTransform markerTransform, int widthInPixels)
         {
@@ -18,9 +30,16 @@ namespace Game.UI
             pixelWidth = widthInPixels;
         }
 
+        public void ConfigureShares(TMP_Text playerShare, TMP_Text opponentShare)
+        {
+            playerShareLabel = playerShare;
+            opponentShareLabel = opponentShare;
+        }
+
         public void Bind(AudienceMeter meter)
         {
             Meter = meter;
+            shownPlayerShare = -1;
             Render();
         }
 
@@ -52,6 +71,28 @@ namespace Game.UI
             if (marker)
             {
                 marker.anchoredPosition = new Vector2(Mathf.Round(ratio * pixelWidth) - pixelWidth / 2f, marker.anchoredPosition.y);
+            }
+
+            RenderShares();
+        }
+
+        private void RenderShares()
+        {
+            var share = Mathf.RoundToInt(Meter.DisplayedPlayerShare);
+            if (share == shownPlayerShare)
+            {
+                return;
+            }
+
+            shownPlayerShare = share;
+            if (playerShareLabel)
+            {
+                playerShareLabel.text = ShareText(share);
+            }
+
+            if (opponentShareLabel)
+            {
+                opponentShareLabel.text = ShareText(AudienceMeter.MaxShare - share);
             }
         }
     }

@@ -8,6 +8,7 @@ from palette import is_rgb555, to_hex
 from tile_preview import CELL_HEIGHT, CELL_WIDTH, count_gaps, count_outside_footprint
 
 MAX_OPAQUE_COLORS = 15
+BACKGROUND_MAX_COLORS = 64
 LISTED_COLORS = 6
 
 ERROR = "error"
@@ -34,6 +35,7 @@ class SizeRule:
     min_height: int
     max_height: Optional[int]
     diamond: bool = False
+    max_colors: int = MAX_OPAQUE_COLORS
 
     def matches(self, name):
         return re.search(self.pattern, name) is not None
@@ -58,8 +60,8 @@ class SizeRule:
         return f"{width}x{height}"
 
 
-def exact(label, pattern, width, height, diamond=False):
-    return SizeRule(label, pattern, width, width, height, height, diamond)
+def exact(label, pattern, width, height, diamond=False, max_colors=MAX_OPAQUE_COLORS):
+    return SizeRule(label, pattern, width, width, height, height, diamond, max_colors)
 
 
 SIZE_RULES = (
@@ -79,15 +81,22 @@ SIZE_RULES = (
     exact("menu box", r"^box_menu$", 96, 88),
     exact("dialogue box", r"^box_dialogue$", 208, 48),
     exact("portrait frame", r"^frame_portrait$", 40, 40),
+    exact("bar frame", r"^frame_bar$", 64, 8),
     exact("cursor", r"^cursor$", 8, 8),
     exact("fallacy icon", r"^icon_", 16, 16),
     exact("juror meter", r"^meter_jurors$", 200, 16),
+    exact("title background", r"^bg_", 384, 216, max_colors=BACKGROUND_MAX_COLORS),
 )
 
 
 def size_rule_for(name):
     key = stem(name)
     return next((rule for rule in SIZE_RULES if rule.matches(key)), None)
+
+
+def color_limit_for(name):
+    rule = size_rule_for(name)
+    return rule.max_colors if rule is not None else MAX_OPAQUE_COLORS
 
 
 @dataclass(frozen=True)
@@ -157,9 +166,10 @@ def inspect(path, image, palette, skip=()):
 
 
 def check_color_limit(report):
-    if report.colors <= MAX_OPAQUE_COLORS:
+    limit = color_limit_for(report.path)
+    if report.colors <= limit:
         return []
-    return [Issue(COLORS_RULE, ERROR, f"{report.colors} colours, the limit is {MAX_OPAQUE_COLORS} + transparent")]
+    return [Issue(COLORS_RULE, ERROR, f"{report.colors} colours, the limit is {limit} + transparent")]
 
 
 def check_alpha(report):

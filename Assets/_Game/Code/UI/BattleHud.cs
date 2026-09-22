@@ -9,19 +9,26 @@ namespace Game.UI
     public sealed class BattleHud : MonoBehaviour
     {
         [SerializeField] private Canvas canvas;
-        [SerializeField] private BarView playerCoherence;
-        [SerializeField] private BarView opponentCoherence;
+        [SerializeField] private DebaterPanelView playerPanel;
+        [SerializeField] private DebaterPanelView opponentPanel;
         [SerializeField] private AudienceMeterView audience;
         [SerializeField] private ActionMenuView menu;
         [SerializeField] private DialogueBoxView dialogue;
+        [SerializeField] private RectTransform dialogueArea;
+        [SerializeField] private float dialogueLeft;
+        [SerializeField] private float dialogueLeftBesideSubmenu;
 
         private RangeHighlighter previewHighlighter;
 
         public Canvas Canvas => canvas;
 
-        public BarView PlayerCoherence => playerCoherence;
+        public DebaterPanelView PlayerPanel => playerPanel;
 
-        public BarView OpponentCoherence => opponentCoherence;
+        public DebaterPanelView OpponentPanel => opponentPanel;
+
+        public BarView PlayerCoherence => playerPanel.Coherence;
+
+        public BarView OpponentCoherence => opponentPanel.Coherence;
 
         public AudienceMeterView Audience => audience;
 
@@ -29,25 +36,49 @@ namespace Game.UI
 
         public DialogueBoxView Dialogue => dialogue;
 
+        public RectTransform DialogueArea => dialogueArea;
+
+        public float DialogueLeft => dialogueLeft;
+
+        public float DialogueLeftBesideSubmenu => dialogueLeftBesideSubmenu;
+
         public BattleState State { get; private set; }
 
-        public void Configure(Canvas hudCanvas, BarView player, BarView opponent, AudienceMeterView audienceMeter, ActionMenuView actionMenu, DialogueBoxView dialogueBox)
+        public void Configure(Canvas hudCanvas, DebaterPanelView player, DebaterPanelView opponent, AudienceMeterView audienceMeter, ActionMenuView actionMenu, DialogueBoxView dialogueBox)
         {
             canvas = hudCanvas;
-            playerCoherence = player;
-            opponentCoherence = opponent;
+            playerPanel = player;
+            opponentPanel = opponent;
             audience = audienceMeter;
             menu = actionMenu;
             dialogue = dialogueBox;
         }
 
+        public void ConfigureDialogueArea(RectTransform area, float left, float leftBesideSubmenu)
+        {
+            dialogueArea = area;
+            dialogueLeft = left;
+            dialogueLeftBesideSubmenu = leftBesideSubmenu;
+        }
+
         public void Bind(BattleState state, BattleMenuController controller)
         {
             State = state ?? throw new ArgumentNullException(nameof(state));
-            playerCoherence.Bind(new DrainingBar(state.Player.MaxCoherence, state.Player.Coherence));
-            opponentCoherence.Bind(new DrainingBar(state.Opponent.MaxCoherence, state.Opponent.Coherence));
+            PlayerCoherence.Bind(new DrainingBar(state.Player.MaxCoherence, state.Player.Coherence));
+            OpponentCoherence.Bind(new DrainingBar(state.Opponent.MaxCoherence, state.Opponent.Coherence));
+            playerPanel.RenderValue();
+            opponentPanel.RenderValue();
             audience.Bind(new AudienceMeter(state.PlayerAudience));
+            menu.SubmenuToggled -= PlaceDialogue;
+            menu.SubmenuToggled += PlaceDialogue;
             menu.Bind(controller);
+            PlaceDialogue(menu.SubmenuPanel && menu.SubmenuPanel.activeSelf);
+        }
+
+        public void Introduce(DebaterBadge player, DebaterBadge opponent)
+        {
+            playerPanel.Show(player);
+            opponentPanel.Show(opponent);
         }
 
         public void BindPreview(RangeHighlighter highlighter)
@@ -84,8 +115,8 @@ namespace Game.UI
                 return;
             }
 
-            playerCoherence.Bar.SetValue(State.Player.Coherence);
-            opponentCoherence.Bar.SetValue(State.Opponent.Coherence);
+            PlayerCoherence.Bar.SetValue(State.Player.Coherence);
+            OpponentCoherence.Bar.SetValue(State.Opponent.Coherence);
             audience.Meter.SetPlayerShare(State.PlayerAudience);
             menu.Controller?.Refresh();
             menu.Render();
@@ -96,7 +127,18 @@ namespace Game.UI
             if (menu)
             {
                 menu.SelectionChanged -= OnSelectionChanged;
+                menu.SubmenuToggled -= PlaceDialogue;
             }
+        }
+
+        private void PlaceDialogue(bool besideSubmenu)
+        {
+            if (!dialogueArea)
+            {
+                return;
+            }
+
+            dialogueArea.offsetMin = new Vector2(besideSubmenu ? dialogueLeftBesideSubmenu : dialogueLeft, dialogueArea.offsetMin.y);
         }
 
         private void OnSelectionChanged(ActionMenuEntry entry)

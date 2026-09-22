@@ -17,6 +17,10 @@ namespace Game.Tests.EditMode.UI
         private const string LongSpeech =
             "Você fala da justiça como quem fala do barro: sabe moldar, mas não sabe dizer o que é. Se a justiça é dar a cada um o que lhe é devido, então devemos devolver a espada ao amigo que enlouqueceu? Responda devagar, porque a ágora inteira está ouvindo e ninguém aqui esquece uma resposta apressada.";
 
+        private const int BodyWidth = 192;
+        private const int BodyHeight = 3 * BattleHudTools.LineHeight;
+        private const float WidthTolerance = 0.01f;
+
         private GameObject host;
         private Texture2D texture;
 
@@ -45,7 +49,7 @@ namespace Game.Tests.EditMode.UI
             Assert.Greater(info.lineCount, 1);
             for (var line = 0; line < info.lineCount; line++)
             {
-                Assert.LessOrEqual(info.lineInfo[line].width, DialogueBoxView.BoxPixelWidth);
+                Assert.LessOrEqual(info.lineInfo[line].width, BodyWidth + WidthTolerance);
             }
         }
 
@@ -95,6 +99,25 @@ namespace Game.Tests.EditMode.UI
 
             view.Show(new DialogueLine("Plateia", null, "Risos na ágora."));
             Assert.IsFalse(view.PortraitFrame.activeSelf);
+            Object.DestroyImmediate(sprite);
+        }
+
+        [Test]
+        public void DialogueBox_KeepsTheTextClearOfTheSpeakerAndOfTheChoices()
+        {
+            var view = CreateDialogue();
+            view.ConfigureMargins(46f, 134f);
+            texture = new Texture2D(32, 32);
+            var sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 16f);
+
+            view.Show(new DialogueLine("Damaris", sprite, "Eu ouvi tudo."));
+            Assert.AreEqual(new Vector4(46f, 0f, 0f, 0f), view.Body.margin);
+
+            view.Show(new DialogueLine("Thrasybios", null, "Aceita as aulas?"), new[] { "Aceitar", "Recusar" });
+            Assert.AreEqual(new Vector4(46f, 0f, 134f, 0f), view.Body.margin, "a named speaker keeps the column under the portrait free for the name");
+
+            view.Show(new DialogueLine(string.Empty, null, "A roda se desfaz."));
+            Assert.AreEqual(Vector4.zero, view.Body.margin);
             Object.DestroyImmediate(sprite);
         }
 
@@ -277,7 +300,7 @@ namespace Game.Tests.EditMode.UI
             var box = new GameObject("box", typeof(RectTransform));
             box.transform.SetParent(host.transform, false);
             var body = Child<TextMeshProUGUI>("body", box.transform);
-            body.rectTransform.sizeDelta = new Vector2(DialogueBoxView.BoxPixelWidth - 2 * BattleHudTools.DialoguePadding, BattleHudTools.DialogueHeight - BattleHudTools.DialoguePadding);
+            body.rectTransform.sizeDelta = new Vector2(BodyWidth, BodyHeight);
             body.font = TMP_Settings.defaultFontAsset;
             body.fontSize = BattleHudTools.FontSize;
             body.textWrappingMode = TextWrappingModes.Normal;

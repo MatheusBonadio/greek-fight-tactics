@@ -24,7 +24,7 @@ art/
       floor/     10 tiles 32x16
       blocks/    10 blocos e props 32x(16+altura)
       overlays/  névoa + 4 realces de alcance
-    ui/          caixas, barras, cursor, moldura
+    ui/          caixas, barras, cursor, moldura e o fundo da tela de título
   incoming/
     track_a/  track_b/   arte entregue que o jogo ainda não usa + generation_log.csv
 ```
@@ -47,6 +47,7 @@ Inglês, `snake_case`, com prefixo por categoria. O prefixo é o que o importer 
 | `overlay_` / `fog` | Camada acima do chão | `fog.png` |
 | `hl_` | Realce de alcance | `hl_refute.png` |
 | `bar_` / `box_` / `frame_` / `icon_` / `meter_` | UI | `bar_coherence.png` |
+| `bg_` | Fundo de tela no quadro nativo de 384×216 | `bg_title.png` |
 | `<personagem>_sheet` / `<personagem>_idle_se` | Personagem | `kleia_sheet.png` |
 | `<personagem>_portrait` | Retrato 32×32 da caixa de diálogo | `aristeu_portrait.png` |
 | `<tile>_<n>` | Quadro `n` (1, 2…) de um tile animado; `<tile>.png` é o quadro 0. Vira `AnimatedTile` em que todas as células tocam juntas | `floor_water_1.png` |
@@ -83,15 +84,14 @@ A palette v2 tem 44 entradas RGB555 — todos os canais múltiplos de 8 — em `
 Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qualquer arte entrar em `art/`:
 
 1. Todo pixel opaco pertence à paleta. Sem exceção para "quase igual".
-2. Máximo de 15 cores + transparente por sprite.
+2. Máximo de 15 cores + transparente por sprite. A exceção é o fundo de tela (`bg_`), que pode ter até 64 cores (`BACKGROUND_MAX_COLORS`): no SNES uma camada de fundo usa várias subpaletas de 15 cores, e um céu com nuvens ou uma cidade inteira não cabe numa só. Ele continua preso à paleta, sem alfa parcial e no tamanho exato de 384×216.
 3. A grade é marcada por uma linha sutil, nunca por contorno escuro. A junta do tile de chão é o tom da rampa logo abaixo do tom dominante do próprio material (mármore `marble_light` → `marble_mid`, grama `olive_light` → `olive_mid`, terra `ochre_mid` → `ochre_shade`), e a de parede e degrau é o tom mais escuro do material (`ochre_dark` no tijolo, `marble_cold_dark` no mármore), para os tiles se emendarem. Props e personagens levam `outline`, e objetos de mármore soltos, `outline_blue`. O tile de chão só marca as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com junta nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`, olhando só a borda de baixo do losango, então o tom da junta pode aparecer como textura no miolo.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
-O `verify.py` cobre as regras 1, 2 e 4, o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa e realce (`floor_`, `fog*`, `hl_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em quatro pontos, todos pendentes de decisão e não regressão:
+O `verify.py` cobre as regras 1, 2 e 4 (com o limite de cores de cada prefixo), o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa e realce (`floor_`, `fog*`, `hl_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em três pontos, todos pendentes de decisão e não regressão:
 - A sombra dos personagens é translúcida, em `#101020`: 16 px com alfa 90 nos `_idle_se` e 208 px em `#06060B` com alfa 32 nas folhas, que também saem do RGB555.
 - Névoa (`fog*`) em `#101020`, a cor que o GDD 6.5 pede mas que não está na paleta.
 - Realces `hl_*` a 55% de alfa, como o GDD 6.5 especifica, contra a regra 4.
-- `box_dialogue` tem 160×40, e o GDD e o `DialogueBoxView` usam 208×48.
 
 Não esconda essas falhas com `--skip`: ou a arte muda, ou a regra muda no GDD e aqui.
 
@@ -105,6 +105,7 @@ Não esconda essas falhas com `--skip`: ou a arte muda, ou a regra muda no GDD e
 | Bloco | 32×(16+altura) | Bottom Left | `wall_*` são 32×32 (16 de topo + 16 de parede); `block_doric_column` é 32×56 |
 | Prop maior que a célula | até 48×64 | Bottom Left | Ocupa 1 célula e transborda |
 | Personagem | 24×32 | Custom `(0.5, 0.0625)` | Pés na linha y = 30 a partir do topo |
+| Fundo de tela (`bg_`) | 384×216 | Center | Quadro nativo; a tela de título o estica para cobrir a tela (5× em 1080p) |
 
 **Centro da célula.** Todo prop ou bloco mais estreito que a célula fica com a base no centro do losango: a linha mais larga e mais baixa da base (entre as 10 últimas linhas do sprite) vai para 8 linhas acima do fundo do canvas, que é a linha mais larga do chão, e o meio dela vai para x = 16. Numa caixa (barraca, baú), essa linha é onde terminam as arestas verticais, ou seja, as pontas laterais da base. Base desenhada na frente da célula faz o objeto parecer afundado ou deslocado para baixo. `python tools/art/anchor.py <pasta>` mede o desvio de cada `prop_` e `block_`, e `--fix` move o sprite, crescendo o canvas para cima quando falta espaço. Pixel solto na base engana a medida: limpe antes. Bloco de largura cheia (32 px na base) já é a célula e não se move.
 
@@ -259,7 +260,7 @@ O template de prompt, os negativos e a variação para tiles estão na seção 9
    - A dimensão vem de `--size WxH`, do PNG de mesmo nome na pasta de `--like` ou, na falta dele, do prefixo do nome.
    - O redimensionamento é Nearest Neighbor. Como cada pixel é mapeado sozinho, dá no mesmo que quantizar primeiro.
    - Cada pixel vai para a cor mais próxima da paleta pela distância RGB ponderada por luminância, `30·ΔR² + 59·ΔG² + 11·ΔB²` (`weighted_distance` em `tools/art/palette.py`), sem dithering. O peso multiplica a diferença já elevada ao quadrado: pesar o canal antes de elevar ao quadrado eleva o peso também, e aí o azul quase não conta e violeta vira marrom.
-   - Se sobrarem mais de 15 cores, ficam as 15 mais usadas e o resto é remapeado entre elas (`--max-colors 0` desliga).
+   - Se sobrarem mais cores que o limite do prefixo (15, ou 64 num `bg_`), ficam as mais usadas e o resto é remapeado entre elas (`--max-colors N` troca o limite e `--max-colors 0` o desliga).
    - Sprite do mundo é quantizado contra a rampa do material (§4.6 da spec), passada em `--palette` como um `.gpl` com só aquelas entradas da `snes.gpl`. Com a paleta inteira, o branco quase puro cai em `ui_white` e o preto em `void`.
    - Ao final, o script já roda as mesmas checagens do `verify.py` sobre a saída.
 3. Confira o lote com o relatório de cores por arquivo; ele sai com código 1 se algo quebrar as regras:
@@ -290,6 +291,14 @@ Os rótulos de menu e a migração do `default.gpl` foram conferidos no código-
 
 O Aseprite serve para retoque. A conversão em lote é do `quantize.py`, e o que vale é o que passa no `verify.py`.
 
+## UI
+
+O kit da interface segue a referência (`art/reference/target_style.md`): caixa preta com borda branca de 1 px e cantos cortados, cursor ▸ dourado e plaqueta de nome.
+- `box_*` recebe borda de 9-slice de 2 px no `PixelArtImporter`, então uma caixa de 96×88 vira a janela de qualquer tamanho sem esticar a borda.
+- As barras têm 64×8 e ficam sob a moldura `frame_bar`: `bar_coherence` (egeu) é a Coerência da Kleia e a parte dela na Plateia, `bar_challenger` (vermelho) é a do desafiante. `bar_audience` (ouro) é o placeholder antigo da Plateia e está sem uso.
+- O canvas da UI tem referência de 640×360 (3× em 1080p, 2× em 720p, 4× em 1440p), então um pixel da UI é sempre um múltiplo inteiro de pixels da tela. O mundo continua na câmera de 224×224 (4× em 1080p).
+- `bg_title.png` é a tela de título: a Acrópole e o Partenon ao pôr do sol sobre Atenas, gerada no PixelLab em 384×216 e já na paleta (29 cores).
+
 ## Fonte
 
-Bitmap de 8 px com acentuação completa. Acentuação em fonte bitmap quebra em silêncio: ao tocar em fonte ou texto, teste `ç Ç ã Ã õ Õ â ê ô á é í ó ú à` e o travessão `—`.
+Ark Pixel Font 10px Proportional, variante latin (SIL OFL 1.1, `Assets/_Game/Fonts/ArkPixel`). Maiúsculas de 7 px, minúsculas de 5 px, avanço de 4 a 6 px e linha de 14 px, do topo do acento ao pé do descendente. Ela desenha as maiúsculas acentuadas inteiras, com o acento acima da linha de capitular. Usada no tamanho nativo 10: um pixel da fonte é um pixel do canvas. Ao tocar em fonte ou texto, teste `ç Ç ã Ã õ Õ â ê ô á é í ó ú à` e o travessão `—`.

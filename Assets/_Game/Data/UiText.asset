@@ -92,7 +92,7 @@ MonoBehaviour:
   - key: credits.title
     value: "CR\xC9DITOS"
   - key: credits.body
-    value: "Greek Fight Tactics\nUm tactics de dial\xE9tica em Atenas, 402 a.C.\n\nFONTES\nPress Start 2P, The Press Start 2P Project Authors, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licen\xE7a MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 pr\xF3pria em art/palette.\n\nSERVI\xC7OS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor."
+    value: "Greek Fight Tactics\nUm tactics de dial\xE9tica em Atenas, 402 a.C.\n\nFONTES\nArk Pixel Font, Copyright (c) 2021, TakWolf, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licen\xE7a MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 pr\xF3pria em art/palette.\nCen\xE1rios e tela de t\xEDtulo gerados com PixelLab e ajustados \xE0 mesma paleta.\n\nSERVI\xC7OS\nFirebase (Authentication, Firestore e Cloud Functions) e OpenAI, acessados apenas pelo servidor."
   - key: menu.choose_fallacy
     value: "Qual fal\xE1cia?"
   - key: options.title
@@ -117,6 +117,8 @@ MonoBehaviour:
     value: Desligado
   - key: system.game_title
     value: GREEK FIGHT TACTICS
+  - key: system.game_subtitle
+    value: Atenas, 402 a.C.
   - key: system.continue
     value: CONTINUAR
   - key: system.new_game
@@ -163,3 +165,7 @@ MonoBehaviour:
     value: Falta um argumento para responder.
   - key: rejection.action_locked
     value: "Kleia ainda n\xE3o aprendeu a perguntar assim."
+  - key: hud.coherence
+    value: "COER\xCANCIA"
+  - key: hud.audience
+    value: PLATEIA

@@ -9,7 +9,7 @@ from PIL import Image
 
 from images import CLEAR, OPAQUE, display_path, from_pixels, load_rgba, parse_size, png_files, rgba_pixels, stem
 from palette import DEFAULT_PALETTE, load_gpl
-from sprite_rules import MAX_OPAQUE_COLORS, inspect, size_rule_for
+from sprite_rules import BACKGROUND_MAX_COLORS, MAX_OPAQUE_COLORS, color_limit_for, inspect, size_rule_for
 
 DEFAULT_ALPHA_THRESHOLD = 128
 MAX_COLOR_LIMIT = 256
@@ -95,7 +95,7 @@ def parse_arguments(argv):
     sizes.add_argument("--size", type=size_argument, help="exact WxH for every file, such as 32x16")
     sizes.add_argument("--like", metavar="FOLDER", help="take each size from the PNG with the same name in FOLDER, such as art/placeholders")
     parser.add_argument("--alpha-threshold", type=ranged(1, OPAQUE), default=DEFAULT_ALPHA_THRESHOLD, help="alpha below this turns transparent, the rest opaque (default: 128)")
-    parser.add_argument("--max-colors", type=ranged(0, MAX_COLOR_LIMIT), default=MAX_OPAQUE_COLORS, help=f"keep the N most used palette colours, 0 for no limit (default: {MAX_OPAQUE_COLORS})")
+    parser.add_argument("--max-colors", type=ranged(0, MAX_COLOR_LIMIT), default=None, help=f"keep the N most used palette colours, 0 for no limit (default: the limit of the name prefix, {MAX_OPAQUE_COLORS}, or {BACKGROUND_MAX_COLORS} for a bg_ background)")
     return parser.parse_args(argv)
 
 
@@ -124,7 +124,8 @@ def main(argv=None):
     failed = 0
     for path, relative in files:
         size, size_source = target_size(path, arguments.size, references)
-        result = quantize_image(load_rgba(path), palette, size, arguments.alpha_threshold, arguments.max_colors)
+        max_colors = color_limit_for(path) if arguments.max_colors is None else arguments.max_colors
+        result = quantize_image(load_rgba(path), palette, size, arguments.alpha_threshold, max_colors)
 
         target = os.path.join(arguments.out, relative)
         os.makedirs(os.path.dirname(os.path.abspath(target)), exist_ok=True)

@@ -11,16 +11,16 @@ namespace Game.EditorTools
 {
     public static class FontTools
     {
-        public const string PixelFontPath = "Assets/_Game/Fonts/PressStart2P/PressStart2P-Regular.ttf";
-        public const string PixelFontAssetPath = "Assets/_Game/Fonts/PressStart2P/PressStart2P Pixel.asset";
+        public const string PixelFontFolder = "Assets/_Game/Fonts/ArkPixel";
+        public const string PixelFontPath = PixelFontFolder + "/ark-pixel-10px-proportional-latin.ttf";
+        public const string PixelFontAssetPath = PixelFontFolder + "/ArkPixel10 Pixel.asset";
         public const string FallbackFontAssetPath = UiTools.TextMeshProFolder + "/Resources/Fonts & Materials/LiberationSans SDF.asset";
-        public const int SamplingPointSize = 16;
+        public const int NativePixelSize = 10;
         public const int AtlasPadding = 1;
         public const int AtlasSize = 512;
         public const string Characters =
             " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" +
-            "áéíóúâêôãõàçÁÉÍÓÚÂÊÔÃÕÀÇ“”‘’—…·ºª°";
-        public const string RaisedAccentCapitals = "ÁÀÂÃÉÊÍÓÔÕÚ";
+            "áéíóúâêôãõàçÁÉÍÓÚÂÊÔÃÕÀÇ“”‘’—…·ºª°□";
 
         private const string DefaultFontProperty = "m_defaultFontAsset";
 
@@ -41,7 +41,7 @@ namespace Game.EditorTools
 
         private static TMP_FontAsset CreatePixelFont(Font font)
         {
-            var asset = TMP_FontAsset.CreateFontAsset(font, SamplingPointSize, AtlasPadding, GlyphRenderMode.RASTER, AtlasSize, AtlasSize, AtlasPopulationMode.Dynamic, false);
+            var asset = TMP_FontAsset.CreateFontAsset(font, NativePixelSize, AtlasPadding, GlyphRenderMode.RASTER, AtlasSize, AtlasSize, AtlasPopulationMode.Dynamic, false);
             asset.name = System.IO.Path.GetFileNameWithoutExtension(PixelFontAssetPath);
             AssetDatabase.CreateAsset(asset, PixelFontAssetPath);
 
@@ -55,7 +55,7 @@ namespace Game.EditorTools
 
         private static void Bake(TMP_FontAsset asset, Font font)
         {
-            if (FontEngine.LoadFontFace(font, SamplingPointSize) != FontEngineError.Success)
+            if (FontEngine.LoadFontFace(font, NativePixelSize) != FontEngineError.Success)
             {
                 throw new InvalidOperationException($"could not load {PixelFontPath}");
             }
@@ -65,10 +65,9 @@ namespace Game.EditorTools
             asset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
             if (!asset.TryAddCharacters(Characters, out var missing))
             {
-                Debug.LogWarning($"[FontTools] {PixelFontPath} has no glyph for: {missing}");
+                throw new InvalidOperationException($"{PixelFontPath} has no glyph for: {missing}");
             }
 
-            RaisedAccentGlyphs.Apply(asset, RaisedAccentCapitals);
             asset.faceInfo = WithLeadingForEveryGlyph(asset);
             asset.atlasTexture.filterMode = FilterMode.Point;
             asset.atlasPopulationMode = AtlasPopulationMode.Static;
@@ -79,7 +78,6 @@ namespace Game.EditorTools
                 asset.fallbackFontAssetTable = new List<TMP_FontAsset> { fallback };
             }
 
-            RaisedAccentGlyphs.FreezeAtlas(asset);
             EditorUtility.SetDirty(asset.atlasTexture);
             EditorUtility.SetDirty(asset);
         }

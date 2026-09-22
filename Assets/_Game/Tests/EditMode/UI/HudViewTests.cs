@@ -97,6 +97,60 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void AudienceMeterView_ShowsEachSideShareAsAPercentage()
+        {
+            host = new GameObject("audience", typeof(RectTransform));
+            var view = host.AddComponent<AudienceMeterView>();
+            view.Configure(Child<Image>("fill"), Child<Image>("marker").rectTransform, Width);
+            view.ConfigureShares(Child<TextMeshProUGUI>("player"), Child<TextMeshProUGUI>("opponent"));
+
+            view.Bind(new AudienceMeter(40));
+            Assert.AreEqual("40%", view.PlayerShareLabel.text);
+            Assert.AreEqual("60%", view.OpponentShareLabel.text);
+
+            view.Meter.SetPlayerShare(75);
+            view.Advance(DrainingBar.DrainSeconds);
+            Assert.AreEqual("75%", view.PlayerShareLabel.text);
+            Assert.AreEqual("25%", view.OpponentShareLabel.text);
+        }
+
+        [Test]
+        public void DebaterPanelView_NamesTheDebaterShowsThePortraitAndCountsCoherenceDown()
+        {
+            host = new GameObject("panel", typeof(RectTransform));
+            var (bar, _, _) = CreateBarOn(Child<RectTransform>("bar").gameObject);
+            var portrait = Child<Image>("portrait");
+            var view = host.AddComponent<DebaterPanelView>();
+            view.Configure(Child<TextMeshProUGUI>("name"), portrait, bar, Child<TextMeshProUGUI>("value"));
+            var texture = new Texture2D(24, 32);
+            var sprite = Sprite.Create(texture, new Rect(0, 0, 24, 32), new Vector2(0.5f, 0.0625f), 16f);
+
+            view.Show(new DebaterBadge("Thrasybios", sprite));
+            bar.Bind(new DrainingBar(40, 40));
+            view.RenderValue();
+
+            Assert.AreEqual("Thrasybios", view.NameLabel.text);
+            Assert.AreSame(sprite, portrait.sprite);
+            Assert.IsTrue(portrait.enabled);
+            Assert.AreEqual(new Vector2(24f, 32f), portrait.rectTransform.sizeDelta);
+            Assert.AreEqual("40/40", view.ValueLabel.text);
+
+            bar.Bar.SetValue(28);
+            bar.Advance(DrainingBar.DrainSeconds / 2f);
+            view.RenderValue();
+            Assert.AreEqual("34/40", view.ValueLabel.text);
+
+            bar.Advance(DrainingBar.DrainSeconds);
+            view.RenderValue();
+            Assert.AreEqual("28/40", view.ValueLabel.text);
+
+            view.Show(new DebaterBadge("Kleia", null));
+            Assert.IsFalse(portrait.enabled);
+            Object.DestroyImmediate(sprite);
+            Object.DestroyImmediate(texture);
+        }
+
+        [Test]
         public void ActionMenuView_DimsUnavailableActionsAndShowsTheReasonFromData()
         {
             var (view, uiText) = CreateMenu();
@@ -164,9 +218,14 @@ namespace Game.Tests.EditMode.UI
         private (BarView View, Image Fill, Image Flash) CreateBar()
         {
             host = new GameObject("bar", typeof(RectTransform));
-            var fill = Child<Image>("fill");
-            var flash = Child<Image>("flash");
-            var view = host.AddComponent<BarView>();
+            return CreateBarOn(host);
+        }
+
+        private (BarView View, Image Fill, Image Flash) CreateBarOn(GameObject target)
+        {
+            var fill = Child<Image>("fill", target.transform);
+            var flash = Child<Image>("flash", target.transform);
+            var view = target.AddComponent<BarView>();
             view.Configure(fill, flash, Width);
             return (view, fill, flash);
         }
@@ -200,11 +259,11 @@ namespace Game.Tests.EditMode.UI
             return label;
         }
 
-        private T Child<T>(string name) where T : Component
+        private T Child<T>(string name, Transform parent = null) where T : Component
         {
             var child = new GameObject(name, typeof(RectTransform));
-            child.transform.SetParent(host.transform, false);
-            return child.AddComponent<T>();
+            child.transform.SetParent(parent ? parent : host.transform, false);
+            return child.TryGetComponent<T>(out var existing) ? existing : child.AddComponent<T>();
         }
 
         private static string[] RefutableIds() =>

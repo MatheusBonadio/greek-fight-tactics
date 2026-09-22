@@ -237,6 +237,7 @@ namespace Game.UI
             controller = new BattleMenuController(Session.Menu, catalog.RefutableIds);
             hud.gameObject.SetActive(true);
             hud.Bind(Session.State, controller);
+            hud.Introduce(new DebaterBadge(text.Get(BattleText.PlayerNameKey), playerPortrait), new DebaterBadge(opponent.DisplayName, target.Portrait));
             if (services)
             {
                 hud.ApplySettings(services.Settings);

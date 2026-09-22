@@ -11,6 +11,7 @@ Todas as medidas abaixo estão em pixels nativos (quadro de 224), com precisão 
 - **Tela:** preencher a tela 16:9, mantendo a escala da referência. Nada de barras laterais; o HUD fica nos cantos da tela.
 - **Mapas:** mistos. Batalhas e interiores são salas que cabem inteiras na tela, com largura + altura de até 14 células (ex.: 8×6, porque uma sala isométrica ocupa `(largura + altura) × 16` px de largura). A exploração da Ágora pode ser maior, com a câmera seguindo a Kleia.
 - **HUD:** o layout e o estilo são os da referência, adaptados ao significado do GFT.
+- **HUD na batalha (22/09/2026):** tudo fica numa faixa embaixo da tela (um quarto da altura): menu de ações, painéis da Kleia (azul egeu, à esquerda) e do desafiante (vermelho, à direita) com nome, rosto e Coerência em número, Plateia entre os dois e a caixa de texto larga. Nada cobre a parte de cima, onde ficam o duelo e o público. O texto fica um pouco menor que o da Press Start 2P e ocupa mais largura: o canvas da UI tem referência de 640×360.
 
 ## Grade e escala
 
@@ -30,7 +31,7 @@ Todas as medidas abaixo estão em pixels nativos (quadro de 224), com precisão 
 ## Tipografia
 
 - Fonte bitmap **estreita**, em caixa alta: avanço de cerca de 5 px por letra, maiúsculas de 7 px e linha de 8 px no menu. A Press Start 2P, com 8 px de avanço, é larga demais para esse visual.
-- Precisa cobrir as maiúsculas acentuadas do português (Á À Â Ã É Ê Í Ó Ô Õ Ú Ç), com o acento acima da linha das maiúsculas. Isso pode exigir linha de 9 a 10 px nos textos com acento, como o `RaisedAccentGlyphs` já faz hoje.
+- Precisa cobrir as maiúsculas acentuadas do português (Á À Â Ã É Ê Í Ó Ô Õ Ú Ç), com o acento acima da linha das maiúsculas. A fonte escolhida, a Ark Pixel Font 10px Proportional, já desenha assim, com linha de 14 px nos textos corridos e de 12 px nas listas.
 - Licença OFL ou CC0 obrigatória, com o crédito em `credits.body`.
 
 ## Menu de comandos (referência: MOVE / ATTACK / MAGIC / ITEM / DEFEND / RUN)

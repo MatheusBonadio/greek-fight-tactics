@@ -14,6 +14,7 @@ namespace Game.Tests.EditMode.UI
     public sealed class PixelFontTests
     {
         private const string UppercaseAccents = "ÁÀÂÃÉÊÍÓÔÕÚÇ";
+        private const string AccentedCapitals = "ÁÀÂÃÉÊÍÓÔÕÚ";
         private const byte InkThreshold = 128;
 
         [Test]
@@ -26,6 +27,22 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(AtlasPopulationMode.Static, asset.atlasPopulationMode);
             Assert.AreEqual(FilterMode.Point, asset.atlasTexture.filterMode);
             Assert.IsTrue(asset.fallbackFontAssetTable.Any(fallback => fallback != null));
+        }
+
+        [Test]
+        public void PixelFont_IsBakedAtItsNativeSizeSoOneFontPixelIsOneCanvasUnit()
+        {
+            var asset = LoadPixelFont();
+
+            Assert.AreEqual(FontTools.NativePixelSize, asset.faceInfo.pointSize);
+            Assert.AreEqual(FontTools.NativePixelSize, BattleHudTools.FontSize);
+            foreach (var glyph in asset.glyphTable)
+            {
+                var metrics = glyph.metrics;
+                Assert.AreEqual(Mathf.Round(metrics.horizontalBearingX), metrics.horizontalBearingX, $"glyph {glyph.index} bearing");
+                Assert.AreEqual(Mathf.Round(metrics.horizontalBearingY), metrics.horizontalBearingY, $"glyph {glyph.index} bearing");
+                Assert.AreEqual(Mathf.Round(metrics.horizontalAdvance), metrics.horizontalAdvance, $"glyph {glyph.index} advance");
+            }
         }
 
         [Test]
@@ -66,13 +83,13 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void PixelFont_RaisesTheAccentAboveTheCapitalAndKeepsItsWholeBody()
+        public void PixelFont_DrawsTheAccentAboveTheCapitalAndKeepsItsWholeBody()
         {
             var asset = LoadPixelFont();
             var pixels = asset.atlasTexture.GetPixels32();
             var capLine = Mathf.RoundToInt(asset.faceInfo.capLine);
 
-            foreach (var capital in FontTools.RaisedAccentCapitals)
+            foreach (var capital in AccentedCapitals)
             {
                 var letter = capital.ToString().Normalize(NormalizationForm.FormD)[0];
                 var ink = Ink(asset, asset.characterLookupTable[capital].glyph, pixels);
@@ -84,7 +101,7 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void PixelFont_SpacesLinesSoRaisedAccentsNeverTouchTheDescendersAbove()
+        public void PixelFont_SpacesLinesSoAccentsNeverTouchTheDescendersAbove()
         {
             var asset = LoadPixelFont();
             var top = asset.glyphTable.Max(glyph => glyph.metrics.horizontalBearingY);

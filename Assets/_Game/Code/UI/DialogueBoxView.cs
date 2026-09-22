@@ -25,9 +25,8 @@ namespace Game.UI
 
     public sealed class DialogueBoxView : MonoBehaviour, IMenuPanel
     {
-        public const int BoxPixelWidth = 208;
         public const int ChoicePanelWidth = 128;
-        public const int ChoicePadding = 4;
+        public const int ChoicePadding = 3;
         public const int ChoiceRowHeight = 12;
 
         private const int LayoutVisibleCharacters = 99999;
@@ -40,6 +39,8 @@ namespace Game.UI
         [SerializeField] private RectTransform choicePanel;
         [SerializeField] private TMP_Text[] choiceRows = Array.Empty<TMP_Text>();
         [SerializeField] private RectTransform choiceCursor;
+        [SerializeField] private float portraitReserve;
+        [SerializeField] private float choiceReserve;
 
         private readonly Typewriter typewriter = new();
         private readonly List<string> options = new();
@@ -87,6 +88,10 @@ namespace Game.UI
 
         public RectTransform ChoiceCursorRect => choiceCursor;
 
+        public float PortraitReserve => portraitReserve;
+
+        public float ChoiceReserve => choiceReserve;
+
         public DialogueLine Line { get; private set; }
 
         public void Configure(GameObject dialogueBox, TMP_Text bodyText, TMP_Text speaker, Image portraitImage, GameObject frame)
@@ -103,6 +108,12 @@ namespace Game.UI
             choicePanel = panel;
             choiceRows = rows ?? Array.Empty<TMP_Text>();
             choiceCursor = cursor;
+        }
+
+        public void ConfigureMargins(float besidePortrait, float besideChoices)
+        {
+            portraitReserve = besidePortrait;
+            choiceReserve = besideChoices;
         }
 
         public void Show(DialogueLine line, IReadOnlyList<string> choiceTexts = null)
@@ -124,6 +135,8 @@ namespace Game.UI
             portrait.sprite = line.Portrait;
             portraitFrame.SetActive(line.Portrait != null);
             body.overflowMode = TextOverflowModes.Page;
+            var besideSpeaker = line.Portrait != null || !string.IsNullOrEmpty(line.SpeakerName);
+            body.margin = new Vector4(besideSpeaker ? portraitReserve : 0f, 0f, HasChoices ? choiceReserve : 0f, 0f);
             body.text = line.Text ?? string.Empty;
             ShowPage(1);
             RenderChoices();

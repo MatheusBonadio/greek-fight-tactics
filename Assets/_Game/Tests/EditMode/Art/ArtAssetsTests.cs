@@ -12,12 +12,13 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 69;
+        private const int PlaceholderPngCount = 72;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
         private const string PalettePath = "art/palette/snes.gpl";
         private const string AristeuCharacter = "aristeu";
         private const int MaxColorsPerSprite = 15;
+        private const int MaxColorsPerBackground = 64;
 
         [Test]
         public void Placeholders_AreCopiedIntoTheProject()
@@ -123,6 +124,29 @@ namespace Game.Tests.EditMode.Art
                 CollectionAssert.IsSubsetOf(colors, palette, $"{path} paints outside the SNES palette");
                 Assert.LessOrEqual(colors.Count, MaxColorsPerSprite, path);
             }
+        }
+
+        [Test]
+        public void TitleBackground_IsAPointFilteredSpriteOfTheNativeFramePaintedWithThePalette()
+        {
+            var path = $"{BattleHudTools.UiSpriteFolder}/{SystemMenuTools.TitleBackgroundSprite}.png";
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            Assert.IsNotNull(sprite, path);
+            Assert.AreEqual(SystemMenuTools.TitleBackgroundWidth, sprite.rect.width);
+            Assert.AreEqual(SystemMenuTools.TitleBackgroundHeight, sprite.rect.height);
+            Assert.AreEqual(FilterMode.Point, sprite.texture.filterMode);
+            Assert.AreEqual(Vector4.zero, sprite.border, "only box_ sprites are sliced");
+
+            var source = new Texture2D(2, 2);
+            source.LoadImage(File.ReadAllBytes(Path.Combine(ArtTools.SourceFolder, "ui", Path.GetFileName(path))));
+            var pixels = source.GetPixels32();
+            Object.DestroyImmediate(source);
+
+            Assert.IsTrue(pixels.All(pixel => pixel.a == byte.MaxValue), "the title background covers the whole frame");
+            var colors = pixels.Select(pixel => (pixel.r, pixel.g, pixel.b)).Distinct().ToList();
+            CollectionAssert.IsSubsetOf(colors, LoadPalette(), "the title background paints outside the SNES palette");
+            Assert.Greater(colors.Count, MaxColorsPerSprite, "a background layer may use several sub-palettes");
+            Assert.LessOrEqual(colors.Count, MaxColorsPerBackground);
         }
 
         [Test]

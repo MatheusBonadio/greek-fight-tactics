@@ -16,7 +16,7 @@ namespace Game.UI
         [SerializeField] private TMP_Text[] confirmRows = Array.Empty<TMP_Text>();
         [SerializeField] private RectTransform confirmCursor;
         [SerializeField] private UiTextSO text;
-        [SerializeField] private Color availableColor = new Color32(248, 248, 240, 255);
+        [SerializeField] private Color availableColor = new Color32(248, 248, 248, 255);
         [SerializeField] private Color unavailableColor = new Color32(120, 120, 128, 255);
 
         public event Action<int> SlotChosen;

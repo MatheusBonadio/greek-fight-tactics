@@ -1,15 +1,18 @@
 import contextlib
 import io
+import os
 import tempfile
 import unittest
 
 from images import CLEAR, load_rgba, png_files
-from palette import load_gpl
-from sprite_rules import ALPHA_RULE, COLORS_RULE, ERROR, FOOTPRINT_RULE, MAX_OPAQUE_COLORS, PALETTE_RULE, RGB555_RULE, SIZE_RULE, TILING_RULE, WARNING, inspect, size_rule_for
+from palette import ROOT, load_gpl
+from sprite_rules import ALPHA_RULE, BACKGROUND_MAX_COLORS, COLORS_RULE, ERROR, FOOTPRINT_RULE, MAX_OPAQUE_COLORS, PALETTE_RULE, RGB555_RULE, SIZE_RULE, TILING_RULE, WARNING, color_limit_for, inspect, size_rule_for
 from tests.builders import FLOOR_FOLDER, OVERLAY_FOLDER, diamond, filled, marble_floor, on_background, save, shrink_diamond, strip
 from verify import main
 
 BAR_SIZE = (64, 8)
+BACKGROUND_SIZE = (384, 216)
+BACKGROUND_FOLDER = os.path.join(ROOT, "art", "placeholders", "ui")
 OUTLINE = (8, 8, 16)
 MARBLE_LIGHT = (248, 248, 240)
 
@@ -46,6 +49,37 @@ class ColourLimitTests(unittest.TestCase):
         report = inspect("bar_test.png", image, self.palette)
         self.assertEqual(report.colors, 2)
         self.assertEqual(rules_of(report), {ALPHA_RULE})
+
+
+class BackgroundColourLimitTests(unittest.TestCase):
+    def setUp(self):
+        self.palette = load_gpl()
+        self.colors = [color for color in self.palette.colors if color != (248, 248, 240)] + [(248, 248, 240)]
+
+    def test_only_backgrounds_raise_the_colour_limit(self):
+        self.assertEqual(color_limit_for("bg_title.png"), BACKGROUND_MAX_COLORS)
+        self.assertEqual(color_limit_for("bar_coherence.png"), MAX_OPAQUE_COLORS)
+        self.assertEqual(color_limit_for("mystery.png"), MAX_OPAQUE_COLORS)
+
+    def test_a_background_with_more_than_fifteen_palette_colours_passes(self):
+        colors = sorted(set(self.palette.colors))
+        report = inspect("bg_test.png", strip(BACKGROUND_SIZE, colors, OUTLINE), self.palette)
+        self.assertGreater(report.colors, MAX_OPAQUE_COLORS)
+        self.assertFalse(report.failed, report.issues)
+
+    def test_a_background_over_its_limit_fails(self):
+        extra = [(8 * red, 8 * green, 0) for red in range(9) for green in range(9)][:BACKGROUND_MAX_COLORS + 1]
+        report = inspect("bg_test.png", strip(BACKGROUND_SIZE, extra, extra[0]), self.palette, {PALETTE_RULE})
+        self.assertEqual(report.colors, BACKGROUND_MAX_COLORS + 1)
+        self.assertEqual(rules_of(report), {COLORS_RULE})
+        self.assertIn(f"the limit is {BACKGROUND_MAX_COLORS}", report.issues[0].message)
+
+    def test_the_title_background_passes_every_rule(self):
+        path = os.path.join(BACKGROUND_FOLDER, "bg_title.png")
+        report = inspect(path, load_rgba(path), self.palette)
+        self.assertFalse(report.failed, report.issues)
+        self.assertLessEqual(report.colors, BACKGROUND_MAX_COLORS)
+        self.assertEqual((report.width, report.height), BACKGROUND_SIZE)
 
 
 class ColourValueTests(unittest.TestCase):
@@ -95,9 +129,11 @@ class SizeTests(unittest.TestCase):
             "box_menu.png": (96, 88),
             "box_dialogue.png": (208, 48),
             "frame_portrait.png": (40, 40),
+            "frame_bar.png": (64, 8),
             "cursor.png": (8, 8),
             "icon_ad_hominem.png": (16, 16),
             "meter_jurors.png": (200, 16),
+            "bg_title.png": (384, 216),
         }
         for name, size in expectations.items():
             self.assertEqual(size_rule_for(name).fixed_size(), size, name)

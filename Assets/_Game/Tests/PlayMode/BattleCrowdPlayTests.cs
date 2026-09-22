@@ -21,6 +21,14 @@ namespace Game.Tests.PlayMode
         private const string BrainComponent = "CinemachineBrain";
         private const string CapturePath = "artifacts/reference/battle_crowd.png";
         private const string ArrivalCapturePath = "artifacts/reference/battle_crowd_arriving.png";
+        private const string HudCapturePath = "artifacts/reference/battle_hud.png";
+        private const string PauseCapturePath = "artifacts/reference/pause_menu.png";
+        private const string FallaciesCapturePath = "artifacts/reference/battle_hud_fallacies.png";
+        private const string ExplorationCapturePath = "artifacts/reference/exploration_dialogue.png";
+        private const string CompendiumCapturePath = "artifacts/reference/compendium.png";
+        private const string CapturedDialogue = "menexeno_agora";
+        private const int MaxDialogueSteps = 64;
+        private static readonly string[] CapturedFallacies = { "ad_hominem", "straw_man", "affirming_the_consequent" };
         private const float ArrivalCaptureProgress = 0.5f;
         private const float StartTimeoutSeconds = 5f;
         private const float BattleTimeoutSeconds = 90f;
@@ -607,6 +615,82 @@ namespace Game.Tests.PlayMode
                     direction = step;
                 }
             }
+        }
+
+        [UnityTest]
+        [Explicit("renders the battle HUD, the exploration dialogue and the pause menu under artifacts/reference for a visual review")]
+        public IEnumerator Capture_BattleHudAndPauseMenu()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            var hud = director.Hud;
+            yield return EngageAtRest(director, sandbox, CentralOpponent(director, sandbox));
+            bool SomeoneSpeaks() => director.Phase == BattleFlowPhase.Dialogue && hud.Dialogue.IsOpen && !string.IsNullOrEmpty(hud.Dialogue.Line.SpeakerName);
+            for (var turn = 0; turn < MaxApproachTurns && !SomeoneSpeaks(); turn++)
+            {
+                yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.PlayerChoosing || SomeoneSpeaks());
+                if (!SomeoneSpeaks())
+                {
+                    director.SubmitChoice(new BattleMenuChoice(ActionId.Concede));
+                }
+            }
+
+            TestContext.WriteLine($"captured line by '{hud.Dialogue.Line.SpeakerName}' with portrait {hud.Dialogue.Line.Portrait}, panels '{hud.PlayerPanel.NameLabel.text}' and '{hud.OpponentPanel.NameLabel.text}'");
+            yield return CaptureWholePage(hud.Dialogue, HudCapturePath);
+
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.PlayerChoosing);
+            hud.Menu.HandleNavigate(Vector2.down);
+            hud.Menu.HandleConfirm();
+            yield return null;
+            yield return UiCapture.Screen(FallaciesCapturePath);
+            hud.Menu.HandleCancel();
+
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.Exploring, null, _ => new BattleMenuChoice(ActionId.Withdraw));
+            var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
+            Assert.IsTrue(story.TryStartDialogue(CapturedDialogue), $"{CapturedDialogue} did not start");
+            var box = Object.FindObjectsByType<DialogueBoxView>(FindObjectsInactive.Include).First(view => view != hud.Dialogue && view.IsOpen);
+            for (var step = 0; step < MaxDialogueSteps && box.IsOpen && box.Line.Portrait == null; step++)
+            {
+                story.Advance();
+                yield return null;
+            }
+
+            Assert.IsNotNull(box.Line.Portrait, $"{CapturedDialogue} never showed a speaker with a portrait");
+            yield return CaptureWholePage(box, ExplorationCapturePath);
+            for (var step = 0; step < MaxDialogueSteps && box.IsOpen; step++)
+            {
+                story.Advance();
+                yield return null;
+            }
+
+            yield return WaitFor(() => sandbox.StateMachine.Mode == GameMode.Exploration, StartTimeoutSeconds);
+            var services = Object.FindAnyObjectByType<GameServices>();
+            foreach (var fallacy in CapturedFallacies)
+            {
+                services.Compendium.Unlock(fallacy);
+            }
+
+            var pause = Object.FindAnyObjectByType<PauseMenuController>();
+            pause.Pause();
+            yield return null;
+            yield return UiCapture.Screen(PauseCapturePath);
+
+            pause.PauseMenu.HandlePoint(pause.PauseMenu.Model.Entries.ToList().FindIndex(entry => entry.Id == SystemMenus.Compendium));
+            pause.PauseMenu.HandleConfirm();
+            yield return null;
+            yield return UiCapture.Screen(CompendiumCapturePath);
+            pause.Resume();
+        }
+
+        private static IEnumerator CaptureWholePage(DialogueBoxView box, string capturePath)
+        {
+            if (!box.IsPageComplete)
+            {
+                box.Confirm();
+            }
+
+            yield return null;
+            yield return UiCapture.Screen(capturePath);
         }
 
         private static void RenderIgnoringEditorImportNoise(Camera camera)
