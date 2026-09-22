@@ -49,6 +49,43 @@ namespace Game.Tests.EditMode.Grid
         }
 
         [Test]
+        public void FindPathBeside_StopsOnTheFreeNeighbourWithTheShortestWalk()
+        {
+            var grid = GridFactory.Open(7, 7);
+            var target = new Coord(3, 3);
+            GridFactory.Occupy(grid, target, OccupantId);
+            GridFactory.Block(grid, new Coord(2, 3));
+
+            Assert.IsTrue(finder.FindPathBeside(grid, new Coord(0, 3), target, buffer));
+
+            Assert.AreEqual(4, buffer.Count, "the west side is blocked, so Kleia walks round to the nearest free side");
+            Assert.IsTrue(PathFinder.AreBeside(buffer[^1], target));
+            CollectionAssert.DoesNotContain(buffer, target);
+            CollectionAssert.DoesNotContain(buffer, new Coord(2, 3));
+        }
+
+        [Test]
+        public void FindPathBeside_IsEmptyWhenAlreadyBesideAndFailsWhenEverySideIsTaken()
+        {
+            var grid = GridFactory.Open(5, 5);
+            var target = new Coord(2, 2);
+            GridFactory.Occupy(grid, target, OccupantId);
+
+            Assert.IsTrue(finder.FindPathBeside(grid, new Coord(2, 1), target, buffer));
+            CollectionAssert.IsEmpty(buffer, "a neighbour does not need to walk");
+
+            foreach (var side in new[] { new Coord(3, 2), new Coord(1, 2), new Coord(2, 3), new Coord(2, 1) })
+            {
+                GridFactory.Block(grid, side);
+            }
+
+            Assert.IsFalse(finder.FindPathBeside(grid, new Coord(0, 0), target, buffer));
+            CollectionAssert.IsEmpty(buffer);
+            Assert.IsFalse(PathFinder.AreBeside(target, target));
+            Assert.IsFalse(PathFinder.AreBeside(new Coord(1, 1), target), "diagonal cells are not beside");
+        }
+
+        [Test]
         public void FindPath_WalksAroundExpensiveTerrain()
         {
             var grid = GridFactory.Open(3, 3);

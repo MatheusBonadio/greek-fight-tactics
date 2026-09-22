@@ -72,7 +72,7 @@ namespace Game.Tests.EditMode.Core
         }
 
         [Test]
-        public void ExplorationDialogue_FreezesMovementAndAggroThenAutosavesOnClose()
+        public void ExplorationDialogue_FreezesMovementAndChallengesThenAutosavesOnClose()
         {
             var machine = new GameStateMachine();
             var closedFrom = GameMode.Exploration;
@@ -107,17 +107,6 @@ namespace Game.Tests.EditMode.Core
             Assert.IsTrue(machine.TryCloseOverlay());
             Assert.AreEqual(GameMode.Exploration, machine.Mode);
             Assert.IsTrue(AutosavePolicy.ShouldSave(GameMode.Cutscene, machine.Mode));
-        }
-
-        [TestCase(3, 0, true)]
-        [TestCase(2, 1, true)]
-        [TestCase(2, 2, false)]
-        [TestCase(0, 4, false)]
-        public void Aggro_TriggersInsideTheRadius(int offsetX, int offsetY, bool triggered)
-        {
-            var player = new Coord(5, 5);
-
-            Assert.AreEqual(triggered, AggroRule.IsTriggered(player, new Coord(5 + offsetX, 5 + offsetY)));
         }
     }
 }

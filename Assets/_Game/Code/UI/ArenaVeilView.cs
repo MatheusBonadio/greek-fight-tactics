@@ -26,6 +26,7 @@ namespace Game.UI
         [SerializeField] private int pixelsPerUnit = PixelSnappedCamera.DefaultPixelsPerUnit;
 
         private readonly Dictionary<SpriteRenderer, Material> veiledActors = new();
+        private Func<Coord, bool> lit;
         private Material overlayMaterial;
         private Material actorMaterial;
         private float fadeFrom;
@@ -71,6 +72,7 @@ namespace Game.UI
 
             EnsureMaterials();
             Clear();
+            lit = isLit;
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
@@ -127,6 +129,7 @@ namespace Game.UI
             }
 
             veiledActors.Clear();
+            lit = null;
             VeiledCellCount = 0;
             VeiledBlockCount = 0;
             IsShown = false;
@@ -136,6 +139,26 @@ namespace Game.UI
         }
 
         private void Awake() => EnsureMaterials();
+
+        private void OnEnable() => Tilemap.tilemapTileChanged += OnTilemapTileChanged;
+
+        private void OnDisable() => Tilemap.tilemapTileChanged -= OnTilemapTileChanged;
+
+        private void OnTilemapTileChanged(Tilemap changed, Tilemap.SyncTile[] tiles)
+        {
+            if (!IsShown || hiding || lit == null || changed != blocks || !blocksVeil)
+            {
+                return;
+            }
+
+            foreach (var tile in tiles)
+            {
+                if (!lit(new Coord(tile.position.x, tile.position.y)))
+                {
+                    VeilBlock(tile.position);
+                }
+            }
+        }
 
         private void OnDestroy()
         {
@@ -176,12 +199,25 @@ namespace Game.UI
                 VeiledCellCount++;
             }
 
-            var block = blocks ? blocks.GetTile(position) : null;
-            if (blocksVeil && block)
+            VeilBlock(position);
+        }
+
+        private void VeilBlock(Vector3Int position)
+        {
+            if (!blocksVeil)
             {
-                blocksVeil.SetTile(position, block);
-                VeiledBlockCount++;
+                return;
             }
+
+            var block = blocks ? blocks.GetTile(position) : null;
+            var veiled = blocksVeil.GetTile(position);
+            if (block == veiled)
+            {
+                return;
+            }
+
+            VeiledBlockCount += (block ? 1 : 0) - (veiled ? 1 : 0);
+            blocksVeil.SetTile(position, block);
         }
 
         private void FadeTo(float density, float seconds)

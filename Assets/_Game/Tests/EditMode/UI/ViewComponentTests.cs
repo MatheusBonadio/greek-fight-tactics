@@ -55,7 +55,7 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void ExplorationCamera_CentresTheDuelWithoutZoomingAndFollowsThePlayerAfter()
+        public void ExplorationCamera_FramesTheDuelAboveTheHudWithAnUnboundCameraAndFollowsThePlayerAfter()
         {
             host = new GameObject("camera");
             var player = new GameObject("player").transform;
@@ -63,23 +63,34 @@ namespace Game.Tests.EditMode.UI
             player.position = new Vector3(1f, 0.5f, 0f);
             var focus = new GameObject(ExplorationCamera.DuelFocusName).transform;
             focus.SetParent(host.transform);
+            var duelHost = new GameObject(ExplorationCamera.DuelCameraName);
+            duelHost.transform.SetParent(host.transform);
             var virtualCamera = host.AddComponent<CinemachineCamera>();
+            var duelCamera = duelHost.AddComponent<CinemachineCamera>();
             var explorationCamera = host.AddComponent<ExplorationCamera>();
-            explorationCamera.Configure(virtualCamera, 7f, focus);
-            explorationCamera.GlideSeconds = 0f;
+            explorationCamera.Configure(virtualCamera, duelCamera, 7f, focus);
             virtualCamera.Follow = player;
+
+            Assert.IsFalse(duelCamera.enabled, "the duel camera waits for a duel");
+            Assert.AreSame(focus, duelCamera.Follow);
+            Assert.Greater((int)duelCamera.Priority, (int)virtualCamera.Priority, "the duel camera wins while it is on");
+            Assert.IsNull(duelHost.GetComponent<CinemachineConfiner2D>(), "the duel camera ignores the map bounds");
 
             explorationCamera.FrameDuel(new Vector2(3.04f, 1.5f));
 
             Assert.IsTrue(explorationCamera.IsFramingDuel);
-            Assert.AreSame(focus, virtualCamera.Follow, "the camera follows the duel, not Kleia");
-            Assert.AreEqual(new Vector3(3.0625f, 1.5f, 0f), focus.position, "the duel centre is snapped to the art pixel grid");
+            Assert.IsTrue(duelCamera.enabled);
+            Assert.AreSame(focus, explorationCamera.FollowTarget, "the camera follows the duel, not Kleia");
+            Assert.AreSame(player, virtualCamera.Follow, "the exploration camera keeps Kleia for the way back");
+            Assert.AreEqual(new Vector3(3.0625f, 1.5f - HudLayout.BottomStripFraction * 7f, 0f), focus.position, "the duel sits in the middle of the area above the hud, snapped to the art pixel grid");
             Assert.AreEqual(7f, virtualCamera.Lens.OrthographicSize, "the battle keeps the exploration zoom");
+            Assert.AreEqual(7f, duelCamera.Lens.OrthographicSize, "the battle keeps the exploration zoom");
 
             explorationCamera.FrameExploration();
 
             Assert.IsFalse(explorationCamera.IsFramingDuel);
-            Assert.AreSame(player, virtualCamera.Follow);
+            Assert.IsFalse(duelCamera.enabled);
+            Assert.AreSame(player, explorationCamera.FollowTarget);
             Assert.AreEqual(7f, virtualCamera.Lens.OrthographicSize);
         }
     }

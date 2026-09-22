@@ -23,7 +23,7 @@ namespace Game.UI
         Gathering
     }
 
-    public sealed class SandboxBattleDirector : MonoBehaviour
+    public sealed class SandboxBattleDirector : MonoBehaviour, IDuelChallenges
     {
         public const float DefaultThinkSeconds = 0.6f;
         public const int PrewarmCount = 3;
@@ -45,8 +45,7 @@ namespace Game.UI
         [SerializeField] private BattleCrowd crowd;
         [SerializeField] private ArenaVeilView veil;
 
-        private readonly AggroWatch aggro = new();
-        private readonly List<AggroCandidate> aggroCandidates = new();
+        private readonly List<Challenger> challengers = new();
         private readonly Dictionary<ActorView, FallacyRevealView> reveals = new();
         private GameServices services;
         private ExplorationDialogueDirector storyteller;
@@ -169,6 +168,27 @@ namespace Game.UI
 
         public bool IsDefeated(MapOpponent entry) =>
             entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
+
+        public ActorView ChallengerAt(Coord cell)
+        {
+            if (Phase != BattleFlowPhase.Exploring || !sandbox.ProgressLoaded || (pause && pause.IsPaused))
+            {
+                return null;
+            }
+
+            CollectChallengers();
+            var index = ChallengeRule.ChallengerAt(cell, StateMachine.Mode, challengers);
+            return index == ChallengeRule.NoChallenger ? null : opponents[index].Actor;
+        }
+
+        public void Challenge(ActorView challenger)
+        {
+            var entry = opponents.Find(candidate => candidate != null && candidate.IsPlaced && candidate.Actor == challenger);
+            if (entry != null && ChallengerAt(entry.Actor.Walker.Cell) == challenger)
+            {
+                StartBattle(entry);
+            }
+        }
 
         public void StartBattle(MapOpponent target)
         {
@@ -306,6 +326,11 @@ namespace Game.UI
                 story = FindAnyObjectByType<ExplorationDialogueDirector>();
             }
 
+            if (story)
+            {
+                story.Challenges = this;
+            }
+
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
             cancelAction = sandbox.Controls.FindAction(BattleMenuInput.CancelAction, true);
             navigateAction = sandbox.Controls.FindAction(BattleMenuInput.NavigateAction, true);
@@ -322,6 +347,11 @@ namespace Game.UI
                 hud.Menu.ChoiceMade -= OnChoiceMade;
             }
 
+            if (story && ReferenceEquals(story.Challenges, this))
+            {
+                story.Challenges = null;
+            }
+
             scripts?.Dispose();
         }
 
@@ -331,7 +361,6 @@ namespace Game.UI
             {
                 case BattleFlowPhase.Exploring:
                     PrepareArguments();
-                    TryTriggerBattle();
                     break;
                 case BattleFlowPhase.Dialogue:
                     if (Time.frameCount == dialogueFrame)
@@ -396,38 +425,19 @@ namespace Game.UI
             }
         }
 
-        private void TryTriggerBattle()
+        private void CollectChallengers()
         {
-            var player = sandbox.Player?.Walker;
-            if (player == null || !sandbox.ProgressLoaded || (pause && pause.IsPaused) || StateMachine.Mode != GameMode.Exploration)
-            {
-                return;
-            }
-
-            CollectAggroCandidates();
-            var triggered = aggro.Update(player.Cell, aggroCandidates);
-            if (triggered == AggroWatch.NoTrigger)
-            {
-                return;
-            }
-
-            if (player.IsStepping)
-            {
-                player.Cancel();
-                return;
-            }
-
-            StartBattle(opponents[triggered]);
-        }
-
-        private void CollectAggroCandidates()
-        {
-            aggroCandidates.Clear();
+            challengers.Clear();
             foreach (var entry in opponents)
             {
-                aggroCandidates.Add(entry != null && entry.IsPlaced
-                    ? new AggroCandidate(entry.Actor.Walker.Cell, entry.Opponent.AggroRadius, IsDefeated(entry))
-                    : AggroCandidate.Asleep);
+                if (entry == null || !entry.IsPlaced)
+                {
+                    challengers.Add(Challenger.Absent);
+                    continue;
+                }
+
+                var cell = entry.Actor.Walker.Cell;
+                challengers.Add(new Challenger(cell, FogTileRules.ShowsWhatStandsOn(sandbox.Grid, cell), IsDefeated(entry)));
             }
         }
 
@@ -827,7 +837,6 @@ namespace Game.UI
             hud.gameObject.SetActive(false);
             reveal?.Hide();
 
-            aggro.Disengage(opponents.IndexOf(engaged));
             if (!IsDefeated(engaged))
             {
                 TopUpArguments(engaged);

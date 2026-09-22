@@ -170,9 +170,7 @@ namespace Game.Tests.PlayMode
             yield return Frames(QuietFrames);
             Assert.IsFalse(agoraStory.IsTalking, "the road home is only pointed out after the duel");
             var thrasybios = battle.Opponents.Single(entry => entry.Opponent.Id == ThrasybiosId);
-            agora.Player.Walker.Teleport(CellNoticedOnlyBy(agora.Grid, battle, thrasybios), Facing.NorthEast);
-            yield return WaitFor(() => battle.Phase != BattleFlowPhase.Exploring);
-            Assert.AreSame(thrasybios, battle.Engaged);
+            yield return DuelChallenge.Engage(agora, battle, thrasybios, TimeoutSeconds);
 
             var sawLockedMaieutics = false;
             yield return PlayUntilExploring(battle, session =>
@@ -419,30 +417,6 @@ namespace Game.Tests.PlayMode
             }
 
             Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "the battle did not finish in time");
-        }
-
-        private static Coord CellNoticedOnlyBy(GridModel grid, SandboxBattleDirector director, MapOpponent entry)
-        {
-            var center = entry.Actor.Walker.Cell;
-            for (var distance = 1; distance <= entry.Opponent.AggroRadius; distance++)
-            {
-                for (var dx = -distance; dx <= distance; dx++)
-                {
-                    var dy = distance - Math.Abs(dx);
-                    foreach (var cell in new[] { new Coord(center.X + dx, center.Y + dy), new Coord(center.X + dx, center.Y - dy) })
-                    {
-                        var free = grid.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied;
-                        var quiet = director.Opponents.Where(other => other != entry).All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
-                        if (free && quiet)
-                        {
-                            return cell;
-                        }
-                    }
-                }
-            }
-
-            Assert.Fail($"no free cell only {entry.Opponent.Id} notices");
-            return center;
         }
 
         private static Coord FreeNeighbour(GridSandboxController map, Coord cell)

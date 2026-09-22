@@ -22,6 +22,7 @@ namespace Game.Grid
         };
 
         private readonly NodeHeap open = new();
+        private readonly List<Coord> besidePath = new();
         private int[] costs = Array.Empty<int>();
         private int[] parents = Array.Empty<int>();
         private int[] visitStamps = Array.Empty<int>();
@@ -73,6 +74,33 @@ namespace Game.Grid
             }
 
             return false;
+        }
+
+        public static bool AreBeside(Coord first, Coord second) =>
+            Math.Abs(first.X - second.X) + Math.Abs(first.Y - second.Y) == 1;
+
+        public bool FindPathBeside(GridModel grid, Coord from, Coord target, List<Coord> path)
+        {
+            path.Clear();
+            if (AreBeside(from, target))
+            {
+                return grid.Contains(from);
+            }
+
+            var found = false;
+            foreach (var direction in Directions)
+            {
+                if (!FindPath(grid, from, target + direction, besidePath) || (found && besidePath.Count >= path.Count))
+                {
+                    continue;
+                }
+
+                path.Clear();
+                path.AddRange(besidePath);
+                found = true;
+            }
+
+            return found;
         }
 
         public void Reachable(GridModel grid, Coord from, int maxCost, List<Coord> cells)

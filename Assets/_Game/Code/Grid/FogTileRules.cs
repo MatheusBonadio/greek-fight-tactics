@@ -1,9 +1,14 @@
 using Game.Core;
+using UnityEngine;
 
 namespace Game.Grid
 {
     public static class FogTileRules
     {
+        public static bool ShowsWhatStandsOn(GridModel grid, Coord cell) => IsRevealed(grid, cell);
+
+        public static bool ShowsWhatStandsAt(GridModel grid, Vector2 world) => IsRevealed(grid, IsoMath.WorldToGrid(world));
+
         public static FogTileKind KindAt(GridModel grid, Coord cell)
         {
             if (!grid.TryGet(cell, out var tile) || tile.Revealed)

@@ -7,73 +7,62 @@ namespace Game.UI
     {
         public const float DefaultGlideSeconds = 0.6f;
         public const string DuelFocusName = "DuelFocus";
+        public const string DuelCameraName = "DuelCamera";
+        public const int DuelPriority = 1;
 
         [SerializeField] private CinemachineCamera virtualCamera;
+        [SerializeField] private CinemachineCamera duelCamera;
         [SerializeField] private float explorationOrthographicSize = 7f;
         [SerializeField] private Transform duelFocus;
-        [SerializeField] private float glideSeconds = DefaultGlideSeconds;
         [SerializeField] private int pixelsPerUnit = PixelSnappedCamera.DefaultPixelsPerUnit;
 
-        private Transform explorationTarget;
-        private Vector3 glideFrom;
-        private Vector3 duelCenter;
-        private float glideElapsed;
-        private bool returning;
+        private Vector2 duelCenter;
 
         public CinemachineCamera VirtualCamera => virtualCamera;
+
+        public CinemachineCamera DuelCamera => duelCamera;
 
         public float ExplorationOrthographicSize => explorationOrthographicSize;
 
         public Transform DuelFocus => duelFocus;
 
-        public Transform FollowTarget => virtualCamera ? virtualCamera.Follow : null;
+        public Transform FollowTarget => IsFramingDuel ? duelCamera.Follow : virtualCamera ? virtualCamera.Follow : null;
 
         public float LensOrthographicSize => virtualCamera ? virtualCamera.Lens.OrthographicSize : explorationOrthographicSize;
 
-        public bool IsFramingDuel { get; private set; }
+        public bool IsFramingDuel => duelCamera && duelCamera.enabled;
 
-        public bool IsGliding { get; private set; }
+        public bool IsGliding => Brain && Brain.IsBlending;
 
         public Vector2 DuelCenter => duelCenter;
 
-        public float GlideSeconds
-        {
-            get => glideSeconds;
-            set => glideSeconds = Mathf.Max(0f, value);
-        }
+        public static Vector2 FramingFor(Vector2 duelCenter, float orthographicSize) =>
+            new(duelCenter.x, duelCenter.y - HudLayout.BottomStripFraction * orthographicSize);
 
-        public void Configure(CinemachineCamera camera, float explorationSize, Transform focus)
+        public void Configure(CinemachineCamera camera, CinemachineCamera duel, float explorationSize, Transform focus)
         {
             virtualCamera = camera;
+            duelCamera = duel;
             explorationOrthographicSize = explorationSize;
             duelFocus = focus;
-            var lens = virtualCamera.Lens;
-            lens.OrthographicSize = explorationSize;
-            virtualCamera.Lens = lens;
+            SetOrthographicSize(camera, explorationSize);
+            SetOrthographicSize(duel, explorationSize);
+            duel.Follow = focus;
+            duel.Priority = DuelPriority;
+            duel.enabled = false;
         }
 
         public void Follow(Transform target)
         {
-            explorationTarget = target;
-            if (!IsFramingDuel)
-            {
-                virtualCamera.Follow = target;
-            }
+            virtualCamera.Follow = target;
         }
 
         public void FrameDuel(Vector2 worldCenter)
         {
-            var focus = EnsureFocus();
-            if (!IsFramingDuel)
-            {
-                explorationTarget = virtualCamera.Follow;
-                focus.position = explorationTarget ? Snap(explorationTarget.position) : Snap(worldCenter);
-                virtualCamera.Follow = focus;
-            }
-
-            duelCenter = new Vector3(worldCenter.x, worldCenter.y, 0f);
-            BeginGlide(false);
-            IsFramingDuel = true;
+            duelCenter = worldCenter;
+            AimAtDuel();
+            HoldOutputZoom(duelCamera);
+            duelCamera.enabled = true;
         }
 
         public void FrameExploration()
@@ -83,57 +72,54 @@ namespace Game.UI
                 return;
             }
 
-            BeginGlide(true);
+            HoldOutputZoom(virtualCamera);
+            duelCamera.enabled = false;
         }
 
-        private void BeginGlide(bool back)
+        private void OnEnable() => CinemachineCore.BlendFinishedEvent.AddListener(OnBlendFinished);
+
+        private void OnDisable() => CinemachineCore.BlendFinishedEvent.RemoveListener(OnBlendFinished);
+
+        private void OnBlendFinished(ICinemachineMixer mixer, ICinemachineCamera camera)
         {
-            glideFrom = duelFocus.position;
-            glideElapsed = 0f;
-            returning = back;
-            IsGliding = true;
-            Glide(0f);
+            if (ReferenceEquals(camera, virtualCamera))
+            {
+                SetOrthographicSize(virtualCamera, explorationOrthographicSize);
+            }
         }
 
         private void Update()
         {
-            if (IsGliding)
+            if (IsFramingDuel)
             {
-                Glide(Time.deltaTime);
+                AimAtDuel();
             }
         }
 
-        private void Glide(float deltaSeconds)
+        private void HoldOutputZoom(CinemachineCamera incoming) => SetOrthographicSize(incoming, OutputOrthographicSize);
+
+        private static void SetOrthographicSize(CinemachineCamera camera, float orthographicSize)
         {
-            glideElapsed += deltaSeconds;
-            var progress = glideSeconds <= 0f ? 1f : Mathf.Clamp01(glideElapsed / glideSeconds);
-            var destination = returning && explorationTarget ? explorationTarget.position : duelCenter;
-            duelFocus.position = Snap(Vector3.Lerp(glideFrom, destination, Mathf.SmoothStep(0f, 1f, progress)));
-            if (progress < 1f)
-            {
-                return;
-            }
-
-            IsGliding = false;
-            if (!returning)
-            {
-                return;
-            }
-
-            IsFramingDuel = false;
-            virtualCamera.Follow = explorationTarget;
+            var lens = camera.Lens;
+            lens.OrthographicSize = orthographicSize;
+            camera.Lens = lens;
         }
 
-        private Transform EnsureFocus()
+        private void AimAtDuel()
         {
-            if (!duelFocus)
-            {
-                duelFocus = new GameObject(DuelFocusName).transform;
-            }
-
-            return duelFocus;
+            var framing = FramingFor(duelCenter, OutputOrthographicSize);
+            duelFocus.position = PixelSnappedCamera.Snap(new Vector3(framing.x, framing.y, 0f), pixelsPerUnit);
         }
 
-        private Vector3 Snap(Vector3 position) => PixelSnappedCamera.Snap(new Vector3(position.x, position.y, 0f), pixelsPerUnit);
+        private float OutputOrthographicSize
+        {
+            get
+            {
+                var output = Brain ? Brain.OutputCamera : null;
+                return output && output.orthographic ? output.orthographicSize : LensOrthographicSize;
+            }
+        }
+
+        private CinemachineBrain Brain => virtualCamera ? CinemachineCore.FindPotentialTargetBrain(virtualCamera) : null;
     }
 }

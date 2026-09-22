@@ -81,7 +81,7 @@ namespace Game.Tests.PlayMode
             yield return WaitUntilStill(probe, explorationCamera);
 
             Assert.AreSame(explorationCamera.DuelFocus, explorationCamera.FollowTarget, "the camera follows the duel during the battle");
-            AssertOnPixel(Snap(director.Arena.WorldCenter), camera.transform.position, "the camera must centre on the duel");
+            AssertOnPixel(Snap(ExplorationCamera.FramingFor(director.Arena.WorldCenter, camera.orthographicSize)), camera.transform.position, "the camera must centre the duel above the hud");
             AssertMovesOneWay(probe.Positions, "moving in to the duel");
 
             probe.Clear();
@@ -92,6 +92,49 @@ namespace Game.Tests.PlayMode
             AssertOnPixel(Snap(sandbox.Player.transform.position), camera.transform.position, "the camera must come back to Kleia");
             AssertMovesOneWay(probe.Positions, "moving back to Kleia");
             Assert.AreEqual(zoom, camera.orthographicSize);
+            Object.Destroy(probe.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_BesideTheMapEdge_CentresTheArenaInThePlayAreaAboveTheHudAndThenRestoresTheBounds()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            var camera = Camera.main;
+            var explorationCamera = director.ExplorationCamera;
+            var confiner = explorationCamera.GetComponent(MapBoundsComponent) as Behaviour;
+            Assert.IsNotNull(confiner, "the exploration camera must be confined to the map");
+            Assert.IsTrue(confiner.enabled);
+            var probe = new GameObject("camera probe").AddComponent<CameraProbe>();
+            probe.Watch(camera.transform);
+
+            var target = OpponentNearestTheEdge(director, sandbox);
+            yield return EngageAtRest(director, sandbox, target, () => Assert.Greater(
+                Vector2.Distance(Snap(sandbox.Player.transform.position), camera.transform.position),
+                PixelTolerance,
+                $"beside {target.Opponent.Id} the map bounds must hold the exploration camera off Kleia, or the test proves nothing"));
+            var confinedOnKleia = camera.transform.position;
+            var framing = ExplorationCamera.FramingFor(director.Arena.WorldCenter, camera.orthographicSize);
+
+            probe.Clear();
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.PlayerChoosing);
+            yield return WaitUntilStill(probe, explorationCamera);
+
+            AssertOnPixel(Snap(framing), camera.transform.position, $"the duel with {target.Opponent.Id} beside the map edge must sit in the middle of the play area above the hud");
+            var viewport = camera.WorldToViewportPoint(director.Arena.WorldCenter);
+            var onePixelHigh = 1f / (ArtPixelsPerUnit * 2f * camera.orthographicSize);
+            Assert.AreEqual(0.5f, viewport.x, onePixelHigh / camera.aspect + 1e-3f, "the arena sits in the horizontal middle of the screen");
+            Assert.AreEqual((1f + HudLayout.BottomStripFraction) * 0.5f, viewport.y, onePixelHigh + 1e-3f, "the arena sits in the vertical middle of the area above the bottom strip");
+            Assert.IsTrue(confiner.enabled, "the exploration camera keeps its map bounds for when the duel ends");
+            AssertMovesOneWay(probe.Positions, "moving in to a duel beside the edge");
+
+            probe.Clear();
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.Exploring, null, _ => new BattleMenuChoice(ActionId.Withdraw));
+            yield return WaitUntilStill(probe, explorationCamera);
+
+            Assert.AreSame(sandbox.Player.transform, explorationCamera.FollowTarget, "the camera follows Kleia again after the battle");
+            AssertOnPixel(confinedOnKleia, camera.transform.position, "the camera goes back to where the map bounds held it on Kleia");
+            AssertMovesOneWay(probe.Positions, "moving back to Kleia beside the edge");
             Object.Destroy(probe.gameObject);
         }
 
@@ -151,7 +194,7 @@ namespace Game.Tests.PlayMode
 
             var spectatorViews = crowd.Gathered.Select(spectator => spectator.View).ToList();
             CollectionAssert.IsEmpty(sandbox.Actors.Intersect(spectatorViews), "spectators are not map actors");
-            CollectionAssert.IsEmpty(director.Opponents.Select(entry => entry.Actor).Intersect(spectatorViews), "spectators never provoke");
+            CollectionAssert.IsEmpty(director.Opponents.Select(entry => entry.Actor).Intersect(spectatorViews), "spectators are never challengers");
             yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.Exploring, null, _ => new BattleMenuChoice(ActionId.Withdraw));
         }
 
@@ -250,6 +293,43 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Veil_DarkensABlockRevealedDuringTheDuelButNeverOneStillUnderTheFog()
+        {
+            var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
+            yield return LoadSandbox(loaded => (director, sandbox) = loaded);
+            var veil = director.Veil;
+            yield return EngageAtRest(director, sandbox, CentralOpponent(director, sandbox));
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.PlayerChoosing);
+
+            var arena = director.Arena;
+            var grid = sandbox.Grid;
+            var fogged = Enumerable.Range(0, grid.Height)
+                .SelectMany(y => Enumerable.Range(0, grid.Width).Select(x => new Coord(x, y)))
+                .Where(cell => sandbox.BlockTiles[cell.Y * grid.Width + cell.X] && !grid[cell].Revealed && !arena.IsLit(cell))
+                .ToList();
+            Assert.IsNotEmpty(fogged, "some block outside the arena must still be under the fog");
+            foreach (var cell in fogged)
+            {
+                Assert.IsNull(veil.BlocksVeil.GetTile(new Vector3Int(cell.X, cell.Y, 0)), $"the block at {cell} is still under the fog, so the veil must not draw its outline");
+            }
+
+            var revealed = fogged[0];
+            var position = new Vector3Int(revealed.X, revealed.Y, 0);
+            var veiledBefore = veil.VeiledBlockCount;
+            new FogOfWar(grid).Reveal(revealed, 0);
+            yield return null;
+
+            var block = sandbox.BlockTiles[revealed.Y * grid.Width + revealed.X];
+            Assert.AreSame(block, sandbox.BlocksTilemap.GetTile(position), "the block shows once its cell is revealed");
+            Assert.AreSame(block, veil.BlocksVeil.GetTile(position), "a block revealed outside the arena during the duel is darkened over its whole height");
+            Assert.AreEqual(veiledBefore + 1, veil.VeiledBlockCount);
+
+            yield return PlayUntil(director, () => director.Phase == BattleFlowPhase.Exploring, null, _ => new BattleMenuChoice(ActionId.Withdraw));
+            yield return WaitFor(() => !veil.IsShown, SettleTimeoutSeconds);
+            Assert.AreEqual(0, CountTiles(veil.BlocksVeil));
+        }
+
+        [UnityTest]
         public IEnumerator Crowd_WalksOffTheMapAfterTheBattleWithoutEverBlockingKleia()
         {
             var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));
@@ -276,7 +356,7 @@ namespace Game.Tests.PlayMode
                 Assert.IsTrue(outwardX || outwardY || !HasOutwardExit(sandbox.Grid, seat, arena), $"spectator {spectator.Id} walked across the arena to {spectator.Exit}");
             }
 
-            var destination = QuietSeat(director, sandbox, spectators);
+            var destination = ReachableSeat(sandbox, spectators);
             Assert.IsTrue(sandbox.TryMovePlayerTo(destination), "Kleia can walk onto a cell a spectator just left");
             Assert.IsTrue(sandbox.Player.Walker.IsMoving, "Kleia starts walking at once");
 
@@ -314,10 +394,9 @@ namespace Game.Tests.PlayMode
             loaded((director, sandbox));
         }
 
-        private static IEnumerator EngageAtRest(SandboxBattleDirector director, GridSandboxController sandbox, MapOpponent target)
+        private static IEnumerator EngageAtRest(SandboxBattleDirector director, GridSandboxController sandbox, MapOpponent target, System.Action atRest = null)
         {
-            director.enabled = false;
-            sandbox.Player.Walker.Teleport(ApproachCell(sandbox.Grid, director, target), Facing.NorthEast);
+            DuelChallenge.StandBeside(sandbox, target);
             var probe = new GameObject("settle probe").AddComponent<CameraProbe>();
             probe.Watch(Camera.main.transform);
             var settleAfter = Time.realtimeSinceStartup + SettleSeconds;
@@ -328,9 +407,11 @@ namespace Game.Tests.PlayMode
             }
 
             Object.Destroy(probe.gameObject);
-            director.enabled = true;
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, $"{target.Opponent.Id} started the duel before Kleia challenged him");
+            atRest?.Invoke();
+            DuelChallenge.Confirm(sandbox, target.Actor.Walker.Cell);
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
-            Assert.AreSame(target, director.Engaged, $"{target.Opponent.Id} did not notice Kleia");
+            Assert.AreSame(target, director.Engaged, $"confirming on {target.Opponent.Id} did not start the duel");
         }
 
         private static IEnumerator PlayUntil(SandboxBattleDirector director, System.Func<bool> done, System.Action everyFrame = null, System.Func<BattleSession, BattleMenuChoice> choose = null)
@@ -389,54 +470,34 @@ namespace Game.Tests.PlayMode
                 .First();
         }
 
-        private static Coord ApproachCell(GridModel grid, SandboxBattleDirector director, MapOpponent entry)
+        private static MapOpponent OpponentNearestTheEdge(SandboxBattleDirector director, GridSandboxController sandbox)
         {
-            var center = entry.Actor.Walker.Cell;
-            for (var distance = 1; distance <= entry.Opponent.AggroRadius; distance++)
-            {
-                for (var dx = -distance; dx <= distance; dx++)
-                {
-                    var dy = distance - System.Math.Abs(dx);
-                    foreach (var candidate in new[] { new Coord(center.X + dx, center.Y + dy), new Coord(center.X + dx, center.Y - dy) })
-                    {
-                        if (grid.TryGet(candidate, out var tile) && tile.IsPassable && !tile.IsOccupied && NoticedFirstBy(director, entry, candidate))
-                        {
-                            return candidate;
-                        }
-                    }
-                }
-            }
-
-            Assert.Fail($"no free cell where {entry.Opponent.Id} notices Kleia first");
-            return center;
-        }
-
-        private static bool NoticedFirstBy(SandboxBattleDirector director, MapOpponent entry, Coord cell)
-        {
-            var distance = PositionalModifiers.Distance(cell, entry.Actor.Walker.Cell);
+            var grid = sandbox.Grid;
             return director.Opponents
-                .Where(other => other != entry && other.IsPlaced)
-                .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius) || PositionalModifiers.Distance(cell, other.Actor.Walker.Cell) > distance);
+                .Where(entry => entry.IsPlaced && entry.Opponent.Tutorial?.IsDefined != true)
+                .OrderBy(entry =>
+                {
+                    var cell = entry.Actor.Walker.Cell;
+                    return System.Math.Min(System.Math.Min(cell.X, cell.Y), System.Math.Min(grid.Width - 1 - cell.X, grid.Height - 1 - cell.Y));
+                })
+                .First();
         }
 
-        private static Coord QuietSeat(SandboxBattleDirector director, GridSandboxController sandbox, IEnumerable<Spectator> spectators)
+        private static Coord ReachableSeat(GridSandboxController sandbox, IEnumerable<Spectator> spectators)
         {
             var finder = new PathFinder();
             var path = new List<Coord>();
             foreach (var seat in spectators.Select(spectator => spectator.Seat.Seat))
             {
-                if (finder.FindPath(sandbox.Grid, sandbox.Player.Walker.Cell, seat, path) && path.All(cell => IsQuiet(director, cell)))
+                if (finder.FindPath(sandbox.Grid, sandbox.Player.Walker.Cell, seat, path))
                 {
                     return seat;
                 }
             }
 
-            Assert.Fail("every spectator seat lies past a duelist, so walking there would start another duel");
+            Assert.Fail("Kleia cannot walk to any spectator seat");
             return default;
         }
-
-        private static bool IsQuiet(SandboxBattleDirector director, Coord cell) =>
-            director.Opponents.All(entry => !entry.IsPlaced || !AggroRule.IsTriggered(cell, entry.Actor.Walker.Cell, entry.Opponent.AggroRadius));
 
         private static Coord StepTowardTheCrowd(BattleState state, IReadOnlyCollection<Coord> seats)
         {

@@ -326,7 +326,7 @@ namespace Game.Tests.PlayMode
             foreach (var talker in map.Dialogue.Talkers)
             {
                 var npc = talker.Actor.Walker.Cell;
-                map.Sandbox.Player.Walker.Teleport(QuietFreeNeighbour(map, npc), Facing.NorthEast);
+                map.Sandbox.Player.Walker.Teleport(FreeNeighbour(map, npc), Facing.NorthEast);
                 yield return null;
 
                 map.Sandbox.Cursor.TryHover(IsoMath.GridToWorld(npc), Vector2.zero);
@@ -363,7 +363,7 @@ namespace Game.Tests.PlayMode
             var player = map.Sandbox.Player.Walker;
             var beside = Neighbours(exit.Cell)
                 .First(cell => map.Sandbox.Grid.TryGet(cell, out var tile) && tile.IsPassable && (!tile.IsOccupied || tile.OccupantId == player.ActorId)
-                    && map.Sandbox.Exits.All(link => link.Cell != cell) && IsQuiet(map, cell));
+                    && map.Sandbox.Exits.All(link => link.Cell != cell));
             player.Teleport(beside, Facing.SouthWest);
             yield return null;
 
@@ -381,7 +381,7 @@ namespace Game.Tests.PlayMode
             Assert.IsNotEmpty(teachers, "a new game starts with a lesson in the agora");
             foreach (var teacher in teachers)
             {
-                yield return ProvokeByWalkingIn(map, teacher);
+                yield return Challenge(map, teacher);
                 Assert.IsNotNull(battle.Tutorial, $"the first duel with {teacher.Opponent.Id} is the lesson");
                 yield return PlayDuel(map, DuelPlan.Win);
                 Assert.AreEqual(BattleStatus.PlayerWon, duelResults[teacher.Opponent.Id], $"naming the right fallacy must win the lesson with {teacher.Opponent.Id} offline");
@@ -401,41 +401,34 @@ namespace Game.Tests.PlayMode
             var quitter = rivals.Last(entry => entry != winner);
             var explorers = rivals.Where(entry => entry != winner && entry != quitter).ToList();
 
-            yield return ProvokeByWalkingIn(map, winner);
+            yield return Challenge(map, winner);
             yield return PlayDuel(map, DuelPlan.Win);
             Assert.AreEqual(BattleStatus.PlayerWon, duelResults[winner.Opponent.Id], $"naming the right fallacy must beat {winner.Opponent.Id} offline");
-            map.Player.Teleport(InsideTheRadiusOf(map, winner), Facing.NorthEast);
+            DuelChallenge.StandBeside(map.Sandbox, winner);
+            DuelChallenge.Confirm(map.Sandbox, winner.Actor.Walker.Cell);
             yield return Frames(QuietFrames);
-            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, $"{winner.Opponent.Id} picked a fight after losing");
+            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, $"{winner.Opponent.Id} took up a challenge after losing");
 
-            yield return ProvokeByWalkingIn(map, quitter);
+            yield return Challenge(map, quitter);
             yield return PlayDuel(map, DuelPlan.Withdraw);
             Assert.AreEqual(BattleStatus.PlayerWithdrew, duelResults[quitter.Opponent.Id]);
-            yield return Provoke(map, quitter);
+            yield return Challenge(map, quitter);
             yield return PlayDuel(map, DuelPlan.Withdraw);
 
             foreach (var entry in explorers)
             {
-                yield return Provoke(map, entry);
+                yield return Challenge(map, entry);
                 yield return PlayDuel(map, DuelPlan.Explore);
             }
 
             Assert.AreEqual(battle.Opponents.Count, duelResults.Count, "every opponent on the map must be fought");
         }
 
-        private static IEnumerator ProvokeByWalkingIn(MapScene map, MapOpponent entry)
+        private static IEnumerator Challenge(MapScene map, MapOpponent entry)
         {
-            Assert.IsTrue(TryFindCellNoticedFirstBy(map, entry, out var cell), $"no free cell where {entry.Opponent.Id} is the nearest to notice Kleia");
-            map.Player.Teleport(cell, Facing.NorthEast);
-            yield return WaitFor(() => map.Battle.Phase != BattleFlowPhase.Exploring, SceneTimeoutSeconds);
-            Assert.AreSame(entry, map.Battle.Engaged, $"walking up to {entry.Opponent.Id} did not start the duel");
-        }
-
-        private static IEnumerator Provoke(MapScene map, MapOpponent entry)
-        {
-            if (TryFindCellNoticedFirstBy(map, entry, out _))
+            if (DuelChallenge.TryFindFreeCellBeside(map.Sandbox, entry.Actor.Walker.Cell, out _))
             {
-                yield return ProvokeByWalkingIn(map, entry);
+                yield return DuelChallenge.Engage(map.Sandbox, map.Battle, entry, SceneTimeoutSeconds);
                 yield break;
             }
 
@@ -507,9 +500,8 @@ namespace Game.Tests.PlayMode
                 battleLinesShown.Add(BattleText.StatusKey(director.LastResult));
             }
 
-            map.Player.Teleport(QuietCell(map), Facing.NorthEast);
             yield return SettleTheStory(map);
-            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "stepping away after a duel must not start another one");
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "standing beside the last opponent must not start another duel");
         }
 
         private void ReadBattleLine(SandboxBattleDirector director, MapOpponent opponent, bool opponentJustPlayed, int playerEntry)
@@ -703,51 +695,23 @@ namespace Game.Tests.PlayMode
             Assert.IsFalse(string.IsNullOrWhiteSpace(shown), "the box shows nothing");
         }
 
-        private static Coord QuietFreeNeighbour(MapScene map, Coord npc)
+        private static Coord FreeNeighbour(MapScene map, Coord npc)
         {
             foreach (var cell in Neighbours(npc))
             {
                 if (map.Sandbox.Grid.TryGet(cell, out var tile) && tile.IsPassable && (!tile.IsOccupied || tile.OccupantId == map.Player.ActorId)
-                    && map.Sandbox.Exits.All(link => link.Cell != cell) && map.Dialogue.Triggers.All(trigger => trigger.Cell != cell) && IsQuiet(map, cell))
+                    && map.Sandbox.Exits.All(link => link.Cell != cell) && map.Dialogue.Triggers.All(trigger => trigger.Cell != cell))
                 {
                     return cell;
                 }
             }
 
-            Assert.Fail($"nobody can stand beside {npc} without being noticed");
+            Assert.Fail($"nobody can stand beside {npc}");
             return npc;
         }
 
-        private static bool IsQuiet(MapScene map, Coord cell) =>
-            !map.Battle || map.Battle.Opponents.All(entry => map.Battle.IsDefeated(entry) || !AggroRule.IsTriggered(cell, entry.Actor.Walker.Cell, entry.Opponent.AggroRadius));
-
-        private static bool TryFindCellNoticedFirstBy(MapScene map, MapOpponent entry, out Coord found)
-        {
-            foreach (var cell in CellsAround(map, entry.Actor.Walker.Cell, entry.Opponent.AggroRadius))
-            {
-                var distance = PositionalModifiers.Distance(cell, entry.Actor.Walker.Cell);
-                var nearestToNotice = map.Battle.Opponents
-                    .Where(other => other != entry && !map.Battle.IsDefeated(other))
-                    .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius) || PositionalModifiers.Distance(cell, other.Actor.Walker.Cell) > distance);
-                if (nearestToNotice)
-                {
-                    found = cell;
-                    return true;
-                }
-            }
-
-            found = default;
-            return false;
-        }
-
-        private static Coord InsideTheRadiusOf(MapScene map, MapOpponent entry) =>
-            FirstCellAround(map, entry.Actor.Walker.Cell, entry.Opponent.AggroRadius, cell => IsQuiet(map, cell), $"no free cell inside the radius of {entry.Opponent.Id} is out of the others' reach");
-
         private static Coord NearestFreeCell(MapScene map, Coord center) =>
             FirstCellAround(map, center, map.Sandbox.Grid.Width + map.Sandbox.Grid.Height, _ => true, $"no free cell anywhere near {center}");
-
-        private static Coord QuietCell(MapScene map) =>
-            FirstCellAround(map, map.Player.Cell, map.Sandbox.Grid.Width + map.Sandbox.Grid.Height, cell => IsQuiet(map, cell), "no free cell is out of every opponent's reach");
 
         private static Coord FirstCellAround(MapScene map, Coord center, int farthest, Func<Coord, bool> accepts, string failure)
         {

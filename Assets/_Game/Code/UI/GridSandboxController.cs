@@ -31,6 +31,8 @@ namespace Game.UI
         [SerializeField] private TileBase[] selectionFrames = new TileBase[0];
         [SerializeField] private TileBase fogTile;
         [SerializeField] private TileBase[] fogEdgeTiles = new TileBase[0];
+        [SerializeField] private Tilemap blocksTilemap;
+        [SerializeField] private TileBase[] blockTiles = new TileBase[0];
         [SerializeField] private List<ActorView> actors = new();
         [SerializeField] private GridGizmoView gizmos;
         [SerializeField] private string locationId = DefaultLocationId;
@@ -77,6 +79,10 @@ namespace Game.UI
         public IReadOnlyList<ActorView> Actors => actors;
 
         public Tilemap FogTilemap => fogTilemap;
+
+        public Tilemap BlocksTilemap => blocksTilemap;
+
+        public IReadOnlyList<TileBase> BlockTiles => blockTiles;
 
         public GridCursor Cursor => cursor;
 
@@ -225,6 +231,12 @@ namespace Game.UI
             gizmos = newGizmos;
         }
 
+        public void ConfigureBlocks(Tilemap newBlocksTilemap, TileBase[] newBlockTiles)
+        {
+            blocksTilemap = newBlocksTilemap;
+            blockTiles = newBlockTiles ?? new TileBase[0];
+        }
+
         public GridModel BuildGrid()
         {
             var model = new GridModel(width, height);
@@ -255,6 +267,10 @@ namespace Game.UI
             }
 
             PaintFog(previewGrid);
+            foreach (var actor in actors)
+            {
+                actor.IsShown = FogTileRules.ShowsWhatStandsOn(previewGrid, ToCoord(actor.StartCell));
+            }
         }
 
         private void Awake()
@@ -531,6 +547,7 @@ namespace Game.UI
             }
 
             PaintFog(grid);
+            ShowActorsOnRevealedCells();
             PaintSelection();
             TryLeaveThroughExit();
         }
@@ -647,16 +664,43 @@ namespace Game.UI
 
         private void PaintFog(GridModel model)
         {
-            if (fogTilemap == null)
-            {
-                return;
-            }
-
             for (var y = 0; y < model.Height; y++)
             {
                 for (var x = 0; x < model.Width; x++)
                 {
-                    fogTilemap.SetTile(new Vector3Int(x, y, 0), FogTileFor(FogTileRules.KindAt(model, new Coord(x, y))));
+                    var cell = new Coord(x, y);
+                    var position = new Vector3Int(x, y, 0);
+                    if (fogTilemap != null)
+                    {
+                        fogTilemap.SetTile(position, FogTileFor(FogTileRules.KindAt(model, cell)));
+                    }
+
+                    PaintBlock(position, FogTileRules.ShowsWhatStandsOn(model, cell) ? BlockTileAt(x, y) : null);
+                }
+            }
+        }
+
+        private void PaintBlock(Vector3Int position, TileBase block)
+        {
+            if (blocksTilemap != null && blocksTilemap.GetTile(position) != block)
+            {
+                blocksTilemap.SetTile(position, block);
+            }
+        }
+
+        private TileBase BlockTileAt(int x, int y)
+        {
+            var index = y * width + x;
+            return index < blockTiles.Length ? blockTiles[index] : null;
+        }
+
+        private void ShowActorsOnRevealedCells()
+        {
+            foreach (var actor in actors)
+            {
+                if (actor && actor.Walker != null)
+                {
+                    actor.IsShown = FogTileRules.ShowsWhatStandsAt(grid, actor.Walker.WorldPosition);
                 }
             }
         }

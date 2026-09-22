@@ -28,7 +28,8 @@ namespace Game.UI
         private InputAction confirmAction;
         private InputAction navigateAction;
         private DialoguePlayer player;
-        private NpcDialogueLink pendingTalk;
+        private ActorView approachTarget;
+        private Action approachArrival;
         private DialogueTriggerLink pendingTrigger;
         private GridWalker watchedWalker;
         private int openedFrame = -1;
@@ -56,9 +57,11 @@ namespace Game.UI
 
         public bool IsAwaitingChoice => player != null && player.IsAwaitingChoice;
 
-        public bool IsApproaching => pendingTalk != null;
+        public bool IsApproaching => approachTarget != null;
 
         public bool HasPendingTrigger => pendingTrigger != null;
+
+        public IDuelChallenges Challenges { get; set; }
 
         public string ActiveDialogueId => player?.Run?.Script.Id;
 
@@ -137,14 +140,21 @@ namespace Game.UI
             }
 
             var talker = TalkerAt(cell);
-            if (talker == null)
+            if (talker != null)
             {
-                pendingTalk = null;
-                return TryApproachTriggerBeside(cell);
+                Approach(talker.Actor, () => Converse(talker));
+                return true;
             }
 
-            Approach(talker);
-            return true;
+            var challenger = Challenges?.ChallengerAt(cell);
+            if (challenger)
+            {
+                Approach(challenger, () => Challenge(challenger));
+                return true;
+            }
+
+            StopApproaching();
+            return TryApproachTriggerBeside(cell);
         }
 
         public bool TryStartDialogue(string dialogueId)
@@ -161,7 +171,7 @@ namespace Game.UI
                 return false;
             }
 
-            pendingTalk = null;
+            StopApproaching();
             sandbox.Player?.Walker?.Cancel();
             if (pause)
             {
@@ -258,7 +268,7 @@ namespace Game.UI
                 return;
             }
 
-            pendingTalk = null;
+            StopApproaching();
             pendingTrigger = trigger;
             watchedWalker.Cancel();
         }
@@ -281,7 +291,7 @@ namespace Game.UI
             {
                 if (sandbox.StateMachine.IsInBattle)
                 {
-                    pendingTalk = null;
+                    StopApproaching();
                     pendingTrigger = null;
                 }
 
@@ -305,16 +315,17 @@ namespace Game.UI
                 return;
             }
 
-            if (pendingTalk == null)
+            if (approachTarget == null)
             {
                 return;
             }
 
-            var talker = pendingTalk;
-            pendingTalk = null;
-            if (IsBeside(walker.Cell, talker))
+            var target = approachTarget;
+            var arrival = approachArrival;
+            StopApproaching();
+            if (target.Walker != null && PathFinder.AreBeside(walker.Cell, target.Walker.Cell))
             {
-                Converse(talker);
+                arrival();
             }
         }
 
@@ -337,36 +348,52 @@ namespace Game.UI
             }
         }
 
-        private void Approach(NpcDialogueLink talker)
+        private void Approach(ActorView target, Action arrival)
         {
-            pendingTalk = null;
+            StopApproaching();
             var walker = sandbox.Player?.Walker;
-            if (walker == null)
+            if (walker == null || !pathFinder.FindPathBeside(sandbox.Grid, walker.Cell, target.Walker.Cell, approachPath))
             {
                 return;
             }
 
-            if (IsBeside(walker.Cell, talker))
+            if (approachPath.Count == 0)
             {
                 walker.Cancel();
-                pendingTalk = talker;
-                return;
             }
-
-            if (TryFindApproach(walker.Cell, talker.Actor.Walker.Cell))
+            else
             {
                 walker.Follow(approachPath);
-                pendingTalk = talker;
             }
+
+            approachTarget = target;
+            approachArrival = arrival;
+        }
+
+        private void StopApproaching()
+        {
+            approachTarget = null;
+            approachArrival = null;
         }
 
         private void Converse(NpcDialogueLink talker)
         {
+            FaceEachOther(talker.Actor);
+            TryStartDialogue(talker.Dialogue);
+        }
+
+        private void Challenge(ActorView challenger)
+        {
+            FaceEachOther(challenger);
+            Challenges?.Challenge(challenger);
+        }
+
+        private void FaceEachOther(ActorView other)
+        {
             var walker = sandbox.Player.Walker;
-            var npc = talker.Actor.Walker;
+            var npc = other.Walker;
             walker.FaceToward(npc.Cell);
             npc.FaceToward(walker.Cell);
-            TryStartDialogue(talker.Dialogue);
         }
 
         private void Fire(DialogueTriggerLink trigger)
@@ -384,14 +411,11 @@ namespace Game.UI
         private void FaceSpeakerBeside(string dialogueId)
         {
             var walker = sandbox.Player.Walker;
-            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && IsBeside(walker.Cell, candidate));
-            if (talker == null)
+            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && PathFinder.AreBeside(walker.Cell, candidate.Actor.Walker.Cell));
+            if (talker != null)
             {
-                return;
+                FaceEachOther(talker.Actor);
             }
-
-            walker.FaceToward(talker.Actor.Walker.Cell);
-            talker.Actor.Walker.FaceToward(walker.Cell);
         }
 
         private void Finish(DialogueRun finished)
@@ -428,10 +452,6 @@ namespace Game.UI
         private NpcDialogueLink TalkerAt(Coord cell) =>
             talkers.Find(talker => CanTalkTo(talker) && talker.Actor.Walker.Cell == cell);
 
-        private static bool IsBeside(Coord cell, NpcDialogueLink talker) => AreBeside(cell, talker.Actor.Walker.Cell);
-
-        private static bool AreBeside(Coord first, Coord second) => Math.Abs(first.X - second.X) + Math.Abs(first.Y - second.Y) == 1;
-
         private bool TryApproachTriggerBeside(Coord occupiedCell)
         {
             var walker = sandbox.Player?.Walker;
@@ -445,7 +465,7 @@ namespace Game.UI
             DialogueTriggerLink nearest = null;
             foreach (var trigger in triggers)
             {
-                if (!AreBeside(trigger.Cell, occupiedCell) || !trigger.IsDue(Story))
+                if (!PathFinder.AreBeside(trigger.Cell, occupiedCell) || !trigger.IsDue(Story))
                 {
                     continue;
                 }
@@ -474,25 +494,6 @@ namespace Game.UI
 
             walker.Follow(approachPath);
             return true;
-        }
-
-        private bool TryFindApproach(Coord from, Coord target)
-        {
-            approachPath.Clear();
-            var found = false;
-            foreach (var beside in new[] { new Coord(target.X + 1, target.Y), new Coord(target.X - 1, target.Y), new Coord(target.X, target.Y + 1), new Coord(target.X, target.Y - 1) })
-            {
-                if (!pathFinder.FindPath(sandbox.Grid, from, beside, candidatePath) || (found && candidatePath.Count >= approachPath.Count))
-                {
-                    continue;
-                }
-
-                approachPath.Clear();
-                approachPath.AddRange(candidatePath);
-                found = true;
-            }
-
-            return found;
         }
 
         private bool TryFindUnfiredTrigger(Coord cell, out DialogueTriggerLink trigger)

@@ -22,7 +22,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 92830def39410cf47bc60eec8e8da713, type: 2}
   act: 1
   profile: 0
-  aggroRadius: 1
   tutorial:
     fallacyId: 
     doneFlag: 

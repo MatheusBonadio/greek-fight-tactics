@@ -70,6 +70,41 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Fog_HidesBlocksAndActorsUntilTheirCellIsRevealed()
+        {
+            yield return null;
+
+            var grid = controller.Grid;
+            var blocks = controller.BlocksTilemap;
+            var hiddenActor = controller.Actors.First(actor => actor.Walker != null && !grid[actor.Walker.Cell].Revealed);
+            var hiddenBlocks = BlockCells().Where(cell => !grid[cell].Revealed).ToList();
+            Assert.IsFalse(hiddenActor.IsShown, $"{hiddenActor.name} stands under the fog, so nothing of him may show");
+            Assert.IsNotEmpty(hiddenBlocks, "the back of the agora starts under the fog");
+            foreach (var cell in BlockCells())
+            {
+                var expected = grid[cell].Revealed ? BlockTileAt(cell) : null;
+                Assert.AreEqual(expected, blocks.GetTile(new Vector3Int(cell.X, cell.Y, 0)), $"the block at {cell} must follow the fog");
+            }
+
+            Assert.IsTrue(controller.Actors.Where(actor => actor.Walker != null && grid[actor.Walker.Cell].Revealed).All(actor => actor.IsShown), "everyone on a revealed cell shows");
+
+            var fog = new FogOfWar(grid);
+            fog.Reveal(hiddenActor.Walker.Cell);
+            foreach (var cell in hiddenBlocks)
+            {
+                fog.Reveal(cell, 0);
+            }
+
+            yield return null;
+
+            Assert.IsTrue(hiddenActor.IsShown, $"{hiddenActor.name} shows once his cell is revealed");
+            foreach (var cell in hiddenBlocks)
+            {
+                Assert.AreEqual(BlockTileAt(cell), blocks.GetTile(new Vector3Int(cell.X, cell.Y, 0)), $"the block at {cell} shows once its cell is revealed");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Hud_DescribesTheCellUnderTheCursor()
         {
             yield return null;
@@ -192,6 +227,13 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(controller.Grid[new Coord(2, 9)].Revealed);
             Assert.GreaterOrEqual(elapsed, GridWalker.SecondsPerCell * 3f);
         }
+
+        private IEnumerable<Coord> BlockCells() =>
+            Enumerable.Range(0, controller.Grid.Height)
+                .SelectMany(y => Enumerable.Range(0, controller.Grid.Width).Select(x => new Coord(x, y)))
+                .Where(cell => BlockTileAt(cell) != null);
+
+        private UnityEngine.Tilemaps.TileBase BlockTileAt(Coord cell) => controller.BlockTiles[cell.Y * controller.Grid.Width + cell.X];
 
         private static void AssertMovesOneWay(List<int> offsets, string axis)
         {

@@ -25,6 +25,18 @@ namespace Game.UI
 
         public GridWalker Walker { get; private set; }
 
+        public bool IsShown
+        {
+            get => spriteRenderer == null || spriteRenderer.enabled;
+            set
+            {
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.enabled = value;
+                }
+            }
+        }
+
         public void Configure(Vector2Int cell, Facing facing, SpriteRenderer renderer, Animator actorAnimator)
         {
             startCell = cell;

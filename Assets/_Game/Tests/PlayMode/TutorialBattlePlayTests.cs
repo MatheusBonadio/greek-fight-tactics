@@ -24,6 +24,7 @@ namespace Game.Tests.PlayMode
         private const string CrowdName = "Plateia";
         private const float TimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 60f;
+        private const int ApproachDistance = 2;
 
         private readonly List<string> scriptsSeen = new();
         private readonly HashSet<string> speakersSeen = new();
@@ -80,7 +81,7 @@ namespace Game.Tests.PlayMode
             var tutorial = thrasybios.Opponent.Tutorial;
             Assert.IsTrue(story.Remember(new StoryEffect(tutorial.DoneFlag)));
 
-            yield return Provoke();
+            yield return Challenge();
             Assert.IsNull(director.Tutorial, "the lesson is over, so the duel is normal");
             Assert.IsFalse(director.IsPlayingScript);
             StringAssert.Contains(thrasybios.Opponent.DisplayName, director.Hud.Dialogue.Line.Text, "a normal duel opens with the standard challenge");
@@ -95,7 +96,7 @@ namespace Game.Tests.PlayMode
         [UnityTest]
         public IEnumerator LeavingTheTutorial_KeepsItPendingWithoutReplayingTheDemonstration()
         {
-            yield return Provoke();
+            yield return Challenge();
             Assert.AreEqual(thrasybios.Opponent.Tutorial.DialogueFor(TutorialCue.Intro), director.ActiveScriptId);
             yield return AdvanceUntil(() => director.Phase == BattleFlowPhase.PlayerChoosing);
             director.SubmitChoice(new BattleMenuChoice(ActionId.Withdraw));
@@ -106,10 +107,10 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(StoryCondition.Has(DemoFlag).IsMet(story.Story));
             Assert.IsFalse(director.IsDefeated(thrasybios));
 
-            sandbox.Player.Walker.Teleport(FreeCell(cell => OutsideEveryRadius(cell) && PositionalModifiers.Distance(cell, ThrasybiosCell) > thrasybios.Opponent.AggroRadius + 1), Facing.NorthEast);
             yield return Frames(10);
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "standing beside Thrasybios after leaving does not start the lesson again");
             scriptsSeen.Clear();
-            yield return Provoke();
+            yield return Challenge();
 
             Assert.IsNotNull(director.Tutorial, "the lesson starts over");
             Assert.IsFalse(director.IsPlayingScript, "Thrasybios does not repeat the amphora demonstration");
@@ -124,7 +125,7 @@ namespace Game.Tests.PlayMode
             var tutorial = thrasybios.Opponent.Tutorial;
             Assert.IsTrue(tutorial.IsPending(story.Story), "a new game has not had the lesson yet");
 
-            yield return Provoke();
+            yield return Challenge();
             Assert.IsNotNull(director.Tutorial, "the first duel with Thrasybios is the tutorial");
             Assert.AreEqual(tutorial.DialogueFor(TutorialCue.Intro), director.ActiveScriptId, "the duel opens with the amphora demonstration");
             Assert.AreEqual(0, director.Session.State.Rules.CounterattackDamage);
@@ -194,17 +195,19 @@ namespace Game.Tests.PlayMode
 
         private Coord ThrasybiosCell => thrasybios.Actor.Walker.Cell;
 
-        private IEnumerator Provoke()
+        private IEnumerator Challenge()
         {
-            sandbox.Player.Walker.Teleport(FreeCell(cell =>
+            if (!PathFinder.AreBeside(sandbox.Player.Walker.Cell, ThrasybiosCell))
             {
-                var distance = PositionalModifiers.Distance(cell, ThrasybiosCell);
-                return distance >= 1 && distance <= thrasybios.Opponent.AggroRadius && director.Opponents.Where(other => other != thrasybios)
-                    .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
-            }), Facing.NorthEast);
+                sandbox.Player.Walker.Teleport(FreeCell(cell => PositionalModifiers.Distance(cell, ThrasybiosCell) == ApproachDistance), Facing.NorthEast);
+            }
 
+            yield return null;
+            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase, "Thrasybios never starts the duel on his own");
+            DuelChallenge.Confirm(sandbox, ThrasybiosCell);
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, TimeoutSeconds);
-            Assert.AreSame(thrasybios, director.Engaged, "Thrasybios did not notice Kleia");
+            Assert.AreSame(thrasybios, director.Engaged, "confirming on Thrasybios did not start the lesson");
+            Assert.IsTrue(PathFinder.AreBeside(sandbox.Player.Walker.Cell, ThrasybiosCell), "Kleia walks up to Thrasybios before the duel");
             RecordDialogue();
         }
 
@@ -259,9 +262,6 @@ namespace Game.Tests.PlayMode
                 speakersSeen.Add(director.Hud.Dialogue.Line.SpeakerName);
             }
         }
-
-        private bool OutsideEveryRadius(Coord cell) =>
-            director.Opponents.All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
 
         private Coord FreeCell(Func<Coord, bool> accepts)
         {

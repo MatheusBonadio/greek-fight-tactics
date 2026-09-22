@@ -25,6 +25,8 @@ namespace Game.Tests.PlayMode
         private const int MaxDialogueTaps = 16;
         private const string ChoiceDialogue = "test_choice";
         private const string ChoiceFlag = "test_choice_answer";
+        private const string ThrasybiosId = "thrasybios";
+        private const float DuelTimeoutSeconds = 10f;
 
         private static readonly Coord Target = new(1, 1);
 
@@ -172,6 +174,58 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Click_OnAChallenger_WalksBesideHimAndStartsTheDuel()
+        {
+            var (battle, challenger) = default((SandboxBattleDirector, MapOpponent));
+            yield return FindChallenger(found => (battle, challenger) = found);
+
+            yield return PointWithTheMouse(challenger.Actor.Walker.Cell);
+            yield return Tap(mouse.leftButton);
+            Assert.IsTrue(sandbox.Player.Walker.IsMoving, "clicking a distant challenger walks up to him");
+            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, "the duel waits until Kleia stands beside him");
+
+            yield return WaitFor(() => battle.Phase != BattleFlowPhase.Exploring, DuelTimeoutSeconds);
+            Assert.AreSame(challenger, battle.Engaged, "clicking the challenger's cell starts his duel");
+            Assert.IsTrue(PathFinder.AreBeside(sandbox.Player.Walker.Cell, challenger.Actor.Walker.Cell));
+            Assert.IsFalse(sandbox.Player.Walker.IsMoving);
+        }
+
+        [UnityTest]
+        public IEnumerator ArrowsAndEnter_OnAChallenger_StartTheDuel()
+        {
+            var (battle, challenger) = default((SandboxBattleDirector, MapOpponent));
+            yield return FindChallenger(found => (battle, challenger) = found);
+            var below = challenger.Actor.Walker.Cell + new Coord(-1, -1);
+            Assert.IsTrue(sandbox.Cursor.TryHover(IsoMath.GridToWorld(below), Vector2.zero));
+
+            yield return Tap(keyboard.upArrowKey);
+            Assert.AreEqual(challenger.Actor.Walker.Cell, sandbox.Cursor.Cell, "up moves the cursor one cell up the screen, onto the challenger");
+            yield return Tap(keyboard.enterKey);
+
+            yield return WaitFor(() => battle.Phase != BattleFlowPhase.Exploring, DuelTimeoutSeconds);
+            Assert.AreSame(challenger, battle.Engaged, "enter on the challenger's cell starts his duel");
+            Assert.IsTrue(PathFinder.AreBeside(sandbox.Player.Walker.Cell, challenger.Actor.Walker.Cell));
+        }
+
+        [UnityTest]
+        public IEnumerator Enter_BesideAChallenger_OnlyWalksThere()
+        {
+            var (battle, challenger) = default((SandboxBattleDirector, MapOpponent));
+            yield return FindChallenger(found => (battle, challenger) = found);
+            var beside = challenger.Actor.Walker.Cell + new Coord(-1, 0);
+            Assert.IsTrue(sandbox.Grid[beside].IsPassable && !sandbox.Grid[beside].IsOccupied, $"{beside} must be free to walk to");
+
+            yield return PointWithTheMouse(beside);
+            yield return Tap(keyboard.enterKey);
+            yield return WaitFor(() => !sandbox.Player.Walker.IsMoving || battle.Phase != BattleFlowPhase.Exploring, DuelTimeoutSeconds);
+            yield return WaitRealtime(WalkWindowSeconds);
+
+            Assert.AreEqual(beside, sandbox.Player.Walker.Cell, "Kleia walks right up to the challenger");
+            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, "walking up to a challenger never starts the duel on its own");
+            Assert.AreEqual(GameMode.Exploration, sandbox.StateMachine.Mode);
+        }
+
+        [UnityTest]
         public IEnumerator ArrowsAndEnter_PickADialogueChoiceAndItsFlagIsSaved()
         {
             var story = Object.FindAnyObjectByType<ExplorationDialogueDirector>();
@@ -227,6 +281,27 @@ namespace Game.Tests.PlayMode
             }
         }
 
+        private IEnumerator FindChallenger(Action<(SandboxBattleDirector, MapOpponent)> found)
+        {
+            var battle = Object.FindAnyObjectByType<SandboxBattleDirector>();
+            Assert.IsNotNull(battle, "GridSandbox scene must contain the battle director");
+            battle.AutosaveEnabled = false;
+            yield return WaitFor(() => sandbox.ProgressLoaded);
+            var challenger = battle.Opponents.Single(entry => entry.Opponent.Id == ThrasybiosId);
+            Assert.IsTrue(sandbox.Grid[challenger.Actor.Walker.Cell].Revealed, "Thrasybios stands in plain sight");
+            Assert.IsFalse(PathFinder.AreBeside(start, challenger.Actor.Walker.Cell), "Kleia starts away from Thrasybios");
+            found((battle, challenger));
+        }
+
+        private IEnumerator PointWithTheMouse(Coord cell)
+        {
+            var onScreen = (Vector2)Camera.main.WorldToScreenPoint(IsoMath.GridToWorld(cell));
+            Assert.IsTrue(new Rect(0f, 0f, Screen.width, Screen.height).Contains(onScreen), $"{cell} must be on screen to click it");
+            input.Set(mouse.position, onScreen);
+            yield return null;
+            Assert.AreEqual(cell, sandbox.Cursor.Cell, "the mouse points the cursor at the cell");
+        }
+
         private IEnumerator Tap(ButtonControl button)
         {
             input.Press(button, queueEventOnly: true);
@@ -267,9 +342,9 @@ namespace Game.Tests.PlayMode
             }
         }
 
-        private static IEnumerator WaitFor(Func<bool> condition)
+        private static IEnumerator WaitFor(Func<bool> condition, float timeoutSeconds = TimeoutSeconds)
         {
-            var deadline = Time.realtimeSinceStartup + TimeoutSeconds;
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             while (!condition() && Time.realtimeSinceStartup < deadline)
             {
                 yield return null;

@@ -19,7 +19,7 @@ Mas ninguém proibiu uma garota de fazer uma pergunta.
 ## 2. LOOP DE JOGO
 
 **Exploração** → mapa isométrico coberto por névoa, revelado ao caminhar. Áreas trancadas por `ActFlag` narrativo.
-**Encontro** → um adversário te nota dentro do raio de aggro. A câmera fecha, a plateia se aproxima, o turno começa.
+**Encontro** → Kleia aceita o desafio de um adversário ao clicar nele e vai até ele. A câmera centraliza o duelo, a plateia se aproxima, o turno começa.
 **Batalha** → debate por turnos em grade. Duas barras, seis ações.
 **Consequência** → reputação, diálogo e portas mudam conforme *como* você venceu, não apenas *se* venceu.
 

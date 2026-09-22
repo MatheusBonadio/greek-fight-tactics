@@ -177,9 +177,9 @@ namespace Game.Tests.EditMode.Grid
             var opponent = map.Actors.Single(actor => actor.Character == id);
             var grid = BuildAgora(map, opponent);
             var target = new Coord(opponent.X, opponent.Y);
-            var player = AggroCell(map, grid, target);
-            GridFactory.Occupy(grid, player, PlayerId);
             GridFactory.Occupy(grid, target, OpponentId);
+            var player = ChallengeCell(map, grid, target);
+            GridFactory.Occupy(grid, player, PlayerId);
             new FogOfWar(grid).Reveal(player);
             var rules = new CrowdRules();
 
@@ -285,17 +285,13 @@ namespace Game.Tests.EditMode.Grid
             return grid;
         }
 
-        private static Coord AggroCell(MapLayout map, GridModel grid, Coord target)
+        private static Coord ChallengeCell(MapLayout map, GridModel grid, Coord target)
         {
-            var reachable = new List<Coord>();
-            new PathFinder().Reachable(grid, new Coord(map.Actors[0].X, map.Actors[0].Y), int.MaxValue / 2, reachable);
-            var cell = reachable
-                .Where(candidate => candidate != target)
-                .OrderBy(candidate => PositionalModifiers.Distance(candidate, target))
-                .ThenBy(candidate => candidate.Y)
-                .ThenBy(candidate => candidate.X)
-                .First();
-            return cell;
+            var start = new Coord(map.Actors[0].X, map.Actors[0].Y);
+            var path = new List<Coord>();
+
+            Assert.IsTrue(new PathFinder().FindPathBeside(grid, start, target, path), $"Kleia cannot walk up to {target} to challenge him");
+            return path.Count > 0 ? path[^1] : start;
         }
     }
 }

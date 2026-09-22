@@ -177,66 +177,28 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void Agora_PlacesEveryActOneOpponentOnceWithAggroZonesThatNeverOverlap()
+        public void Agora_PlacesEveryActOneOpponentOnce()
         {
             var map = MapLayout.Load(SandboxTools.MapPath);
-            var opponents = Opponents(map);
             var actOne = DataTools.OpponentIds().Where(id => LoadOpponent(id).Act == Game.Core.Act.One).ToList();
 
-            CollectionAssert.AreEquivalent(actOne, opponents.Select(entry => entry.Actor.Character));
-            for (var first = 0; first < opponents.Count; first++)
-            {
-                for (var second = first + 1; second < opponents.Count; second++)
-                {
-                    var (a, b) = (opponents[first], opponents[second]);
-                    Assert.Greater(Distance((a.Actor.X, a.Actor.Y), (b.Actor.X, b.Actor.Y)), a.Radius + b.Radius, $"the aggro zones of {a.Actor.Character} and {b.Actor.Character} overlap");
-                }
-            }
+            CollectionAssert.AreEquivalent(actOne, Opponents(map).Select(actor => actor.Character));
         }
 
         [Test]
-        public void Agora_TalkingNpcsCanBeReachedWithoutProvokingADuel()
+        public void Agora_KleiaCanStandBesideEveryoneSheTalksToOrChallenges()
         {
             var map = MapLayout.Load(SandboxTools.MapPath);
             var standing = new HashSet<(int X, int Y)>(map.Actors.Skip(1).Select(actor => (actor.X, actor.Y)));
             var reached = Flood(map, (map.Actors[0].X, map.Actors[0].Y), cell => !standing.Contains(cell));
-            var opponents = Opponents(map);
 
-            foreach (var talker in map.Actors.Skip(1).Where(actor => !string.IsNullOrEmpty(actor.Dialogue)))
+            foreach (var actor in map.Actors.Skip(1).Where(candidate => !string.IsNullOrEmpty(candidate.Dialogue)).Concat(Opponents(map)))
             {
-                var beside = new[] { (talker.X + 1, talker.Y), (talker.X - 1, talker.Y), (talker.X, talker.Y + 1), (talker.X, talker.Y - 1) }
+                var beside = new[] { (actor.X + 1, actor.Y), (actor.X - 1, actor.Y), (actor.X, actor.Y + 1), (actor.X, actor.Y - 1) }
                     .Where(reached.Contains)
                     .ToList();
 
-                Assert.IsNotEmpty(beside, $"nobody can stand beside {talker.Character} to talk");
-                foreach (var cell in beside)
-                {
-                    foreach (var entry in opponents)
-                    {
-                        Assert.Greater(Distance(cell, (entry.Actor.X, entry.Actor.Y)), entry.Radius, $"talking to {talker.Character} from {cell} would provoke {entry.Actor.Character}");
-                    }
-                }
-            }
-        }
-
-        [Test]
-        public void Agora_AggroZonesStayClearOfWhereKleiaEntersTheMap()
-        {
-            var map = MapLayout.Load(SandboxTools.MapPath);
-            var entries = SandboxTools.Maps
-                .SelectMany(entry => MapLayout.Load(entry.MapPath).Exits)
-                .Where(exit => exit.Location == SandboxTools.AgoraLocationId)
-                .Select(exit => (X: exit.ArrivalX, Y: exit.ArrivalY))
-                .Append((X: map.Actors[0].X, Y: map.Actors[0].Y))
-                .Concat(map.Exits.Select(exit => (X: exit.X, Y: exit.Y)))
-                .ToList();
-
-            foreach (var entry in Opponents(map))
-            {
-                foreach (var cell in entries)
-                {
-                    Assert.Greater(Distance(cell, (entry.Actor.X, entry.Actor.Y)), entry.Radius, $"{entry.Actor.Character} would pick a fight at {cell}, where Kleia enters or leaves the map");
-                }
+                Assert.IsNotEmpty(beside, $"nobody can stand beside {actor.Character}");
             }
         }
 
@@ -254,9 +216,9 @@ namespace Game.Tests.EditMode.UI
                 .ToList();
             CollectionAssert.IsEmpty(sealedOff, $"an actor blocks the only way to: {string.Join(", ", sealedOff)}");
 
-            foreach (var entry in Opponents(map))
+            foreach (var opponent in Opponents(map))
             {
-                Assert.IsTrue(reached.Any(cell => Distance(cell, (entry.Actor.X, entry.Actor.Y)) <= entry.Radius), $"Kleia can never walk up to {entry.Actor.Character}");
+                Assert.IsTrue(reached.Any(cell => Distance(cell, (opponent.X, opponent.Y)) == 1), $"Kleia can never walk up to {opponent.Character}");
             }
         }
 
@@ -562,13 +524,10 @@ namespace Game.Tests.EditMode.UI
             return reached;
         }
 
-        private static List<(MapActor Actor, int Radius)> Opponents(MapLayout map)
+        private static List<MapActor> Opponents(MapLayout map)
         {
             var ids = new HashSet<string>(DataTools.OpponentIds());
-            return map.Actors.Skip(1)
-                .Where(actor => ids.Contains(actor.Character))
-                .Select(actor => (Actor: actor, Radius: LoadOpponent(actor.Character).AggroRadius))
-                .ToList();
+            return map.Actors.Skip(1).Where(actor => ids.Contains(actor.Character)).ToList();
         }
 
         private static OpponentSO LoadOpponent(string id)

@@ -193,9 +193,7 @@ namespace Game.Tests.PlayMode
             yield return FinishTheTutorialOf(dialogue, target);
 
             network.GoDown(NetworkOutage.Hanging);
-            sandbox.Player.Walker.Teleport(CellNoticedOnlyBy(sandbox.Grid, director, target), Facing.NorthEast);
-            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
-            Assert.AreSame(target, director.Engaged);
+            yield return DuelChallenge.Engage(sandbox, director, target, StartTimeoutSeconds);
 
             var tally = new BattleTally();
             yield return PlayOfflineBattle(director, () => network.Requests.Count, tally);
@@ -280,9 +278,7 @@ namespace Game.Tests.PlayMode
             yield return FinishTheTutorialOf(dialogue, target);
 
             server.Hang();
-            sandbox.Player.Walker.Teleport(CellNoticedOnlyBy(sandbox.Grid, director, target), Facing.NorthEast);
-            yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
-            Assert.AreSame(target, director.Engaged);
+            yield return DuelChallenge.Engage(sandbox, director, target, StartTimeoutSeconds);
 
             var tally = new BattleTally();
             yield return PlayOfflineBattle(director, () => server.Connections, tally);
@@ -433,31 +429,6 @@ namespace Game.Tests.PlayMode
             return session.Menu.Entries.Any(entry => entry.Action == ActionId.Circulate && entry.IsAvailable)
                 ? new BattleMenuChoice(ActionId.Circulate)
                 : new BattleMenuChoice(ActionId.Concede);
-        }
-
-        private static Coord CellNoticedOnlyBy(GridModel grid, SandboxBattleDirector director, MapOpponent entry)
-        {
-            var center = entry.Actor.Walker.Cell;
-            for (var distance = 1; distance <= entry.Opponent.AggroRadius; distance++)
-            {
-                for (var y = 0; y < grid.Height; y++)
-                {
-                    for (var x = 0; x < grid.Width; x++)
-                    {
-                        var cell = new Coord(x, y);
-                        var quietElsewhere = director.Opponents
-                            .Where(other => other != entry)
-                            .All(other => !AggroRule.IsTriggered(cell, other.Actor.Walker.Cell, other.Opponent.AggroRadius));
-                        if (PositionalModifiers.Distance(cell, center) == distance && grid.TryGet(cell, out var tile) && tile.IsPassable && !tile.IsOccupied && quietElsewhere)
-                        {
-                            return cell;
-                        }
-                    }
-                }
-            }
-
-            Assert.Fail($"no free cell only {entry.Opponent.Id} notices");
-            return center;
         }
 
         private static IEnumerator WaitFor(Func<bool> condition, float timeoutSeconds)

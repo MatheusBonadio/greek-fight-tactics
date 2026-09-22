@@ -114,11 +114,6 @@ namespace Game.EditorTools
 
             foreach (var entry in source.Opponents)
             {
-                if (entry.AggroRadius < 0)
-                {
-                    throw new InvalidOperationException($"{OpponentSourcePath}: opponent {entry.Id} has a negative aggro_radius");
-                }
-
                 var pool = entry.FallacyPool
                     .Select(fallacyId => byId.TryGetValue(fallacyId, out var fallacy)
                         ? fallacy
@@ -127,7 +122,7 @@ namespace Game.EditorTools
 
                 var opponent = AssetFolders.LoadOrCreate<OpponentSO>(OpponentPath(entry.Id));
                 opponent.Configure(entry.Id, entry.DisplayName, entry.MaxCoherence, entry.InitialAudience, pool, entry.Act, entry.Profile);
-                opponent.ConfigurePresence(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Id)), entry.AggroRadius);
+                opponent.ConfigureSheet(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.Id)));
                 opponent.ConfigureTutorial(ToTutorial(entry, pool, dialogueIds));
                 EditorUtility.SetDirty(opponent);
             }
@@ -407,9 +402,6 @@ namespace Game.EditorTools
 
             [JsonProperty("fallacy_pool", Required = Required.Always)]
             public List<string> FallacyPool { get; set; }
-
-            [JsonProperty("aggro_radius")]
-            public int AggroRadius { get; set; } = AggroRule.DefaultRadius;
 
             [JsonProperty("tutorial")]
             public TutorialSource Tutorial { get; set; }

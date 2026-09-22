@@ -35,7 +35,6 @@ namespace Game.EditorTools
         public const string AudienceCharacter = "citizen";
         public const string PortraitRow = "se";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
-        public const string FogSortingLayer = "Fog";
         public const string FloorTilemapName = "Floor";
         public const string HighlightTilemapName = "Highlight";
         public const string RangeTilemapName = "Range";
@@ -51,6 +50,7 @@ namespace Game.EditorTools
         public const int ArenaVeilSortingOrder = -18;
         public const int RangeSortingOrder = -15;
         public const int HighlightSortingOrder = -10;
+        public const int FogSortingOrder = -5;
         public const int ActorSortingOrder = 0;
         public const int FogRevealDepth = 18;
         public const byte BlockedCost = TileData.ImpassableCost;
@@ -107,7 +107,6 @@ namespace Game.EditorTools
         {
             GenerateFogEdgeSources();
             ArtTools.RegenerateAll();
-            EnsureSortingLayer(FogSortingLayer);
             RenderSetupTools.CreateCameraRigPrefab();
             EnsureTileAssets();
             AssetDatabase.SaveAssets();
@@ -169,22 +168,6 @@ namespace Game.EditorTools
                 2 => right && !top,
                 _ => !right && !top
             };
-        }
-
-        private static void EnsureSortingLayer(string layerName)
-        {
-            if (SortingLayer.layers.Any(layer => layer.name == layerName))
-            {
-                return;
-            }
-
-            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-            var layers = tagManager.FindProperty("m_SortingLayers");
-            layers.InsertArrayElementAtIndex(layers.arraySize);
-            var layer = layers.GetArrayElementAtIndex(layers.arraySize - 1);
-            layer.FindPropertyRelative("name").stringValue = layerName;
-            layer.FindPropertyRelative("uniqueID").intValue = Math.Abs(layerName.GetHashCode());
-            tagManager.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Dictionary<string, TileBase> EnsureTileAssets()
@@ -258,7 +241,7 @@ namespace Game.EditorTools
             var range = CreateTilemap(gridObject, RangeTilemapName, SortingLayer.IDToName(0), RangeSortingOrder);
             var highlight = CreateTilemap(gridObject, HighlightTilemapName, SortingLayer.IDToName(0), HighlightSortingOrder);
             var blocks = CreateTilemap(gridObject, BlocksTilemapName, SortingLayer.IDToName(0), ActorSortingOrder);
-            var fog = CreateTilemap(gridObject, FogTilemapName, FogSortingLayer, 0);
+            var fog = CreateTilemap(gridObject, FogTilemapName, SortingLayer.IDToName(0), FogSortingOrder);
 
             var terrain = new TerrainId[width * height];
             var costs = new byte[width * height];
@@ -279,6 +262,7 @@ namespace Game.EditorTools
             }
 
             blocks.transform.localPosition = new Vector3(0f, 0f, BlockSortLift / RenderSetupTools.TransparencySortAxis.z);
+            var blockTiles = new TileBase[width * height];
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
@@ -289,7 +273,7 @@ namespace Game.EditorTools
                         continue;
                     }
 
-                    blocks.SetTile(new Vector3Int(x, y, 0), tiles[blockName]);
+                    blockTiles[y * width + x] = tiles[blockName];
                     costs[y * width + x] = BlockedCost;
                 }
             }
@@ -318,6 +302,7 @@ namespace Game.EditorTools
                 FogEdgeNames.Select(name => (TileBase)tiles[name]).ToArray(),
                 actors,
                 gizmos);
+            controller.ConfigureBlocks(blocks, blockTiles);
             controller.PaintFogPreview();
 
             var explorationCamera = CreateCamera(actors[0].transform, width, height);
@@ -536,7 +521,8 @@ namespace Game.EditorTools
             var rigPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(RenderSetupTools.CameraRigPrefabPath);
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(rigPrefab);
             rig.transform.position = new Vector3(followTarget.position.x, followTarget.position.y, RenderSetupTools.CameraDepth);
-            rig.AddComponent<CinemachineBrain>();
+            var brain = rig.AddComponent<CinemachineBrain>();
+            brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, ExplorationCamera.DefaultGlideSeconds);
             rig.AddComponent<PixelSnappedCamera>();
 
             var boundsObject = new GameObject("CameraBounds");
@@ -547,7 +533,20 @@ namespace Game.EditorTools
             var focus = new GameObject(ExplorationCamera.DuelFocusName).transform;
             focus.position = new Vector3(followTarget.position.x, followTarget.position.y, 0f);
 
-            var virtualCameraObject = new GameObject("ExplorationCamera");
+            var virtualCamera = CreateVirtualCamera("ExplorationCamera", followTarget);
+            virtualCamera.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.Always;
+            var confiner = virtualCamera.gameObject.AddComponent<CinemachineConfiner2D>();
+            confiner.BoundingShape2D = bounds;
+
+            var duelCamera = CreateVirtualCamera(ExplorationCamera.DuelCameraName, focus);
+            var explorationCamera = virtualCamera.gameObject.AddComponent<ExplorationCamera>();
+            explorationCamera.Configure(virtualCamera, duelCamera, ExplorationOrthographicSize, focus);
+            return explorationCamera;
+        }
+
+        private static CinemachineCamera CreateVirtualCamera(string name, Transform followTarget)
+        {
+            var virtualCameraObject = new GameObject(name);
             var virtualCamera = virtualCameraObject.AddComponent<CinemachineCamera>();
             var lens = virtualCamera.Lens;
             lens.OrthographicSize = ExplorationOrthographicSize;
@@ -559,12 +558,7 @@ namespace Game.EditorTools
             composer.CameraDistance = -RenderSetupTools.CameraDepth;
 
             virtualCameraObject.AddComponent<CinemachinePixelPerfect>();
-            var confiner = virtualCameraObject.AddComponent<CinemachineConfiner2D>();
-            confiner.BoundingShape2D = bounds;
-
-            var explorationCamera = virtualCameraObject.AddComponent<ExplorationCamera>();
-            explorationCamera.Configure(virtualCamera, ExplorationOrthographicSize, focus);
-            return explorationCamera;
+            return virtualCamera;
         }
 
         private static Vector2[] MapOutline(int width, int height)

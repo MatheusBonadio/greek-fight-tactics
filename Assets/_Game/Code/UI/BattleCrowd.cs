@@ -29,6 +29,7 @@ namespace Game.UI
         private readonly List<Coord> path = new();
         private GridModel approach;
         private GridModel terrain;
+        private GridModel fog;
 
         public CrowdRules Rules { get; } = new();
 
@@ -80,6 +81,7 @@ namespace Game.UI
 
             DestroyAll(gathered);
             Arena = arena ?? throw new ArgumentNullException(nameof(arena));
+            fog = exploration;
             terrain = DuelCrowdPlanner.CopyTerrain(exploration);
             approach = DuelCrowdPlanner.CopyTerrain(exploration, arena.IsInterior, true);
             GatherSeconds = 0f;
@@ -104,6 +106,7 @@ namespace Game.UI
 
                 var spectator = new Spectator(id, view, seat);
                 Light(spectator, !arena.IsLit(walker.Cell));
+                ShowIfRevealed(spectator);
                 gathered.Add(spectator);
             }
 
@@ -157,6 +160,23 @@ namespace Game.UI
             }
 
             UpdateLeaving(Time.deltaTime, steps);
+            foreach (var spectator in gathered)
+            {
+                ShowIfRevealed(spectator);
+            }
+
+            foreach (var spectator in leaving)
+            {
+                ShowIfRevealed(spectator);
+            }
+        }
+
+        private void ShowIfRevealed(Spectator spectator)
+        {
+            if (fog != null && spectator.View && spectator.Walker != null)
+            {
+                spectator.View.IsShown = FogTileRules.ShowsWhatStandsAt(fog, spectator.Walker.WorldPosition);
+            }
         }
 
         private void UpdateGathering(float seconds, float steps)

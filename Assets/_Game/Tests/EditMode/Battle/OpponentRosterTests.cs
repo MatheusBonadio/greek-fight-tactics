@@ -20,7 +20,6 @@ namespace Game.Tests.EditMode.Battle
         private const int OpponentId = 2;
         private const int FirstBystanderId = 100;
         private const int MaxPoolSize = 3;
-        private const int NeighbourhoodAggroRadius = 1;
 
         private FallbackArgumentLibrary library;
 
@@ -35,7 +34,7 @@ namespace Game.Tests.EditMode.Battle
         }
 
         [TestCaseSource(nameof(OpponentIds))]
-        public void GeneratedOpponent_HasItsIdSheetAggroRadiusAndASmallPool(string id)
+        public void GeneratedOpponent_HasItsIdSheetAndASmallPool(string id)
         {
             var opponent = Load(id);
 
@@ -43,7 +42,6 @@ namespace Game.Tests.EditMode.Battle
             Assert.IsNotEmpty(opponent.DisplayName);
             Assert.IsNotNull(opponent.Sheet, $"{id} has no placeholder sheet; add art/placeholders/characters/{id}_sheet.png and run ArtTools.SliceSheets");
             Assert.AreEqual(ArtTools.SheetPathFor(id), AssetDatabase.GetAssetPath(opponent.Sheet));
-            Assert.GreaterOrEqual(opponent.AggroRadius, NeighbourhoodAggroRadius);
             Assert.IsNotEmpty(opponent.FallacyPool);
             Assert.LessOrEqual(opponent.FallacyPool.Count, MaxPoolSize);
             Assert.AreEqual(id, OpponentContext.From(opponent).Id);
@@ -75,7 +73,6 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(coherence, opponent.MaxCoherence);
             Assert.AreEqual(opponentAudience, BattleRules.MaxAudience - opponent.InitialAudience, "initial_audience is Kleia's share of the crowd; the GDD lists the opponent's");
             Assert.AreEqual(family, opponent.FallacyPool[0].Id);
-            Assert.AreEqual(NeighbourhoodAggroRadius, opponent.AggroRadius);
         }
 
         [TestCaseSource(nameof(OpponentIds))]
@@ -84,7 +81,7 @@ namespace Game.Tests.EditMode.Battle
             var opponent = Load(id);
             var (map, placement) = Placement(id);
             var grid = BuildGrid(map, placement, out var audience);
-            var playerCell = AggroCell(map, grid, placement, opponent.AggroRadius);
+            var playerCell = ChallengeCell(map, grid, placement);
             var pool = opponent.FallacyPool.Select(fallacy => fallacy.Id).ToList();
 
             var wins = 0;
@@ -183,22 +180,13 @@ namespace Game.Tests.EditMode.Battle
             return grid;
         }
 
-        private static Coord AggroCell(MapLayout map, GridModel grid, MapActor opponent, int radius)
+        private static Coord ChallengeCell(MapLayout map, GridModel grid, MapActor opponent)
         {
-            var target = new Coord(opponent.X, opponent.Y);
             var start = new Coord(map.Actors[0].X, map.Actors[0].Y);
-            var reachable = new List<Coord>();
-            new PathFinder().Reachable(grid, start, int.MaxValue / 2, reachable);
+            var path = new List<Coord>();
 
-            var cells = reachable
-                .Where(cell => AggroRule.IsTriggered(cell, target, radius))
-                .OrderBy(cell => PositionalModifiers.Distance(cell, target))
-                .ThenBy(cell => cell.Y)
-                .ThenBy(cell => cell.X)
-                .ToList();
-
-            Assert.IsNotEmpty(cells, $"Kleia cannot walk into the aggro radius of {opponent.Character}");
-            return cells[0];
+            Assert.IsTrue(new PathFinder().FindPathBeside(grid, start, new Coord(opponent.X, opponent.Y), path), $"Kleia cannot walk up to {opponent.Character} to challenge him");
+            return path.Count > 0 ? path[^1] : start;
         }
     }
 }

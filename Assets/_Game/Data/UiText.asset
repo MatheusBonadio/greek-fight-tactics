@@ -16,7 +16,7 @@ MonoBehaviour:
   - key: battle.player_name
     value: Kleia
   - key: battle.intro
-    value: "{0} barra o caminho e chama a plateia: o debate come\xE7ou."
+    value: "Kleia aceita o desafio de {0}. A plateia se junta: o debate come\xE7ou."
   - key: battle.refute_hit
     value: "Fal\xE1cia exposta! {0} perde o fio e a plateia aplaude."
   - key: battle.refute_miss

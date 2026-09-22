@@ -75,9 +75,41 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void Blocks_UseEveryBlockTile()
+        public void Blocks_KeepEveryBlockTileOfTheMapAndShowOnlyThoseOnRevealedCells()
         {
-            CollectionAssert.AreEquivalent(MapLayout.Load(SandboxTools.MapPath).BlockLegend.Values.Distinct(), UsedTileNames(Tilemap(SandboxTools.BlocksTilemapName)));
+            var controller = Find<GridSandboxController>();
+            var map = MapLayout.Load(SandboxTools.MapPath);
+            var blocks = Tilemap(SandboxTools.BlocksTilemapName);
+            var revealed = PreviewRevealed(controller);
+
+            Assert.AreSame(blocks, controller.BlocksTilemap);
+            Assert.AreEqual(map.Width * map.Height, controller.BlockTiles.Count);
+            CollectionAssert.AreEquivalent(map.BlockLegend.Values.Distinct(), controller.BlockTiles.Where(tile => tile).Select(tile => tile.name).Distinct());
+            for (var y = 0; y < map.Height; y++)
+            {
+                for (var x = 0; x < map.Width; x++)
+                {
+                    var source = controller.BlockTiles[y * map.Width + x];
+                    Assert.AreEqual(map.BlockAt(x, y), source ? source.name : null, $"({x}, {y})");
+                    var expected = revealed[new Coord(x, y)] ? source : null;
+                    Assert.AreEqual(expected, blocks.GetTile(new Vector3Int(x, y, 0)), $"the block at ({x}, {y}) must show only once its cell is revealed");
+                }
+            }
+
+            Assert.Less(CountTiles(blocks), controller.BlockTiles.Count(tile => tile), "the back of the agora starts under the fog, so some blocks start hidden");
+        }
+
+        [Test]
+        public void Actors_StartHiddenUnderTheFogAndShownOnRevealedCells()
+        {
+            var controller = Find<GridSandboxController>();
+            var revealed = PreviewRevealed(controller);
+
+            Assert.IsTrue(controller.Actors.Any(actor => !revealed[new Coord(actor.StartCell.x, actor.StartCell.y)]), "the agora hides someone under the fog");
+            foreach (var actor in controller.Actors)
+            {
+                Assert.AreEqual(revealed[new Coord(actor.StartCell.x, actor.StartCell.y)], actor.IsShown, actor.name);
+            }
         }
 
         [Test]
@@ -158,12 +190,20 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void Fog_RendersOnItsOwnLayerAboveEverything()
+        public void Fog_CoversTheFloorAndItsOverlaysButNotWhatStandsOnRevealedCells()
         {
             var fogRenderer = Tilemap(SandboxTools.FogTilemapName).GetComponent<TilemapRenderer>();
+            var director = Find<SandboxBattleDirector>();
 
-            Assert.AreEqual(SandboxTools.FogSortingLayer, fogRenderer.sortingLayerName);
-            Assert.Greater(SortingLayer.GetLayerValueFromName(SandboxTools.FogSortingLayer), SortingLayer.GetLayerValueFromName("Default"));
+            Assert.AreEqual(Tilemap(SandboxTools.FloorTilemapName).GetComponent<TilemapRenderer>().sortingLayerID, fogRenderer.sortingLayerID, "fog, floor, blocks and actors share one sorting layer");
+            foreach (var overlay in new[] { SandboxTools.FloorTilemapName, SandboxTools.RangeTilemapName, SandboxTools.HighlightTilemapName, SandboxTools.ArenaVeilTilemapName })
+            {
+                Assert.Greater(fogRenderer.sortingOrder, Tilemap(overlay).GetComponent<TilemapRenderer>().sortingOrder, $"the fog covers {overlay}");
+            }
+
+            Assert.Less(fogRenderer.sortingOrder, Tilemap(SandboxTools.BlocksTilemapName).GetComponent<TilemapRenderer>().sortingOrder, "a revealed block is never cut by the fog behind it");
+            Assert.Less(fogRenderer.sortingOrder, director.Veil.BlocksVeil.GetComponent<TilemapRenderer>().sortingOrder);
+            Assert.IsTrue(Find<GridSandboxController>().Actors.All(actor => fogRenderer.sortingOrder < actor.SpriteRenderer.sortingOrder), "a revealed actor is never cut by the fog behind him");
             var fogTiles = UsedTileNames(Tilemap(SandboxTools.FogTilemapName));
             Assert.Greater(CountTiles(Tilemap(SandboxTools.FogTilemapName)), 0);
             CollectionAssert.Contains(fogTiles, "fog");
@@ -218,17 +258,40 @@ namespace Game.Tests.EditMode.UI
         public void Camera_FollowsThePlayerWithPixelPerfectAndMapBounds()
         {
             var camera = Find<Camera>();
-            var virtualCamera = Find<CinemachineCamera>();
+            var explorationCamera = Find<ExplorationCamera>();
+            var virtualCamera = explorationCamera.VirtualCamera;
+            var brain = camera.GetComponent<CinemachineBrain>();
 
             Assert.IsNotNull(camera.GetComponent<PixelPerfectCamera>());
-            Assert.IsNotNull(camera.GetComponent<CinemachineBrain>());
+            Assert.IsNotNull(brain);
+            Assert.AreEqual(CinemachineBlendDefinition.Styles.EaseInOut, brain.DefaultBlend.Style);
+            Assert.AreEqual(ExplorationCamera.DefaultGlideSeconds, brain.DefaultBlend.Time, "the camera glides to the duel and back");
             Assert.AreEqual(PixelArtImporter.PixelsPerUnit, camera.GetComponent<PixelSnappedCamera>().PixelsPerUnit);
             Assert.AreEqual(RenderSetupTools.MainCameraTag, camera.tag);
+            Assert.AreSame(explorationCamera.gameObject, virtualCamera.gameObject);
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePositionComposer>());
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePixelPerfect>());
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachineConfiner2D>().BoundingShape2D);
+            Assert.AreEqual(CinemachineVirtualCameraBase.StandbyUpdateMode.Always, virtualCamera.StandbyUpdate, "the bounded camera keeps tracking Kleia during the duel so the way back is exact");
             Assert.AreEqual(Find<GridSandboxController>().Actors[0].transform, virtualCamera.Follow);
-            Assert.IsNotNull(virtualCamera.GetComponent<ExplorationCamera>());
+            Assert.IsTrue(virtualCamera.enabled);
+        }
+
+        [Test]
+        public void DuelCamera_WaitsOffAndFramesTheDuelFocusWithoutMapBounds()
+        {
+            var explorationCamera = Find<ExplorationCamera>();
+            var duelCamera = explorationCamera.DuelCamera;
+
+            Assert.IsNotNull(duelCamera);
+            Assert.AreEqual(ExplorationCamera.DuelCameraName, duelCamera.name);
+            Assert.IsFalse(duelCamera.enabled, "the duel camera only turns on during a duel");
+            Assert.AreSame(explorationCamera.DuelFocus, duelCamera.Follow);
+            Assert.Greater((int)duelCamera.Priority, (int)explorationCamera.VirtualCamera.Priority);
+            Assert.IsNull(duelCamera.GetComponent<CinemachineConfiner2D>(), "the duel is centred even beside the map edge");
+            Assert.IsNotNull(duelCamera.GetComponent<CinemachinePositionComposer>());
+            Assert.IsNotNull(duelCamera.GetComponent<CinemachinePixelPerfect>());
+            Assert.AreEqual(SandboxTools.ExplorationOrthographicSize, duelCamera.Lens.OrthographicSize, "the duel keeps the exploration zoom");
         }
 
         [Test]
@@ -236,6 +299,22 @@ namespace Game.Tests.EditMode.UI
         {
             Assert.AreEqual(SystemMenuTools.MainMenuScenePath, EditorBuildSettings.scenes[0].path);
             Assert.AreEqual(SandboxTools.ScenePath, EditorBuildSettings.scenes[1].path);
+        }
+
+        private static System.Collections.Generic.Dictionary<Coord, bool> PreviewRevealed(GridSandboxController controller)
+        {
+            var kleia = new Coord(controller.Actors[0].StartCell.x, controller.Actors[0].StartCell.y);
+            var revealed = new System.Collections.Generic.Dictionary<Coord, bool>();
+            for (var y = 0; y < controller.Height; y++)
+            {
+                for (var x = 0; x < controller.Width; x++)
+                {
+                    var cell = new Coord(x, y);
+                    revealed[cell] = x + y < controller.FogRevealDepth || System.Math.Abs(x - kleia.X) + System.Math.Abs(y - kleia.Y) <= FogOfWar.DefaultRevealRadius;
+                }
+            }
+
+            return revealed;
         }
 
         private T Find<T>() where T : Component =>

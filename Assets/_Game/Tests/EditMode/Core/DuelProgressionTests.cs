@@ -5,58 +5,41 @@ namespace Game.Tests.EditMode.Core
 {
     public sealed class DuelProgressionTests
     {
-        private const int WideRadius = 3;
-        private const int NarrowRadius = 1;
-
         private static readonly Coord Market = new(7, 1);
         private static readonly Coord Stoa = new(11, 6);
 
         [Test]
-        public void Watch_TriggersTheOpponentWhoseRadiusHoldsThePlayer()
+        public void Challenge_PicksOnlyTheChallengerOnTheConfirmedCell()
         {
-            var watch = new AggroWatch();
-            var candidates = new[] { new AggroCandidate(Market, WideRadius), new AggroCandidate(Stoa, NarrowRadius) };
+            var challengers = new[] { new Challenger(Market, true, false), new Challenger(Stoa, true, false) };
 
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(new Coord(0, 1), candidates));
-            Assert.AreEqual(0, watch.Update(new Coord(5, 2), candidates));
-            Assert.AreEqual(1, watch.Update(new Coord(10, 6), candidates));
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(new Coord(9, 6), candidates), "a narrow radius only reaches the neighbouring cells");
+            Assert.AreEqual(0, ChallengeRule.ChallengerAt(Market, GameMode.Exploration, challengers));
+            Assert.AreEqual(1, ChallengeRule.ChallengerAt(Stoa, GameMode.Exploration, challengers));
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(new Coord(10, 6), GameMode.Exploration, challengers), "standing beside a challenger challenges nobody");
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(new Coord(0, 1), GameMode.Exploration, challengers));
         }
 
         [Test]
-        public void Watch_PrefersTheNearestOpponentWhenRadiiOverlap()
+        public void Challenge_IgnoresDefeatedAbsentAndHiddenChallengers()
         {
-            var watch = new AggroWatch();
-            var candidates = new[] { new AggroCandidate(new Coord(0, 0), WideRadius), new AggroCandidate(new Coord(3, 0), WideRadius) };
+            var challengers = new[] { new Challenger(Market, true, true), Challenger.Absent, new Challenger(Stoa, false, false) };
 
-            Assert.AreEqual(1, watch.Update(new Coord(2, 0), candidates));
-            Assert.AreEqual(0, watch.Update(new Coord(1, 0), candidates));
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(Market, GameMode.Exploration, challengers), "a defeated opponent never takes up a challenge again");
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(default, GameMode.Exploration, challengers), "an actor that is not on the map is nobody");
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(Stoa, GameMode.Exploration, challengers), "a challenger under the fog cannot be seen, so he cannot be challenged");
+            Assert.IsFalse(Challenger.Absent.StandsAt(default));
         }
 
-        [Test]
-        public void Watch_NeverTriggersADormantOpponent()
+        [TestCase(GameMode.Dialogue)]
+        [TestCase(GameMode.Cutscene)]
+        [TestCase(GameMode.Paused)]
+        [TestCase(GameMode.BattleTurn)]
+        public void Challenge_OnlyHappensWhileExploring(GameMode mode)
         {
-            var watch = new AggroWatch();
-            var candidates = new[] { new AggroCandidate(Stoa, NarrowRadius, dormant: true), AggroCandidate.Asleep };
+            var challengers = new[] { new Challenger(Market, true, false) };
 
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(new Coord(10, 6), candidates));
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(default, candidates));
-        }
-
-        [Test]
-        public void Watch_WaitsForThePlayerToLeaveAfterADisengagedBattle()
-        {
-            var watch = new AggroWatch();
-            var candidates = new[] { new AggroCandidate(Stoa, NarrowRadius) };
-            var beside = new Coord(10, 6);
-
-            watch.Disengage(0);
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(beside, candidates));
-            Assert.IsTrue(watch.IsWaitingForExit(0));
-
-            Assert.AreEqual(AggroWatch.NoTrigger, watch.Update(new Coord(9, 6), candidates));
-            Assert.IsFalse(watch.IsWaitingForExit(0));
-            Assert.AreEqual(0, watch.Update(beside, candidates));
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(Market, mode, challengers));
+            Assert.AreEqual(ChallengeRule.NoChallenger, ChallengeRule.ChallengerAt(Market, GameMode.Exploration, null));
         }
 
         [Test]

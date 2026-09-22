@@ -22,6 +22,7 @@ namespace Game.Tests.PlayMode
         private const string MetMenexeno = "met_menexeno";
         private const string WorkshopDialogue = "kerameikos_leaving_workshop";
         private const string LeftWorkshop = "left_workshop";
+        private const string ThrasybiosId = "thrasybios";
 
         private static readonly Coord MenexenoApproachStart = new(11, 8);
         private static readonly Coord BesideThrasybios = new(6, 1);
@@ -114,7 +115,7 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OpenDialogue_HoldsBackThrasybiosUntilItCloses()
+        public IEnumerator OpenDialogue_KeepsThrasybiosFromTakingUpAChallengeUntilItCloses()
         {
             yield return SceneManager.LoadSceneAsync(LocationScenes.AgoraScene, LoadSceneMode.Single);
             var sandbox = Object.FindAnyObjectByType<GridSandboxController>();
@@ -122,21 +123,30 @@ namespace Game.Tests.PlayMode
             var battle = Object.FindAnyObjectByType<SandboxBattleDirector>();
             battle.AutosaveEnabled = false;
             director.AutosaveEnabled = false;
-            yield return WaitFor(() => director.IsStoryLoaded);
+            yield return WaitFor(() => director.IsStoryLoaded && sandbox.ProgressLoaded);
+            var thrasybios = battle.Opponents.Single(entry => entry.Opponent.Id == ThrasybiosId).Actor.Walker.Cell;
 
             Assert.IsTrue(director.TryStartDialogue(MenexenoDialogue));
             sandbox.Player.Walker.Teleport(BesideThrasybios, Facing.NorthEast);
+            DuelChallenge.Confirm(sandbox, thrasybios);
             for (var frame = 0; frame < BlockedFrames; frame++)
             {
                 yield return null;
             }
 
-            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, "the aggro radius is ignored while the dialogue box is open");
+            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, "a challenge is ignored while the dialogue box is open");
             Assert.AreEqual(GameMode.Dialogue, sandbox.StateMachine.Mode);
 
             yield return PlayToTheEnd(director, new List<DialogueLine>());
+            for (var frame = 0; frame < BlockedFrames; frame++)
+            {
+                yield return null;
+            }
+
+            Assert.AreEqual(BattleFlowPhase.Exploring, battle.Phase, "standing beside Thrasybios never starts the duel on its own");
+            DuelChallenge.Confirm(sandbox, thrasybios);
             yield return WaitFor(() => battle.Phase != BattleFlowPhase.Exploring);
-            Assert.AreNotEqual(BattleFlowPhase.Exploring, battle.Phase, "Thrasybios provokes once the dialogue closes");
+            Assert.AreNotEqual(BattleFlowPhase.Exploring, battle.Phase, "Thrasybios takes up the challenge once the dialogue closes");
             Assert.IsTrue(sandbox.StateMachine.IsInBattle);
         }
 

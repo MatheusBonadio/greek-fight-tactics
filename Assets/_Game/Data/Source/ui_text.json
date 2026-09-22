@@ -1,7 +1,7 @@
 {
   "entries": {
     "battle.player_name": "Kleia",
-    "battle.intro": "{0} barra o caminho e chama a plateia: o debate começou.",
+    "battle.intro": "Kleia aceita o desafio de {0}. A plateia se junta: o debate começou.",
     "battle.refute_hit": "Falácia exposta! {0} perde o fio e a plateia aplaude.",
     "battle.refute_miss": "Não era essa falácia. {0} aproveita o erro e contra-ataca.",
     "battle.maieutics_hit": "A pergunta certa: {0} se contradiz sozinho.",

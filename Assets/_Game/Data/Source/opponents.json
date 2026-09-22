@@ -7,7 +7,6 @@
       "act": "One",
       "max_coherence": 40,
       "initial_audience": 40,
-      "aggro_radius": 3,
       "fallacy_pool": ["equivocation", "ad_hominem", "straw_man"],
       "tutorial": {
         "fallacy": "equivocation",
@@ -29,7 +28,6 @@
       "act": "One",
       "max_coherence": 40,
       "initial_audience": 40,
-      "aggro_radius": 1,
       "fallacy_pool": ["false_dilemma", "invalid_disjunctive_syllogism"]
     },
     {
@@ -39,7 +37,6 @@
       "act": "One",
       "max_coherence": 30,
       "initial_audience": 30,
-      "aggro_radius": 1,
       "fallacy_pool": ["appeal_to_ignorance", "appeal_to_authority"]
     },
     {
@@ -49,7 +46,6 @@
       "act": "One",
       "max_coherence": 50,
       "initial_audience": 20,
-      "aggro_radius": 1,
       "fallacy_pool": ["ad_hominem", "appeal_to_emotion"]
     },
     {
@@ -59,7 +55,6 @@
       "act": "One",
       "max_coherence": 45,
       "initial_audience": 35,
-      "aggro_radius": 1,
       "fallacy_pool": ["straw_man", "slippery_slope"]
     },
     {
@@ -69,7 +64,6 @@
       "act": "One",
       "max_coherence": 60,
       "initial_audience": 70,
-      "aggro_radius": 1,
       "fallacy_pool": ["hasty_generalization", "undistributed_middle"]
     }
   ]

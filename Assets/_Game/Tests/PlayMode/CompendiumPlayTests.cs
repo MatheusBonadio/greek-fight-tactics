@@ -54,8 +54,10 @@ namespace Game.Tests.PlayMode
             yield return WaitFor(() => story.IsStoryLoaded, StartTimeoutSeconds);
             Assert.IsTrue(story.Remember(new StoryEffect(thrasybios.Opponent.Tutorial.DoneFlag)), "the lesson with Thrasybios could not be marked as done");
             sandbox.Player.Walker.Teleport(FreeCellNear(sandbox.Grid, thrasybios.Actor.Walker.Cell), Facing.NorthEast);
+            yield return null;
+            DuelChallenge.Confirm(sandbox, thrasybios.Actor.Walker.Cell);
             yield return WaitFor(() => director.Phase != BattleFlowPhase.Exploring, StartTimeoutSeconds);
-            Assert.AreNotEqual(BattleFlowPhase.Exploring, director.Phase, "walking up to Thrasybios must start the battle");
+            Assert.AreNotEqual(BattleFlowPhase.Exploring, director.Phase, "confirming on Thrasybios must start the battle");
             Assert.IsNull(director.Tutorial, "after the lesson one refutation does not end the duel, so Kleia can still withdraw");
 
             string refuted = null;
