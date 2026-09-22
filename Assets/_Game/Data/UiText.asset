@@ -37,6 +37,10 @@ MonoBehaviour:
     value: "Kleia se retira do debate. A reputa\xE7\xE3o sofre."
   - key: battle.stalemate
     value: "O debate se arrasta at\xE9 ningu\xE9m mais ouvir."
+  - key: battle.inversion
+    value: "INVERS\xC3O! Kleia n\xE3o segura o golpe de {0}: vira-o para a plateia, que aplaude."
+  - key: battle.listening
+    value: "ESCUTA: Kleia ouve onde o argumento range. A premissa fraca \xE9 \"{0}\"."
   - key: act.one
     value: Ato I
   - key: act.two

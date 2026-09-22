@@ -12,6 +12,8 @@
     "battle.defeat": "Kleia perde o fio da meada. A plateia se dispersa rindo.",
     "battle.withdrew": "Kleia se retira do debate. A reputação sofre.",
     "battle.stalemate": "O debate se arrasta até ninguém mais ouvir.",
+    "battle.inversion": "INVERSÃO! Kleia não segura o golpe de {0}: vira-o para a plateia, que aplaude.",
+    "battle.listening": "ESCUTA: Kleia ouve onde o argumento range. A premissa fraca é \"{0}\".",
     "act.one": "Ato I",
     "act.two": "Ato II",
     "location.unknown": "Lugar desconhecido",

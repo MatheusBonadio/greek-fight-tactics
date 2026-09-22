@@ -47,5 +47,9 @@ namespace Game.Battle
         public int ActTwoConcedeBonus { get; set; } = 10;
 
         public int ActTwoMaieuticsRangeBonus { get; set; } = 1;
+
+        public int InversionUsesPerBattle { get; set; } = 1;
+
+        public int ListeningUsesPerBattle { get; set; } = 1;
     }
 }

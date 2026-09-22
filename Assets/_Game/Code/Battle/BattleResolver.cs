@@ -53,6 +53,7 @@ namespace Game.Battle
                 outcome.ActorCoherenceDelta -= state.Rules.CorneredCoherencePenalty;
             }
 
+            AbilityRules.Apply(outcome, actor, state);
             return outcome;
         }
 

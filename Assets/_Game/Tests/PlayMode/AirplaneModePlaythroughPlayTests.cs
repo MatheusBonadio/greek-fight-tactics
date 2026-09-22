@@ -33,6 +33,12 @@ namespace Game.Tests.PlayMode
         private const int MaxRestoreShift = 2;
         private const int QuietFrames = 30;
         private const int IdleFramesBeforeWalkingOn = 2;
+        private const string DamarisOfferDialogue = "damaris_offer";
+        private const string DamarisCharacter = "damaris";
+        private const string MenexenoAgoraDialogue = "menexeno_agora";
+        private const string CustomerDialoguePrefix = "customer_";
+        private const int AcceptOption = 0;
+        private const int RefuseOption = 1;
 
         private static readonly NetworkOutage[] Outages = { NetworkOutage.Refused, NetworkOutage.Hanging, NetworkOutage.Unresolvable };
 
@@ -52,6 +58,9 @@ namespace Game.Tests.PlayMode
         private readonly HashSet<string> dialoguesPlayed = new();
         private readonly HashSet<string> cutscenesPlayed = new();
         private readonly Dictionary<string, BattleStatus> duelResults = new();
+        private readonly Dictionary<string, int> dialogueAnswers = new();
+        private readonly HashSet<AbilityId> abilitiesUsed = new();
+        private int abilityLines;
         private IsolatedDataDirectory data;
         private FakeFirebase firebase;
         private FlakyNetwork network;
@@ -78,6 +87,9 @@ namespace Game.Tests.PlayMode
             dialoguesPlayed.Clear();
             cutscenesPlayed.Clear();
             duelResults.Clear();
+            dialogueAnswers.Clear();
+            abilitiesUsed.Clear();
+            abilityLines = 0;
             longestOpponentTurnSeconds = 0f;
             opponentLines = 0;
             yield return null;
@@ -137,7 +149,7 @@ namespace Game.Tests.PlayMode
             yield return SettleTheStory(workshop);
             yield return WalkIntoEveryTrigger(workshop);
             Assert.IsTrue(ActionUnlocks.IsUnlocked(ActionId.Maieutics, workshop.Dialogue.Story), "Menexeno's door scene teaches maieutics while offline");
-            CollectionAssert.IsSubsetOf(workshop.Dialogue.Triggers.Where(trigger => trigger.IsCutscene).Select(trigger => trigger.Cutscene).Distinct(), cutscenesPlayed, "every cutscene of the workshop plays offline");
+            CollectionAssert.IsSubsetOf(FiredCutscenes(workshop), cutscenesPlayed, "every cutscene whose trigger fired plays offline");
             yield return WalkThroughExit(workshop, road);
 
             yield return EnterMap(loaded => agora = loaded);
@@ -148,6 +160,29 @@ namespace Game.Tests.PlayMode
             AssertEveryBattleLineWasShown();
             Assert.Greater(opponentLines, 0);
             Assert.Less(longestOpponentTurnSeconds, OfflineThinkSeconds + ThinkSlackSeconds, "an opponent turn took longer than its think time");
+            Assert.IsEmpty(firebase.Commits, "nothing reaches the cloud while the network is down");
+
+            var branch = BranchFor(outage);
+            dialogueAnswers[DamarisOfferDialogue] = branch == DamarisChoice.Accepted ? AcceptOption : RefuseOption;
+            Assert.IsTrue(agora.Services.TryLoadActiveSave(out var beforeHome));
+            home = agora.Sandbox.Exits.First(link => link.Location == LocationScenes.Kerameikos);
+            yield return WalkThroughExit(agora, home);
+            yield return EnterMap(loaded => workshop = loaded);
+            Assert.IsTrue(workshop.Services.TryLoadActiveSave(out var cameHome));
+            Assert.AreEqual(StoryDays.DayOf(beforeHome) + 1, StoryDays.DayOf(cameHome), "coming home ends the day while offline");
+            AssertTheWorkshopFeelsThePressure(workshop);
+            yield return SettleTheStory(workshop);
+            yield return WalkIntoEveryTrigger(workshop);
+            CollectionAssert.IsSubsetOf(workshop.Dialogue.Triggers.Where(trigger => trigger.IsCutscene).Select(trigger => trigger.Cutscene).Distinct(), cutscenesPlayed, "every cutscene of the workshop plays offline");
+            yield return TalkToEveryone(workshop);
+            AssertDamarisWasAnswered(workshop, branch);
+            yield return WalkThroughExit(workshop, road);
+
+            yield return EnterMap(loaded => agora = loaded);
+            yield return SettleTheStory(agora);
+            Assert.AreEqual(branch == DamarisChoice.Refused, Menexeno(agora).Walker != null, "Menexeno stays away from the agora only after Kleia takes Damaris's money");
+            yield return TalkToEveryone(agora);
+            yield return DuelWithTheAbilityOf(agora, branch);
             Assert.IsEmpty(firebase.Commits, "nothing reaches the cloud while the network is down");
 
             yield return SaveFromThePauseMenuAndQuit(agora);
@@ -177,6 +212,64 @@ namespace Game.Tests.PlayMode
             CollectionAssert.IsSupersetOf(firebase.RemoteSave.Duels.Keys, duelResults.Where(result => result.Value == BattleStatus.PlayerWon).Select(result => result.Key));
             TestContext.WriteLine($"{outage}: {dialoguesPlayed.Count} conversations, {cutscenesPlayed.Count} cutscenes, {duelResults.Count} duels, {opponentLines} opponent lines, longest opponent turn {longestOpponentTurnSeconds:0.000}s");
             LogAssert.NoUnexpectedReceived();
+        }
+
+        private static IEnumerable<string> FiredCutscenes(MapScene map) =>
+            map.Dialogue.Triggers.Where(trigger => trigger.IsCutscene && StoryCondition.Has(trigger.Flag).IsMet(map.Dialogue.Story)).Select(trigger => trigger.Cutscene).Distinct();
+
+        private static DamarisChoice BranchFor(NetworkOutage outage) =>
+            outage == NetworkOutage.Hanging ? DamarisChoice.Refused : DamarisChoice.Accepted;
+
+        private static void AssertTheWorkshopFeelsThePressure(MapScene map)
+        {
+            var story = map.Dialogue.Story;
+            Assert.AreEqual(StoryPressure.Stages.Count, StoryPressure.Level(story), "every duel of the agora pushed the pressure to its last stage");
+            foreach (var customer in map.Dialogue.Talkers.Where(link => link.Dialogue.StartsWith(CustomerDialoguePrefix, StringComparison.Ordinal)))
+            {
+                Assert.IsNull(customer.Actor.Walker, $"{customer.Dialogue} still comes to the workshop");
+            }
+
+            Assert.IsNotEmpty(map.Sandbox.BlockPresences, "the workshop changes its props with the story");
+            foreach (var block in map.Sandbox.BlockPresences)
+            {
+                Assert.AreEqual(block.IsMet(story), map.Sandbox.IsBlockShown(block.Cell), $"the block at {block.Cell} does not follow the pressure");
+                Assert.AreEqual(!block.IsMet(story), map.Sandbox.Grid[block.Cell].IsPassable, $"the grid at {block.Cell} does not follow the pressure");
+            }
+
+            Assert.IsNotNull(map.Cutscenes.Cast[DamarisCharacter].Walker, "Damaris waits for Kleia in the street");
+        }
+
+        private static void AssertDamarisWasAnswered(MapScene map, DamarisChoice branch)
+        {
+            Assert.IsTrue(map.Services.TryLoadActiveSave(out var saved), "the answer autosaves while offline");
+            Assert.AreEqual(branch, saved.DamarisBranch, "the tribunal branch is saved while offline");
+            CollectionAssert.AreEqual(new[] { DamarisOffer.GrantedAbility(branch).Value }, AbilityUnlocks.OwnedIn(saved));
+            Assert.AreEqual(branch == DamarisChoice.Accepted ? DamarisOffer.AcceptedDrachmas : 0, saved.Inventory.TryGetValue(DamarisOffer.DrachmasItem, out var drachmas) ? drachmas : 0);
+            Assert.AreEqual(branch == DamarisChoice.Accepted ? DamarisOffer.MenexenoAbsentDays : 0, StoryDays.AbsenceLeft(saved, DamarisOffer.MenexenoAbsentDaysFlag));
+            Assert.AreEqual(branch == DamarisChoice.Refused, StoryCondition.Has(DamarisOffer.MenexenoRespectFlag).IsMet(saved));
+            Assert.IsNull(map.Cutscenes.Cast[DamarisCharacter].Walker, "Damaris walks away after the answer");
+        }
+
+        private static ActorView Menexeno(MapScene map) =>
+            map.Dialogue.Talkers.Single(link => link.Dialogue == MenexenoAgoraDialogue).Actor;
+
+        private static bool IsAbilityLine(DialogueLine line) =>
+            string.IsNullOrEmpty(line.SpeakerName) && line.Text != null && (line.Text.StartsWith("INVERSÃO", StringComparison.Ordinal) || line.Text.StartsWith("ESCUTA", StringComparison.Ordinal));
+
+        private IEnumerator DuelWithTheAbilityOf(MapScene map, DamarisChoice branch)
+        {
+            var ability = DamarisOffer.GrantedAbility(branch).Value;
+            var battle = map.Battle;
+            var rival = battle.Opponents.First(entry => !battle.IsDefeated(entry));
+            abilitiesUsed.Clear();
+            abilityLines = 0;
+
+            yield return Challenge(map, rival);
+            Assert.IsTrue(battle.Session.State.HasAbility(ability), $"Kleia brings {ability} into the duel against {rival.Opponent.Id}");
+            yield return PlayDuel(map, DuelPlan.Win);
+
+            CollectionAssert.AreEqual(new[] { ability }, abilitiesUsed, $"{ability} never answered the arguments of {rival.Opponent.Id} offline");
+            Assert.Greater(abilityLines, 0, $"the duel never announced {ability}");
         }
 
         private IEnumerator OpenMainMenu(Action<MainMenuController> loaded)
@@ -321,9 +414,10 @@ namespace Game.Tests.PlayMode
 
         private IEnumerator TalkToEveryone(MapScene map)
         {
-            Assert.IsNotEmpty(map.Dialogue.Talkers, $"{map.Sandbox.LocationId} has nobody to talk to");
+            var present = map.Dialogue.Talkers.Where(link => link.Actor && link.Actor.Walker != null).ToList();
+            Assert.IsNotEmpty(present, $"{map.Sandbox.LocationId} has nobody to talk to");
             yield return SettleTheStory(map);
-            foreach (var talker in map.Dialogue.Talkers)
+            foreach (var talker in present)
             {
                 var npc = talker.Actor.Walker.Cell;
                 map.Sandbox.Player.Walker.Teleport(FreeNeighbour(map, npc), Facing.NorthEast);
@@ -340,7 +434,8 @@ namespace Game.Tests.PlayMode
 
         private IEnumerator PlayConversation(MapScene map)
         {
-            dialoguesPlayed.Add(map.Dialogue.ActiveDialogueId);
+            var dialogue = map.Dialogue.ActiveDialogueId;
+            dialoguesPlayed.Add(dialogue);
             for (var confirms = 0; map.Dialogue.IsTalking && confirms < MaxDialogueConfirms; confirms++)
             {
                 var line = map.Dialogue.CurrentLine;
@@ -348,6 +443,14 @@ namespace Game.Tests.PlayMode
                 if (!line.IsNarration)
                 {
                     AssertShowsText(map.Dialogue.DialogueBox.Line.SpeakerName, map.Dialogue.DialogueBox.SpeakerLabel.text);
+                }
+
+                if (map.Dialogue.IsAwaitingChoice && dialogueAnswers.TryGetValue(dialogue, out var answer))
+                {
+                    for (var step = 0; step < answer; step++)
+                    {
+                        map.Dialogue.DialogueBox.HandleNavigate(Vector2.down);
+                    }
                 }
 
                 map.Dialogue.Advance();
@@ -466,9 +569,15 @@ namespace Game.Tests.PlayMode
                     awaitingOpponentLine = true;
                 }
 
+                if (director.Session != null)
+                {
+                    abilitiesUsed.UnionWith(director.Session.State.Log.Where(entry => entry.TriggeredAbility.HasValue).Select(entry => entry.TriggeredAbility.Value));
+                }
+
                 switch (director.Phase)
                 {
                     case BattleFlowPhase.Dialogue:
+                        abilityLines += IsAbilityLine(director.Hud.Dialogue.Line) ? 1 : 0;
                         ReadBattleLine(director, opponent, awaitingOpponentLine, playerEntry);
                         awaitingOpponentLine = false;
                         playerEntry = -1;

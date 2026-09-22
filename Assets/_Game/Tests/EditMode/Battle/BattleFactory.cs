@@ -34,7 +34,8 @@ namespace Game.Tests.EditMode.Battle
             IEnumerable<int> audienceMembers = null,
             BattleRules rules = null,
             Facing opponentFacing = Facing.SouthWest,
-            IEnumerable<ActionId> lockedActions = null)
+            IEnumerable<ActionId> lockedActions = null,
+            IEnumerable<AbilityId> abilities = null)
         {
             var grid = GridFactory.Open(size, size);
             new FogOfWar(grid).Reveal(new Coord(size / 2, size / 2), size * 2);
@@ -48,7 +49,8 @@ namespace Game.Tests.EditMode.Battle
                 initialPlayerAudience,
                 new[] { new QuoteItem(QuoteId, 10, 5, 1) },
                 audienceMembers,
-                lockedActions);
+                lockedActions,
+                abilities);
         }
 
         public static BattleState CreateWithArgument(

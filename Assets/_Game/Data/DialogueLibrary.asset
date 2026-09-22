@@ -45,6 +45,10 @@ MonoBehaviour:
     value:
       displayName: Plateia
       portrait: 
+  - key: damaris
+    value:
+      displayName: Damaris
+      portrait: damaris
   dialogues:
   - key: kerameikos_first_steps
     value:
@@ -169,6 +173,9 @@ MonoBehaviour:
         - flag: maieutics_unlocked
           value: 
           absent: 1
+        - flag: pressure_rumor
+          value: 
+          absent: 1
         effects: []
         choices: []
       - speaker: aristeu
@@ -176,6 +183,178 @@ MonoBehaviour:
         conditions:
         - flag: maieutics_unlocked
           value: 
+          absent: 0
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Hoje um fregu\xEAs me perguntou se \xE9 verdade que minha filha ensina a duvidar dos deuses."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: pressure_deserted
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Eu s\xF3 perguntei a um homem o que ele queria dizer com \xE2nfora."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: pressure_deserted
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Eu sei, filha. Mas na \xE1gora uma pergunta corre mais depressa que a resposta."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: pressure_deserted
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Aristeu est\xE1 sentado diante das \xE2nforas prontas, as m\xE3os tortas abertas sobre os joelhos."
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Ningu\xE9m veio buscar nada. Nem os de sempre."
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "J\xE1 vendi os pinc\xE9is finos a um oleiro da outra rua. Se at\xE9 a lua nova ningu\xE9m comprar, a roda vai atr\xE1s."
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "N\xE3o venda a roda. Eu vendo as \xE2nforas na \xE1gora."
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Na \xE1gora agora te chamam de \xEDmpia, filha. Quem compra de uma \xEDmpia?"
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: Vendi a roda, Kleia.
+        conditions:
+        - flag: pressure_tools
+          value: 
+          absent: 0
+        - flag: damaris_branch
+          value: undecided
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Era a roda do av\xF4."
+        conditions:
+        - flag: pressure_tools
+          value: 
+          absent: 0
+        - flag: damaris_branch
+          value: undecided
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Era. Com estas m\xE3os eu j\xE1 n\xE3o girava. Ao menos o forno fica aceso mais um m\xEAs."
+        conditions:
+        - flag: pressure_tools
+          value: 
+          absent: 0
+        - flag: damaris_branch
+          value: undecided
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Duzentas dracmas numa bolsa estrangeira. N\xE3o vou perguntar de onde vieram, porque n\xE3o quero ouvir a resposta."
+        conditions:
+        - flag: damaris_branch
+          value: accepted
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "D\xE1 para comprar a roda de volta."
+        conditions:
+        - flag: damaris_branch
+          value: accepted
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "D\xE1. Mas eu ia girar aquela roda pensando em quem pagou por ela."
+        conditions:
+        - flag: damaris_branch
+          value: accepted
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Dizem na rua que uma estrangeira veio te procurar com dinheiro. E que voc\xEA mandou embora."
+        conditions:
+        - flag: damaris_branch
+          value: refused
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: Ela queria que eu falasse por ela. Pelo lado que ela escolhesse.
+        conditions:
+        - flag: damaris_branch
+          value: refused
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: aristeu
+        text: "Ent\xE3o fez bem. Barro se compra na beira do rio. A voz da gente, n\xE3o."
+        conditions:
+        - flag: damaris_branch
+          value: refused
           absent: 0
         effects: []
         choices: []
@@ -349,6 +528,39 @@ MonoBehaviour:
         - flag: talked_to_neighbor
           value: 
           absent: 0
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: neighbor
+        text: "Filha de Aristeu... N\xE3o leve a mal, mas prefiro n\xE3o ser visto conversando com voc\xEA. O homem de p\xFArpura anda dizendo coisas."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: pressure_deserted
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: neighbor
+        text: "Seu pai me ofereceu a roda ontem. Eu n\xE3o tinha como pagar. Ningu\xE9m quer pagar a ele, desde que falam de voc\xEA."
+        conditions:
+        - flag: pressure_deserted
+          value: 
+          absent: 0
+        - flag: pressure_tools
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: neighbor
+        text: Vi quando levaram a roda do seu pai rua abaixo. Sinto muito, menina. Sinto mesmo.
+        conditions:
+        - flag: pressure_tools
+          value: 
+          absent: 0
         effects: []
         choices: []
       branches: []
@@ -443,6 +655,52 @@ MonoBehaviour:
         effects: []
         choices: []
       - speaker: menexeno
+        text: "Asebeia. A \xFAltima vez que ouvi essa palavra dita assim, em voz alta, foi num tribunal."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: damaris_branch
+          value: undecided
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: menexeno
+        text: "N\xE3o terminou bem para ningu\xE9m. Cuidado com quem aplaude, menina."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        - flag: damaris_branch
+          value: undecided
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: menexeno
+        text: "Soube da estrangeira de Abdera. E soube que voc\xEA disse n\xE3o."
+        conditions:
+        - flag: menexeno_respect
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: menexeno
+        text: "Poucos dizem n\xE3o a Abdera. Fez bem."
+        conditions:
+        - flag: menexeno_respect
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: menexeno
+        text: "Tr\xEAs dias pensando se voltava. Voltei. Mas a bolsa que ela te deu pesa mais do que parece."
+        conditions:
+        - flag: damaris_branch
+          value: accepted
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: menexeno
         text: "E o rapaz do compasso? Repete Plat\xE3o como quem decora uma receita. Ainda n\xE3o provou o prato."
         conditions:
         - flag: met_menexeno
@@ -487,6 +745,20 @@ MonoBehaviour:
         text: "Ainda aqui? Plat\xE3o diria que a \xE1gora \xE9 o reino da opini\xE3o. Eu apenas concordo com ele."
         conditions:
         - flag: met_eudoro
+          value: 
+          absent: 0
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: eudoro
+        text: "Dizem pela \xE1gora que voc\xEA \xE9 \xEDmpia. Eu n\xE3o diria tanto. Diria que \xE9 uma oleira que confunde pergunta com argumento."
+        conditions:
+        - flag: met_eudoro
+          value: 
+          absent: 0
+        - flag: pressure_rumor
           value: 
           absent: 0
         effects: []
@@ -681,3 +953,342 @@ MonoBehaviour:
           conditions: []
           effects: []
           choices: []
+  - key: agora_asebeia_rumor
+    value:
+      lines:
+      - speaker: 
+        text: "Junto \xE0s bancas, Thrasybios sobe de novo no caixote. Desta vez n\xE3o vende nada: aponta."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Cidad\xE3os! Conhecem a filha do oleiro? A menina que responde a homem feito com pergunta?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: thrasybios
+        text: "Perguntem a ela sobre Atena, sobre Zeus. Ela pergunta at\xE9 voc\xEAs duvidarem. Em Atenas isso tem nome: asebeia."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: "Aseb\xE9s! A oleira \xE9 aseb\xE9s!"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Eu perguntei o que ele queria dizer com \xE2nfora. S\xF3 isso."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ningu\xE9m escuta. Uma palavra como asebeia n\xE3o precisa de prova. Precisa de repeti\xE7\xE3o."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_asebeia_spreads
+    value:
+      lines:
+      - speaker: 
+        text: Na fonte, duas mulheres param de falar quando Kleia passa. Um menino aponta para ela e sai correndo.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: crowd
+        text: "\xC9 a \xEDmpia do Cer\xE2mico! A que ensina a duvidar dos deuses!"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Ningu\xE9m nesta \xE1gora me ouviu falar dos deuses. Nem uma vez."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_pressure_home
+    value:
+      lines:
+      - speaker: kleia
+        text: "Faz dias que ningu\xE9m compra uma \xE2nfora do meu pai. Nem aqui, nem na porta da oficina."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Preciso voltar ao Cer\xE2mico e ver como ele est\xE1."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: customer_oil
+    value:
+      lines:
+      - speaker: customer
+        text: "Vim buscar duas \xE2nforas para o azeite. As de Aristeu n\xE3o vazam. As da outra rua choram \xF3leo pela barriga."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "\xC9 o barro do rio. Meu pai n\xE3o aceita outro."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Ouvi na \xE1gora que a filha de Aristeu ensina a duvidar dos deuses."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Eu perguntei a um homem o que ele queria dizer com \xE2nfora. Foi s\xF3 isso."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Os deuses talvez n\xE3o se ofendam com perguntas. Os vizinhos, sim. Volto outro dia, menina."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      branches: []
+  - key: customer_crater
+    value:
+      lines:
+      - speaker: customer
+        text: "Dizem que ningu\xE9m no Cer\xE2mico pinta um meandro t\xE3o fino quanto o de Aristeu."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Os meandros s\xE3o meus. As m\xE3os dele j\xE1 n\xE3o seguram o pincel."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Ent\xE3o diga a ele que a filha merece o pre\xE7o. Levo a cratera grande."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 1
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Meu cunhado jura que viu voc\xEA na \xE1gora, discutindo com homem feito sobre os deuses."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Sobre uma \xE2nfora."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: customer
+        text: "Na boca de Thrasybios, d\xE1 no mesmo. Deixo a cratera para outra semana."
+        conditions:
+        - flag: pressure_rumor
+          value: 
+          absent: 0
+        effects: []
+        choices: []
+      branches: []
+  - key: kerameikos_no_customers
+    value:
+      lines:
+      - speaker: 
+        text: "Nenhum fregu\xEAs \xE0 porta da oficina. As \xE2nforas prontas continuam junto \xE0 entrada, e j\xE1 h\xE1 mais uma pilha ao lado delas."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Antes a fila chegava at\xE9 a rua."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: kerameikos_wheel_sold
+    value:
+      lines:
+      - speaker: 
+        text: "O canto da roda de oleiro est\xE1 vazio. No ch\xE3o de terra batida, s\xF3 ficou o c\xEDrculo claro onde ela girou por trinta anos."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Enquanto eu discutia na \xE1gora, ele vendia a roda."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: damaris_offer
+    value:
+      lines:
+      - speaker: 
+        text: "Uma mulher de peplos vermelho-terracota espera no meio da rua, im\xF3vel, as m\xE3os vazias. N\xE3o est\xE1 de passagem: est\xE1 esperando Kleia."
+        conditions: []
+        effects:
+        - flag: met_damaris
+          value: true
+        choices: []
+      - speaker: damaris
+        text: "Kleia, filha de Aristeu. Meu nome \xE9 Damaris. Venho de Abdera, a cidade de Prot\xE1goras."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "N\xE3o conhe\xE7o ningu\xE9m de Abdera."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: damaris
+        text: "Abdera conhece voc\xEA. Ouvi o que Thrasybios repete na \xE1gora: aseb\xE9s, \xEDmpia. Ele diz a palavra at\xE9 ela grudar."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: damaris
+        text: E hoje cedo vi um homem descer esta rua com a roda do seu pai nas costas.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: O que a senhora quer de mim?
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: damaris
+        text: "Fazer uma oferta. Prote\xE7\xE3o: ningu\xE9m diz \xEDmpia perto de quem anda comigo. Duzentas dracmas. E uma t\xE9cnica que Prot\xE1goras n\xE3o ensinava de gra\xE7a."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: damaris
+        text: "Em troca, quando eu chamar, voc\xEA argumenta por mim. Onde eu disser, pelo lado que eu disser."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: E se o lado for o errado?
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: damaris
+        text: "Todo argumento pode ser refutado, Kleia. N\xE3o existe lado certo, s\xF3 lado bem defendido. Aceita?"
+        conditions: []
+        effects: []
+        choices:
+        - text: Aceitar a oferta
+          effects:
+          - flag: damaris_branch
+            value: accepted
+          branch: 0
+        - text: Recusar
+          effects:
+          - flag: damaris_branch
+            value: refused
+          branch: 1
+      - speaker: damaris
+        text: "Atenas \xE9 pequena para quem pergunta. Nos veremos de novo."
+        conditions: []
+        effects: []
+        choices: []
+      branches:
+      - lines:
+        - speaker: kleia
+          text: Aceito. Pela roda do meu pai.
+          conditions: []
+          effects: []
+          choices: []
+        - speaker: damaris
+          text: "Pela roda, ent\xE3o. A t\xE9cnica \xE9 simples: quando atacarem voc\xEA, n\xE3o segure o golpe. Vire-o para a plateia."
+          conditions: []
+          effects: []
+          choices: []
+        - speaker: damaris
+          text: "O velho do bast\xE3o n\xE3o vai gostar. Vai sumir por uns dias. Deixe. Em tr\xEAs dias ele volta, ou n\xE3o volta."
+          conditions: []
+          effects: []
+          choices: []
+      - lines:
+        - speaker: kleia
+          text: "N\xE3o. Prometi nunca aceitar dinheiro por uma pergunta."
+          conditions:
+          - flag: menexeno_condition
+            value: 
+            absent: 0
+          effects: []
+          choices: []
+        - speaker: kleia
+          text: "N\xE3o. O que eu pergunto n\xE3o tem dono."
+          conditions:
+          - flag: menexeno_condition
+            value: 
+            absent: 1
+          effects: []
+          choices: []
+        - speaker: damaris
+          text: Uma promessa feita a um velho que nem explica por que a pediu. Respeito. Poucos em Atenas guardam uma.
+          conditions: []
+          effects: []
+          choices: []
+        - speaker: damaris
+          text: "Guarde ent\xE3o o que j\xE1 \xE9 seu. Voc\xEA escuta um homem errar antes de ele terminar a frase. Prot\xE1goras cobraria caro por isso."
+          conditions: []
+          effects: []
+          choices: []
+  - key: damaris_technique
+    value:
+      lines:
+      - speaker: 
+        text: "A bolsa pesa na m\xE3o de Kleia: duzentas dracmas. E ela aprendeu a INVERS\xC3O. Uma vez por debate, o primeiro ataque do advers\xE1rio vira aplauso para ela."
+        conditions:
+        - flag: damaris_branch
+          value: accepted
+          absent: 0
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Kleia fica de m\xE3os vazias e com o que sempre teve: a ESCUTA. Uma vez por debate, ela ouve onde o primeiro argumento do advers\xE1rio range, e a premissa fraca se revela."
+        conditions:
+        - flag: damaris_branch
+          value: refused
+          absent: 0
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_menexeno_gone
+    value:
+      lines:
+      - speaker: 
+        text: "Junto \xE0s colunas da stoa, onde Menexeno costuma se apoiar no bast\xE3o, n\xE3o h\xE1 ningu\xE9m."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Ele j\xE1 sabe da bolsa. N\xE3o sei como, mas sabe."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []

@@ -30,6 +30,10 @@ namespace Game.Tests.EditMode.UI
         private const string AristeuCharacter = "aristeu";
         private const string MenexenoCharacter = "menexeno";
         private const int MinimumAmphoraStacks = 3;
+        private const string MenexenoCutscene = "menexeno_follows_home";
+        private const string DamarisCutscene = "damaris_seeks_kleia";
+        private const string DamarisCharacter = "damaris";
+        private const int MaxDamarisWalk = 2;
 
         [TestCase(SandboxTools.MapPath, AgoraSize)]
         [TestCase(SandboxTools.KerameikosMapPath, KerameikosSize)]
@@ -115,7 +119,7 @@ namespace Game.Tests.EditMode.UI
             var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
             var aristeu = map.Actors.Single(actor => actor.Character == AristeuCharacter);
             var menexeno = map.Actors.Single(actor => actor.Character == MenexenoCharacter);
-            var scenes = map.Triggers.Where(trigger => trigger.IsCutscene).ToList();
+            var scenes = map.Triggers.Where(trigger => trigger.Cutscene == MenexenoCutscene).ToList();
             var wonDuel = new StoryCondition(DuelStoryFlags.FlagFor(ThrasybiosCharacter), DuelStoryFlags.Won).ToString();
             var untaught = StoryCondition.Lacks(ActionUnlocks.MaieuticsFlag).ToString();
 
@@ -130,7 +134,7 @@ namespace Game.Tests.EditMode.UI
             CollectionAssert.AreEquivalent(beside, scenes.Select(scene => (scene.X, scene.Y)), "every free cell beside Menexeno starts the door scene");
             foreach (var scene in scenes)
             {
-                Assert.AreEqual(map.Cutscenes.Single().Id, scene.Cutscene);
+                Assert.AreEqual(map.Cutscenes.Single(cutscene => cutscene.Id == MenexenoCutscene).Id, scene.Cutscene);
                 Assert.AreEqual(scenes[0].Flag, scene.Flag, "the door scene plays once, whichever side Kleia comes from");
                 CollectionAssert.IsSubsetOf(new[] { wonDuel, untaught }, scene.StoryConditions.Select(condition => condition.ToString()).ToList());
             }
@@ -143,7 +147,7 @@ namespace Game.Tests.EditMode.UI
         public void Kerameikos_StagesMenexenosVisitOnATimelineThatEndsWithHimWalkingAway()
         {
             var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
-            var steps = map.Cutscenes.Single().Steps;
+            var steps = map.Cutscenes.Single(cutscene => cutscene.Id == MenexenoCutscene).Steps;
             var dialogues = steps.Where(step => step.Action == CutsceneAction.Dialogue).Select(step => step.Dialogue).ToList();
 
             CollectionAssert.AreEqual(new[] { "menexeno_door_offer", "menexeno_door_glance", "menexeno_door_lesson", "menexeno_door_learned" }, dialogues);
@@ -547,6 +551,137 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(0.5d, steps[0].At);
             Assert.AreEqual(CutsceneAction.Leave, steps[1].Action);
             Assert.IsNull(steps[1].Cell);
+        }
+
+        [Test]
+        public void Validate_ShowsOrHidesOnlyRealBlocksThroughStoryFlags()
+        {
+            var map = Tiny();
+            map.Blocks[1] = "-C";
+            map.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1, Conditions = { MapCondition.Lacks("sold") } });
+            Assert.DoesNotThrow(() => map.Validate());
+
+            var empty = Tiny();
+            empty.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1, Conditions = { MapCondition.Lacks("sold") } });
+            Assert.Throws<InvalidOperationException>(() => empty.Validate(), "a cell without a block has nothing to hide");
+
+            var outside = Tiny();
+            outside.ConditionalBlocks.Add(new MapConditionalBlock { X = 4, Y = 1, Conditions = { MapCondition.Lacks("sold") } });
+            Assert.Throws<InvalidOperationException>(() => outside.Validate(), "outside the map");
+
+            var unconditional = Tiny();
+            unconditional.Blocks[1] = "-C";
+            unconditional.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1 });
+            Assert.Throws<InvalidOperationException>(() => unconditional.Validate(), "a conditional block waits for a flag");
+
+            var badFlag = Tiny();
+            badFlag.Blocks[1] = "-C";
+            badFlag.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1, Conditions = { MapCondition.Has("Not Snake") } });
+            Assert.Throws<InvalidOperationException>(() => badFlag.Validate(), "bad flag");
+
+            var twice = Tiny();
+            twice.Blocks[1] = "-C";
+            twice.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1, Conditions = { MapCondition.Lacks("sold") } });
+            twice.ConditionalBlocks.Add(new MapConditionalBlock { X = 1, Y = 1, Conditions = { MapCondition.Has("bought") } });
+            Assert.Throws<InvalidOperationException>(() => twice.Validate(), "one cell, one rule");
+        }
+
+        [Test]
+        public void Json_ReadsConditionalBlocksAndTheHomeMap()
+        {
+            const string json = "{\"id\":\"tiny\",\"home\":true,\"floorLegend\":{\".\":\"floor_marble\"},\"blockLegend\":{\"C\":\"block_doric_column\"}," +
+                "\"floor\":[\"..\",\"..\"],\"blocks\":[\"--\",\"-C\"]," +
+                "\"actors\":[{\"character\":\"kleia\",\"x\":0,\"y\":0}]," +
+                "\"conditionalBlocks\":[{\"x\":1,\"y\":1,\"conditions\":[{\"flag\":\"sold\",\"absent\":true}]}]}";
+
+            var map = Newtonsoft.Json.JsonConvert.DeserializeObject<MapLayout>(json);
+            map.Validate();
+
+            Assert.IsTrue(map.Home);
+            Assert.AreEqual("!sold", map.ConditionalBlocks.Single().StoryConditions.Single().ToString());
+            Assert.IsFalse(MapLayout.Load(SandboxTools.MapPath).Home, "only the workshop is home");
+            Assert.IsTrue(MapLayout.Load(SandboxTools.KerameikosMapPath).Home, "coming back to the workshop ends the day");
+        }
+
+        [Test]
+        public void Kerameikos_LosesItsCustomersAndThePottersWheelAsThePressureGrows()
+        {
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var deserted = StoryCondition.Lacks(StoryPressure.DesertedFlag).ToString();
+
+            var customers = map.Actors.Where(actor => actor.Character == SandboxTools.AudienceCharacter && actor.IsConditional).ToList();
+            Assert.GreaterOrEqual(customers.Count, 2, "customers wait at the workshop door");
+            foreach (var customer in customers)
+            {
+                Assert.IsNotEmpty(customer.Dialogue, "every customer has something to say about the rumor");
+                CollectionAssert.AreEqual(new[] { deserted }, customer.StoryConditions.Select(condition => condition.ToString()), "the customers leave once the workshop is deserted");
+            }
+
+            var wheel = map.ConditionalBlocks.Single(block => map.BlockAt(block.X, block.Y) == WheelTile);
+            CollectionAssert.AreEqual(new[] { StoryCondition.Lacks(StoryPressure.ToolsFlag).ToString() }, wheel.StoryConditions.Select(condition => condition.ToString()), "Aristeu sells the wheel at the last stage");
+
+            var unsold = map.ConditionalBlocks.Where(block => map.BlockAt(block.X, block.Y) == AmphoraTile).ToList();
+            Assert.IsNotEmpty(unsold, "unsold amphorae pile up at the door");
+            Assert.IsTrue(unsold.All(block => block.StoryConditions.Single().ToString() == StoryPressure.DesertedFlag));
+
+            var wheelCue = map.Triggers.Single(trigger => trigger.Dialogue == "kerameikos_wheel_sold");
+            CollectionAssert.Contains(wheelCue.StoryConditions.Select(condition => condition.ToString()).ToList(), StoryPressure.ToolsFlag);
+            var inside = Flood(map, (map.Actors[0].X, map.Actors[0].Y), cell => cell != (wheelCue.X, wheelCue.Y));
+            Assert.IsFalse(map.Exits.Any(exit => inside.Contains((exit.X, exit.Y))), "the doorway separates the workshop from the street, so Kleia always sees the empty corner on her way in");
+            Assert.IsTrue(map.Cues.Any(cue => cue.On == ExplorationCue.Idle && cue.StoryConditions.Any(condition => condition.Flag == StoryPressure.DesertedFlag)), "the empty door is pointed out");
+        }
+
+        [Test]
+        public void Kerameikos_SendsDamarisToTheStreetOnceTheWheelIsSoldAndUntilKleiaAnswers()
+        {
+            var map = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var damaris = map.Actors.Single(actor => actor.Character == DamarisCharacter);
+            var expected = new[]
+            {
+                StoryPressure.ToolsFlag,
+                ActionUnlocks.MaieuticsFlag,
+                StoryCondition.Is(SaveFlags.DamarisBranch, "undecided").ToString()
+            };
+
+            Assert.IsTrue(string.IsNullOrEmpty(damaris.Dialogue), "Damaris speaks through her cutscene");
+            CollectionAssert.AreEquivalent(expected, damaris.StoryConditions.Select(condition => condition.ToString()));
+            Assert.AreEqual(StreetTile, map.FloorAt(damaris.X, damaris.Y), "she waits in the street, where Kleia comes home");
+
+            var scenes = map.Triggers.Where(trigger => trigger.Cutscene == DamarisCutscene).ToList();
+            var beside = new[] { (damaris.X + 1, damaris.Y), (damaris.X - 1, damaris.Y), (damaris.X, damaris.Y + 1), (damaris.X, damaris.Y - 1) }
+                .Where(cell => map.Contains(cell.Item1, cell.Item2) && map.IsWalkable(cell.Item1, cell.Item2))
+                .ToList();
+            CollectionAssert.AreEquivalent(beside, scenes.Select(scene => (scene.X, scene.Y)), "every free cell beside Damaris starts her offer");
+            Assert.IsTrue(scenes.All(scene => scene.Flag == scenes[0].Flag), "the offer plays once");
+            Assert.IsTrue(scenes.All(scene => expected.All(condition => scene.StoryConditions.Select(item => item.ToString()).Contains(condition))));
+
+            var steps = map.Cutscenes.Single(cutscene => cutscene.Id == DamarisCutscene).Steps;
+            CollectionAssert.AreEqual(new[] { "damaris_offer", "damaris_technique" }, steps.Where(step => step.Action == CutsceneAction.Dialogue).Select(step => step.Dialogue));
+            var leave = steps.FindIndex(step => step.Action == CutsceneAction.Leave);
+            Assert.AreEqual(DamarisCharacter, steps[leave].Actor, "she leaves after the answer");
+            Assert.Less(steps.FindIndex(step => step.Dialogue == "damaris_offer"), leave);
+            Assert.Less(leave, steps.FindIndex(step => step.Dialogue == "damaris_technique"), "the technique sinks in after she is gone");
+
+            var arrival = MapLayout.Load(SandboxTools.MapPath).Exits.Single(exit => exit.Location == SandboxTools.KerameikosLocationId);
+            Assert.LessOrEqual(Distance((damaris.X, damaris.Y), (arrival.ArrivalX, arrival.ArrivalY)), MaxDamarisWalk, "coming home from the agora, Kleia finds Damaris waiting a step away");
+            Assert.IsFalse(scenes.Any(scene => (scene.X, scene.Y) == (arrival.ArrivalX, arrival.ArrivalY)), "the offer waits for Kleia to walk up to her");
+        }
+
+        [Test]
+        public void Agora_SpreadsTheRumorStageByStageAndMissesMenexenoWhileHeIsAway()
+        {
+            var map = MapLayout.Load(SandboxTools.MapPath);
+            var menexeno = map.Actors.Single(actor => actor.Character == MenexenoCharacter);
+            CollectionAssert.AreEqual(new[] { StoryCondition.Lacks(DamarisOffer.MenexenoAbsentDaysFlag).ToString() }, menexeno.StoryConditions.Select(condition => condition.ToString()), "Menexeno stays away while his absence lasts");
+
+            string Stage(string dialogue) => map.Cues.Single(cue => cue.Dialogue == dialogue).StoryConditions.Select(condition => condition.ToString()).Single(StoryPressure.IsStageFlag);
+            Assert.AreEqual(StoryPressure.RumorFlag, Stage("agora_asebeia_rumor"), "Thrasybios accuses her after the first duel past his");
+            Assert.AreEqual(StoryPressure.DesertedFlag, Stage("agora_asebeia_spreads"));
+            Assert.AreEqual(StoryPressure.ToolsFlag, Stage("agora_pressure_home"), "the last stage sends Kleia home, where Damaris waits");
+            Assert.IsTrue(map.Cues.Where(cue => cue.Dialogue.StartsWith("agora_")).All(cue => cue.On == ExplorationCue.Idle));
+
+            var gone = map.Cues.Single(cue => cue.Dialogue == "agora_menexeno_gone");
+            CollectionAssert.Contains(gone.StoryConditions.Select(condition => condition.ToString()).ToList(), DamarisOffer.MenexenoAbsentDaysFlag);
         }
 
         private static void AssertRejects(Action<MapCutscene> spoil, string reason)

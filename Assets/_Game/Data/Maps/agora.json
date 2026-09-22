@@ -66,7 +66,7 @@
     { "character": "citizen", "x": 7, "y": 3, "facing": "SouthEast" },
     { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
     { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast", "dialogue": "eudoro_agora" },
-    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora" },
+    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora", "conditions": [{ "flag": "menexeno_absent_days", "absent": true }] },
     { "character": "oron", "x": 10, "y": 10, "facing": "SouthWest" },
     { "character": "phaidra", "x": 1, "y": 10, "facing": "SouthEast" },
     { "character": "kritolaos", "x": 6, "y": 10, "facing": "SouthWest" },
@@ -82,6 +82,30 @@
       "dialogue": "agora_after_thrasybios",
       "flag": "headed_home",
       "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_asebeia_rumor",
+      "flag": "heard_asebeia",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "pressure_rumor" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_asebeia_spreads",
+      "flag": "saw_rumor_spread",
+      "conditions": [{ "flag": "heard_asebeia" }, { "flag": "pressure_deserted" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_pressure_home",
+      "flag": "worried_for_home",
+      "conditions": [{ "flag": "saw_rumor_spread" }, { "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "agora_menexeno_gone",
+      "flag": "noticed_menexeno_gone",
+      "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }, { "flag": "menexeno_absent_days" }]
     }
   ]
 }

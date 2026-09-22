@@ -42,6 +42,8 @@ namespace Game.UI
 
         public Argument? CurrentArgument => state.CurrentArgument;
 
+        public bool RevealsWeakPremise => state.IsWeakPremiseRevealed;
+
         public void Refresh()
         {
             entries.Clear();

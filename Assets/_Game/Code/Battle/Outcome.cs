@@ -46,6 +46,8 @@ namespace Game.Battle
 
         public Argument? PresentedArgument { get; internal set; }
 
+        public AbilityId? TriggeredAbility { get; internal set; }
+
         internal static Outcome Rejected(int actorId, ActionId action, RejectionReason reason) =>
             new(actorId, action) { Rejection = reason, TurnCost = 0 };
     }

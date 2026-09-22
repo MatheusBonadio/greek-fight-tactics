@@ -239,6 +239,7 @@ namespace Game.UI
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
                 LockedActions = ActionUnlocks.LockedIn(CurrentStory(), ActionMenuModel.PlayerActions),
+                Abilities = AbilityUnlocks.OwnedIn(CurrentStory()),
                 Spectators = crowd ? crowd.Reservations : Array.Empty<KeyValuePair<int, Coord>>(),
                 Seed = seed,
                 Rules = tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : null
@@ -746,7 +747,7 @@ namespace Game.UI
             {
                 if (outcome.PresentedArgument.HasValue)
                 {
-                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, Continue);
+                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, () => AnnounceAbility(outcome, Continue));
                     return;
                 }
 
@@ -770,6 +771,18 @@ namespace Game.UI
             }
 
             Speak();
+        }
+
+        private void AnnounceAbility(Outcome outcome, Action continuation)
+        {
+            var key = BattleText.AbilityKey(outcome);
+            if (key == null)
+            {
+                continuation();
+                return;
+            }
+
+            ShowLine(string.Empty, string.Format(text.Get(key), BattleText.AbilityDetail(outcome, engaged.Opponent.DisplayName)), continuation);
         }
 
         private void BeginTargeting()

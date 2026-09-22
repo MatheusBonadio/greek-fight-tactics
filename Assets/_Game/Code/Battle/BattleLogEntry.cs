@@ -20,6 +20,7 @@ namespace Game.Battle
             OpponentCoherence = opponentCoherence;
             PlayerAudience = playerAudience;
             Status = status;
+            TriggeredAbility = outcome.TriggeredAbility;
             LogId = $"turn-{turn}-actor-{outcome.ActorId}-{outcome.Action}".ToLowerInvariant();
         }
 
@@ -52,5 +53,7 @@ namespace Game.Battle
         public int PlayerAudience { get; }
 
         public BattleStatus Status { get; }
+
+        public AbilityId? TriggeredAbility { get; }
     }
 }

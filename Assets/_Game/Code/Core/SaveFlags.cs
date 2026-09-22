@@ -43,7 +43,7 @@ namespace Game.Core
                     return true;
             }
 
-            return save.Flags.TryGetValue(name, out value) || DuelStoryFlags.TryReadRecordedVictory(save, name, out value);
+            return save.Flags.TryGetValue(name, out value) || DuelStoryFlags.TryReadRecordedVictory(save, name, out value) || StoryPressure.TryRead(save, name, out value);
         }
 
         public static bool TrySet(SaveData save, string name, string value, out string error)
@@ -97,6 +97,12 @@ namespace Game.Core
             {
                 error = "damaris_branch must be undecided, accepted or refused";
                 return false;
+            }
+
+            if (save.DamarisBranch == DamarisChoice.Undecided && choice != DamarisChoice.Undecided)
+            {
+                DamarisOffer.Apply(save, choice);
+                return true;
             }
 
             save.DamarisBranch = choice;

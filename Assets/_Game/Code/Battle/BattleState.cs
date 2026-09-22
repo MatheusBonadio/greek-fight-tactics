@@ -13,6 +13,7 @@ namespace Game.Battle
         private readonly Dictionary<string, int> quoteUses;
         private readonly HashSet<int> audienceMemberIds;
         private readonly HashSet<ActionId> lockedActions;
+        private readonly Dictionary<AbilityId, int> abilityUses;
         private readonly List<BattleLogEntry> log = new();
 
         public BattleState(
@@ -23,11 +24,13 @@ namespace Game.Battle
             int initialPlayerAudience,
             IEnumerable<QuoteItem> quotes = null,
             IEnumerable<int> audienceMemberIds = null,
-            IEnumerable<ActionId> lockedPlayerActions = null)
+            IEnumerable<ActionId> lockedPlayerActions = null,
+            IEnumerable<AbilityId> playerAbilities = null)
         {
             lockedActions = new HashSet<ActionId>(lockedPlayerActions ?? Enumerable.Empty<ActionId>());
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
             Rules = rules ?? throw new ArgumentNullException(nameof(rules));
+            abilityUses = (playerAbilities ?? Enumerable.Empty<AbilityId>()).Distinct().ToDictionary(ability => ability, ability => AbilityRules.UsesPerBattle(ability, Rules));
             Act = act;
             this.debaters = debaters?.ToList() ?? throw new ArgumentNullException(nameof(debaters));
 
@@ -91,6 +94,16 @@ namespace Game.Battle
 
         public bool IsLockedForPlayer(ActionId action) => lockedActions.Contains(action);
 
+        public IReadOnlyCollection<AbilityId> PlayerAbilities => abilityUses.Keys;
+
+        public bool HasAbility(AbilityId ability) => abilityUses.ContainsKey(ability);
+
+        public int AbilityUsesLeft(AbilityId ability) => abilityUses.TryGetValue(ability, out var left) ? left : 0;
+
+        public bool CanUse(AbilityId ability) => AbilityUsesLeft(ability) > 0;
+
+        public bool IsWeakPremiseRevealed { get; private set; }
+
         public IReadOnlyCollection<string> QuoteIds => quotes.Keys;
 
         public bool TryGetQuote(string id, out QuoteItem quote, out int usesLeft)
@@ -142,6 +155,8 @@ namespace Game.Battle
                 CurrentArgument = outcome.PresentedArgument;
             }
 
+            SpendAbility(outcome);
+
             if (outcome.QuoteId != null)
             {
                 quoteUses[outcome.QuoteId]--;
@@ -169,6 +184,19 @@ namespace Game.Battle
 
             actor.Position = destination;
             actor.Facing = FacingRules.FromStep(previous, destination, actor.Facing);
+        }
+
+        private void SpendAbility(Outcome outcome)
+        {
+            if (outcome.PresentedArgument.HasValue)
+            {
+                IsWeakPremiseRevealed = outcome.TriggeredAbility == AbilityId.Listening;
+            }
+
+            if (outcome.TriggeredAbility is { } ability && abilityUses.TryGetValue(ability, out var left))
+            {
+                abilityUses[ability] = Math.Max(0, left - 1);
+            }
         }
 
         private static void ChangeCoherence(Debater debater, int delta)

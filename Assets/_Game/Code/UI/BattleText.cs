@@ -17,6 +17,26 @@ namespace Game.UI
         public const string DefeatKey = "battle.defeat";
         public const string WithdrewKey = "battle.withdrew";
         public const string StalemateKey = "battle.stalemate";
+        public const string InversionKey = "battle.inversion";
+        public const string ListeningKey = "battle.listening";
+
+        public static string AbilityKey(Outcome outcome) => outcome?.TriggeredAbility switch
+        {
+            AbilityId.Inversion => InversionKey,
+            AbilityId.Listening => ListeningKey,
+            _ => null
+        };
+
+        public static string AbilityDetail(Outcome outcome, string opponentName)
+        {
+            if (outcome?.TriggeredAbility != AbilityId.Listening || !outcome.PresentedArgument.HasValue)
+            {
+                return opponentName;
+            }
+
+            var argument = outcome.PresentedArgument.Value;
+            return argument.WeakPremise >= 0 && argument.WeakPremise < argument.Premises.Count ? argument.Premises[argument.WeakPremise] : opponentName;
+        }
 
         public static string OutcomeKey(Outcome outcome) => outcome.Action switch
         {

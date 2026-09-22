@@ -109,6 +109,17 @@ namespace Game.EditorTools
         public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
     }
 
+    public sealed class MapConditionalBlock
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public List<MapCondition> Conditions { get; set; } = new();
+
+        public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
+    }
+
     public sealed class MapExit
     {
         public int X { get; set; }
@@ -156,6 +167,10 @@ namespace Game.EditorTools
         public List<MapCue> Cues { get; set; } = new();
 
         public List<MapCutscene> Cutscenes { get; set; } = new();
+
+        public List<MapConditionalBlock> ConditionalBlocks { get; set; } = new();
+
+        public bool Home { get; set; }
 
         public int? FogRevealDepth { get; set; }
 
@@ -358,6 +373,33 @@ namespace Game.EditorTools
                 }
 
                 ValidateConditions($"the cue {cue.Dialogue}", cue.Conditions);
+            }
+
+            ValidateConditionalBlocks();
+        }
+
+        private void ValidateConditionalBlocks()
+        {
+            var cells = new HashSet<(int, int)>();
+            foreach (var block in ConditionalBlocks)
+            {
+                var owner = $"the conditional block at ({block.X}, {block.Y})";
+                if (!Contains(block.X, block.Y) || BlockAt(block.X, block.Y) == null)
+                {
+                    throw new InvalidOperationException($"map {Id}: {owner} has no block to show or hide");
+                }
+
+                if (!cells.Add((block.X, block.Y)))
+                {
+                    throw new InvalidOperationException($"map {Id}: {owner} is listed twice");
+                }
+
+                if (block.Conditions == null || block.Conditions.Count == 0)
+                {
+                    throw new InvalidOperationException($"map {Id}: {owner} waits for no story flag");
+                }
+
+                ValidateConditions(owner, block.Conditions);
             }
         }
 

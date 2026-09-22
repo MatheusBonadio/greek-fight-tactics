@@ -7,7 +7,8 @@
     "aristeu": { "name": "Aristeu", "portrait": "aristeu" },
     "thrasybios": { "name": "Thrasybios", "portrait": "thrasybios" },
     "customer": { "name": "Freguês", "portrait": "citizen" },
-    "crowd": { "name": "Plateia" }
+    "crowd": { "name": "Plateia" },
+    "damaris": { "name": "Damaris", "portrait": "damaris" }
   },
   "dialogues": [
     {
@@ -90,12 +91,96 @@
         {
           "speaker": "aristeu",
           "text": "Já voltou? Pela sua cara, a ágora te vendeu alguma coisa em vez de comprar.",
-          "conditions": [{ "flag": "duel_thrasybios" }, { "flag": "maieutics_unlocked", "absent": true }]
+          "conditions": [{ "flag": "duel_thrasybios" }, { "flag": "maieutics_unlocked", "absent": true }, { "flag": "pressure_rumor", "absent": true }]
         },
         {
           "speaker": "aristeu",
           "text": "Aquele velho que te esperava na porta... Não gosto de quem ensina de graça, filha. Sempre cobra de outro jeito.",
-          "conditions": [{ "flag": "maieutics_unlocked" }]
+          "conditions": [{ "flag": "maieutics_unlocked" }, { "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Hoje um freguês me perguntou se é verdade que minha filha ensina a duvidar dos deuses.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "pressure_deserted", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Eu só perguntei a um homem o que ele queria dizer com ânfora.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "pressure_deserted", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Eu sei, filha. Mas na ágora uma pergunta corre mais depressa que a resposta.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "pressure_deserted", "absent": true }]
+        },
+        {
+          "text": "Aristeu está sentado diante das ânforas prontas, as mãos tortas abertas sobre os joelhos.",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Ninguém veio buscar nada. Nem os de sempre.",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Já vendi os pincéis finos a um oleiro da outra rua. Se até a lua nova ninguém comprar, a roda vai atrás.",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Não venda a roda. Eu vendo as ânforas na ágora.",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Na ágora agora te chamam de ímpia, filha. Quem compra de uma ímpia?",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Vendi a roda, Kleia.",
+          "conditions": [{ "flag": "pressure_tools" }, { "flag": "damaris_branch", "equals": "undecided" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Era a roda do avô.",
+          "conditions": [{ "flag": "pressure_tools" }, { "flag": "damaris_branch", "equals": "undecided" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Era. Com estas mãos eu já não girava. Ao menos o forno fica aceso mais um mês.",
+          "conditions": [{ "flag": "pressure_tools" }, { "flag": "damaris_branch", "equals": "undecided" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Duzentas dracmas numa bolsa estrangeira. Não vou perguntar de onde vieram, porque não quero ouvir a resposta.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Dá para comprar a roda de volta.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Dá. Mas eu ia girar aquela roda pensando em quem pagou por ela.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Dizem na rua que uma estrangeira veio te procurar com dinheiro. E que você mandou embora.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "refused" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ela queria que eu falasse por ela. Pelo lado que ela escolhesse.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "refused" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Então fez bem. Barro se compra na beira do rio. A voz da gente, não.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "refused" }]
         }
       ]
     },
@@ -229,7 +314,22 @@
         {
           "speaker": "neighbor",
           "text": "A ágora fica depois da herma, no fim da rua. Boas vendas, menina.",
-          "conditions": [{ "flag": "talked_to_neighbor" }]
+          "conditions": [{ "flag": "talked_to_neighbor" }, { "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "neighbor",
+          "text": "Filha de Aristeu... Não leve a mal, mas prefiro não ser visto conversando com você. O homem de púrpura anda dizendo coisas.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "pressure_deserted", "absent": true }]
+        },
+        {
+          "speaker": "neighbor",
+          "text": "Seu pai me ofereceu a roda ontem. Eu não tinha como pagar. Ninguém quer pagar a ele, desde que falam de você.",
+          "conditions": [{ "flag": "pressure_deserted" }, { "flag": "pressure_tools", "absent": true }]
+        },
+        {
+          "speaker": "neighbor",
+          "text": "Vi quando levaram a roda do seu pai rua abaixo. Sinto muito, menina. Sinto mesmo.",
+          "conditions": [{ "flag": "pressure_tools" }]
         }
       ]
     },
@@ -278,6 +378,31 @@
         },
         {
           "speaker": "menexeno",
+          "text": "Asebeia. A última vez que ouvi essa palavra dita assim, em voz alta, foi num tribunal.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "damaris_branch", "equals": "undecided" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Não terminou bem para ninguém. Cuidado com quem aplaude, menina.",
+          "conditions": [{ "flag": "pressure_rumor" }, { "flag": "damaris_branch", "equals": "undecided" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Soube da estrangeira de Abdera. E soube que você disse não.",
+          "conditions": [{ "flag": "menexeno_respect" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Poucos dizem não a Abdera. Fez bem.",
+          "conditions": [{ "flag": "menexeno_respect" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Três dias pensando se voltava. Voltei. Mas a bolsa que ela te deu pesa mais do que parece.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }]
+        },
+        {
+          "speaker": "menexeno",
           "text": "E o rapaz do compasso? Repete Platão como quem decora uma receita. Ainda não provou o prato.",
           "conditions": [{ "flag": "met_menexeno" }, { "flag": "met_eudoro" }]
         }
@@ -305,7 +430,12 @@
         {
           "speaker": "eudoro",
           "text": "Ainda aqui? Platão diria que a ágora é o reino da opinião. Eu apenas concordo com ele.",
-          "conditions": [{ "flag": "met_eudoro" }]
+          "conditions": [{ "flag": "met_eudoro" }, { "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "eudoro",
+          "text": "Dizem pela ágora que você é ímpia. Eu não diria tanto. Diria que é uma oleira que confunde pergunta com argumento.",
+          "conditions": [{ "flag": "met_eudoro" }, { "flag": "pressure_rumor" }]
         }
       ]
     },
@@ -449,6 +579,269 @@
         },
         {
           "text": "A roda se desfaz. Alguém ainda imita a voz dela ao passar pelas bancas."
+        }
+      ]
+    },
+    {
+      "id": "agora_asebeia_rumor",
+      "lines": [
+        {
+          "text": "Junto às bancas, Thrasybios sobe de novo no caixote. Desta vez não vende nada: aponta."
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Cidadãos! Conhecem a filha do oleiro? A menina que responde a homem feito com pergunta?"
+        },
+        {
+          "speaker": "thrasybios",
+          "text": "Perguntem a ela sobre Atena, sobre Zeus. Ela pergunta até vocês duvidarem. Em Atenas isso tem nome: asebeia."
+        },
+        {
+          "speaker": "crowd",
+          "text": "Asebés! A oleira é asebés!"
+        },
+        {
+          "speaker": "kleia",
+          "text": "Eu perguntei o que ele queria dizer com ânfora. Só isso."
+        },
+        {
+          "text": "Ninguém escuta. Uma palavra como asebeia não precisa de prova. Precisa de repetição."
+        }
+      ]
+    },
+    {
+      "id": "agora_asebeia_spreads",
+      "lines": [
+        {
+          "text": "Na fonte, duas mulheres param de falar quando Kleia passa. Um menino aponta para ela e sai correndo."
+        },
+        {
+          "speaker": "crowd",
+          "text": "É a ímpia do Cerâmico! A que ensina a duvidar dos deuses!"
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ninguém nesta ágora me ouviu falar dos deuses. Nem uma vez."
+        }
+      ]
+    },
+    {
+      "id": "agora_pressure_home",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "Faz dias que ninguém compra uma ânfora do meu pai. Nem aqui, nem na porta da oficina."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Preciso voltar ao Cerâmico e ver como ele está."
+        }
+      ]
+    },
+    {
+      "id": "customer_oil",
+      "lines": [
+        {
+          "speaker": "customer",
+          "text": "Vim buscar duas ânforas para o azeite. As de Aristeu não vazam. As da outra rua choram óleo pela barriga.",
+          "conditions": [{ "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "É o barro do rio. Meu pai não aceita outro.",
+          "conditions": [{ "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Ouvi na ágora que a filha de Aristeu ensina a duvidar dos deuses.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Eu perguntei a um homem o que ele queria dizer com ânfora. Foi só isso.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Os deuses talvez não se ofendam com perguntas. Os vizinhos, sim. Volto outro dia, menina.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        }
+      ]
+    },
+    {
+      "id": "customer_crater",
+      "lines": [
+        {
+          "speaker": "customer",
+          "text": "Dizem que ninguém no Cerâmico pinta um meandro tão fino quanto o de Aristeu.",
+          "conditions": [{ "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Os meandros são meus. As mãos dele já não seguram o pincel.",
+          "conditions": [{ "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Então diga a ele que a filha merece o preço. Levo a cratera grande.",
+          "conditions": [{ "flag": "pressure_rumor", "absent": true }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Meu cunhado jura que viu você na ágora, discutindo com homem feito sobre os deuses.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Sobre uma ânfora.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        },
+        {
+          "speaker": "customer",
+          "text": "Na boca de Thrasybios, dá no mesmo. Deixo a cratera para outra semana.",
+          "conditions": [{ "flag": "pressure_rumor" }]
+        }
+      ]
+    },
+    {
+      "id": "kerameikos_no_customers",
+      "lines": [
+        {
+          "text": "Nenhum freguês à porta da oficina. As ânforas prontas continuam junto à entrada, e já há mais uma pilha ao lado delas."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Antes a fila chegava até a rua."
+        }
+      ]
+    },
+    {
+      "id": "kerameikos_wheel_sold",
+      "lines": [
+        {
+          "text": "O canto da roda de oleiro está vazio. No chão de terra batida, só ficou o círculo claro onde ela girou por trinta anos."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Enquanto eu discutia na ágora, ele vendia a roda."
+        }
+      ]
+    },
+    {
+      "id": "damaris_offer",
+      "lines": [
+        {
+          "text": "Uma mulher de peplos vermelho-terracota espera no meio da rua, imóvel, as mãos vazias. Não está de passagem: está esperando Kleia.",
+          "effects": [{ "flag": "met_damaris" }]
+        },
+        {
+          "speaker": "damaris",
+          "text": "Kleia, filha de Aristeu. Meu nome é Damaris. Venho de Abdera, a cidade de Protágoras."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Não conheço ninguém de Abdera."
+        },
+        {
+          "speaker": "damaris",
+          "text": "Abdera conhece você. Ouvi o que Thrasybios repete na ágora: asebés, ímpia. Ele diz a palavra até ela grudar."
+        },
+        {
+          "speaker": "damaris",
+          "text": "E hoje cedo vi um homem descer esta rua com a roda do seu pai nas costas."
+        },
+        {
+          "speaker": "kleia",
+          "text": "O que a senhora quer de mim?"
+        },
+        {
+          "speaker": "damaris",
+          "text": "Fazer uma oferta. Proteção: ninguém diz ímpia perto de quem anda comigo. Duzentas dracmas. E uma técnica que Protágoras não ensinava de graça."
+        },
+        {
+          "speaker": "damaris",
+          "text": "Em troca, quando eu chamar, você argumenta por mim. Onde eu disser, pelo lado que eu disser."
+        },
+        {
+          "speaker": "kleia",
+          "text": "E se o lado for o errado?"
+        },
+        {
+          "speaker": "damaris",
+          "text": "Todo argumento pode ser refutado, Kleia. Não existe lado certo, só lado bem defendido. Aceita?",
+          "choices": [
+            {
+              "text": "Aceitar a oferta",
+              "effects": [{ "flag": "damaris_branch", "value": "accepted" }],
+              "lines": [
+                {
+                  "speaker": "kleia",
+                  "text": "Aceito. Pela roda do meu pai."
+                },
+                {
+                  "speaker": "damaris",
+                  "text": "Pela roda, então. A técnica é simples: quando atacarem você, não segure o golpe. Vire-o para a plateia."
+                },
+                {
+                  "speaker": "damaris",
+                  "text": "O velho do bastão não vai gostar. Vai sumir por uns dias. Deixe. Em três dias ele volta, ou não volta."
+                }
+              ]
+            },
+            {
+              "text": "Recusar",
+              "effects": [{ "flag": "damaris_branch", "value": "refused" }],
+              "lines": [
+                {
+                  "speaker": "kleia",
+                  "text": "Não. Prometi nunca aceitar dinheiro por uma pergunta.",
+                  "conditions": [{ "flag": "menexeno_condition" }]
+                },
+                {
+                  "speaker": "kleia",
+                  "text": "Não. O que eu pergunto não tem dono.",
+                  "conditions": [{ "flag": "menexeno_condition", "absent": true }]
+                },
+                {
+                  "speaker": "damaris",
+                  "text": "Uma promessa feita a um velho que nem explica por que a pediu. Respeito. Poucos em Atenas guardam uma."
+                },
+                {
+                  "speaker": "damaris",
+                  "text": "Guarde então o que já é seu. Você escuta um homem errar antes de ele terminar a frase. Protágoras cobraria caro por isso."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "speaker": "damaris",
+          "text": "Atenas é pequena para quem pergunta. Nos veremos de novo."
+        }
+      ]
+    },
+    {
+      "id": "damaris_technique",
+      "lines": [
+        {
+          "text": "A bolsa pesa na mão de Kleia: duzentas dracmas. E ela aprendeu a INVERSÃO. Uma vez por debate, o primeiro ataque do adversário vira aplauso para ela.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }]
+        },
+        {
+          "text": "Kleia fica de mãos vazias e com o que sempre teve: a ESCUTA. Uma vez por debate, ela ouve onde o primeiro argumento do adversário range, e a premissa fraca se revela.",
+          "conditions": [{ "flag": "damaris_branch", "equals": "refused" }]
+        }
+      ]
+    },
+    {
+      "id": "agora_menexeno_gone",
+      "lines": [
+        {
+          "text": "Junto às colunas da stoa, onde Menexeno costuma se apoiar no bastão, não há ninguém."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ele já sabe da bolsa. Não sei como, mas sabe."
         }
       ]
     }

@@ -43,8 +43,11 @@ namespace Game.UI
         [SerializeField] private string locationId = DefaultLocationId;
         [SerializeField] private MapExitLink[] exits = new MapExitLink[0];
         [SerializeField] private List<ActorPresenceLink> presences = new();
+        [SerializeField] private List<BlockPresenceLink> blockPresences = new();
+        [SerializeField] private bool home;
 
         private readonly PathFinder pathFinder = new();
+        private readonly HashSet<Coord> hiddenBlocks = new();
         private readonly List<Coord> path = new();
         private GridModel grid;
         private FogOfWar fog;
@@ -466,6 +469,38 @@ namespace Game.UI
             presences = links ?? new List<ActorPresenceLink>();
         }
 
+        public IReadOnlyList<BlockPresenceLink> BlockPresences => blockPresences;
+
+        public bool IsHome => home;
+
+        public bool IsBlockShown(Coord cell) => grid != null && grid.Contains(cell) && BlockTileAt(cell.X, cell.Y) != null;
+
+        public void ConfigureBlockPresences(List<BlockPresenceLink> links)
+        {
+            blockPresences = links ?? new List<BlockPresenceLink>();
+        }
+
+        public void ConfigureHome(bool isHome)
+        {
+            home = isHome;
+        }
+
+        private void ShowConditionalBlocks(Game.Core.SaveData story)
+        {
+            foreach (var presence in blockPresences)
+            {
+                var cell = presence.Cell;
+                if (presence.IsMet(story) || !grid.TryGet(cell, out var tile) || tile.IsOccupied)
+                {
+                    continue;
+                }
+
+                tile.Cost = presence.OpenCost;
+                grid.TrySet(cell, tile);
+                hiddenBlocks.Add(cell);
+            }
+        }
+
         private bool restoreChecked;
 
         public DuelProgress Duels { get; } = new();
@@ -509,11 +544,19 @@ namespace Game.UI
                 Duels.Load(story.Duels);
             }
 
-            RestorePlayer(services);
-            PlaceConditionalActors(story ?? new Game.Core.SaveData());
+            var cameHome = arrived && home;
+            story ??= new Game.Core.SaveData();
+            if (cameHome)
+            {
+                StoryDays.Pass(story);
+            }
+
+            ShowConditionalBlocks(story);
+            RestorePlayer(services, cameHome);
+            PlaceConditionalActors(story);
         }
 
-        private void RestorePlayer(GameServices services)
+        private void RestorePlayer(GameServices services, bool cameHome)
         {
             if (arrived)
             {
@@ -524,7 +567,13 @@ namespace Game.UI
                         PaintFog(grid);
                     }
 
-                    services.Autosave(CaptureSave());
+                    var arrival = CaptureSave();
+                    if (cameHome)
+                    {
+                        StoryDays.Pass(arrival);
+                    }
+
+                    services.Autosave(arrival);
                 }
 
                 return;
@@ -766,7 +815,7 @@ namespace Game.UI
         private TileBase BlockTileAt(int x, int y)
         {
             var index = y * width + x;
-            return index < blockTiles.Length ? blockTiles[index] : null;
+            return index < blockTiles.Length && !hiddenBlocks.Contains(new Coord(x, y)) ? blockTiles[index] : null;
         }
 
         private void ShowActorsOnRevealedCells()

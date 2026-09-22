@@ -1,5 +1,6 @@
 {
   "id": "kerameikos",
+  "home": true,
   "fogRevealDepth": 0,
   "floorLegend": {
     "p": "floor_packed_dirt",
@@ -39,7 +40,7 @@
     "-T--------------",
     "----------------",
     "----------------",
-    "-----AA---------",
+    "-----AAA--------",
     "BBBB-BBBB-------",
     "B-------B-------",
     "B-------B--K----",
@@ -78,7 +79,34 @@
       "y": 6,
       "facing": "NorthEast",
       "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "character": "citizen",
+      "x": 5,
+      "y": 5,
+      "facing": "NorthWest",
+      "dialogue": "customer_oil",
+      "conditions": [{ "flag": "pressure_deserted", "absent": true }]
+    },
+    {
+      "character": "citizen",
+      "x": 6,
+      "y": 5,
+      "facing": "NorthWest",
+      "dialogue": "customer_crater",
+      "conditions": [{ "flag": "pressure_deserted", "absent": true }]
+    },
+    {
+      "character": "damaris",
+      "x": 12,
+      "y": 1,
+      "facing": "NorthEast",
+      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
     }
+  ],
+  "conditionalBlocks": [
+    { "x": 3, "y": 11, "conditions": [{ "flag": "pressure_tools", "absent": true }] },
+    { "x": 7, "y": 6, "conditions": [{ "flag": "pressure_deserted" }] }
   ],
   "exits": [
     { "x": 15, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast", "label": "Para a Ágora" },
@@ -106,7 +134,36 @@
       "cutscene": "menexeno_follows_home",
       "flag": "menexeno_door_scene",
       "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
-    }
+    },
+    {
+      "x": 13,
+      "y": 1,
+      "cutscene": "damaris_seeks_kleia",
+      "flag": "damaris_offer_scene",
+      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+    },
+    {
+      "x": 11,
+      "y": 1,
+      "cutscene": "damaris_seeks_kleia",
+      "flag": "damaris_offer_scene",
+      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+    },
+    {
+      "x": 12,
+      "y": 0,
+      "cutscene": "damaris_seeks_kleia",
+      "flag": "damaris_offer_scene",
+      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+    },
+    {
+      "x": 12,
+      "y": 2,
+      "cutscene": "damaris_seeks_kleia",
+      "flag": "damaris_offer_scene",
+      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+    },
+    { "x": 4, "y": 8, "dialogue": "kerameikos_wheel_sold", "flag": "saw_wheel_sold", "conditions": [{ "flag": "pressure_tools" }] }
   ],
   "cutscenes": [
     {
@@ -122,6 +179,17 @@
         { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 4, "y": 0 },
         { "at": 3.75, "action": "Leave", "actor": "menexeno" },
         { "at": 4.5, "action": "Dialogue", "dialogue": "menexeno_door_learned" }
+      ]
+    },
+    {
+      "id": "damaris_seeks_kleia",
+      "steps": [
+        { "at": 0.25, "action": "Face", "actor": "kleia", "toward": "damaris" },
+        { "at": 0.5, "action": "Face", "actor": "damaris", "toward": "kleia" },
+        { "at": 0.75, "action": "Dialogue", "dialogue": "damaris_offer" },
+        { "at": 1.5, "action": "Walk", "actor": "damaris", "x": 15, "y": 0 },
+        { "at": 1.75, "action": "Leave", "actor": "damaris" },
+        { "at": 2.5, "action": "Dialogue", "dialogue": "damaris_technique" }
       ]
     }
   ],
@@ -143,6 +211,12 @@
       "dialogue": "kerameikos_tutorial_talk",
       "flag": "tutorial_talk",
       "conditions": [{ "flag": "tutorial_fog" }, { "flag": "aristeu_errand", "absent": true }]
+    },
+    {
+      "on": "Idle",
+      "dialogue": "kerameikos_no_customers",
+      "flag": "saw_empty_workshop",
+      "conditions": [{ "flag": "pressure_deserted" }]
     }
   ]
 }

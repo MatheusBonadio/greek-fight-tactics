@@ -300,6 +300,106 @@ namespace Game.Tests.EditMode.Content
             Assert.IsFalse(Said(script, metAtTheDoor).Any(text => text.Contains("Procura alguma coisa")), "Kleia already knows him from the door");
         }
 
+        [Test]
+        public void Thrasybios_AccusesKleiaOfAsebeiaAndTheAgoraRepeatsIt()
+        {
+            var library = LoadLibrary();
+            Assert.IsTrue(library.TryGet("agora_asebeia_rumor", out var rumor));
+            Assert.IsTrue(library.TryGet("agora_asebeia_spreads", out var spreads));
+
+            var accusation = PlayThrough(rumor, new SaveData());
+            Assert.IsTrue(accusation.Any(line => line.SpeakerId == "thrasybios" && line.Text.Contains("asebeia")), "Thrasybios names the accusation");
+            Assert.IsTrue(accusation.Any(line => line.SpeakerId == "crowd"), "the crowd takes it up");
+            Assert.IsTrue(PlayThrough(spreads, new SaveData()).Any(line => line.Text.Contains("ímpia")), "the rumor reaches people who never heard him");
+        }
+
+        [Test]
+        public void Workshop_ChangesWithEachStageOfThePressure()
+        {
+            var library = LoadLibrary();
+            Assert.IsTrue(library.TryGet(AristeuDialogue, out var aristeu));
+            Assert.IsTrue(library.TryGet("customer_oil", out var customer));
+            Assert.IsTrue(library.TryGet("neighbor_kerameikos", out var neighbor));
+            var save = new SaveData();
+            save.Flags[AristeuErrand] = StoryEffect.DefaultValue;
+            save.Flags["talked_to_neighbor"] = StoryEffect.DefaultValue;
+            save.Flags[ActionUnlocks.MaieuticsFlag] = StoryEffect.DefaultValue;
+
+            Conclude(save, "thrasybios");
+            Assert.IsTrue(Said(aristeu, save).Any(text => text.Contains("ensina de graça")), "before the rumor he worries about Menexeno");
+            Assert.IsTrue(Said(customer, save).Any(text => text.Contains("não vazam")), "customers still come for the amphorae");
+
+            Conclude(save, "oron");
+            Assert.IsTrue(Said(aristeu, save).Any(text => text.Contains("duvidar dos deuses")), "a customer repeats the rumor to Aristeu");
+            Assert.IsFalse(Said(aristeu, save).Any(text => text.Contains("ensina de graça")));
+            Assert.IsTrue(Said(customer, save).Any(text => text.Contains("Volto outro dia")), "the customers hesitate");
+            Assert.IsTrue(Said(neighbor, save).Any(text => text.Contains("púrpura")), "the neighbor keeps his distance");
+
+            Conclude(save, "phaidra");
+            var deserted = Said(aristeu, save);
+            Assert.IsTrue(deserted.Any(text => text.Contains("Ninguém veio buscar")), "nobody comes to the workshop");
+            Assert.IsTrue(deserted.Any(text => text.Contains("pincéis")), "Aristeu starts selling his tools");
+
+            Conclude(save, "kritolaos");
+            var sold = Said(aristeu, save);
+            Assert.IsTrue(sold.Any(text => text.Contains("Vendi a roda")), "the wheel goes last");
+            Assert.IsFalse(sold.Any(text => text.Contains("pincéis")), "each stage replaces the one before");
+            Assert.IsTrue(Said(neighbor, save).Any(text => text.Contains("roda")));
+        }
+
+        [TestCase(0, DamarisChoice.Accepted)]
+        [TestCase(1, DamarisChoice.Refused)]
+        public void DamarisOffer_SettlesTheBranchThroughTheOfferRules(int option, DamarisChoice expected)
+        {
+            var library = LoadLibrary();
+            Assert.IsTrue(library.TryGet("damaris_offer", out var offer));
+            Assert.IsTrue(library.TryGet("damaris_technique", out var technique));
+            Assert.AreEqual("Damaris", library.SpeakerName("damaris"));
+            var save = new SaveData();
+            save.Flags["menexeno_condition"] = StoryEffect.DefaultValue;
+
+            var run = offer.Begin(save);
+            var shown = new List<ScriptLine>();
+            while (!run.IsAwaitingChoice && run.TryAdvance(out var line))
+            {
+                shown.Add(line);
+            }
+
+            Assert.IsTrue(run.IsAwaitingChoice, "Damaris waits for an answer");
+            Assert.AreEqual(2, run.Current.Choices.Count);
+            Assert.IsTrue(shown.Any(line => line.SpeakerId == "damaris" && line.Text.Contains("Abdera")), "she comes from Abdera");
+            Assert.IsTrue(shown.Any(line => line.Text.Contains("Duzentas dracmas")), "she offers money");
+            Assert.AreEqual(DamarisChoice.Undecided, save.DamarisBranch);
+
+            run.Choose(option);
+            while (run.TryAdvance(out var line))
+            {
+                shown.Add(line);
+            }
+
+            Assert.AreEqual(expected, save.DamarisBranch);
+            var ability = DamarisOffer.GrantedAbility(expected).Value;
+            CollectionAssert.AreEqual(new[] { ability }, AbilityUnlocks.OwnedIn(save));
+            if (expected == DamarisChoice.Accepted)
+            {
+                Assert.AreEqual(DamarisOffer.AcceptedDrachmas, save.Inventory[DamarisOffer.DrachmasItem]);
+                Assert.AreEqual(DamarisOffer.MenexenoAbsentDays, StoryDays.AbsenceLeft(save, DamarisOffer.MenexenoAbsentDaysFlag));
+                Assert.IsTrue(shown.Any(line => line.Text.Contains("três dias")), "she warns that the old man will stay away");
+            }
+            else
+            {
+                Assert.IsTrue(StoryCondition.Has(DamarisOffer.MenexenoRespectFlag).IsMet(save));
+                Assert.IsFalse(save.Inventory.ContainsKey(DamarisOffer.DrachmasItem));
+                Assert.IsTrue(shown.Any(line => line.SpeakerId == "kleia" && line.Text.Contains("dinheiro por uma pergunta")), "Kleia keeps Menexeno's condition");
+            }
+
+            var learned = PlayThrough(technique, save);
+            Assert.AreEqual(1, learned.Count, "only the technique of the chosen branch is narrated");
+            StringAssert.Contains(expected == DamarisChoice.Accepted ? "INVERSÃO" : "ESCUTA", learned[0].Text);
+        }
+
+        private static void Conclude(SaveData save, string opponent) => save.Flags[DuelStoryFlags.FlagFor(opponent)] = DuelStoryFlags.Won;
+
         private static List<string> Said(DialogueScript script, SaveData save) => PlayThrough(script, save).Select(line => line.Text).ToList();
 
         private static List<ScriptLine> PlayThrough(DialogueScript script, SaveData save)

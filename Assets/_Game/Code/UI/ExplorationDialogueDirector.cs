@@ -342,7 +342,7 @@ namespace Game.UI
                 return;
             }
 
-            if (services.IsBooted)
+            if (services.IsBooted && (!sandbox || sandbox.ProgressLoaded))
             {
                 Story = services.TryLoadActiveSave(out var save) ? save : new SaveData();
             }

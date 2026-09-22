@@ -293,12 +293,7 @@ namespace Game.EditorTools
                     var floorName = map.FloorAt(x, y);
                     floor.SetTile(new Vector3Int(x, y, 0), tiles[floorName]);
                     terrain[y * width + x] = FloorTerrain[floorName];
-                    costs[y * width + x] = floorName switch
-                    {
-                        "floor_water" => BlockedCost,
-                        "floor_stone" => StoneCost,
-                        _ => (byte)PathFinder.MinimumStepCost
-                    };
+                    costs[y * width + x] = FloorCost(floorName);
                 }
             }
 
@@ -340,6 +335,10 @@ namespace Game.EditorTools
                 .Where(pair => pair.actor.IsConditional)
                 .Select(pair => new ActorPresenceLink(actors[pair.index], pair.actor.StoryConditions))
                 .ToList());
+            controller.ConfigureBlockPresences(map.ConditionalBlocks
+                .Select(block => new BlockPresenceLink(new Coord(block.X, block.Y), FloorCost(map.FloorAt(block.X, block.Y)), block.StoryConditions))
+                .ToList());
+            controller.ConfigureHome(map.Home);
             controller.ConfigureViews(
                 AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath),
                 highlight,
@@ -379,6 +378,13 @@ namespace Game.EditorTools
                 throw new InvalidOperationException($"could not save {scenePath}");
             }
         }
+
+        public static byte FloorCost(string floorName) => floorName switch
+        {
+            "floor_water" => BlockedCost,
+            "floor_stone" => StoneCost,
+            _ => (byte)PathFinder.MinimumStepCost
+        };
 
         public static byte[] LevelsOf(MapLayout map)
         {

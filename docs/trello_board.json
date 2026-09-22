@@ -667,7 +667,7 @@
         "Fase 2 · Comercial",
         "Narrativa"
       ],
-      "description": "Beat I.6. Consequência material da vitória.\n\n**Depende de:** [AT1-05] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Thrasybios espalha a acusação de impiedade (asebeia)\n- [ ] Clientes somem da oficina — mudança visível no mapa\n- [ ] Aristeu começa a vender ferramentas\n- [ ] Timer narrativo: pressão cresce a cada duelo concluído\n\n**Contexto do Sprint 04.** **Início da fase comercial.** Fecha o Ato I e constrói o Ato II inteiro. A mudança de regra do [BTL-06] bloqueia todos os duelos de paradoxo: puxe-a em paralelo com o fim do Ato I, não depois. A trilha de arte começa aqui, em paralelo, e pode ser terceirizada: os placeholders já têm dimensão e paleta finais, então a troca é substituição de arquivo com o mesmo nome. ~45 dias-pessoa de código e conteúdo, mais ~19 de arte na trilha paralela."
+      "description": "Beat I.6. Consequência material da vitória.\n\n**Depende de:** [AT1-05] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Thrasybios espalha a acusação de impiedade (asebeia)\n- [x] Clientes somem da oficina — mudança visível no mapa\n- [x] Aristeu começa a vender ferramentas\n- [x] Timer narrativo: pressão cresce a cada duelo concluído\n\n**Contexto do Sprint 04.** **Início da fase comercial.** Fecha o Ato I e constrói o Ato II inteiro. A mudança de regra do [BTL-06] bloqueia todos os duelos de paradoxo: puxe-a em paralelo com o fim do Ato I, não depois. A trilha de arte começa aqui, em paralelo, e pode ser terceirizada: os placeholders já têm dimensão e paleta finais, então a troca é substituição de arquivo com o mesmo nome. ~45 dias-pessoa de código e conteúdo, mais ~19 de arte na trilha paralela."
     },
     {
       "title": "[AT1-07] Ramificação Damaris",
@@ -678,7 +678,7 @@
         "Narrativa",
         "Unity / Core"
       ],
-      "description": "Beat I.7. Bloqueante do Ato II — a escolha aqui decide a traição no Tribunal. O flag precisa estar no save desde já.\n\n**Depende de:** [AT1-06], [BCK-03], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Cena de oferta com as duas opções\n- [ ] Aceitar: habilidade Inversão + 200 dracmas + Menexeno some por 3 dias\n- [ ] Recusar: habilidade Escuta + respeito de Menexeno\n- [x] Gravar `damarisBranch` no save (Firestore + local)\n- [x] Testar: os dois ramos carregam corretamente num save antigo\n\n**Bloqueante a um sprint do consumidor.** O [TRB-01] usa este flag no Sprint 05. O flag vai para o save já aqui, com teste de carregamento de save antigo, para que o Tribunal nasça testável."
+      "description": "Beat I.7. Bloqueante do Ato II — a escolha aqui decide a traição no Tribunal. O flag precisa estar no save desde já.\n\n**Depende de:** [AT1-06], [BCK-03], [EXP-04] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] Cena de oferta com as duas opções\n- [x] Aceitar: habilidade Inversão + 200 dracmas + Menexeno some por 3 dias\n- [x] Recusar: habilidade Escuta + respeito de Menexeno\n- [x] Gravar `damarisBranch` no save (Firestore + local)\n- [x] Testar: os dois ramos carregam corretamente num save antigo\n\n**Bloqueante a um sprint do consumidor.** O [TRB-01] usa este flag no Sprint 05. O flag vai para o save já aqui, com teste de carregamento de save antigo, para que o Tribunal nasça testável."
     },
     {
       "title": "[AT1-08] Boss: Thrasybios em três fases",

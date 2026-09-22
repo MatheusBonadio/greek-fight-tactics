@@ -1,0 +1,165 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7135710766553452660
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 05_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 2.5
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: damaris_technique
+--- !u!114 &-5265105723354504394
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 03_Walk
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 1.5
+  action: 2
+  actor: damaris
+  toward: 
+  hasCell: 1
+  cell: {x: 15, y: 0}
+  dialogue: 
+--- !u!114 &-69452090774903138
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 04_Leave
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 1.75
+  action: 3
+  actor: damaris
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
+  m_Name: damaris_seeks_kleia
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.TimelineAsset
+  m_Version: 0
+  m_Tracks: []
+  m_FixedDuration: 3
+  m_EditorSettings:
+    m_Framerate: 60
+    m_ScenePreview: 1
+  m_DurationMode: 1
+  m_MarkerTrack: {fileID: 6822796210584886188}
+--- !u!114 &2816379168520414721
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 00_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.25
+  action: 0
+  actor: kleia
+  toward: damaris
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &5601160824196868498
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 01_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.5
+  action: 0
+  actor: damaris
+  toward: kleia
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &6822796210584886188
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a16748d9461eae46a725db9776d5390, type: 3}
+  m_Name: Markers
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.MarkerTrack
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips: []
+  m_Markers:
+    m_Objects:
+    - {fileID: 2816379168520414721}
+    - {fileID: 5601160824196868498}
+    - {fileID: 7501722506131972944}
+    - {fileID: -5265105723354504394}
+    - {fileID: -69452090774903138}
+    - {fileID: -7135710766553452660}
+--- !u!114 &7501722506131972944
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 02_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.75
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: damaris_offer

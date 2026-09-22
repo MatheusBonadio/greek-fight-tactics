@@ -33,6 +33,8 @@ namespace Game.UI
 
         public IEnumerable<ActionId> LockedActions { get; set; } = Array.Empty<ActionId>();
 
+        public IEnumerable<AbilityId> Abilities { get; set; } = Array.Empty<AbilityId>();
+
         public IEnumerable<KeyValuePair<int, Coord>> Spectators { get; set; } = Array.Empty<KeyValuePair<int, Coord>>();
 
         public int Seed { get; set; }
@@ -133,7 +135,8 @@ namespace Game.UI
                 setup.InitialAudience,
                 new[] { new QuoteItem(BattleArena.StarterQuoteId, StarterQuoteCoherence, StarterQuoteAudience, StarterQuoteUses) },
                 setup.AudienceIds,
-                setup.LockedActions);
+                setup.LockedActions,
+                setup.Abilities);
 
             return new BattleSession(state, arguments, opponentPolicy ?? new OpponentBrain(new Random(setup.Seed)));
         }
