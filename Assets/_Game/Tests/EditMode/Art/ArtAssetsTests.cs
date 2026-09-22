@@ -12,7 +12,7 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 112;
+        private const int PlaceholderPngCount = 113;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
         private const string PalettePath = "art/palette/snes.gpl";
@@ -158,10 +158,14 @@ namespace Game.Tests.EditMode.Art
         [Test]
         public void Portrait_ReplacesTheSheetFrameOnlyWhereItExists()
         {
-            Assert.AreEqual(ArtTools.PortraitPathFor(AristeuCharacter), AssetDatabase.GetAssetPath(SandboxTools.PortraitFor(AristeuCharacter)));
-            var kleia = SandboxTools.PortraitFor("kleia");
-            Assert.AreEqual(ArtTools.SheetPathFor("kleia"), AssetDatabase.GetAssetPath(kleia), "without a portrait the sheet frame stands in");
-            Assert.AreEqual($"kleia_{SandboxTools.PortraitRow}_0", kleia.name);
+            foreach (var character in new[] { AristeuCharacter, "kleia" })
+            {
+                Assert.AreEqual(ArtTools.PortraitPathFor(character), AssetDatabase.GetAssetPath(SandboxTools.PortraitFor(character)), $"{character} speaks through the portrait drawn for him");
+            }
+
+            var menexeno = SandboxTools.PortraitFor("menexeno");
+            Assert.AreEqual(ArtTools.SheetPathFor("menexeno"), AssetDatabase.GetAssetPath(menexeno), "without a portrait the sheet frame stands in");
+            Assert.AreEqual($"menexeno_{SandboxTools.PortraitRow}_0", menexeno.name);
         }
 
         private static List<(byte, byte, byte)> LoadPalette() =>

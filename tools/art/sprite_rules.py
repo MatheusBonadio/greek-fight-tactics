@@ -80,6 +80,7 @@ SIZE_RULES = (
     SizeRule("overlay", r"^overlay_", 32, 32, 16, None),
     exact("character sheet", r"_sheet$", 96, 128),
     exact("character frame", r"_idle_(se|sw|ne|nw)$", 24, 32),
+    exact("dialogue portrait", r"_portrait$", 32, 32),
     exact("bar", r"^bar_", 64, 8),
     exact("menu box", r"^box_menu$", 96, 88),
     exact("dialogue box", r"^box_dialogue$", 208, 48),
