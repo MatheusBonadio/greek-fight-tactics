@@ -19,6 +19,8 @@ namespace Game.UI
         [SerializeField] private TMP_Text submenuTitle;
         [SerializeField] private TMP_Text[] submenuRows = Array.Empty<TMP_Text>();
         [SerializeField] private RectTransform submenuCursor;
+        [SerializeField] private GameObject moreAbove;
+        [SerializeField] private GameObject moreBelow;
         [SerializeField] private UiTextSO text;
         [SerializeField] private FallacyCatalogSO catalog;
         [SerializeField] private Color availableColor = new Color32(248, 248, 248, 255);
@@ -56,9 +58,15 @@ namespace Game.UI
 
         public Color HintColor => hintColor;
 
+        public GameObject MoreAbove => moreAbove;
+
+        public GameObject MoreBelow => moreBelow;
+
         public int SubmenuWindowStart { get; private set; }
 
         public bool CursorVisible { get; private set; } = true;
+
+        public bool Interactive { get; private set; } = true;
 
         public bool AssistedMode
         {
@@ -95,6 +103,12 @@ namespace Game.UI
             catalog = fallacies;
         }
 
+        public void ConfigureScroll(GameObject above, GameObject below)
+        {
+            moreAbove = above;
+            moreBelow = below;
+        }
+
         public void Bind(BattleMenuController controller)
         {
             Controller = controller;
@@ -103,9 +117,20 @@ namespace Game.UI
             Render();
         }
 
+        public void SetInteractive(bool interactive)
+        {
+            if (Interactive == interactive)
+            {
+                return;
+            }
+
+            Interactive = interactive;
+            RestartBlink();
+        }
+
         public void HandleNavigate(Vector2 direction)
         {
-            if (Controller == null || Mathf.Approximately(direction.y, 0f))
+            if (Controller == null || !Interactive || Mathf.Approximately(direction.y, 0f))
             {
                 return;
             }
@@ -116,7 +141,7 @@ namespace Game.UI
 
         public void HandleConfirm()
         {
-            if (Controller == null)
+            if (Controller == null || !Interactive)
             {
                 return;
             }
@@ -131,7 +156,7 @@ namespace Game.UI
 
         public void HandleCancel()
         {
-            if (Controller != null && Controller.Cancel())
+            if (Controller != null && Interactive && Controller.Cancel())
             {
                 RestartBlink();
             }
@@ -139,7 +164,7 @@ namespace Game.UI
 
         public void HandlePoint(BattleMenuLayer layer, int row)
         {
-            if (Controller == null || !SameLayer(layer))
+            if (Controller == null || !Interactive || !SameLayer(layer))
             {
                 return;
             }
@@ -150,7 +175,7 @@ namespace Game.UI
 
         public void HandleClick(BattleMenuLayer layer, int row)
         {
-            if (Controller == null || !SameLayer(layer))
+            if (Controller == null || !Interactive || !SameLayer(layer))
             {
                 return;
             }
@@ -263,6 +288,16 @@ namespace Game.UI
             }
 
             PlaceCursor(submenuCursor, submenuRows, Controller.SubmenuCursor - SubmenuWindowStart, true);
+            Show(moreAbove, SubmenuWindowStart > 0);
+            Show(moreBelow, SubmenuWindowStart + submenuRows.Length < options.Count);
+        }
+
+        private static void Show(GameObject indicator, bool visible)
+        {
+            if (indicator && indicator.activeSelf != visible)
+            {
+                indicator.SetActive(visible);
+            }
         }
 
         private string OptionLabel(string option) =>
@@ -275,7 +310,7 @@ namespace Game.UI
                 return;
             }
 
-            var visible = layerActive && CursorVisible && index >= 0 && index < rows.Count;
+            var visible = Interactive && layerActive && CursorVisible && index >= 0 && index < rows.Count;
             cursor.gameObject.SetActive(visible);
             if (visible)
             {

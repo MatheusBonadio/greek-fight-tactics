@@ -70,10 +70,22 @@ namespace Game.UI
         private MapOpponent engaged;
         private PrewarmedArgumentSource preparedArguments;
         private int crowdSeed;
+        private BattleFlowPhase phase = BattleFlowPhase.Exploring;
 
         public GameStateMachine StateMachine => sandbox.StateMachine;
 
-        public BattleFlowPhase Phase { get; private set; } = BattleFlowPhase.Exploring;
+        public BattleFlowPhase Phase
+        {
+            get => phase;
+            private set
+            {
+                phase = value;
+                if (hud && hud.Menu)
+                {
+                    hud.Menu.SetInteractive(value == BattleFlowPhase.PlayerChoosing);
+                }
+            }
+        }
 
         public BattleSession Session { get; private set; }
 

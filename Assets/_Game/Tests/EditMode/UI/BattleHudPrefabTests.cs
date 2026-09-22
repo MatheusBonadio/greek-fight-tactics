@@ -143,6 +143,58 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void FallacyList_ShowsArrowsWhenMoreOptionsHideAboveOrBelow()
+        {
+            var hud = InstantiateHud();
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "a", "b" }, 1, ArgumentTones.Mocking)), state));
+            var controller = new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds);
+            hud.Bind(state, controller);
+
+            hud.Menu.HandleNavigate(Vector2.down);
+            hud.Menu.HandleConfirm();
+            Assert.Greater(controller.SubmenuOptions.Count, hud.Menu.SubmenuRows.Count, "the list must be longer than the box for this test");
+            Assert.IsFalse(hud.Menu.MoreAbove.activeSelf);
+            Assert.IsTrue(hud.Menu.MoreBelow.activeSelf, "a hidden option below needs an arrow, or the player thinks it does not exist");
+
+            for (var step = 1; step < controller.SubmenuOptions.Count; step++)
+            {
+                hud.Menu.HandleNavigate(Vector2.down);
+            }
+
+            Assert.AreEqual(controller.SubmenuOptions.Count - 1, controller.SubmenuCursor, "the cursor must stop on the last option");
+            Assert.IsTrue(hud.Menu.MoreAbove.activeSelf);
+            Assert.IsFalse(hud.Menu.MoreBelow.activeSelf);
+        }
+
+        [Test]
+        public void OutsideThePlayersTurn_TheMenuHidesItsCursorAndIgnoresInput()
+        {
+            var hud = InstantiateHud();
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            var controller = new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds);
+            hud.Bind(state, controller);
+            BattleMenuChoice? chosen = null;
+            hud.Menu.ChoiceMade += choice => chosen = choice;
+
+            hud.Menu.SetInteractive(false);
+            hud.Menu.HandleNavigate(Vector2.down);
+            hud.Menu.HandleConfirm();
+            hud.Menu.HandleClick(BattleMenuLayer.Actions, 0);
+
+            Assert.IsFalse(hud.Menu.ActionCursor.gameObject.activeSelf, "no option cursor during the opponent's turn");
+            Assert.AreEqual(0, controller.Actions.CursorIndex);
+            Assert.IsFalse(chosen.HasValue);
+
+            hud.Menu.SetInteractive(true);
+            Assert.IsTrue(hud.Menu.ActionCursor.gameObject.activeSelf);
+        }
+
+        [Test]
         public void CompendiumPrefab_WiresTheViewAndInput()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattleHudTools.CompendiumPrefabPath);

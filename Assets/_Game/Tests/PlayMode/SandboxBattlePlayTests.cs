@@ -103,6 +103,13 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(director.RangeView, "GridSandbox scene must wire the range highlight view");
             while (director.Phase != BattleFlowPhase.Exploring && Time.realtimeSinceStartup < deadline)
             {
+                var playersTurn = director.Phase == BattleFlowPhase.PlayerChoosing;
+                Assert.AreEqual(playersTurn, director.Hud.Menu.Interactive, $"the option menu must only be live on Kleia's turn, not in {director.Phase}");
+                if (!playersTurn)
+                {
+                    Assert.IsFalse(director.Hud.Menu.ActionCursor.gameObject.activeSelf, $"no option cursor in {director.Phase}");
+                }
+
                 if (director.Phase == BattleFlowPhase.Dialogue)
                 {
                     var dialogue = director.Hud.Dialogue;

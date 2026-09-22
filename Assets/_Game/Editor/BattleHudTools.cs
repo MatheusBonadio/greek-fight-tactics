@@ -39,6 +39,9 @@ namespace Game.EditorTools
         public const int SubmenuWidth = 300;
         public const int SubmenuRows = 4;
         public const int SubmenuTopPadding = 4;
+        public const int ScrollArrowInset = 8;
+        public const float UpArrowDegrees = 90f;
+        public const float DownArrowDegrees = -90f;
         public const int SubmenuTitleWidth = 200;
         public const int BadgeWidth = 156;
         public const int BadgeInset = 2;
@@ -249,10 +252,23 @@ namespace Game.EditorTools
             }
 
             var optionCursor = CreateCursor(panel.transform);
+            var moreAbove = CreateScrollArrow(panel.transform, "MoreAbove", -SubmenuTopPadding - RowHeight / 2f, UpArrowDegrees);
+            var moreBelow = CreateScrollArrow(panel.transform, "MoreBelow", -SubmenuTopPadding - (SubmenuRows - 0.5f) * RowHeight, DownArrowDegrees);
             panel.gameObject.SetActive(false);
 
             view.Configure(rows, cursor, reason, panel.gameObject, title, options, optionCursor, uiText, catalog);
+            view.ConfigureScroll(moreAbove, moreBelow);
             return view;
+        }
+
+        private static GameObject CreateScrollArrow(Transform panel, string name, float centerY, float degrees)
+        {
+            var arrow = CreateImage(panel, name, UiSprite(CursorSprite), TopRight, Vector2.zero, new Vector2(CursorSize, CursorSize), Color.white).rectTransform;
+            arrow.pivot = Center;
+            arrow.anchoredPosition = new Vector2(-ScrollArrowInset, centerY);
+            arrow.localRotation = Quaternion.Euler(0f, 0f, degrees);
+            arrow.gameObject.SetActive(false);
+            return arrow.gameObject;
         }
 
         private static DialogueBoxView CreateDialogue(RectTransform area)

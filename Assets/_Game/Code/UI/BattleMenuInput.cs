@@ -53,6 +53,21 @@ namespace Game.UI
             navigate = null;
         }
 
+        private void Update()
+        {
+            var mouse = Mouse.current;
+            if (!menu || mouse == null)
+            {
+                return;
+            }
+
+            var scroll = mouse.scroll.ReadValue().y;
+            if (!Mathf.Approximately(scroll, 0f))
+            {
+                menu.HandleNavigate(new Vector2(0f, scroll));
+            }
+        }
+
         private void OnNavigate(InputAction.CallbackContext context)
         {
             menu.HandleNavigate(context.ReadValue<Vector2>());
