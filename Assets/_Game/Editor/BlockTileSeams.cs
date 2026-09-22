@@ -12,6 +12,22 @@ namespace Game.EditorTools
 
         public static bool IsOutline(Color32 pixel) => Same(pixel, PropOutline) || Same(pixel, FloorOutline);
 
+        public static bool IsJoint(Color32 pixel, Color32? joint) => joint.HasValue ? Same(pixel, joint.Value) : IsOutline(pixel);
+
+        public static Color32? JointOf(Color32[] pixels, int width, int height)
+        {
+            for (var y = height - 1; y >= 0; y--)
+            {
+                var pixel = pixels[y * width];
+                if (pixel.a != 0)
+                {
+                    return pixel;
+                }
+            }
+
+            return null;
+        }
+
         public static int ApplyToSourceBlocks()
         {
             var changed = 0;
@@ -44,17 +60,18 @@ namespace Game.EditorTools
                 return false;
             }
 
+            var joint = JointOf(pixels, width, height);
             var edges = RightEdges(pixels, width, height);
             var changed = false;
             for (var y = 0; y < height; y++)
             {
                 var x = edges[y];
-                if (x < 0 || !IsOutline(pixels[y * width + x]) || !IsVerticalEdge(edges, y, height))
+                if (x < 0 || !IsJoint(pixels[y * width + x], joint) || !IsVerticalEdge(edges, y, height))
                 {
                     continue;
                 }
 
-                if (!TryBodyColor(pixels, width, y, x, out var body))
+                if (!TryBodyColor(pixels, width, y, x, joint, out var body))
                 {
                     continue;
                 }
@@ -68,11 +85,12 @@ namespace Game.EditorTools
 
         public static bool HasRightOutline(Color32[] pixels, int width, int height)
         {
+            var joint = JointOf(pixels, width, height);
             var edges = RightEdges(pixels, width, height);
             for (var y = 0; y < height; y++)
             {
                 var x = edges[y];
-                if (x >= 0 && IsOutline(pixels[y * width + x]) && IsVerticalEdge(edges, y, height))
+                if (x >= 0 && IsJoint(pixels[y * width + x], joint) && IsVerticalEdge(edges, y, height))
                 {
                     return true;
                 }
@@ -103,7 +121,7 @@ namespace Game.EditorTools
         private static bool IsVerticalEdge(int[] edges, int y, int height) =>
             (y > 0 && edges[y - 1] == edges[y]) || (y + 1 < height && edges[y + 1] == edges[y]);
 
-        private static bool TryBodyColor(Color32[] pixels, int width, int y, int x, out Color32 body)
+        private static bool TryBodyColor(Color32[] pixels, int width, int y, int x, Color32? joint, out Color32 body)
         {
             body = default;
             for (var step = x - 1; step >= 0; step--)
@@ -114,7 +132,7 @@ namespace Game.EditorTools
                     return false;
                 }
 
-                if (!IsOutline(candidate))
+                if (!IsJoint(candidate, joint))
                 {
                     body = candidate;
                     return true;

@@ -53,7 +53,7 @@ namespace Game.EditorTools
                 for (var x = 0; x < width; x++)
                 {
                     var index = y * width + x;
-                    if (!Same(pixels[index], outline))
+                    if (!IsBottomEdge(pixels, width, x, y) || !Same(pixels[index], outline))
                     {
                         continue;
                     }
@@ -85,7 +85,7 @@ namespace Game.EditorTools
             {
                 for (var x = 0; x < width; x++)
                 {
-                    if (Same(pixels[y * width + x], outline))
+                    if (IsBottomEdge(pixels, width, x, y) && Same(pixels[y * width + x], outline))
                     {
                         return true;
                     }
@@ -94,6 +94,9 @@ namespace Game.EditorTools
 
             return false;
         }
+
+        private static bool IsBottomEdge(Color32[] pixels, int width, int x, int y) =>
+            pixels[y * width + x].a != 0 && (y == 0 || pixels[(y - 1) * width + x].a == 0);
 
         private static bool Same(Color32 left, Color32 right) =>
             left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a;

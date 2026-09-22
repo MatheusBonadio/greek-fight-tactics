@@ -10,6 +10,8 @@ namespace Game.Tests.EditMode.Art
     {
         private const int Width = 32;
         private const int Height = 16;
+        private const int InsideRowFromTop = 11;
+        private const int InsideColumn = 16;
 
         private static readonly string[] DiamondMask =
         {
@@ -63,6 +65,19 @@ namespace Game.Tests.EditMode.Art
             }
 
             Assert.IsFalse(FloorTileSeams.RemoveBottomOutline(pixels, Width, Height));
+        }
+
+        [Test]
+        public void RemoveBottomOutline_KeepsTheJointToneInsideTheTile()
+        {
+            var pixels = Diamond();
+            var inside = (Height - 1 - InsideRowFromTop) * Width + InsideColumn;
+            pixels[inside] = Outline;
+
+            FloorTileSeams.RemoveBottomOutline(pixels, Width, Height);
+
+            Assert.AreEqual(Outline, pixels[inside], "a texture pixel in the joint tone is not an edge");
+            Assert.IsFalse(FloorTileSeams.HasBottomOutline(pixels, Width, Height));
         }
 
         [Test]

@@ -25,6 +25,7 @@ namespace Game.Tests.EditMode.Art
         private static readonly int[] VerticalRows = { 2, 3, 4, 5 };
 
         private static readonly Color32 Body = new(216, 144, 56, 255);
+        private static readonly Color32 SoftJoint = new(104, 48, 24, 255);
 
         [Test]
         public void RemoveRightOutline_ClearsTheVerticalSideButKeepsTheDiagonals()
@@ -61,9 +62,27 @@ namespace Game.Tests.EditMode.Art
                 var pixels = texture.GetPixels32();
 
                 Assert.IsFalse(BlockTileSeams.HasRightOutline(pixels, texture.width, texture.height), file);
-                Assert.IsTrue(pixels.Any(BlockTileSeams.IsOutline), $"{file} lost every outline");
+                var joint = BlockTileSeams.JointOf(pixels, texture.width, texture.height);
+                Assert.IsTrue(pixels.Any(pixel => BlockTileSeams.IsJoint(pixel, joint)), $"{file} lost every outline");
                 Object.DestroyImmediate(texture);
             }
+        }
+
+        [Test]
+        public void RemoveRightOutline_TreatsTheLeftEdgeToneAsTheJointOfASoftWall()
+        {
+            var pixels = Cube(SoftJoint);
+
+            Assert.AreEqual(SoftJoint, BlockTileSeams.JointOf(pixels, Size, Size));
+            Assert.IsTrue(BlockTileSeams.RemoveRightOutline(pixels, Size, Size));
+
+            foreach (var row in VerticalRows)
+            {
+                Assert.AreEqual(Body, pixels[row * Size + Size - 1], $"the soft joint stayed on the vertical right edge of row {row}");
+            }
+
+            Assert.AreEqual(SoftJoint, pixels[3 * Size], "the left side must keep the soft joint");
+            Assert.IsFalse(BlockTileSeams.HasRightOutline(pixels, Size, Size));
         }
 
         private static Color32[] Cube(Color32 outline)

@@ -225,7 +225,7 @@ O piloto mede o que a documentação do PixelLab não garante:
 - **Tela do jogo:** quadro nativo de **384×216**, ampliado **5×** com Nearest Neighbor para 1920×1080. A escala do mundo é a da referência: losango de chão de 32×16 e célula de 32×32 para personagem e objeto. Uma sala de até 14 células (largura + altura) ocupa 224 px dos 384, e o HUD fica nos cantos, como pede o `target_style.md`. A arte é sempre entregue em 1×; a ampliação é da câmera (§11).
 - **Sombras:** frias (azul-acinzentadas) no mármore, na pedra, na rocha, na neve e na água. O mármore branco da arquitetura usa as sombras frias da palette v2 (`marble_cold_shade`, `marble_cold_dark`). Nos materiais quentes (pele, terracota, terra, tijolo, madeira), a sombra é o tom escuro do próprio material (§4.6). A saturação vem da chave de cor de cada arquivo, não do prompt.
 - **Hierarquia de contraste:** debatedores > NPCs > props > chão.
-  - O chão tem tons próximos em valor e junta escura.
+  - O chão tem tons próximos em valor e junta sutil, um tom abaixo do tom dominante do material: os tiles se emendam e só uma linha leve marca a grade.
   - Os debatedores têm contorno fechado e as cores mais saturadas.
   - Os cidadãos usam só famílias neutras.
 - **Fundo preto:** o preto `void` `#000000` é a cor de limpeza da câmera e a da névoa (`fog.png`). Todo sprite sai com fundo **transparente**. Nunca peça "black background": esses pixels viram contorno opaco na quantização.
@@ -245,7 +245,7 @@ Todos os canais são múltiplos de 8. O arquivo atual tem 33 entradas e 32 cores
 | Nome | Hex | Papel | No prompt |
 |---|---|---|---|
 | `outline` | `#080810` | Contorno de personagens, props e ícones; olhos | near-black |
-| `outline_blue` | `#101828` | Junta e contorno de chão e da arquitetura de mármore e pedra; sombra no chão sob o personagem (proposta) | dark joint line |
+| `outline_blue` | `#101828` | Contorno dos objetos soltos de mármore e pedra (coluna, herma); sombra no chão sob o personagem (proposta). Não é junta de chão nem de parede | dark blue outline |
 | `marble_light` | `#F8F8F0` | Mármore iluminado, roupa branca, brilho, papiro | off-white |
 | `marble_mid` | `#D8D8C8` | Mármore base, linho, barba branca na sombra, remendo | pale grey-beige |
 | `marble_shade` | `#A8A8A0` | Pedra cinza, lã crua, prata, sombra de tecido branco e de papiro | light grey |
@@ -314,11 +314,12 @@ Nos roteiros `[MANUAL]`, `[SWAP]` e `[EDIT]`, que são para o Aseprite, os token
 - **Onde usar `outline`:** embaixo (pés), no lado da sombra (direita), em volta da cabeça e onde a figura encosta no chão. Nas bordas iluminadas (topo e esquerda), o contorno pode usar o tom mais escuro do material vizinho: é o "selective outline".
 - **Linhas internas** (braço contra tronco, dobra, cinto) usam o tom escuro do próprio material, nunca preto. As exceções são olhos, boca e mão sobre roupa da mesma cor.
 - **Quem leva `outline #080810`:** personagens, retratos, ícones, props de madeira, terracota, tijolo, bronze e vegetação.
-- **Quem leva `outline_blue #101828`:**
-  - Os tiles de chão, **só nas duas bordas de cima** (NO e NE). As de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha.
-  - A arquitetura de mármore e pedra: `wall_marble` e `wall_marble_tall`, colunas, degraus, herma, tesouro de Delfos.
-- **Ponta esquerda do chão:** o pixel `x = 0` da linha 8 (a nona a partir do topo) precisa ter a cor exata do contorno. O `FloorTileSeams` usa esse pixel para achar a junta.
-- **Blocos:** desenhe o contorno completo. O `BlockTileSeams` apaga sozinho a borda vertical direita.
+- **Quem leva `outline_blue #101828`:** os objetos soltos de mármore e pedra: colunas, herma, tesouro de Delfos.
+- **Junta sutil, sem contorno escuro:**
+  - Os tiles de chão, **só nas duas bordas de cima** (NO e NE), no tom da rampa logo abaixo do tom dominante do material (`marble_light` → `marble_mid`, `olive_light` → `olive_mid`, `ochre_mid` → `ochre_shade`). As de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha.
+  - As paredes e degraus (`wall_*`, `block_step`), no tom mais escuro do material (`ochre_dark` no tijolo, `marble_cold_dark` no mármore), para paredes vizinhas virarem um muro contínuo.
+- **Ponta esquerda do chão:** o pixel `x = 0` da linha 8 (a nona a partir do topo) precisa ter a cor exata da junta. O `FloorTileSeams` usa esse pixel para achar a junta e só a procura na borda de baixo do losango.
+- **Blocos:** desenhe a junta completa. O `BlockTileSeams` lê a cor dela no pixel mais alto da coluna 0 e apaga sozinho a borda vertical direita.
 - **Sem contorno:** vapor, névoa, realces de alcance, fogo e efeitos.
 
 ### 4.5 Tons, dithering, limite de cores e transparência
@@ -474,7 +475,7 @@ Por isso a tira SE e a tira NE de uma mesma animação têm prompts diferentes. 
 
 `[FLOOR]`:
 ```text
-flat isometric floor tile, top face only, a 2:1 diamond 32 pixels wide and 16 pixels tall, seamless with its four neighbours, a dark 1-pixel joint line along the two upper edges, 2:1 isometric pixel-art camera, 30 degree elevation,
+flat isometric floor tile, top face only, a 2:1 diamond 32 pixels wide and 16 pixels tall, seamless with its four neighbours, a subtle 1-pixel joint line one shade darker than the surface along the two upper edges, blending into its neighbours, 2:1 isometric pixel-art camera, 30 degree elevation,
 ```
 
 `[BLOCK]`:
@@ -680,7 +681,8 @@ Nenhum gerador entrega RGB555 limpo, nem com `force_colors`. A ordem é esta (no
 4. **Contagem.** No máximo 15 cores + transparente. Se passar, funda as menos usadas na vizinha da chave.
 5. **Contorno.**
    - Personagens e props: silhueta fechada, com `#080810` exato.
-   - Chão: `#101828` só nas bordas de cima, com o pixel da ponta esquerda na cor do contorno.
+   - Chão: junta sutil (um tom abaixo do dominante do material) só nas bordas de cima, com o pixel da ponta esquerda na cor da junta.
+   - Paredes e degraus: junta no tom mais escuro do material.
 6. **Sombra.** Apague a do gerador e cole a elipse padrão (§5.3).
 7. **Canvas.** Recorte para o tamanho da coluna `cell_size`, alinhando pelos pés ou pela base, sem reescalar.
 8. **Quadros à mão.** Faça os deslocamentos de 1 px (§5.3) e descarte o quadro final repetido dos loops.

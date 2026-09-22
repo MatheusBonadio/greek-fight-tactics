@@ -23,7 +23,7 @@ Todas as medidas abaixo estão em pixels nativos (quadro de 224), com precisão 
 
 - Paleta SNES (RGB555, canais múltiplos de 8; `art/palette/snes.gpl`), com saturação alta e sombras frias.
 - **Fundo:** preto `#000000` fora do mapa, não o azul-marinho atual.
-- **Chão da referência:** azul-petróleo em 3 tons, com linha de junta escura. No GFT, cada mapa mantém o próprio material (mármore, terra, argila), no mesmo esquema de 3 tons com junta escura.
+- **Chão da referência:** azul-petróleo em 3 tons, com linha de junta escura. No GFT, cada mapa mantém o próprio material (mármore, terra, argila) em 3 tons, e a junta é sutil: um tom abaixo do tom dominante do material, para os tiles se emendarem e só uma linha leve marcar a grade (decisão do usuário, 22/09/2026). Paredes vizinhas também se emendam, com a junta no tom mais escuro do material.
 - **Alcance de movimento:** losangos preenchidos de verde-amarelado em 2 tons, com as juntas visíveis. As células de ataque e de maiêutica seguem o mesmo esquema, com a própria cor.
 - **Interface:** branco `#F8F8F8` sobre preto; dourado `#F8D830` com contorno marrom-escuro para a plaqueta de nome; azul `#3868D8` para as bordas das caixas de slot e de itens.
 

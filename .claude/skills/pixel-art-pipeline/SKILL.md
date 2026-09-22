@@ -60,7 +60,7 @@ A palette v2 tem 44 entradas RGB555 — todos os canais múltiplos de 8 — em `
 
 | Grupo | Nomes | Uso |
 |---|---|---|
-| Contorno | `outline #080810`, `outline_blue #101828` | Props e personagens / tiles de chão e arquitetura de mármore |
+| Contorno | `outline #080810`, `outline_blue #101828` | Props e personagens / objetos de mármore (coluna, herma) |
 | Mármore | `marble_light/mid/shade/dark` | Ágora, roupas brancas, flash de dano |
 | Mármore frio | `marble_cold_shade #A0A8B8`, `marble_cold_dark #687088` | Sombra e oclusão do mármore branco da arquitetura |
 | Ocre | `ochre_light/mid/shade/dark` | Cerâmico, terra, tijolo cru, madeira |
@@ -81,7 +81,7 @@ Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qual
 
 1. Todo pixel opaco pertence à paleta. Sem exceção para "quase igual".
 2. Máximo de 15 cores + transparente por sprite.
-3. Contorno de tile de chão é `outline_blue`; de props e personagens, `outline`. O tile de chão só contorna as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com contorno nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`.
+3. A grade é marcada por uma linha sutil, nunca por contorno escuro. A junta do tile de chão é o tom da rampa logo abaixo do tom dominante do próprio material (mármore `marble_light` → `marble_mid`, grama `olive_light` → `olive_mid`, terra `ochre_mid` → `ochre_shade`), e a de parede e degrau é o tom mais escuro do material (`ochre_dark` no tijolo, `marble_cold_dark` no mármore), para os tiles se emendarem. Props e personagens levam `outline`, e objetos de mármore soltos, `outline_blue`. O tile de chão só marca as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com junta nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`, olhando só a borda de baixo do losango, então o tom da junta pode aparecer como textura no miolo.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
 O `verify.py` cobre as regras 1, 2 e 4, o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa e realce (`floor_`, `fog*`, `hl_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em quatro pontos, todos pendentes de decisão e não regressão:
