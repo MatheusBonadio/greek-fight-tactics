@@ -504,7 +504,7 @@ Texto exibido ao jogador (nomes, falas, descrições, dicas) é português e viv
 - **Uma cena por mapa:** `SandboxTools.Maps` lista local, mapa e cena.
   - `BuildSandbox` monta todas as cenas, e `CaptureReference` fotografa a Ágora e o Cerâmico (`artifacts/reference/grid_sandbox.png` e `kerameikos.png`).
   - Cada cena grava o próprio `GridSandboxController.LocationId` (`agora`, `kerameikos`). Esse id vai para o save e decide se `ExplorationRestore` aplica posição e névoa.
-  - Os tiles do Cerâmico (`floor_packed_dirt`, `floor_dry_clay`, `floor_straw`, `block_kiln`, `prop_potters_wheel`, `prop_amphora_stack`) são placeholders em `art/placeholders/tiles`, com a geometria copiada de `floor_dirt` e `wall_brick`.
+  - Os tiles do Cerâmico (`floor_packed_dirt`, `floor_dry_clay`, `floor_straw`, `block_kiln`, `prop_potters_wheel`, `prop_amphora_stack`) ficam em `art/placeholders/tiles`, como todo o cenário estático P1 dos dois mapas: arte do PixelLab, já na palette v2 (ver a skill `pixel-art-pipeline`).
 
 ---
 
@@ -525,7 +525,7 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
   - `verify.py` imprime a contagem de cores por arquivo e sai com 1 quando um PNG tem mais de 15 cores + transparente, alfa parcial, cor fora do RGB555 ou da paleta, dimensão errada para o prefixo (`SIZE_RULES` em `sprite_rules.py`), pixel opaco fora do losango num chão, névoa ou realce (`FLOOR_FOOTPRINT`, o fundo que a IA esquece) ou chão que deixa vão ao repetir.
   - `tile_preview.py` cola 4 cópias do tile na grade e grava a prévia em `artifacts/art/tiling/`.
   - `aseprite_palette.py` copia a `snes.gpl` para `palettes/default.gpl` na pasta do usuário do Aseprite e põe o `default.ase` antigo de lado, e o Aseprite a adota na próxima abertura. O `--check` confere o `default.ase` gravado.
-  - Testes: `python -m unittest discover -s tools/art`. Hoje `verify.py art/placeholders` falha em 34 arquivos por pendências conhecidas, listadas na skill.
+  - Testes: `python -m unittest discover -s tools/art`. Hoje `verify.py art/placeholders` falha em 36 arquivos por pendências conhecidas, listadas na skill.
 
 ---
 

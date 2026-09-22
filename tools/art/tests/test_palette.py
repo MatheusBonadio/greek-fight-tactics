@@ -4,8 +4,8 @@ import unittest
 
 from palette import LUMA_WEIGHTS, Palette, is_rgb555, load_gpl, to_hex, weighted_distance
 
-PROJECT_PALETTE_ENTRIES = 33
-PROJECT_PALETTE_COLORS = 32
+PROJECT_PALETTE_ENTRIES = 44
+PROJECT_PALETTE_COLORS = 43
 
 
 def write_palette(folder, text):
@@ -63,7 +63,8 @@ class NearestColourTests(unittest.TestCase):
             self.assertEqual(self.palette.nearest(color), color, to_hex(color))
 
     def test_off_palette_colours_map_to_the_closest_entry(self):
-        self.assertEqual(self.palette.nearest((250, 251, 245)), (248, 248, 240))
+        self.assertEqual(self.palette.nearest((250, 250, 238)), (248, 248, 240))
+        self.assertEqual(self.palette.nearest((250, 251, 250)), (248, 248, 248))
         self.assertEqual(self.palette.nearest((70, 198, 226)), (72, 200, 224))
         self.assertEqual(self.palette.nearest((190, 60, 44)), (192, 56, 40))
 

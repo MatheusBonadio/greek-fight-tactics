@@ -3821,13 +3821,13 @@ Import-Csv docs/art/pixellab_assets.csv | Group-Object track, priority, status |
 
 | Trilha | Prioridade | Arquivos | Quadros | todo | wip | review | approved | integrated | % aprovado |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| A | P1 | 106 | 250 | 106 | 0 | 0 | 0 | 0 | 0% |
+| A | P1 | 106 | 250 | 97 | 0 | 1 | 0 | 8 | 8% |
 | A | P2 | 105 | 214 | 105 | 0 | 0 | 0 | 0 | 0% |
 | A | P3 | 41 | 91 | 41 | 0 | 0 | 0 | 0 | 0% |
-| B | P1 | 111 | 229 | 111 | 0 | 0 | 0 | 0 | 0% |
+| B | P1 | 111 | 229 | 98 | 0 | 1 | 0 | 12 | 11% |
 | B | P2 | 97 | 169 | 97 | 0 | 0 | 0 | 0 | 0% |
 | B | P3 | 36 | 58 | 36 | 0 | 0 | 0 | 0 | 0% |
-| **Total** | | 496 | 1011 | 496 | 0 | 0 | 0 | 0 | 0% |
+| **Total** | | 496 | 1011 | 474 | 0 | 2 | 0 | 20 | 4% |
 
 Por categoria:
 
@@ -3835,9 +3835,9 @@ Por categoria:
 |---|---:|---:|---:|---:|
 | Tiras de personagem (`characters`) | 150 | 159 | 309 | 0 |
 | Retratos (`portraits`) | 22 | 24 | 46 | 0 |
-| Chão (`floor`) | 8 | 18 | 26 | 0 |
-| Paredes e blocos (`blocks`) | 8 | 15 | 23 | 0 |
-| Props (`props`) | 11 | 16 | 27 | 0 |
+| Chão (`floor`) | 8 | 18 | 26 | 10 |
+| Paredes e blocos (`blocks`) | 8 | 15 | 23 | 5 |
+| Props (`props`) | 11 | 16 | 27 | 5 |
 | Overlays (`overlays`) | 7 | 0 | 7 | 0 |
 | Efeitos (`fx`) | 3 | 4 | 7 | 0 |
 | Interface (`ui`) | 20 | 2 | 22 | 0 |

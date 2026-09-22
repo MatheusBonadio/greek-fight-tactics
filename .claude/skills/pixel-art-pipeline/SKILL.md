@@ -21,13 +21,17 @@ art/
     characters/  13 folhas 96x128 + 13 idles 24x32
     portraits/   retratos dedicados 32x32 (hoje só aristeu_portrait)
     tiles/
-      floor/     7 tiles 32x16
-      blocks/    7 blocos e props 32x(16+altura)
+      floor/     10 tiles 32x16
+      blocks/    10 blocos e props 32x(16+altura)
       overlays/  névoa + 4 realces de alcance
     ui/          caixas, barras, cursor, moldura
+  incoming/
+    track_a/  track_b/   arte entregue que o jogo ainda não usa + generation_log.csv
 ```
 
 `art/` é a fonte, fora do projeto Unity. O card [ART-01] copia `art/placeholders/` para `Assets/_Game/Art/Placeholder/`, onde o importer atua. Os placeholders já estão em RGB555 e nas dimensões finais: trocar pela arte definitiva, mantendo nome e tamanho, não quebra nenhuma referência.
+
+O cenário estático P1 da Ágora e do Cerâmico (todo `tiles/floor` e `tiles/blocks`) já é a arte do PixelLab, trocada no lugar dos placeholders de mesmo nome e tamanho. Os chãos saíram do `create_isometric_tile` (thin tile, 32 px): o topo é recortado da linha 11, cortado no losango e levado à rampa do material por luminância, e o contorno das bordas de cima é copiado do placeholder. Paredes são `create_isometric_tile` (block). Blocos altos e props são `create_image_pixflux` isométrico com a rampa em `color_image`; os mais estreitos que a célula sobem `(32 − largura) / 4` px para a base ficar no centro do losango. `block_step` e as paredes altas são derivados das paredes, sem geração. Seed, id do PixelLab e tentativas descartadas de cada arquivo estão em `art/incoming/track_*/generation_log.csv`.
 
 `art/reference/scene_mockup.png` mostra como tudo se monta: chão em xadrez de mármore, parede com altura, realces de alcance, névoa e o HUD com as duas barras e o menu de seis ações.
 
@@ -52,20 +56,26 @@ Nomes próprios mantêm a grafia do GDD (`kleia`, `menexeno`, `thrasybios`), sem
 
 ## Paleta
 
-33 cores RGB555 — todos os canais múltiplos de 8 — em `art/palette/snes.gpl`. Os nomes seguem `<material>_<tom>`, com tons `light`, `mid`, `shade`, `dark`:
+A palette v2 tem 44 entradas RGB555 — todos os canais múltiplos de 8 — em `art/palette/snes.gpl`, e 43 cores, porque `ui_border` repete `marble_light`. As 11 últimas são os acréscimos da v2 (§4.2 de `docs/art/pixellab_spec.md`). Os nomes seguem `<material>_<tom>`, com tons `light`, `mid`, `shade`, `dark`:
 
 | Grupo | Nomes | Uso |
 |---|---|---|
-| Contorno | `outline #080810`, `outline_blue #101828` | Props e personagens / tiles de chão |
+| Contorno | `outline #080810`, `outline_blue #101828` | Props e personagens / tiles de chão e arquitetura de mármore |
 | Mármore | `marble_light/mid/shade/dark` | Ágora, roupas brancas, flash de dano |
-| Ocre | `ochre_light/mid/shade/dark` | Cerâmico, terra, madeira |
+| Mármore frio | `marble_cold_shade #A0A8B8`, `marble_cold_dark #687088` | Sombra e oclusão do mármore branco da arquitetura |
+| Ocre | `ochre_light/mid/shade/dark` | Cerâmico, terra, tijolo cru, madeira |
+| Argila | `clay_light #F8A870`, `clay_mid #D87848`, `clay_shade #A84830` | Terracota e argila crua dos props e do forno |
 | Egeu | `aegean_light/mid/shade/dark` | Kleia, Coerência, água, sombra de neve |
 | Oliva | `olive_light/mid/shade` | Vegetação |
 | Vermelho | `red_light/mid/dark` | Damaris, Refutação |
 | Roxo | `purple_light/mid/dark` | Thrasybios, Maiêutica, véu da Pítia |
 | Ouro | `gold_light/mid/dark` | Plateia, cursor, bordas |
 | Pele / cabelo | `skin_light/mid/shade`, `hair_dark/mid` | Personagens |
-| UI | `ui_background #181828`, `ui_border #F8F8F0` | Caixas |
+| UI atual | `ui_background #181828`, `ui_border #F8F8F0` | Caixas atuais |
+| Vazio e UI nova | `void #000000`, `ui_white #F8F8F8`, `ui_gold #F8D830`, `ui_blue #3868D8` | Fundo fora do mapa, névoa e o HUD da referência |
+| Alcance | `move_light #C8F058`, `move_mid #88C030` | Só o `hl_move` |
+
+`void`, `ui_*` e `move_*` nunca entram em sprite do mundo.
 
 Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qualquer arte entrar em `art/`:
 
@@ -245,6 +255,7 @@ O template de prompt, os negativos e a variação para tiles estão na seção 9
    - O redimensionamento é Nearest Neighbor. Como cada pixel é mapeado sozinho, dá no mesmo que quantizar primeiro.
    - Cada pixel vai para a cor mais próxima da paleta pela distância RGB ponderada por luminância, `30·ΔR² + 59·ΔG² + 11·ΔB²` (`weighted_distance` em `tools/art/palette.py`), sem dithering. O peso multiplica a diferença já elevada ao quadrado: pesar o canal antes de elevar ao quadrado eleva o peso também, e aí o azul quase não conta e violeta vira marrom.
    - Se sobrarem mais de 15 cores, ficam as 15 mais usadas e o resto é remapeado entre elas (`--max-colors 0` desliga).
+   - Sprite do mundo é quantizado contra a rampa do material (§4.6 da spec), passada em `--palette` como um `.gpl` com só aquelas entradas da `snes.gpl`. Com a paleta inteira, o branco quase puro cai em `ui_white` e o preto em `void`.
    - Ao final, o script já roda as mesmas checagens do `verify.py` sobre a saída.
 3. Confira o lote com o relatório de cores por arquivo; ele sai com código 1 se algo quebrar as regras:
    ```powershell
@@ -264,8 +275,8 @@ O Aseprite guarda a paleta padrão na pasta do usuário, fora do repositório: `
    - Na próxima abertura, o Aseprite não acha o `default.ase`, carrega o `default.gpl` como padrão e o grava como `default.ase` (`load_default_palette`, em `src/app/modules/palettes.cpp`).
    - Instalação portátil, com `aseprite.ini` ao lado do executável, usa a pasta do executável: passe `--user-folder <pasta>`.
 2. Abra o Aseprite uma vez e rode `python tools/art/aseprite_palette.py --check`.
-   - Ele sai com 0 só quando o `default.ase` gravado pelo Aseprite tem as 33 entradas da `snes.gpl`, na ordem.
-   - Antes disso, sai com 1 e diz `pending`, `FAIL` ou qual entrada difere. *File → New* também deve abrir com as 33 cores.
+   - Ele sai com 0 só quando o `default.ase` gravado pelo Aseprite tem as 44 entradas da `snes.gpl`, na ordem.
+   - Antes disso, sai com 1 e diz `pending`, `FAIL` ou qual entrada difere. *File → New* também deve abrir com as 44 entradas.
 3. Pela interface, o caminho equivalente fica no menu de opções da paleta (botão ☰ acima das cores): *Load Palette* com a `snes.gpl` e depois *Save Palette as Default*.
 4. Para converter um sprite à mão, use *Sprite → Color Mode → More Options…*, com modo *Indexed* e dithering *No Dithering*.
 

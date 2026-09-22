@@ -35,3 +35,14 @@ Columns: 8
  96  64  48	hair_mid
  24  24  40	ui_background
 248 248 240	ui_border
+  0   0   0	void
+248 248 248	ui_white
+248 216  48	ui_gold
+ 56 104 216	ui_blue
+200 240  88	move_light
+136 192  48	move_mid
+248 168 112	clay_light
+216 120  72	clay_mid
+168  72  48	clay_shade
+160 168 184	marble_cold_shade
+104 112 136	marble_cold_dark

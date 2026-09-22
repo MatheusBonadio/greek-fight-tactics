@@ -187,7 +187,7 @@ class InstallTests(unittest.TestCase):
         self.migrate_like_aseprite()
         code, output = self.run_tool("--check")
         self.assertEqual(code, 0, output)
-        self.assertIn(f"ok: {DEFAULT_ASE} holds the 33 entries", output)
+        self.assertIn(f"ok: {DEFAULT_ASE} holds the 44 entries", output)
 
     def test_installing_again_changes_nothing(self):
         self.run_tool()
