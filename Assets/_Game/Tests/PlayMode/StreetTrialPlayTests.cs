@@ -20,6 +20,8 @@ namespace Game.Tests.PlayMode
         private const string Summons = "agora_street_trial_summons";
         private const string MenexenoGone = "agora_menexeno_gone";
         private const string LostFlag = "lost_street_trial";
+
+        private static readonly Coord TrialPost = new(10, 8);
         private const float TimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 90f;
         private const int MaxConfirms = 128;
@@ -74,6 +76,10 @@ namespace Game.Tests.PlayMode
 
             Assert.IsTrue(Trial.IsPlaced, "the trial waits on the stoa steps");
             Assert.IsFalse(Market.IsPlaced, "Thrasybios left the market for the steps");
+            Assert.IsTrue(sandbox.IsArriving(Trial.Actor), "he climbs the steps in front of everyone instead of appearing there");
+            Assert.IsNull(director.ChallengerAt(Trial.Actor.Walker.Cell), "nobody is challenged halfway up the steps");
+            yield return WaitFor(() => !Trial.Actor.Walker.IsMoving, TimeoutSeconds);
+            Assert.AreEqual(TrialPost, Trial.Actor.Walker.Cell, "he takes his place between the columns");
             phaseCues.Clear();
             scriptsSeen.Clear();
             director.PhaseStarted += phaseCues.Add;

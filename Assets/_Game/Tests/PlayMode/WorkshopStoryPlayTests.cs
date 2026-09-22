@@ -205,7 +205,11 @@ namespace Game.Tests.PlayMode
             menexeno = map.Cutscenes.Cast[MenexenoCharacter];
             Assert.IsNotNull(menexeno.Walker, "Menexeno followed Kleia home after the duel");
             Assert.IsTrue(menexeno.gameObject.activeSelf);
-            Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell);
+            Assert.AreNotEqual(MenexenoPost, menexeno.Walker.Cell, "he comes down the road instead of appearing at the door");
+            Assert.IsTrue(map.Sandbox.IsSettling, "the workshop waits for him to arrive before any scene plays");
+            yield return WaitFor(() => !menexeno.Walker.IsMoving);
+            Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell, "he walks up to the door and waits there");
+            Assert.IsFalse(map.Sandbox.IsSettling);
             yield return Frames(QuietFrames);
             Assert.IsFalse(map.Dialogues.IsTalking, "arriving from the agora does not replay the tutorial");
 
@@ -261,7 +265,8 @@ namespace Game.Tests.PlayMode
             yield return LoadWorkshop(loaded => map = loaded, false);
             var menexeno = map.Cutscenes.Cast[MenexenoCharacter];
             Assert.IsNotNull(menexeno.Walker, "the won duel in the old save brings Menexeno to the door");
-            Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell);
+            yield return WaitFor(() => !menexeno.Walker.IsMoving);
+            Assert.AreEqual(MenexenoPost, menexeno.Walker.Cell, "he walks down the road and waits at the door");
 
             map.Sandbox.Player.Walker.Teleport(Street, Facing.SouthWest);
             var scene = default(DoorScene);

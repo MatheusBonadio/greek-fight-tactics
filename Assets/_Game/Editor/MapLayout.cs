@@ -48,9 +48,20 @@ namespace Game.EditorTools
 
         public List<MapCondition> Conditions { get; set; } = new();
 
+        public MapCell Enters { get; set; }
+
         public bool IsConditional => Conditions.Count > 0;
 
+        public bool WalksIn => Enters != null;
+
         public IEnumerable<StoryCondition> StoryConditions => Conditions.Select(condition => condition.ToCondition());
+    }
+
+    public sealed class MapCell
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
     }
 
     public sealed class MapTrigger
@@ -290,6 +301,7 @@ namespace Game.EditorTools
                 }
 
                 ValidateConditions($"{actor.Character} at ({actor.X}, {actor.Y})", actor.Conditions);
+                ValidateEntrance(actor);
             }
 
             if (Actors[0].IsConditional)
@@ -549,6 +561,66 @@ namespace Game.EditorTools
             {
                 throw new InvalidOperationException($"map {Id}: {owner} points outside the map at ({x}, {y})");
             }
+        }
+
+        private void ValidateEntrance(MapActor actor)
+        {
+            if (!actor.WalksIn)
+            {
+                return;
+            }
+
+            var owner = $"{actor.Character} at ({actor.X}, {actor.Y})";
+            var door = actor.Enters;
+            if (!actor.IsConditional)
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} is always on the map, so it has nowhere to walk in from");
+            }
+
+            if (door.X < 0 || door.Y < 0 || door.X >= Width || door.Y >= Height || !IsWalkable(door.X, door.Y))
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} walks in from ({door.X}, {door.Y}), which is not a walkable cell");
+            }
+
+            if (door.X == actor.X && door.Y == actor.Y)
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} walks in from the cell it already stands on");
+            }
+
+            if (Actors.Any(other => other != actor && other.X == door.X && other.Y == door.Y))
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} walks in over another actor at ({door.X}, {door.Y})");
+            }
+
+            if (!Reaches((door.X, door.Y), (actor.X, actor.Y)))
+            {
+                throw new InvalidOperationException($"map {Id}: {owner} cannot walk from ({door.X}, {door.Y}) to its place");
+            }
+        }
+
+        private bool Reaches((int X, int Y) from, (int X, int Y) to)
+        {
+            var seen = new HashSet<(int, int)> { from };
+            var queue = new Queue<(int X, int Y)>();
+            queue.Enqueue(from);
+            while (queue.Count > 0)
+            {
+                var cell = queue.Dequeue();
+                if (cell == to)
+                {
+                    return true;
+                }
+
+                foreach (var step in new[] { (cell.X + 1, cell.Y), (cell.X - 1, cell.Y), (cell.X, cell.Y + 1), (cell.X, cell.Y - 1) })
+                {
+                    if (CanStep(cell, step) && seen.Add(step))
+                    {
+                        queue.Enqueue(step);
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void ValidateConditions(string owner, IEnumerable<MapCondition> conditions)

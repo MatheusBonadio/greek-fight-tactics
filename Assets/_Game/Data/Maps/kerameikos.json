@@ -78,6 +78,7 @@
       "x": 3,
       "y": 6,
       "facing": "NorthEast",
+      "enters": { "x": 15, "y": 0 },
       "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
     },
     {
@@ -101,6 +102,7 @@
       "x": 12,
       "y": 1,
       "facing": "NorthEast",
+      "enters": { "x": 15, "y": 1 },
       "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
     }
   ],
@@ -176,7 +178,7 @@
         { "at": 2.25, "action": "Dialogue", "dialogue": "menexeno_door_glance" },
         { "at": 2.75, "action": "Face", "actor": "menexeno", "toward": "kleia" },
         { "at": 3.0, "action": "Dialogue", "dialogue": "menexeno_door_lesson" },
-        { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 4, "y": 0 },
+        { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 15, "y": 0 },
         { "at": 3.75, "action": "Leave", "actor": "menexeno" },
         { "at": 4.5, "action": "Dialogue", "dialogue": "menexeno_door_learned" }
       ]

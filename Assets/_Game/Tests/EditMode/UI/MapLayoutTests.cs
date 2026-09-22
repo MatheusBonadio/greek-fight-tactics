@@ -722,6 +722,70 @@ namespace Game.Tests.EditMode.UI
             CollectionAssert.Contains(gone.StoryConditions.Select(condition => condition.ToString()).ToList(), DamarisOffer.MenexenoAbsentDaysFlag);
         }
 
+        [Test]
+        public void ConditionalNeighbours_WalkInFromTheRoadInsteadOfAppearing()
+        {
+            var workshop = MapLayout.Load(SandboxTools.KerameikosMapPath);
+            var agora = MapLayout.Load(SandboxTools.MapPath);
+            var road = workshop.Exits.Where(exit => exit.Location == SandboxTools.AgoraLocationId).Select(exit => (exit.X, exit.Y)).ToList();
+
+            foreach (var character in new[] { MenexenoCharacter, DamarisCharacter })
+            {
+                var actor = workshop.Actors.Single(entry => entry.Character == character);
+                Assert.IsTrue(actor.WalksIn, $"{character} comes from the agora, so he walks in");
+                CollectionAssert.Contains(road, (actor.Enters.X, actor.Enters.Y), $"{character} enters by the road to the agora");
+            }
+
+            var trial = agora.Actors.Single(entry => entry.Character == "thrasybios_street_trial");
+            var market = agora.Actors.Single(entry => entry.Character == "thrasybios");
+            Assert.IsTrue(trial.WalksIn, "the herald calls him, and he climbs the steps in front of everyone");
+            Assert.LessOrEqual(Distance((trial.Enters.X, trial.Enters.Y), (market.X, market.Y)), 2, "he starts from the market he was working");
+
+            var goodbye = workshop.Cutscenes.Single(cutscene => cutscene.Id == "menexeno_follows_home").Steps;
+            var walk = goodbye.Single(step => step.Action == CutsceneAction.Walk && step.Actor == MenexenoCharacter);
+            CollectionAssert.Contains(road, (walk.X.Value, walk.Y.Value), "when the lesson ends he takes the road back to the agora");
+            Assert.Less(goodbye.IndexOf(walk), goodbye.FindIndex(step => step.Action == CutsceneAction.Leave), "he only leaves the map once he is at the road");
+        }
+
+        [Test]
+        public void AnEntrance_MustBeAWalkableCellThatLeadsToThePlaceTheActorWaitsIn()
+        {
+            AssertRejectsEntrance(actor => actor.Enters = new MapCell { X = 5, Y = 0 }, "an entrance outside the map is refused");
+            AssertRejectsEntrance(actor => actor.Enters = new MapCell { X = 1, Y = 1 }, "an entrance on the cell the actor waits in is refused");
+            AssertRejectsEntrance(actor => actor.Enters = new MapCell { X = 0, Y = 0 }, "an entrance on another actor is refused");
+
+            var blocked = Tiny();
+            blocked.Floor = new List<string> { "..", ".w" };
+            blocked.Actors.Add(new MapActor
+            {
+                Character = "citizen",
+                X = 1,
+                Y = 0,
+                Enters = new MapCell { X = 1, Y = 1 },
+                Conditions = new List<MapCondition> { new() { Flag = "met_him" } }
+            });
+            Assert.Throws<InvalidOperationException>(() => blocked.Validate(), "an entrance in the water is refused");
+
+            var always = Tiny();
+            always.Actors.Add(new MapActor { Character = "citizen", X = 1, Y = 1, Enters = new MapCell { X = 1, Y = 0 } });
+            Assert.Throws<InvalidOperationException>(() => always.Validate(), "an actor who never waits for the story has nowhere to walk in from");
+        }
+
+        private static void AssertRejectsEntrance(Action<MapActor> spoil, string reason)
+        {
+            var map = Tiny();
+            var actor = new MapActor
+            {
+                Character = "citizen",
+                X = 1,
+                Y = 1,
+                Conditions = new List<MapCondition> { new() { Flag = "met_him" } }
+            };
+            spoil(actor);
+            map.Actors.Add(actor);
+            Assert.Throws<InvalidOperationException>(() => map.Validate(), reason);
+        }
+
         private static void AssertRejects(Action<MapCutscene> spoil, string reason)
         {
             var map = WithCast();

@@ -51,6 +51,8 @@ namespace Game.UI
         private readonly List<Coord> path = new();
         private readonly HashSet<Coord> closedExits = new();
         private readonly HashSet<ActorView> departed = new();
+        private readonly HashSet<ActorView> arriving = new();
+        private readonly List<Coord> walkedPath = new();
         private GridModel grid;
         private FogOfWar fog;
         private GridCursor cursor;
@@ -431,23 +433,82 @@ namespace Game.UI
 
                 if (actor.Walker == null && !departed.Contains(actor))
                 {
-                    placedEveryone &= TryPlace(actor);
+                    placedEveryone &= TryPlace(actor, presence.WalksIn ? presence.Entrance : (Coord?)null);
                 }
             }
 
             return placedEveryone;
         }
 
-        private bool TryPlace(ActorView actor)
+        public bool IsArriving(ActorView actor) =>
+            actor && arriving.Contains(actor) && actor.Walker != null && actor.Walker.IsMoving;
+
+        public bool IsSettling
         {
-            var cell = ToCoord(actor.StartCell);
+            get
+            {
+                foreach (var actor in arriving)
+                {
+                    if (actor && actor.Walker != null && actor.Walker.IsMoving)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        private void SettleArrivals()
+        {
+            if (arriving.Count == 0)
+            {
+                return;
+            }
+
+            arriving.RemoveWhere(actor => !actor || actor.Walker == null || HasTakenItsPlace(actor));
+        }
+
+        private bool HasTakenItsPlace(ActorView actor)
+        {
+            var walker = actor.Walker;
+            if (walker.IsMoving)
+            {
+                return false;
+            }
+
+            var post = ToCoord(actor.StartCell);
+            if (walker.Cell == post)
+            {
+                return true;
+            }
+
+            if (pathFinder.FindPath(grid, walker.Cell, post, walkedPath))
+            {
+                walker.Follow(walkedPath);
+            }
+
+            return false;
+        }
+
+        private bool TryPlace(ActorView actor, Coord? entrance = null)
+        {
+            var post = ToCoord(actor.StartCell);
+            var cell = entrance ?? post;
             if (!grid.TryGet(cell, out var tile) || !tile.IsPassable || tile.IsOccupied)
             {
                 return false;
             }
 
+            var walker = new GridWalker(grid, actors.IndexOf(actor) + 1, cell, actor.StartFacing);
             actor.gameObject.SetActive(true);
-            actor.Bind(new GridWalker(grid, actors.IndexOf(actor) + 1, cell, actor.StartFacing));
+            actor.Bind(walker);
+            if (entrance.HasValue && pathFinder.FindPath(grid, cell, post, walkedPath))
+            {
+                walker.Follow(walkedPath);
+                arriving.Add(actor);
+            }
+
             return true;
         }
 
@@ -692,6 +753,7 @@ namespace Game.UI
             }
 
             TryRestoreActiveSave();
+            SettleArrivals();
             if (Debug.isDebugBuild && Keyboard.current != null && Keyboard.current.f3Key.wasPressedThisFrame)
             {
                 DebugPanelVisible = !DebugPanelVisible;

@@ -324,6 +324,11 @@ namespace Game.UI
                 return;
             }
 
+            if (sandbox.IsSettling)
+            {
+                return;
+            }
+
             if (pendingTrigger != null)
             {
                 var trigger = pendingTrigger;

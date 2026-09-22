@@ -352,7 +352,10 @@ namespace Game.EditorTools
             controller.ConfigurePresences(map.Actors
                 .Select((actor, index) => (actor, index))
                 .Where(pair => pair.actor.IsConditional)
-                .Select(pair => new ActorPresenceLink(actors[pair.index], pair.actor.StoryConditions))
+                .Select(pair => new ActorPresenceLink(
+                    actors[pair.index],
+                    pair.actor.StoryConditions,
+                    pair.actor.WalksIn ? new Coord(pair.actor.Enters.X, pair.actor.Enters.Y) : null))
                 .ToList());
             controller.ConfigureBlockPresences(map.ConditionalBlocks
                 .Select(block => new BlockPresenceLink(new Coord(block.X, block.Y), FloorCost(map.FloorAt(block.X, block.Y)), block.StoryConditions))

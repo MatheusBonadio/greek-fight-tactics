@@ -467,7 +467,7 @@ namespace Game.UI
             challengers.Clear();
             foreach (var entry in opponents)
             {
-                if (entry == null || !entry.IsPlaced)
+                if (entry == null || !entry.IsPlaced || sandbox.IsArriving(entry.Actor))
                 {
                     challengers.Add(Challenger.Absent);
                     continue;
