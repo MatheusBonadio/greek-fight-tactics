@@ -255,6 +255,7 @@ namespace Game.UI
                 InitialAudience = opponent.InitialAudience,
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
+                PlayerCoherence = tutorial != null ? BattleSession.PlayerMaxCoherence : StoryStamina.Carried(CurrentStory(), BattleSession.PlayerMaxCoherence),
                 LockedActions = ActionUnlocks.LockedIn(CurrentStory(), ActionMenuModel.PlayerActions),
                 Abilities = AbilityUnlocks.OwnedIn(CurrentStory()),
                 Spectators = crowd ? crowd.Reservations : Array.Empty<KeyValuePair<int, Coord>>(),
@@ -894,6 +895,18 @@ namespace Game.UI
             hud.Dialogue.Show(new DialogueLine(speaker, portrait, body));
         }
 
+        private void RememberTheToll(string result)
+        {
+            if (tutorial != null)
+            {
+                return;
+            }
+
+            var player = Session.State.Player;
+            storyteller.Remember(StoryStamina.Toll(result, player.Coherence, player.MaxCoherence));
+            storyteller.Remember(ReputationRules.Toll(storyteller.Story, result));
+        }
+
         private void EndBattle()
         {
             LastResult = Session.State.Status;
@@ -907,6 +920,7 @@ namespace Game.UI
             if (storyteller)
             {
                 storyteller.Remember(result);
+                RememberTheToll(DuelStoryResults.ValueFor(LastResult));
             }
 
             StateMachine.TryTransition(GameMode.BattleResolve);

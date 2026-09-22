@@ -6,7 +6,7 @@ namespace Game.Battle
 {
     public sealed class Debater
     {
-        public Debater(int id, Side side, Profile profile, int maxCoherence, int initiative, Coord position, Facing facing)
+        public Debater(int id, Side side, Profile profile, int maxCoherence, int initiative, Coord position, Facing facing, int? coherence = null)
         {
             if (id == TileData.NoOccupant)
             {
@@ -22,7 +22,7 @@ namespace Game.Battle
             Side = side;
             Profile = profile;
             MaxCoherence = maxCoherence;
-            Coherence = maxCoherence;
+            Coherence = Math.Clamp(coherence ?? maxCoherence, 1, maxCoherence);
             Initiative = initiative;
             Position = position;
             Facing = facing;

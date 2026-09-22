@@ -630,6 +630,7 @@ namespace Game.UI
             if (cameHome)
             {
                 StoryDays.Pass(story);
+                StoryStamina.Rest(story);
             }
 
             ShowConditionalBlocks(story);
@@ -652,6 +653,7 @@ namespace Game.UI
                     if (cameHome)
                     {
                         StoryDays.Pass(arrival);
+                        StoryStamina.Rest(arrival);
                     }
 
                     services.Autosave(arrival);

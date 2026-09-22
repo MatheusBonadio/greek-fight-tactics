@@ -817,6 +817,15 @@
       "description": "**Depende de:** [ART-05] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] idle(2), idle_respiro(4), walk(4), falar(3)\n- [ ] refutar(5), maieutica(6), conceder(4), citar(4)\n- [ ] dano_coerencia(3), derrota(6), vitoria(4), pensar(3)\n- [ ] Todas as curvas em Constant no Animator\n- [ ] Flash de dano: paleta inteira vira `marble_light` por 1 frame, via Shader Graph no material do sprite — sem pass de tela"
     },
     {
+      "title": "[BTL-07] Custo da derrota e descanso",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Unity / Core",
+        "Narrativa"
+      ],
+      "description": "Perder ou fugir precisa doer na jornada, e a Kleia precisa de um jeito de se recuperar.\n\n**Depende de:** [BTL-03], [AT1-06] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Coerência sobra de um duelo para o outro\n- [x] Perder deixa a Kleia no piso, fugir cobra um pedaço\n- [x] Dormir na oficina do Cerâmico devolve a Coerência inteira\n- [x] Reputação cai ao perder e ao fugir, e sobe ao vencer\n- [x] Save antigo sem o registro continua valendo"
+    },
+    {
       "title": "[UI-06] Medidor de 501 jurados",
       "labels": [
         "Sprint 05 · Tribunal & Lançamento",

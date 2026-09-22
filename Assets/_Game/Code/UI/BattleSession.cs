@@ -15,6 +15,8 @@ namespace Game.UI
 
         public Facing PlayerFacing { get; set; } = Facing.NorthEast;
 
+        public int? PlayerCoherence { get; set; }
+
         public int OpponentId { get; set; }
 
         public Coord OpponentCell { get; set; }
@@ -125,7 +127,7 @@ namespace Game.UI
             var spectators = (setup.Spectators ?? Enumerable.Empty<KeyValuePair<int, Coord>>())
                 .Where(spectator => spectator.Value != setup.PlayerCell && spectator.Value != setup.OpponentCell);
             var grid = CopyForBattle(exploration, new[] { setup.PlayerId, setup.OpponentId }, spectators);
-            var player = new Debater(setup.PlayerId, Side.Player, Profile.Philosopher, PlayerMaxCoherence, PlayerInitiative, setup.PlayerCell, setup.PlayerFacing);
+            var player = new Debater(setup.PlayerId, Side.Player, Profile.Philosopher, PlayerMaxCoherence, PlayerInitiative, setup.PlayerCell, setup.PlayerFacing, setup.PlayerCoherence);
             var opponent = new Debater(setup.OpponentId, Side.Opponent, setup.OpponentProfile, setup.OpponentMaxCoherence, OpponentInitiative, setup.OpponentCell, setup.OpponentFacing);
             var state = new BattleState(
                 grid,

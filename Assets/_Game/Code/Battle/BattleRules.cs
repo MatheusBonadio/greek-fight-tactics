@@ -1,3 +1,5 @@
+using Game.Core;
+
 namespace Game.Battle
 {
     public sealed class BattleRules
@@ -28,7 +30,7 @@ namespace Game.Battle
 
         public int ConcedeAudienceLoss { get; set; } = 10;
 
-        public int WithdrawReputationPenalty { get; set; } = 10;
+        public int WithdrawReputationPenalty { get; set; } = ReputationRules.WithdrawPenalty;
 
         public int SophistArgueAudienceShift { get; set; } = 8;
 
