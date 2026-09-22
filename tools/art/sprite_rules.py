@@ -5,7 +5,7 @@ from typing import Optional
 
 from images import OPAQUE, TRANSPARENT, rgba_pixels, stem
 from palette import is_rgb555, to_hex
-from tile_preview import count_gaps
+from tile_preview import CELL_HEIGHT, CELL_WIDTH, count_gaps, count_outside_footprint
 
 MAX_OPAQUE_COLORS = 15
 LISTED_COLORS = 6
@@ -19,7 +19,8 @@ RGB555_RULE = "rgb555"
 PALETTE_RULE = "palette"
 SIZE_RULE = "size"
 TILING_RULE = "tiling"
-RULES = (COLORS_RULE, ALPHA_RULE, RGB555_RULE, PALETTE_RULE, SIZE_RULE, TILING_RULE)
+FOOTPRINT_RULE = "footprint"
+RULES = (COLORS_RULE, ALPHA_RULE, RGB555_RULE, PALETTE_RULE, SIZE_RULE, TILING_RULE, FOOTPRINT_RULE)
 
 FLOOR_PREFIX = "floor_"
 
@@ -32,6 +33,7 @@ class SizeRule:
     max_width: int
     min_height: int
     max_height: Optional[int]
+    diamond: bool = False
 
     def matches(self, name):
         return re.search(self.pattern, name) is not None
@@ -56,14 +58,14 @@ class SizeRule:
         return f"{width}x{height}"
 
 
-def exact(label, pattern, width, height):
-    return SizeRule(label, pattern, width, width, height, height)
+def exact(label, pattern, width, height, diamond=False):
+    return SizeRule(label, pattern, width, width, height, height, diamond)
 
 
 SIZE_RULES = (
-    exact("floor tile", r"^floor_", 32, 16),
-    exact("fog overlay", r"^fog(_edge_(ne|nw|se|sw))?$", 32, 16),
-    exact("range highlight", r"^hl_", 32, 16),
+    exact("floor tile", r"^floor_", CELL_WIDTH, CELL_HEIGHT, diamond=True),
+    exact("fog overlay", r"^fog(_edge_(ne|nw|se|sw))?$", CELL_WIDTH, CELL_HEIGHT, diamond=True),
+    exact("range highlight", r"^hl_", CELL_WIDTH, CELL_HEIGHT, diamond=True),
     exact("wall", r"^wall_", 32, 32),
     SizeRule("block, 32x(16+height)", r"^block_", 32, 32, 17, None),
     SizeRule("prop, up to 48x64", r"^prop_", 32, 48, 16, 64),
@@ -143,6 +145,7 @@ def inspect(path, image, palette, skip=()):
         (PALETTE_RULE, lambda current: check_palette(current, palette)),
         (SIZE_RULE, check_size),
         (TILING_RULE, lambda current: check_tiling(current, image)),
+        (FOOTPRINT_RULE, lambda current: check_footprint(current, image)),
     )
     for rule, check in checks:
         if rule not in skip:
@@ -197,3 +200,13 @@ def check_tiling(report, image):
     if not gaps:
         return []
     return [Issue(TILING_RULE, ERROR, f"{plural(gaps, 'gap pixel')} when the tile repeats on the isometric grid")]
+
+
+def check_footprint(report, image):
+    rule = size_rule_for(report.path)
+    if rule is None or not rule.diamond:
+        return []
+    outside = count_outside_footprint(image)
+    if not outside:
+        return []
+    return [Issue(FOOTPRINT_RULE, ERROR, f"{plural(outside, 'opaque pixel')} outside the {CELL_WIDTH}x{CELL_HEIGHT} diamond, clear the background around it")]

@@ -483,8 +483,9 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
 - Trocar o modo de import de uma textura muda o fileID do sprite. Depois de mexer no importer, rode `ArtTools.SliceSheets` **e** `DataTools.Regenerate`, que religa os ícones dos `FallacySO`.
 - **Arte nova antes da Unity (`tools/art/`, Python 3 + Pillow):**
   - `quantize.py` leva uma pasta de PNGs brutos para a `snes.gpl` sem dithering, redimensiona com Nearest Neighbor para a dimensão exata (`--size`, `--like art/placeholders` ou prefixo do nome) e deixa no máximo 15 cores.
-  - `verify.py` imprime a contagem de cores por arquivo e sai com 1 quando um PNG tem mais de 15 cores + transparente, alfa parcial, cor fora do RGB555 ou da paleta, dimensão errada para o prefixo (`SIZE_RULES` em `sprite_rules.py`) ou é um chão que deixa vão ao repetir.
+  - `verify.py` imprime a contagem de cores por arquivo e sai com 1 quando um PNG tem mais de 15 cores + transparente, alfa parcial, cor fora do RGB555 ou da paleta, dimensão errada para o prefixo (`SIZE_RULES` em `sprite_rules.py`), pixel opaco fora do losango num chão, névoa ou realce (`FLOOR_FOOTPRINT`, o fundo que a IA esquece) ou chão que deixa vão ao repetir.
   - `tile_preview.py` cola 4 cópias do tile na grade e grava a prévia em `artifacts/art/tiling/`.
+  - `aseprite_palette.py` copia a `snes.gpl` para `palettes/default.gpl` na pasta do usuário do Aseprite e põe o `default.ase` antigo de lado, e o Aseprite a adota na próxima abertura. O `--check` confere o `default.ase` gravado.
   - Testes: `python -m unittest discover -s tools/art`. Hoje `verify.py art/placeholders` falha em 34 arquivos por pendências conhecidas, listadas na skill.
 
 ---

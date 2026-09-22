@@ -4,11 +4,14 @@ import os
 import tempfile
 import unittest
 
-from images import TRANSPARENT, load_rgba, parse_color, png_files
-from tests.builders import FLOOR_FOLDER, MARBLE_FLOOR, filled, marble_floor, save, shrink_diamond
-from tile_preview import CELL_HEIGHT, CELL_WIDTH, DEFAULT_BACKGROUND, compose, count_gaps, main
+from images import TRANSPARENT, load_rgba, parse_color, png_files, rgba_pixels
+from tests.builders import FLOOR_FOLDER, MARBLE_FLOOR, OVERLAY_FOLDER, diamond, filled, marble_floor, on_background, save, shrink_diamond
+from tile_preview import CELL_HEIGHT, CELL_WIDTH, DEFAULT_BACKGROUND, compose, count_gaps, count_outside_footprint, main
 
 TILE_CENTER = (CELL_WIDTH // 2, CELL_HEIGHT // 2)
+FOOTPRINT_PIXELS = 268
+OUTLINE_BLUE = (16, 24, 40)
+MARBLE_LIGHT = (248, 248, 240)
 
 
 def run(arguments):
@@ -56,6 +59,29 @@ class GapTests(unittest.TestCase):
         self.assertIsNone(count_gaps(filled((CELL_WIDTH, 32), (8, 8, 16))))
 
 
+class FootprintTests(unittest.TestCase):
+    def test_the_footprint_is_the_shape_of_the_placeholder_floors(self):
+        footprint = [pixel[3] for pixel in rgba_pixels(diamond(OUTLINE_BLUE))]
+        self.assertEqual(sum(1 for alpha in footprint if alpha != TRANSPARENT), FOOTPRINT_PIXELS)
+        for path, _ in png_files([FLOOR_FOLDER]):
+            self.assertEqual([pixel[3] for pixel in rgba_pixels(load_rgba(path))], footprint, path)
+
+    def test_the_footprint_repeats_without_gaps(self):
+        self.assertEqual(count_gaps(diamond(OUTLINE_BLUE)), 0)
+
+    def test_placeholder_floors_and_overlays_stay_inside_the_diamond(self):
+        for path, _ in png_files([FLOOR_FOLDER, OVERLAY_FOLDER]):
+            self.assertEqual(count_outside_footprint(load_rgba(path)), 0, path)
+
+    def test_a_background_left_around_the_tile_is_counted(self):
+        tile = on_background(marble_floor(), MARBLE_LIGHT)
+        self.assertEqual(count_gaps(tile), 0)
+        self.assertEqual(count_outside_footprint(tile), CELL_WIDTH * CELL_HEIGHT - FOOTPRINT_PIXELS)
+
+    def test_only_cell_sized_tiles_are_measured(self):
+        self.assertIsNone(count_outside_footprint(filled((CELL_WIDTH, 32), OUTLINE_BLUE)))
+
+
 class PreviewCommandTests(unittest.TestCase):
     def test_writes_a_scaled_preview_over_the_background(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -84,6 +110,13 @@ class PreviewCommandTests(unittest.TestCase):
             code, output = run([path, "--out", os.path.join(folder, "out")])
         self.assertEqual(code, 1)
         self.assertIn("gap pixels", output)
+
+    def test_exits_with_one_when_a_tile_keeps_its_background(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = save(on_background(marble_floor(), MARBLE_LIGHT), folder, "floor_boxed.png")
+            code, output = run([path, "--out", os.path.join(folder, "out")])
+        self.assertEqual(code, 1)
+        self.assertIn(f"{CELL_WIDTH * CELL_HEIGHT - FOOTPRINT_PIXELS} opaque pixels outside the diamond", output)
 
 
 if __name__ == "__main__":

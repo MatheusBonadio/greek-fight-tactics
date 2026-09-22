@@ -18,6 +18,29 @@ DEFAULT_BACKGROUND = "F800F8"
 NO_BACKGROUND = "none"
 DEFAULT_OUT = os.path.join(ROOT, "artifacts", "art", "tiling")
 PREVIEW_SUFFIX = "_tiling.png"
+FOOTPRINT_PIXEL = "#"
+FLOOR_FOOTPRINT = (
+    "...............##...............",
+    ".............######.............",
+    "...........##########...........",
+    ".........##############.........",
+    ".......##################.......",
+    ".....######################.....",
+    "...##########################...",
+    ".##############################.",
+    "################################",
+    "..############################..",
+    "....########################....",
+    "......####################......",
+    ".........###############........",
+    "...........###########..........",
+    ".............#######............",
+    "...............###..............",
+)
+
+
+def in_footprint(x, y):
+    return FLOOR_FOOTPRINT[y][x] == FOOTPRINT_PIXEL
 
 
 def overflow(tile):
@@ -50,6 +73,26 @@ def count_gaps(tile):
     return sum(1 for pixel in rgba_pixels(window) if pixel[3] == TRANSPARENT)
 
 
+def count_outside_footprint(tile):
+    if tile.size != (CELL_WIDTH, CELL_HEIGHT):
+        return None
+    pixels = rgba_pixels(tile)
+    return sum(1 for index, pixel in enumerate(pixels) if pixel[3] != TRANSPARENT and not in_footprint(index % CELL_WIDTH, index // CELL_WIDTH))
+
+
+def cell_problems(tile):
+    gaps = count_gaps(tile)
+    if gaps is None:
+        return None
+    outside = count_outside_footprint(tile)
+    problems = []
+    if outside:
+        problems.append(f"{outside} opaque pixels outside the diamond")
+    if gaps:
+        problems.append(f"{gaps} gap pixels when repeated")
+    return problems
+
+
 def render_preview(tile, grid=PREVIEW_GRID, scale=DEFAULT_SCALE, background=None):
     preview = compose(tile, grid)
     if background is not None:
@@ -78,7 +121,7 @@ def background_color(text):
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         prog="tile_preview.py",
-        description="Paste copies of each tile on the 32x16 isometric grid, export an upscaled preview and count the gaps left when a floor tile repeats.",
+        description="Paste copies of each tile on the 32x16 isometric grid, export an upscaled preview and fail when a 32x16 tile has opaque pixels outside the diamond or leaves gaps when it repeats.",
     )
     parser.add_argument("paths", nargs="+", help="tile PNGs or folders of tiles")
     parser.add_argument("--out", default=DEFAULT_OUT, help="folder for the <tile>_tiling.png previews (default: artifacts/art/tiling)")
@@ -103,17 +146,17 @@ def main(argv=None):
         target = os.path.join(arguments.out, os.path.splitext(os.path.basename(path))[0] + PREVIEW_SUFFIX)
         render_preview(tile, arguments.grid, arguments.scale, arguments.background).save(target)
 
-        gaps = count_gaps(tile)
-        if gaps is None:
-            verdict = f"gaps n/a ({tile.width}x{tile.height} is not a {CELL_WIDTH}x{CELL_HEIGHT} floor tile)"
-        elif gaps:
-            verdict = f"FAIL {gaps} gap pixels when repeated"
+        problems = cell_problems(tile)
+        if problems is None:
+            verdict = f"fit n/a ({tile.width}x{tile.height} is not a {CELL_WIDTH}x{CELL_HEIGHT} floor tile)"
+        elif problems:
+            verdict = "FAIL " + ", ".join(problems)
             failed += 1
         else:
-            verdict = "ok, no gaps"
+            verdict = "ok, no gaps and nothing outside the diamond"
         print(f"{display_path(path)} -> {display_path(target)}  {verdict}")
 
-    print(f"{len(files)} previews, {failed} with gaps")
+    print(f"{len(files)} previews, {failed} that do not fit the diamond")
     return 1 if failed else 0
 
 

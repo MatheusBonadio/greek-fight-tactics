@@ -10,7 +10,7 @@ from images import CLEAR, OPAQUE, TRANSPARENT, from_pixels, load_rgba, rgba_pixe
 from palette import load_gpl
 from quantize import SIZE_FROM_OPTION, SIZE_FROM_REFERENCE, SIZE_KEPT, main, quantize_image, target_size
 from sprite_rules import MAX_OPAQUE_COLORS
-from tests.builders import filled, marble_floor, save, strip
+from tests.builders import filled, marble_floor, on_background, save, strip
 
 UPSCALE = 8
 
@@ -133,6 +133,14 @@ class QuantizeCommandTests(unittest.TestCase):
             code, output = run([os.path.join(folder, "raw"), "--out", os.path.join(folder, "out")])
         self.assertEqual(code, 1)
         self.assertIn("error size", output)
+
+    def test_exits_with_one_when_a_raw_floor_keeps_its_background(self):
+        raw_floor = on_background(marble_floor(), (255, 255, 255)).resize((512, 256), Image.Resampling.NEAREST)
+        with tempfile.TemporaryDirectory() as folder:
+            save(raw_floor, os.path.join(folder, "raw"), "floor_marble.png")
+            code, output = run([os.path.join(folder, "raw"), "--out", os.path.join(folder, "out")])
+        self.assertEqual(code, 1)
+        self.assertIn("error footprint", output)
 
     def test_exits_with_two_when_the_input_is_missing(self):
         with tempfile.TemporaryDirectory() as folder:

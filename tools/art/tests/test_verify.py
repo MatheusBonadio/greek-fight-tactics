@@ -5,12 +5,13 @@ import unittest
 
 from images import CLEAR, load_rgba, png_files
 from palette import load_gpl
-from sprite_rules import ALPHA_RULE, COLORS_RULE, ERROR, MAX_OPAQUE_COLORS, PALETTE_RULE, RGB555_RULE, SIZE_RULE, TILING_RULE, WARNING, inspect, size_rule_for
-from tests.builders import FLOOR_FOLDER, filled, marble_floor, save, shrink_diamond, strip
+from sprite_rules import ALPHA_RULE, COLORS_RULE, ERROR, FOOTPRINT_RULE, MAX_OPAQUE_COLORS, PALETTE_RULE, RGB555_RULE, SIZE_RULE, TILING_RULE, WARNING, inspect, size_rule_for
+from tests.builders import FLOOR_FOLDER, OVERLAY_FOLDER, diamond, filled, marble_floor, on_background, save, shrink_diamond, strip
 from verify import main
 
 BAR_SIZE = (64, 8)
 OUTLINE = (8, 8, 16)
+MARBLE_LIGHT = (248, 248, 240)
 
 
 def run(arguments):
@@ -127,6 +128,30 @@ class FloorTilingTests(unittest.TestCase):
         self.assertFalse(report.issues)
 
 
+class FootprintRuleTests(unittest.TestCase):
+    def setUp(self):
+        self.palette = load_gpl()
+
+    def test_placeholder_floors_and_overlays_stay_inside_the_diamond(self):
+        for path, _ in png_files([FLOOR_FOLDER, OVERLAY_FOLDER]):
+            report = inspect(path, load_rgba(path), self.palette)
+            self.assertNotIn(FOOTPRINT_RULE, rules_of(report), path)
+
+    def test_a_floor_that_kept_its_background_fails_although_it_leaves_no_gaps(self):
+        report = inspect("floor_test.png", on_background(marble_floor(), MARBLE_LIGHT), self.palette)
+        self.assertEqual(rules_of(report), {FOOTPRINT_RULE})
+        self.assertIn("244 opaque pixels outside the 32x16 diamond", report.issues[0].message)
+
+    def test_overlays_on_the_cell_are_held_to_the_diamond(self):
+        for name in ("hl_test.png", "fog.png"):
+            report = inspect(name, filled((32, 16), MARBLE_LIGHT), self.palette)
+            self.assertEqual(rules_of(report), {FOOTPRINT_RULE}, name)
+
+    def test_blocks_may_fill_their_canvas(self):
+        report = inspect("wall_test.png", filled((32, 32), MARBLE_LIGHT), self.palette)
+        self.assertFalse(report.issues)
+
+
 class VerifyCommandTests(unittest.TestCase):
     def test_exits_with_zero_and_reports_the_colour_count(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -147,7 +172,7 @@ class VerifyCommandTests(unittest.TestCase):
 
     def test_skip_lets_a_known_exception_through(self):
         with tempfile.TemporaryDirectory() as folder:
-            save(filled((32, 16), (16, 16, 32)), folder, "fog.png")
+            save(diamond((16, 16, 32)), folder, "fog.png")
             code, _ = run([folder, "--skip", PALETTE_RULE])
         self.assertEqual(code, 0)
 

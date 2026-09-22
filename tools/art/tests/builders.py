@@ -4,8 +4,10 @@ from PIL import Image
 
 from images import CLEAR, OPAQUE, TRANSPARENT, from_pixels, load_rgba, rgba_pixels
 from palette import ROOT
+from tile_preview import CELL_HEIGHT, CELL_WIDTH, in_footprint
 
 FLOOR_FOLDER = os.path.join(ROOT, "art", "placeholders", "tiles", "floor")
+OVERLAY_FOLDER = os.path.join(ROOT, "art", "placeholders", "tiles", "overlays")
 MARBLE_FLOOR = os.path.join(FLOOR_FOLDER, "floor_marble.png")
 
 
@@ -26,6 +28,15 @@ def strip(size, colors, fill):
 
 def marble_floor():
     return load_rgba(MARBLE_FLOOR)
+
+
+def diamond(color):
+    pixels = [opaque(color) if in_footprint(x, y) else CLEAR for y in range(CELL_HEIGHT) for x in range(CELL_WIDTH)]
+    return from_pixels((CELL_WIDTH, CELL_HEIGHT), pixels)
+
+
+def on_background(tile, color):
+    return Image.alpha_composite(filled(tile.size, color), tile)
 
 
 def shrink_diamond(tile):

@@ -72,7 +72,7 @@ Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qual
 3. Contorno de tile de chão é `outline_blue`; de props e personagens, `outline`. O tile de chão só contorna as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com contorno nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
-O `verify.py` cobre as regras 1, 2 e 4, o RGB555, a dimensão pelo prefixo do nome e o encaixe dos chãos; a regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em quatro pontos, todos pendentes de decisão e não regressão:
+O `verify.py` cobre as regras 1, 2 e 4, o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa e realce (`floor_`, `fog*`, `hl_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em quatro pontos, todos pendentes de decisão e não regressão:
 - A sombra dos personagens é translúcida, em `#101020`: 16 px com alfa 90 nos `_idle_se` e 208 px em `#06060B` com alfa 32 nas folhas, que também saem do RGB555.
 - Névoa (`fog*`) em `#101020`, a cor que o GDD 6.5 pede mas que não está na paleta.
 - Realces `hl_*` a 55% de alfa, como o GDD 6.5 especifica, contra a regra 4.
@@ -234,7 +234,7 @@ Ao mexer em sorting, teste os quatro casos difíceis: prop que transborda a cél
 
 O template de prompt, os negativos e a variação para tiles estão na seção 9 do GDD. O pós-processamento não é opcional — nenhum gerador entrega RGB555 limpo. Ele é feito pelos scripts de `tools/art/` (Python 3 + Pillow, `python -m pip install -r tools/art/requirements.txt`), sem Unity:
 
-1. Tire o fundo antes: o quantizador só entende transparência pelo canal alfa (abaixo de 128 vira transparente, o resto opaco; `--alpha-threshold` muda o corte).
+1. Tire o fundo antes: o quantizador só entende transparência pelo canal alfa (abaixo de 128 vira transparente, o resto opaco; `--alpha-threshold` muda o corte). Fundo esquecido é a falha mais comum. Num tile de 32×16 ele aparece como erro `footprint`, com a contagem de pixels opacos fora do losango. Só a contagem de vãos não pegaria esse caso, porque o retângulo opaco não deixa vão.
 2. Quantize e redimensione de uma vez, com o mesmo nome do placeholder que a arte substitui:
    ```powershell
    python tools/art/quantize.py <pasta-de-pngs-brutos> --out <pasta-de-saida> --like art/placeholders
@@ -248,20 +248,26 @@ O template de prompt, os negativos e a variação para tiles estão na seção 9
    ```powershell
    python tools/art/verify.py <pasta-de-saida> --colors
    ```
-4. Tiles: `python tools/art/tile_preview.py <tile-ou-pasta>` cola 4 cópias em losango 2×2 e grava a prévia ampliada 4× sobre magenta em `artifacts/art/tiling/<tile>_tiling.png`. Para um chão de 32×16, ele também conta os vãos numa grade 3×3 e sai com código 1 se houver algum. Olhe a prévia: vão aparece em magenta, e contorno duplo aparece na junção.
+4. Tiles: `python tools/art/tile_preview.py <tile-ou-pasta>` cola 4 cópias em losango 2×2 e grava a prévia ampliada 4× sobre magenta em `artifacts/art/tiling/<tile>_tiling.png`. Para um tile de 32×16, ele também conta os pixels opacos fora do losango e os vãos numa grade 3×3, e sai com código 1 se houver algum. Olhe a prévia: vão aparece em magenta, e contorno duplo aparece na junção.
 5. Copie para `art/placeholders/` só o que passou, com o mesmo nome e dimensão, e rode `ArtTools.SliceSheets`.
 
 Os testes dos scripts rodam com `python -m unittest discover -s tools/art`. A tabela de dimensões por prefixo que o `verify.py` e o `quantize.py` usam é `SIZE_RULES`, em `tools/art/sprite_rules.py`: categoria nova de arquivo entra lá.
 
 ### Aseprite
 
-A configuração é manual e feita uma vez por máquina, porque o Aseprite guarda a paleta padrão na pasta do usuário, fora do repositório:
+O Aseprite guarda a paleta padrão na pasta do usuário, fora do repositório: `palettes/default.ase` dentro de `%APPDATA%\Aseprite`, `~/Library/Application Support/Aseprite` ou `~/.config/aseprite`, ou de `$ASEPRITE_USER_FOLDER` quando ela existe. Por isso a configuração é feita uma vez por máquina:
 
-1. No menu de opções da paleta (botão ☰ acima das cores), use *Load Palette* e escolha `art/palette/snes.gpl`.
-2. No mesmo menu, use *Save Palette as Default*. Para conferir, *File → New* deve abrir com as 33 cores da `snes.gpl`.
-3. Para converter um sprite à mão, use *Sprite → Color Mode → More Options…* com modo *Indexed* e dithering *None*.
+1. Com o Aseprite fechado, rode `python tools/art/aseprite_palette.py`.
+   - O script copia `art/palette/snes.gpl` para `palettes/default.gpl` e renomeia o `default.ase` antigo para `default.ase.bak`.
+   - Na próxima abertura, o Aseprite não acha o `default.ase`, carrega o `default.gpl` como padrão e o grava como `default.ase` (`load_default_palette`, em `src/app/modules/palettes.cpp`).
+   - Instalação portátil, com `aseprite.ini` ao lado do executável, usa a pasta do executável: passe `--user-folder <pasta>`.
+2. Abra o Aseprite uma vez e rode `python tools/art/aseprite_palette.py --check`.
+   - Ele sai com 0 só quando o `default.ase` gravado pelo Aseprite tem as 33 entradas da `snes.gpl`, na ordem.
+   - Antes disso, sai com 1 e diz `pending`, `FAIL` ou qual entrada difere. *File → New* também deve abrir com as 33 cores.
+3. Pela interface, o caminho equivalente fica no menu de opções da paleta (botão ☰ acima das cores): *Load Palette* com a `snes.gpl` e depois *Save Palette as Default*.
+4. Para converter um sprite à mão, use *Sprite → Color Mode → More Options…*, com modo *Indexed* e dithering *No Dithering*.
 
-Esses passos ainda não foram executados num Aseprite de verdade: os nomes de menu vêm da documentação dele. Por isso o critério #1 do [ART-02] continua aberto até alguém fazer a configuração na própria máquina e conferir o *File → New*. Se algum rótulo estiver diferente, corrija aqui.
+Os rótulos de menu e a migração do `default.gpl` foram conferidos no código-fonte do Aseprite (`data/gui.xml`, `data/strings/en.ini` e `palettes.cpp`). O `--check` lê os dois formatos de paleta do `.ase`: o bloco antigo `0x0004`, que o Aseprite 1.3.5 ou mais novo grava para paleta opaca de até 256 cores, e o `0x2019`. Os testes usam uma pasta de usuário temporária e arquivos `.ase` montados pela especificação do formato. Nenhum Aseprite instalado rodou os passos 1 e 2 ainda. Por isso o critério #1 do [ART-02] só fecha quando alguém os executar na própria máquina e o `--check` sair com 0.
 
 O Aseprite serve para retoque. A conversão em lote é do `quantize.py`, e o que vale é o que passa no `verify.py`.
 
