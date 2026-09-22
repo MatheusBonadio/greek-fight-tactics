@@ -1,5 +1,6 @@
 {
   "id": "kerameikos",
+  "fogRevealDepth": 0,
   "floorLegend": {
     "p": "floor_packed_dirt",
     "c": "floor_dry_clay",
@@ -14,43 +15,116 @@
     "T": "prop_olive_trunk"
   },
   "floor": [
-    "dddddddddddd",
-    "dddddddddddd",
-    "cccccccccccc",
-    "cccccccccccc",
-    "ppppppppcccc",
-    "ppppppppcccc",
-    "ppppppppcccc",
-    "ppppppppcccc",
-    "ppppppppccss",
-    "ppppppppcsss",
-    "ppppppppcsss",
-    "ppppppppcsss"
+    "dddddddddddddddd",
+    "dddddddddddddddd",
+    "ccccdccccccccccc",
+    "ccccdccccccccccc",
+    "ccccdccccccccccc",
+    "ccccdccccccccccc",
+    "cccddddccccccccc",
+    "pppppppppccccccc",
+    "pppppppppccccccc",
+    "pppppppppccccccc",
+    "pppppppppccccccc",
+    "pppppppppcccssss",
+    "pppppppppcccssss",
+    "pppppppppcccssss",
+    "pppppppppcccssss",
+    "pppppppppcccssss"
   ],
   "blocks": [
-    "------------",
-    "------------",
-    "T----AA-----",
-    "------------",
-    "BBB-BBBB----",
-    "B------B-K--",
-    "B------B----",
-    "B-----------",
-    "B--P---B----",
-    "B------B----",
-    "BAA---AB----",
-    "BBBBBBBB----"
+    "----------------",
+    "----------------",
+    "----------------",
+    "-T--------------",
+    "----------------",
+    "----------------",
+    "-----AA---------",
+    "BBBB-BBBB-------",
+    "B-------B-------",
+    "B-------B--K----",
+    "B-------B-A-----",
+    "B--P----B-------",
+    "B-------B----T--",
+    "B-------B-------",
+    "BAA---AAB-----T-",
+    "BBBBBBBBB-------"
   ],
   "actors": [
-    { "character": "kleia", "x": 4, "y": 7, "facing": "SouthEast" },
-    { "character": "citizen", "x": 9, "y": 1, "facing": "SouthWest", "dialogue": "neighbor_kerameikos" }
+    { "character": "kleia", "x": 4, "y": 11, "facing": "SouthWest" },
+    { "character": "aristeu", "x": 6, "y": 13, "facing": "SouthWest", "dialogue": "aristeu_workshop" },
+    { "character": "citizen", "x": 10, "y": 1, "facing": "SouthWest", "dialogue": "neighbor_kerameikos" },
+    {
+      "character": "menexeno",
+      "x": 3,
+      "y": 6,
+      "facing": "NorthEast",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    }
   ],
   "exits": [
-    { "x": 11, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" },
-    { "x": 11, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" }
+    { "x": 15, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" },
+    { "x": 15, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast" }
   ],
   "triggers": [
-    { "x": 3, "y": 4, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" },
-    { "x": 7, "y": 7, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" }
+    { "x": 4, "y": 7, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" },
+    {
+      "x": 4,
+      "y": 6,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    }
+  ],
+  "cutscenes": [
+    {
+      "id": "menexeno_follows_home",
+      "steps": [
+        { "at": 0.25, "action": "Face", "actor": "kleia", "toward": "menexeno" },
+        { "at": 0.5, "action": "Face", "actor": "menexeno", "toward": "kleia" },
+        { "at": 0.75, "action": "Dialogue", "dialogue": "menexeno_door_offer" },
+        { "at": 1.5, "action": "Face", "actor": "menexeno", "x": 3, "y": 0 },
+        { "at": 2.25, "action": "Dialogue", "dialogue": "menexeno_door_glance" },
+        { "at": 2.75, "action": "Face", "actor": "menexeno", "toward": "kleia" },
+        { "at": 3.0, "action": "Dialogue", "dialogue": "menexeno_door_lesson" },
+        { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 4, "y": 0 },
+        { "at": 3.75, "action": "Leave", "actor": "menexeno" },
+        { "at": 4.5, "action": "Dialogue", "dialogue": "menexeno_door_learned" }
+      ]
+    }
+  ],
+  "cues": [
+    {
+      "on": "MapStart",
+      "dialogue": "kerameikos_first_steps",
+      "flag": "tutorial_first_steps",
+      "conditions": [{ "flag": "left_workshop", "absent": true }]
+    },
+    {
+      "on": "FogRevealed",
+      "dialogue": "kerameikos_tutorial_fog",
+      "flag": "tutorial_fog",
+      "conditions": [{ "flag": "tutorial_first_steps" }]
+    },
+    {
+      "on": "WalkFinished",
+      "dialogue": "kerameikos_tutorial_talk",
+      "flag": "tutorial_talk",
+      "conditions": [{ "flag": "tutorial_fog" }, { "flag": "aristeu_errand", "absent": true }]
+    }
   ]
 }

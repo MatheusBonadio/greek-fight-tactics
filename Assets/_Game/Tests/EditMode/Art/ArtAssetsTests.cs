@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Game.EditorTools;
@@ -10,9 +12,12 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 59;
+        private const int PlaceholderPngCount = 62;
         private const int SpritesPerSheet = 16;
         private const float PivotTolerance = 0.0001f;
+        private const string PalettePath = "art/palette/snes.gpl";
+        private const string AristeuCharacter = "aristeu";
+        private const int MaxColorsPerSprite = 15;
 
         [Test]
         public void Placeholders_AreCopiedIntoTheProject()
@@ -92,6 +97,49 @@ namespace Game.Tests.EditMode.Art
                 Assert.IsNotEmpty(AnimationUtility.GetObjectReferenceCurve(clip, spriteBindings[0]), clip.name);
             }
         }
+
+        [Test]
+        public void Portraits_AreSquarePointFilteredSpritesPaintedWithThePalette()
+        {
+            var portraitPaths = Directory.GetFiles(ArtTools.PortraitFolder, "*" + ArtTools.PortraitSuffix).Select(file => file.Replace('\\', '/')).ToList();
+            CollectionAssert.Contains(portraitPaths, ArtTools.PortraitPathFor(AristeuCharacter), "Aristeu needs a portrait that shows his arthritic hands");
+
+            var palette = LoadPalette();
+            foreach (var path in portraitPaths)
+            {
+                var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                Assert.IsNotNull(sprite, path);
+                Assert.AreEqual(ArtTools.PortraitSize, sprite.rect.width, path);
+                Assert.AreEqual(ArtTools.PortraitSize, sprite.rect.height, path);
+                Assert.AreEqual(FilterMode.Point, sprite.texture.filterMode, path);
+
+                var source = new Texture2D(2, 2);
+                source.LoadImage(File.ReadAllBytes(Path.Combine(ArtTools.SourceFolder, "portraits", Path.GetFileName(path))));
+                var opaque = source.GetPixels32().Where(pixel => pixel.a > 0).ToList();
+                Object.DestroyImmediate(source);
+
+                Assert.IsTrue(opaque.All(pixel => pixel.a == byte.MaxValue), $"{path} has partial transparency");
+                var colors = opaque.Select(pixel => (pixel.r, pixel.g, pixel.b)).Distinct().ToList();
+                CollectionAssert.IsSubsetOf(colors, palette, $"{path} paints outside the SNES palette");
+                Assert.LessOrEqual(colors.Count, MaxColorsPerSprite, path);
+            }
+        }
+
+        [Test]
+        public void Portrait_ReplacesTheSheetFrameOnlyWhereItExists()
+        {
+            Assert.AreEqual(ArtTools.PortraitPathFor(AristeuCharacter), AssetDatabase.GetAssetPath(SandboxTools.PortraitFor(AristeuCharacter)));
+            var kleia = SandboxTools.PortraitFor("kleia");
+            Assert.AreEqual(ArtTools.SheetPathFor("kleia"), AssetDatabase.GetAssetPath(kleia), "without a portrait the sheet frame stands in");
+            Assert.AreEqual($"kleia_{SandboxTools.PortraitRow}_0", kleia.name);
+        }
+
+        private static List<(byte, byte, byte)> LoadPalette() =>
+            File.ReadAllLines(PalettePath)
+                .Select(line => line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries))
+                .Where(parts => parts.Length >= 3 && parts.Take(3).All(part => byte.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out _)))
+                .Select(parts => (byte.Parse(parts[0], CultureInfo.InvariantCulture), byte.Parse(parts[1], CultureInfo.InvariantCulture), byte.Parse(parts[2], CultureInfo.InvariantCulture)))
+                .ToList();
 
         private static string[] Characters() => ArtTools.Characters;
     }

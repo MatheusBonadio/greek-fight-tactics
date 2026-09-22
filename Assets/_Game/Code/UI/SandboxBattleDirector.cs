@@ -44,6 +44,8 @@ namespace Game.UI
         private readonly List<AggroCandidate> aggroCandidates = new();
         private readonly Dictionary<ActorView, FallacyRevealView> reveals = new();
         private GameServices services;
+        private ExplorationDialogueDirector storyteller;
+        private StoryEffect? duelResult;
         private RangeHighlighter highlighter;
         private PauseMenuController pause;
         private BattleMenuInput menuInput;
@@ -167,6 +169,7 @@ namespace Game.UI
                 InitialAudience = opponent.InitialAudience,
                 Act = opponent.Act,
                 AudienceIds = audience.Where(view => view && view.Walker != null).Select(view => view.Walker.ActorId).ToList(),
+                LockedActions = ActionUnlocks.LockedIn(CurrentStory(), ActionMenuModel.PlayerActions),
                 Seed = seed
             }, CreateArgumentSource(target, seed));
 
@@ -248,6 +251,7 @@ namespace Game.UI
         private void Awake()
         {
             services = FindAnyObjectByType<GameServices>();
+            storyteller = FindAnyObjectByType<ExplorationDialogueDirector>();
             pause = FindAnyObjectByType<PauseMenuController>();
             confirmAction = sandbox.Controls.FindAction(BattleMenuInput.ConfirmAction, true);
             cancelAction = sandbox.Controls.FindAction(BattleMenuInput.CancelAction, true);
@@ -555,6 +559,13 @@ namespace Game.UI
                 sandbox.Duels.RecordVictory(engaged.Opponent.Id, victory);
             }
 
+            var result = DuelStoryResults.ResultOf(engaged.Opponent.Id, LastResult);
+            duelResult = result;
+            if (storyteller)
+            {
+                storyteller.Remember(result);
+            }
+
             StateMachine.TryTransition(GameMode.BattleResolve);
             StateMachine.TryTransition(GameMode.BattleOutro);
             ShowLine(string.Empty, text.Get(BattleText.StatusKey(LastResult)), FinishBattle);
@@ -597,10 +608,28 @@ namespace Game.UI
             Session = null;
             controller = null;
 
+            var result = duelResult;
+            duelResult = null;
             if (AutosaveEnabled && services && services.IsBooted && AutosavePolicy.ShouldSave(from, GameMode.Exploration))
             {
-                services.Autosave(sandbox.CaptureSave());
+                var save = sandbox.CaptureSave();
+                if (result.HasValue)
+                {
+                    result.Value.TryApply(save, out _);
+                }
+
+                services.Autosave(save);
             }
+        }
+
+        private SaveData CurrentStory()
+        {
+            if (storyteller && storyteller.IsStoryLoaded)
+            {
+                return storyteller.Story;
+            }
+
+            return services && services.IsBooted && services.TryLoadActiveSave(out var save) ? save : new SaveData();
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Game.UI
         [SerializeField] private List<NpcDialogueLink> talkers = new();
         [SerializeField] private List<DialogueTriggerLink> triggers = new();
         [SerializeField] private Dictionary<string, Sprite> portraits = new();
+        [SerializeField] private CutsceneDirector cutscenes;
 
         private readonly PathFinder pathFinder = new();
         private readonly List<Coord> candidatePath = new();
@@ -42,6 +43,8 @@ namespace Game.UI
 
         public IReadOnlyDictionary<string, Sprite> Portraits => portraits;
 
+        public CutsceneDirector Cutscenes => cutscenes;
+
         public bool AutosaveEnabled { get; set; } = true;
 
         public SaveData Story { get; private set; }
@@ -51,6 +54,8 @@ namespace Game.UI
         public bool IsTalking => run != null;
 
         public bool IsApproaching => pendingTalk != null;
+
+        public bool HasPendingTrigger => pendingTrigger != null;
 
         public string ActiveDialogueId => run?.Script.Id;
 
@@ -72,6 +77,11 @@ namespace Game.UI
             portraits = speakerPortraits;
         }
 
+        public void ConfigureCutscenes(CutsceneDirector director)
+        {
+            cutscenes = director;
+        }
+
         public Sprite PortraitFor(string speakerId) =>
             !string.IsNullOrEmpty(speakerId) && portraits.TryGetValue(speakerId, out var portrait) ? portrait : null;
 
@@ -86,7 +96,7 @@ namespace Game.UI
             if (talker == null)
             {
                 pendingTalk = null;
-                return false;
+                return TryApproachTriggerBeside(cell);
             }
 
             Approach(talker);
@@ -96,7 +106,7 @@ namespace Game.UI
         public bool TryStartDialogue(string dialogueId)
         {
             EnsureStoryLoaded();
-            if (IsTalking || Story == null || !library || sandbox.StateMachine.Mode != GameMode.Exploration || !library.TryGet(dialogueId, out var script))
+            if (IsTalking || Story == null || !library || !CanOpenFrom(sandbox.StateMachine.Mode) || !library.TryGet(dialogueId, out var script))
             {
                 return false;
             }
@@ -123,6 +133,44 @@ namespace Game.UI
             openedFrame = Time.frameCount;
             ShowNext();
             return true;
+        }
+
+        public bool TryPlayOnce(string dialogueId, string onceFlag)
+        {
+            EnsureStoryLoaded();
+            if (IsTalking || Story == null || StoryCondition.Has(onceFlag).IsMet(Story))
+            {
+                return false;
+            }
+
+            Remember(new StoryEffect(onceFlag));
+            if (!TryStartDialogue(dialogueId))
+            {
+                SaveProgress();
+            }
+
+            return true;
+        }
+
+        public bool TryPlayCutsceneOnce(string cutsceneId, string onceFlag)
+        {
+            EnsureStoryLoaded();
+            if (!cutscenes || IsTalking || Story == null || StoryCondition.Has(onceFlag).IsMet(Story) || !cutscenes.TryPlay(cutsceneId))
+            {
+                return false;
+            }
+
+            Remember(new StoryEffect(onceFlag));
+            return true;
+        }
+
+        public void Remember(StoryEffect effect)
+        {
+            EnsureStoryLoaded();
+            if (Story != null && effect.TryApply(Story, out _))
+            {
+                sessionEffects.Add(effect);
+            }
         }
 
         public void Advance()
@@ -172,7 +220,7 @@ namespace Game.UI
 
         private void OnPlayerCellEntered(Coord cell)
         {
-            if (IsTalking || sandbox.StateMachine.Mode != GameMode.Exploration || !TryFindUnfiredTrigger(cell, out var trigger))
+            if (IsTalking || !sandbox.ExplorationInputEnabled || sandbox.StateMachine.Mode != GameMode.Exploration || !TryFindUnfiredTrigger(cell, out var trigger))
             {
                 return;
             }
@@ -290,11 +338,27 @@ namespace Game.UI
 
         private void Fire(DialogueTriggerLink trigger)
         {
-            Remember(new StoryEffect(trigger.Flag));
-            if (!TryStartDialogue(trigger.Dialogue))
+            if (trigger.IsCutscene)
             {
-                SaveProgress();
+                TryPlayCutsceneOnce(trigger.Cutscene, trigger.Flag);
+                return;
             }
+
+            FaceSpeakerBeside(trigger.Dialogue);
+            TryPlayOnce(trigger.Dialogue, trigger.Flag);
+        }
+
+        private void FaceSpeakerBeside(string dialogueId)
+        {
+            var walker = sandbox.Player.Walker;
+            var talker = talkers.Find(candidate => candidate.Dialogue == dialogueId && CanTalkTo(candidate) && IsBeside(walker.Cell, candidate));
+            if (talker == null)
+            {
+                return;
+            }
+
+            walker.FaceToward(talker.Actor.Walker.Cell);
+            talker.Actor.Walker.FaceToward(walker.Cell);
         }
 
         private void ShowNext()
@@ -316,7 +380,7 @@ namespace Game.UI
 
             var from = sandbox.StateMachine.Mode;
             sandbox.StateMachine.TryCloseOverlay();
-            if (pause)
+            if (pause && sandbox.StateMachine.Mode == GameMode.Exploration)
             {
                 pause.Input.Panel = pause;
             }
@@ -327,15 +391,7 @@ namespace Game.UI
             }
         }
 
-        private void Remember(StoryEffect effect)
-        {
-            if (Story != null && effect.TryApply(Story, out _))
-            {
-                sessionEffects.Add(effect);
-            }
-        }
-
-        private void SaveProgress()
+        public void SaveProgress()
         {
             if (!AutosaveEnabled || !services || !services.IsBooted)
             {
@@ -351,16 +407,60 @@ namespace Game.UI
             services.Autosave(save);
         }
 
+        private static bool CanOpenFrom(GameMode mode) => mode is GameMode.Exploration or GameMode.Cutscene;
+
         private bool CanTalkTo(NpcDialogueLink talker) =>
             talker.Actor && talker.Actor.Walker != null && library && library.Contains(talker.Dialogue);
 
         private NpcDialogueLink TalkerAt(Coord cell) =>
             talkers.Find(talker => CanTalkTo(talker) && talker.Actor.Walker.Cell == cell);
 
-        private static bool IsBeside(Coord cell, NpcDialogueLink talker)
+        private static bool IsBeside(Coord cell, NpcDialogueLink talker) => AreBeside(cell, talker.Actor.Walker.Cell);
+
+        private static bool AreBeside(Coord first, Coord second) => Math.Abs(first.X - second.X) + Math.Abs(first.Y - second.Y) == 1;
+
+        private bool TryApproachTriggerBeside(Coord occupiedCell)
         {
-            var npc = talker.Actor.Walker.Cell;
-            return Math.Abs(cell.X - npc.X) + Math.Abs(cell.Y - npc.Y) == 1;
+            var walker = sandbox.Player?.Walker;
+            EnsureStoryLoaded();
+            if (walker == null || Story == null || occupiedCell == walker.Cell || !sandbox.Grid.TryGet(occupiedCell, out var tile) || !tile.IsOccupied)
+            {
+                return false;
+            }
+
+            approachPath.Clear();
+            DialogueTriggerLink nearest = null;
+            foreach (var trigger in triggers)
+            {
+                if (!AreBeside(trigger.Cell, occupiedCell) || !trigger.IsDue(Story))
+                {
+                    continue;
+                }
+
+                if (trigger.Cell == walker.Cell)
+                {
+                    walker.Cancel();
+                    pendingTrigger = trigger;
+                    return true;
+                }
+
+                if (!pathFinder.FindPath(sandbox.Grid, walker.Cell, trigger.Cell, candidatePath) || (nearest != null && candidatePath.Count >= approachPath.Count))
+                {
+                    continue;
+                }
+
+                nearest = trigger;
+                approachPath.Clear();
+                approachPath.AddRange(candidatePath);
+            }
+
+            if (nearest == null)
+            {
+                return false;
+            }
+
+            walker.Follow(approachPath);
+            return true;
         }
 
         private bool TryFindApproach(Coord from, Coord target)
@@ -390,7 +490,7 @@ namespace Game.UI
                 return false;
             }
 
-            trigger = triggers.Find(candidate => candidate.Cell == cell && !StoryCondition.Has(candidate.Flag).IsMet(Story));
+            trigger = triggers.Find(candidate => candidate.Cell == cell && candidate.IsDue(Story));
             return trigger != null;
         }
     }

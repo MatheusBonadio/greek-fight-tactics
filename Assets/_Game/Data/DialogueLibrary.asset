@@ -29,7 +29,205 @@ MonoBehaviour:
     value:
       displayName: Vizinho
       portrait: citizen
+  - key: aristeu
+    value:
+      displayName: Aristeu
+      portrait: aristeu
   dialogues:
+  - key: kerameikos_first_steps
+    value:
+      lines:
+      - speaker: 
+        text: "Cer\xE2mico, bairro dos oleiros. Kleia termina o \xFAltimo meandro de uma \xE2nfora de figuras vermelhas."
+        conditions: []
+        effects: []
+      - speaker: kleia
+        text: "Pronto. Mais uma borda que ningu\xE9m na \xE1gora vai reparar."
+        conditions: []
+        effects: []
+      - speaker: 
+        text: "Mova o cursor com o mouse, as setas ou o direcional. Clique ou confirme numa c\xE9lula e Kleia caminha at\xE9 l\xE1 pelo caminho mais curto."
+        conditions: []
+        effects: []
+  - key: kerameikos_tutorial_fog
+    value:
+      lines:
+      - speaker: 
+        text: "A n\xE9voa cobre o que Kleia ainda n\xE3o viu. A cada passo, a oficina se revela ao redor dela."
+        conditions: []
+        effects: []
+      - speaker: 
+        text: "O que ela j\xE1 viu continua \xE0 vista, mesmo depois de sair do Cer\xE2mico."
+        conditions: []
+        effects: []
+  - key: kerameikos_tutorial_talk
+    value:
+      lines:
+      - speaker: 
+        text: "Para conversar, aponte uma pessoa e confirme: Kleia vai at\xE9 ela. Aristeu, o pai, espera no fundo da oficina, junto \xE0s \xE2nforas."
+        conditions: []
+        effects: []
+  - key: aristeu_workshop
+    value:
+      lines:
+      - speaker: aristeu
+        text: Kleia. Larga o pincel um instante, filha.
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: Falta a borda. Dois meandros e ela fica pronta.
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: aristeu
+        text: "Sempre faltam dois meandros. Olha para c\xE1."
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: 
+        text: "Aristeu ergue as m\xE3os. Os dedos se dobram para dentro, os n\xF3s inchados como ra\xEDzes de oliveira. Ele j\xE1 n\xE3o consegue fechar a m\xE3o em volta de uma al\xE7a."
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: aristeu
+        text: "Hoje n\xE3o aguento o peso de uma \xE2nfora cheia at\xE9 a \xE1gora. As da porta est\xE3o prontas. Leva e vende no mercado."
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: kleia
+        text: "Pelo pre\xE7o de sempre?"
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects: []
+      - speaker: aristeu
+        text: "O de sempre. E n\xE3o para para ouvir discuss\xE3o de homem na \xE1gora. Discuss\xE3o n\xE3o paga o forno."
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 1
+        effects:
+        - flag: aristeu_errand
+          value: true
+      - speaker: aristeu
+        text: "As \xE2nforas est\xE3o na porta. A \xE1gora fica no fim da rua de terra, depois da herma."
+        conditions:
+        - flag: aristeu_errand
+          value: 
+          absent: 0
+        - flag: duel_thrasybios
+          value: 
+          absent: 1
+        effects: []
+      - speaker: aristeu
+        text: "J\xE1 voltou? Pela sua cara, a \xE1gora te vendeu alguma coisa em vez de comprar."
+        conditions:
+        - flag: duel_thrasybios
+          value: 
+          absent: 0
+        - flag: maieutics_unlocked
+          value: 
+          absent: 1
+        effects: []
+      - speaker: aristeu
+        text: "Aquele velho que te esperava na porta... N\xE3o gosto de quem ensina de gra\xE7a, filha. Sempre cobra de outro jeito."
+        conditions:
+        - flag: maieutics_unlocked
+          value: 
+          absent: 0
+        effects: []
+  - key: menexeno_door_offer
+    value:
+      lines:
+      - speaker: 
+        text: "O velho de manto encardido est\xE1 parado diante da oficina, apoiado no bast\xE3o de oliveira. Seguiu Kleia desde a \xE1gora."
+        conditions: []
+        effects:
+        - flag: met_menexeno
+          value: true
+      - speaker: kleia
+        text: "O senhor estava no mercado. Veio rir tamb\xE9m?"
+        conditions: []
+        effects: []
+      - speaker: menexeno
+        text: "Riram de voc\xEA porque \xE9 menina do Cer\xE2mico. Ningu\xE9m riu do que importava: voc\xEA esperou o homem terminar de errar."
+        conditions: []
+        effects: []
+      - speaker: menexeno
+        text: "Isso n\xE3o se ensina. O resto, sim. Eu ensino. De gra\xE7a."
+        conditions: []
+        effects: []
+      - speaker: kleia
+        text: "Ningu\xE9m ensina de gra\xE7a no Cer\xE2mico. Qual \xE9 o pre\xE7o?"
+        conditions: []
+        effects: []
+      - speaker: menexeno
+        text: "Uma condi\xE7\xE3o. Nunca aceite dinheiro por uma pergunta. Nem uma dracma, nem de quem puder pagar."
+        conditions: []
+        effects:
+        - flag: menexeno_condition
+          value: true
+      - speaker: kleia
+        text: "Por qu\xEA?"
+        conditions: []
+        effects: []
+      - speaker: 
+        text: "Ele n\xE3o explica."
+        conditions: []
+        effects: []
+      - speaker: kleia
+        text: E o senhor aprendeu com quem? Foi aluno de algum mestre?
+        conditions: []
+        effects: []
+      - speaker: menexeno
+        text: "Faz muito tempo. N\xE3o importa."
+        conditions: []
+        effects: []
+  - key: menexeno_door_glance
+    value:
+      lines:
+      - speaker: 
+        text: "Menexeno desvia os olhos para a rua, na dire\xE7\xE3o dos tribunais, e muda de assunto depressa demais."
+        conditions: []
+        effects:
+        - flag: menexeno_avoids_past
+          value: true
+  - key: menexeno_door_lesson
+    value:
+      lines:
+      - speaker: menexeno
+        text: "Amanh\xE3, quando algu\xE9m disser uma certeza, n\xE3o aponte o erro. Pergunte at\xE9 ele trope\xE7ar sozinho. A m\xE3e dele era parteira; ele dizia que s\xF3 ajudava as ideias a nascer."
+        conditions: []
+        effects: []
+      - speaker: kleia
+        text: Ele quem?
+        conditions: []
+        effects: []
+      - speaker: menexeno
+        text: "Ningu\xE9m. Boa noite, menina."
+        conditions: []
+        effects: []
+  - key: menexeno_door_learned
+    value:
+      lines:
+      - speaker: 
+        text: "Kleia aprendeu a MAI\xCAUTICA. No debate, escolha a premissa fr\xE1gil do advers\xE1rio e deixe que ele se contradiga sozinho."
+        conditions: []
+        effects:
+        - flag: maieutics_unlocked
+          value: true
   - key: kerameikos_leaving_workshop
     value:
       lines:
@@ -43,6 +241,17 @@ MonoBehaviour:
         effects: []
       - speaker: 
         text: Ela sabe que vai parar.
+        conditions: []
+        effects: []
+  - key: agora_after_thrasybios
+    value:
+      lines:
+      - speaker: kleia
+        text: "As \xE2nforas j\xE1 est\xE3o vendidas. Meu pai deve estar me esperando na oficina."
+        conditions: []
+        effects: []
+      - speaker: 
+        text: "A rua de terra, depois da herma, leva de volta ao Cer\xE2mico."
         conditions: []
         effects: []
   - key: neighbor_kerameikos
@@ -106,6 +315,9 @@ MonoBehaviour:
         - flag: heard_of_thrasybios
           value: 
           absent: 0
+        - flag: headed_home
+          value: 
+          absent: 1
         effects: []
       - speaker: menexeno
         text: "Procuro quem saiba perguntar. Por enquanto, s\xF3 achei quem venda respostas."
@@ -120,6 +332,42 @@ MonoBehaviour:
         text: "Deixe o homem de p\xFArpura terminar de falar. Quem erra costuma avisar antes."
         conditions:
         - flag: met_menexeno
+          value: 
+          absent: 0
+        - flag: headed_home
+          value: 
+          absent: 1
+        - flag: maieutics_unlocked
+          value: 
+          absent: 1
+        effects: []
+      - speaker: menexeno
+        text: "Aqui n\xE3o, menina. V\xE1 para casa. Eu ando devagar, mas chego."
+        conditions:
+        - flag: met_menexeno
+          value: 
+          absent: 0
+        - flag: headed_home
+          value: 
+          absent: 0
+        - flag: maieutics_unlocked
+          value: 
+          absent: 1
+        effects: []
+      - speaker: menexeno
+        text: "Pergunte. N\xE3o cobre. \xC9 s\xF3 isso que eu pe\xE7o."
+        conditions:
+        - flag: maieutics_unlocked
+          value: 
+          absent: 0
+        effects: []
+      - speaker: menexeno
+        text: "J\xE1 dei respostas demais na vida. Nenhuma prestou."
+        conditions:
+        - flag: maieutics_unlocked
+          value: 
+          absent: 0
+        - flag: menexeno_avoids_past
           value: 
           absent: 0
         effects: []

@@ -89,6 +89,26 @@ namespace Game.Tests.EditMode.Core
             Assert.IsTrue(AutosavePolicy.ShouldSave(closedFrom, machine.Mode));
         }
 
+        [Test]
+        public void Cutscene_HoldsExplorationAndLetsItsDialoguesOpenOnTop()
+        {
+            var machine = new GameStateMachine();
+
+            Assert.IsTrue(machine.TryOpenOverlay(GameMode.Cutscene));
+            Assert.IsFalse(machine.IsExplorationInputEnabled, "Kleia does not walk on her own during a cutscene");
+            Assert.IsFalse(machine.TryTransition(GameMode.BattleIntro), "nobody provokes a duel during a cutscene");
+            Assert.IsFalse(machine.TryOpenOverlay(GameMode.Cutscene));
+
+            Assert.IsTrue(machine.TryOpenOverlay(GameMode.Dialogue));
+            Assert.IsTrue(machine.TryCloseOverlay());
+            Assert.AreEqual(GameMode.Cutscene, machine.Mode, "closing a line of the cutscene returns to the cutscene");
+            Assert.IsFalse(AutosavePolicy.ShouldSave(GameMode.Dialogue, machine.Mode), "the cutscene saves once, at its end");
+
+            Assert.IsTrue(machine.TryCloseOverlay());
+            Assert.AreEqual(GameMode.Exploration, machine.Mode);
+            Assert.IsTrue(AutosavePolicy.ShouldSave(GameMode.Cutscene, machine.Mode));
+        }
+
         [TestCase(3, 0, true)]
         [TestCase(2, 1, true)]
         [TestCase(2, 2, false)]

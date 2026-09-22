@@ -32,6 +32,11 @@ namespace Game.Battle
                 return Outcome.Rejected(play.ActorId, play.Action, RejectionReason.ActionNotAllowed);
             }
 
+            if (actor.Side == Side.Player && state.IsLockedForPlayer(play.Action))
+            {
+                return Outcome.Rejected(play.ActorId, play.Action, RejectionReason.ActionLocked);
+            }
+
             var outcome = play.Action switch
             {
                 ActionId.Circulate => ResolveCirculate(play, actor, state),

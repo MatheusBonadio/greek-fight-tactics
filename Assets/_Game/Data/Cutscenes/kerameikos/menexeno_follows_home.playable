@@ -1,0 +1,245 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8664505162063297017
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 01_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.5
+  action: 0
+  actor: menexeno
+  toward: kleia
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &-5180462389398459612
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 08_Leave
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 3.75
+  action: 3
+  actor: menexeno
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &-4598276188216038920
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 03_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 1.5
+  action: 0
+  actor: menexeno
+  toward: 
+  hasCell: 1
+  cell: {x: 3, y: 0}
+  dialogue: 
+--- !u!114 &-4429036218074153853
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a16748d9461eae46a725db9776d5390, type: 3}
+  m_Name: Markers
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.MarkerTrack
+  m_Version: 3
+  m_AnimClip: {fileID: 0}
+  m_Locked: 0
+  m_Muted: 0
+  m_CustomPlayableFullTypename: 
+  m_Curves: {fileID: 0}
+  m_Parent: {fileID: 11400000}
+  m_Children: []
+  m_Clips: []
+  m_Markers:
+    m_Objects:
+    - {fileID: 6152134439984830934}
+    - {fileID: -8664505162063297017}
+    - {fileID: -342150210232146554}
+    - {fileID: -4598276188216038920}
+    - {fileID: 5541365287215075297}
+    - {fileID: -90903410338661925}
+    - {fileID: 949881211448971451}
+    - {fileID: 2893380661379650342}
+    - {fileID: -5180462389398459612}
+    - {fileID: -377318362683926517}
+--- !u!114 &-377318362683926517
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 09_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 4.5
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: menexeno_door_learned
+--- !u!114 &-342150210232146554
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 02_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.75
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: menexeno_door_offer
+--- !u!114 &-90903410338661925
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 05_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 2.75
+  action: 0
+  actor: menexeno
+  toward: kleia
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfda56da833e2384a9677cd3c976a436, type: 3}
+  m_Name: menexeno_follows_home
+  m_EditorClassIdentifier: Unity.Timeline::UnityEngine.Timeline.TimelineAsset
+  m_Version: 0
+  m_Tracks: []
+  m_FixedDuration: 5
+  m_EditorSettings:
+    m_Framerate: 60
+    m_ScenePreview: 1
+  m_DurationMode: 1
+  m_MarkerTrack: {fileID: -4429036218074153853}
+--- !u!114 &949881211448971451
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 06_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 3
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: menexeno_door_lesson
+--- !u!114 &2893380661379650342
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 07_Walk
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 3.5
+  action: 2
+  actor: menexeno
+  toward: 
+  hasCell: 1
+  cell: {x: 4, y: 0}
+  dialogue: 
+--- !u!114 &5541365287215075297
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 04_Dialogue
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 2.25
+  action: 1
+  actor: 
+  toward: 
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: menexeno_door_glance
+--- !u!114 &6152134439984830934
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a68a1d2575ab9e64db6082b63c6786dd, type: 3}
+  m_Name: 00_Face
+  m_EditorClassIdentifier: Game.UI::Game.UI.CutsceneMarker
+  m_Time: 0.25
+  action: 0
+  actor: kleia
+  toward: menexeno
+  hasCell: 0
+  cell: {x: 0, y: 0}
+  dialogue: 

@@ -3,9 +3,179 @@
     "kleia": { "name": "Kleia", "portrait": "kleia" },
     "menexeno": { "name": "Menexeno", "portrait": "menexeno" },
     "eudoro": { "name": "Eudoro", "portrait": "eudoro" },
-    "neighbor": { "name": "Vizinho", "portrait": "citizen" }
+    "neighbor": { "name": "Vizinho", "portrait": "citizen" },
+    "aristeu": { "name": "Aristeu", "portrait": "aristeu" }
   },
   "dialogues": [
+    {
+      "id": "kerameikos_first_steps",
+      "lines": [
+        {
+          "text": "Cerâmico, bairro dos oleiros. Kleia termina o último meandro de uma ânfora de figuras vermelhas."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Pronto. Mais uma borda que ninguém na ágora vai reparar."
+        },
+        {
+          "text": "Mova o cursor com o mouse, as setas ou o direcional. Clique ou confirme numa célula e Kleia caminha até lá pelo caminho mais curto."
+        }
+      ]
+    },
+    {
+      "id": "kerameikos_tutorial_fog",
+      "lines": [
+        {
+          "text": "A névoa cobre o que Kleia ainda não viu. A cada passo, a oficina se revela ao redor dela."
+        },
+        {
+          "text": "O que ela já viu continua à vista, mesmo depois de sair do Cerâmico."
+        }
+      ]
+    },
+    {
+      "id": "kerameikos_tutorial_talk",
+      "lines": [
+        {
+          "text": "Para conversar, aponte uma pessoa e confirme: Kleia vai até ela. Aristeu, o pai, espera no fundo da oficina, junto às ânforas."
+        }
+      ]
+    },
+    {
+      "id": "aristeu_workshop",
+      "lines": [
+        {
+          "speaker": "aristeu",
+          "text": "Kleia. Larga o pincel um instante, filha.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Falta a borda. Dois meandros e ela fica pronta.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Sempre faltam dois meandros. Olha para cá.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "text": "Aristeu ergue as mãos. Os dedos se dobram para dentro, os nós inchados como raízes de oliveira. Ele já não consegue fechar a mão em volta de uma alça.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Hoje não aguento o peso de uma ânfora cheia até a ágora. As da porta estão prontas. Leva e vende no mercado.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Pelo preço de sempre?",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "O de sempre. E não para para ouvir discussão de homem na ágora. Discussão não paga o forno.",
+          "conditions": [{ "flag": "aristeu_errand", "absent": true }],
+          "effects": [{ "flag": "aristeu_errand" }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "As ânforas estão na porta. A ágora fica no fim da rua de terra, depois da herma.",
+          "conditions": [{ "flag": "aristeu_errand" }, { "flag": "duel_thrasybios", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Já voltou? Pela sua cara, a ágora te vendeu alguma coisa em vez de comprar.",
+          "conditions": [{ "flag": "duel_thrasybios" }, { "flag": "maieutics_unlocked", "absent": true }]
+        },
+        {
+          "speaker": "aristeu",
+          "text": "Aquele velho que te esperava na porta... Não gosto de quem ensina de graça, filha. Sempre cobra de outro jeito.",
+          "conditions": [{ "flag": "maieutics_unlocked" }]
+        }
+      ]
+    },
+    {
+      "id": "menexeno_door_offer",
+      "lines": [
+        {
+          "text": "O velho de manto encardido está parado diante da oficina, apoiado no bastão de oliveira. Seguiu Kleia desde a ágora.",
+          "effects": [{ "flag": "met_menexeno" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "O senhor estava no mercado. Veio rir também?"
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Riram de você porque é menina do Cerâmico. Ninguém riu do que importava: você esperou o homem terminar de errar."
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Isso não se ensina. O resto, sim. Eu ensino. De graça."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ninguém ensina de graça no Cerâmico. Qual é o preço?"
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Uma condição. Nunca aceite dinheiro por uma pergunta. Nem uma dracma, nem de quem puder pagar.",
+          "effects": [{ "flag": "menexeno_condition" }]
+        },
+        {
+          "speaker": "kleia",
+          "text": "Por quê?"
+        },
+        {
+          "text": "Ele não explica."
+        },
+        {
+          "speaker": "kleia",
+          "text": "E o senhor aprendeu com quem? Foi aluno de algum mestre?"
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Faz muito tempo. Não importa."
+        }
+      ]
+    },
+    {
+      "id": "menexeno_door_glance",
+      "lines": [
+        {
+          "text": "Menexeno desvia os olhos para a rua, na direção dos tribunais, e muda de assunto depressa demais.",
+          "effects": [{ "flag": "menexeno_avoids_past" }]
+        }
+      ]
+    },
+    {
+      "id": "menexeno_door_lesson",
+      "lines": [
+        {
+          "speaker": "menexeno",
+          "text": "Amanhã, quando alguém disser uma certeza, não aponte o erro. Pergunte até ele tropeçar sozinho. A mãe dele era parteira; ele dizia que só ajudava as ideias a nascer."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ele quem?"
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Ninguém. Boa noite, menina."
+        }
+      ]
+    },
+    {
+      "id": "menexeno_door_learned",
+      "lines": [
+        {
+          "text": "Kleia aprendeu a MAIÊUTICA. No debate, escolha a premissa frágil do adversário e deixe que ele se contradiga sozinho.",
+          "effects": [{ "flag": "maieutics_unlocked" }]
+        }
+      ]
+    },
     {
       "id": "kerameikos_leaving_workshop",
       "lines": [
@@ -19,6 +189,18 @@
         },
         {
           "text": "Ela sabe que vai parar."
+        }
+      ]
+    },
+    {
+      "id": "agora_after_thrasybios",
+      "lines": [
+        {
+          "speaker": "kleia",
+          "text": "As ânforas já estão vendidas. Meu pai deve estar me esperando na oficina."
+        },
+        {
+          "text": "A rua de terra, depois da herma, leva de volta ao Cerâmico."
         }
       ]
     },
@@ -63,7 +245,7 @@
         {
           "speaker": "kleia",
           "text": "Ou veio ouvir o tal Thrasybios, que vende vitórias por três dracmas?",
-          "conditions": [{ "flag": "met_menexeno", "absent": true }, { "flag": "heard_of_thrasybios" }]
+          "conditions": [{ "flag": "met_menexeno", "absent": true }, { "flag": "heard_of_thrasybios" }, { "flag": "headed_home", "absent": true }]
         },
         {
           "speaker": "menexeno",
@@ -74,7 +256,22 @@
         {
           "speaker": "menexeno",
           "text": "Deixe o homem de púrpura terminar de falar. Quem erra costuma avisar antes.",
-          "conditions": [{ "flag": "met_menexeno" }]
+          "conditions": [{ "flag": "met_menexeno" }, { "flag": "headed_home", "absent": true }, { "flag": "maieutics_unlocked", "absent": true }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Aqui não, menina. Vá para casa. Eu ando devagar, mas chego.",
+          "conditions": [{ "flag": "met_menexeno" }, { "flag": "headed_home" }, { "flag": "maieutics_unlocked", "absent": true }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Pergunte. Não cobre. É só isso que eu peço.",
+          "conditions": [{ "flag": "maieutics_unlocked" }]
+        },
+        {
+          "speaker": "menexeno",
+          "text": "Já dei respostas demais na vida. Nenhuma prestou.",
+          "conditions": [{ "flag": "maieutics_unlocked" }, { "flag": "menexeno_avoids_past" }]
         },
         {
           "speaker": "menexeno",

@@ -19,6 +19,8 @@ namespace Game.Grid
             fog.Reveal(walker.Cell, revealRadius);
         }
 
+        public event Action<int> FogRevealed;
+
         public ExplorationSnapshot Capture() => new(walker.Cell, walker.Facing, fog.ToBitmask());
 
         public bool TryRestore(ExplorationSnapshot snapshot)
@@ -53,6 +55,13 @@ namespace Game.Grid
             walker.CellEntered -= OnCellEntered;
         }
 
-        private void OnCellEntered(Coord cell) => fog.Reveal(cell, revealRadius);
+        private void OnCellEntered(Coord cell)
+        {
+            var revealed = fog.Reveal(cell, revealRadius);
+            if (revealed > 0)
+            {
+                FogRevealed?.Invoke(revealed);
+            }
+        }
     }
 }

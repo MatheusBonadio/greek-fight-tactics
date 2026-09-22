@@ -15,6 +15,9 @@ namespace Game.EditorTools
         public const string PlaceholderFolder = "Assets/_Game/Art/Placeholder";
         public const string CharacterFolder = PlaceholderFolder + "/characters";
         public const string TileFolder = PlaceholderFolder + "/tiles";
+        public const string PortraitFolder = PlaceholderFolder + "/portraits";
+        public const string PortraitSuffix = "_portrait.png";
+        public const int PortraitSize = 32;
         public const string AnimationFolder = PlaceholderFolder + "/Animations";
         public const int CellWidth = 24;
         public const int CellHeight = 32;
@@ -30,7 +33,7 @@ namespace Game.EditorTools
         public const float ActionSecondsPerFrame = 0.3f;
 
         public static readonly Vector2 CharacterPivot = new(0.5f, 0.0625f);
-        public static readonly string[] Characters = { "batilo", "citizen", "damaris", "eudoro", "kleia", "kritolaos", "menexeno", "oron", "phaidra", "pythia", "simo", "thrasybios" };
+        public static readonly string[] Characters = { "aristeu", "batilo", "citizen", "damaris", "eudoro", "kleia", "kritolaos", "menexeno", "oron", "phaidra", "pythia", "simo", "thrasybios" };
         public static readonly string[] StateNames = { IdleState, WalkState, ActionState };
 
         private const string SpriteProperty = "m_Sprite";
@@ -50,6 +53,8 @@ namespace Game.EditorTools
         public static void SliceSheets() => BatchRunner.Run(RegenerateAll);
 
         public static string SheetPathFor(string character) => $"{CharacterFolder}/{character}_sheet.png";
+
+        public static string PortraitPathFor(string character) => $"{PortraitFolder}/{character}{PortraitSuffix}";
 
         public static string ControllerPathFor(string character) => $"{AnimationFolder}/{character}/{character}.controller";
 

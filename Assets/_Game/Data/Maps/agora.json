@@ -61,6 +61,14 @@
     { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" }
   ],
   "exits": [
-    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 10, "arrivalY": 1, "facing": "SouthWest" }
+    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest" }
+  ],
+  "cues": [
+    {
+      "on": "Idle",
+      "dialogue": "agora_after_thrasybios",
+      "flag": "headed_home",
+      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+    }
   ]
 }

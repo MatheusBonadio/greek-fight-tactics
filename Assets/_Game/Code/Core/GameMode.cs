@@ -8,6 +8,7 @@ namespace Game.Core
         BattleResolve,
         BattleOutro,
         Dialogue,
-        Paused
+        Paused,
+        Cutscene
     }
 }

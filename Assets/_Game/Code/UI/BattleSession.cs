@@ -31,6 +31,8 @@ namespace Game.UI
 
         public IEnumerable<int> AudienceIds { get; set; } = Array.Empty<int>();
 
+        public IEnumerable<ActionId> LockedActions { get; set; } = Array.Empty<ActionId>();
+
         public int Seed { get; set; }
 
         public BattleRules Rules { get; set; }
@@ -111,7 +113,8 @@ namespace Game.UI
                 new[] { player, opponent },
                 setup.InitialAudience,
                 new[] { new QuoteItem(BattleArena.StarterQuoteId, StarterQuoteCoherence, StarterQuoteAudience, StarterQuoteUses) },
-                setup.AudienceIds);
+                setup.AudienceIds,
+                setup.LockedActions);
 
             return new BattleSession(state, arguments, setup.Seed);
         }

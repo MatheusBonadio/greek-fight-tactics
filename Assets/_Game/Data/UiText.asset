@@ -161,3 +161,5 @@ MonoBehaviour:
     value: Nenhum pergaminho restante.
   - key: rejection.missing_argument
     value: Falta um argumento para responder.
+  - key: rejection.action_locked
+    value: "Kleia ainda n\xE3o aprendeu a perguntar assim."

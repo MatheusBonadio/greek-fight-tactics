@@ -46,8 +46,8 @@ namespace Game.Tests.EditMode.UI
                     map.Actors.Where(actor => !string.IsNullOrEmpty(actor.Dialogue)).Select(actor => $"{actor.X},{actor.Y}:{actor.Dialogue}"),
                     director.Talkers.Select(link => $"{link.Actor.StartCell.x},{link.Actor.StartCell.y}:{link.Dialogue}"));
                 CollectionAssert.AreEquivalent(
-                    map.Triggers.Select(trigger => $"{trigger.X},{trigger.Y}:{trigger.Dialogue}:{trigger.Flag}"),
-                    director.Triggers.Select(link => $"{link.Cell.X},{link.Cell.Y}:{link.Dialogue}:{link.Flag}"));
+                    map.Triggers.Select(trigger => $"{trigger.X},{trigger.Y}:{trigger.Dialogue}:{trigger.Cutscene}:{trigger.Flag}"),
+                    director.Triggers.Select(link => $"{link.Cell.X},{link.Cell.Y}:{link.Dialogue}:{link.Cutscene}:{link.Flag}"));
 
                 foreach (var speaker in director.Library.Speakers.Where(pair => pair.Value.HasPortrait))
                 {
