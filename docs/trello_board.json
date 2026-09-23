@@ -892,7 +892,7 @@
         "Fase 2 · Comercial",
         "Arte"
       ],
-      "description": "**Depende de:** [ART-06] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] Trilha por área: Cerâmico, Ágora, Academia, Delfos, Tribunal\n- [ ] Tema de batalha com variação por perfil (sofista/filósofo)\n- [ ] SFX: cursor, confirmar, refutar, dano, vitória, derrota\n- [ ] Voz-blip por personagem (tom diferente por sprite), estilo 16-bit\n- [x] Mixer com bus separado para música/SFX/UI"
+      "description": "**Depende de:** [ART-06] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] Trilha por área: Cerâmico, Ágora, Academia, Delfos, Tribunal\n- [ ] Tema de batalha com variação por perfil (sofista/filósofo)\n- [ ] SFX: cursor, confirmar, refutar, dano, vitória, derrota\n- [ ] Voz-blip por personagem (tom diferente por sprite), estilo 16-bit\n- [ ] Mixer com bus separado para música/SFX/UI"
     },
     {
       "title": "[QA-03] Passe de QA completo",
