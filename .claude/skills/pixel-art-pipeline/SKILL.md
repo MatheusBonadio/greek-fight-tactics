@@ -18,7 +18,7 @@ art/
   palette/       snes.gpl  snes.png  snes.txt
   reference/     scene_mockup.png
   placeholders/
-    characters/  13 folhas 96x128 + 13 idles 24x32
+    characters/  13 folhas 96x128, 13 idles soltos 24x32 e as tiras de animação 24N x 32
     portraits/   retratos dedicados 32x32 (hoje só aristeu_portrait)
     tiles/
       floor/     10 tiles 32x16
@@ -91,8 +91,7 @@ Regras duras, verificadas por `python tools/art/verify.py <pasta>` antes de qual
 3. A grade é marcada por uma linha sutil, nunca por contorno escuro. A junta do tile de chão é o tom da rampa logo abaixo do tom dominante do próprio material (mármore `marble_light` → `marble_mid`, grama `olive_light` → `olive_mid`, terra `ochre_mid` → `ochre_shade`), e a de parede e degrau é o tom mais escuro do material (`ochre_dark` no tijolo, `marble_cold_dark` no mármore), para os tiles se emendarem. Props e personagens levam `outline`, e objetos de mármore soltos, `outline_blue`. O tile de chão só marca as bordas de cima (NO e NE, até a linha das pontas); as de baixo usam a cor do corpo, porque o vizinho da frente desenha essa linha. Com junta nas quatro bordas, a junção vira uma linha dupla. `FloorTileSeams` aplica a regra em `art/placeholders/tiles/floor` a cada `ArtTools.SliceSheets`, olhando só a borda de baixo do losango, então o tom da junta pode aparecer como textura no miolo.
 4. Transparência parcial não existe: véu, vapor e névoa usam dithering 50% entre duas cores da paleta.
 
-O `verify.py` cobre as regras 1, 2 e 4 (com o limite de cores de cada prefixo), o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa, realce e seta de saída (`floor_`, `fog*`, `hl_`, `overlay_exit_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A face lateral (`side_`) faz o contrário: nenhum pixel opaco dentro do losango, porque ela pendura abaixo da célula e o chão fica por cima. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em três pontos, todos pendentes de decisão e não regressão:
-- A sombra dos personagens é translúcida, em `#101020`: 16 px com alfa 90 nos `_idle_se` e 208 px em `#06060B` com alfa 32 nas folhas, que também saem do RGB555.
+O `verify.py` cobre as regras 1, 2 e 4 (com o limite de cores de cada prefixo), o RGB555, a dimensão pelo prefixo do nome e o encaixe na célula. Chão, névoa, realce e seta de saída (`floor_`, `fog*`, `hl_`, `overlay_exit_`) não podem ter pixel opaco fora do losango de 268 px dos placeholders (`FLOOR_FOOTPRINT` em `tools/art/tile_preview.py`), e o chão também não pode deixar vão ao se repetir. A face lateral (`side_`) faz o contrário: nenhum pixel opaco dentro do losango, porque ela pendura abaixo da célula e o chão fica por cima. A regra 3 continua com `FloorTileSeams` e o teste EditMode. Os placeholders atuais ainda falham em dois pontos, os dois pendentes de decisão e não regressão. A sombra assada nos personagens saiu: `CharacterShadows` a apaga das fontes a cada `ArtTools.SliceSheets`, e quem desenha a sombra agora é `overlay_shadow`, uma elipse cheia sob o pé do ator, com a opacidade aplicada pelo `SpriteRenderer` (`ActorView.ShadowOpacity`) e não por alfa no PNG.
 - Névoa (`fog*`) em `#101020`, a cor que o GDD 6.5 pede mas que não está na paleta.
 - Realces `hl_*` a 55% de alfa, como o GDD 6.5 especifica, contra a regra 4.
 
