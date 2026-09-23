@@ -103,6 +103,10 @@ MonoBehaviour:
     value: "OP\xC7\xD5ES"
   - key: options.volume
     value: Volume
+  - key: options.music
+    value: "M\xFAsica"
+  - key: options.effects
+    value: Efeitos
   - key: options.text_speed
     value: Texto
   - key: options.assisted_mode

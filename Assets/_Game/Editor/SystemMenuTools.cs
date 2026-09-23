@@ -40,7 +40,12 @@ namespace Game.EditorTools
         public const int MainMenuInset = 24;
         public const int PauseRows = 5;
         public const int PauseWidth = 112;
-        public const int OptionsWidth = 208;
+        public const int OptionsWidth = 264;
+        public const int OptionsBarLeft = 126;
+        public const int OptionsBarWidth = 56;
+        public const int OptionsBarHeight = 6;
+        public const string OptionsBarFrameSprite = "frame_bar";
+        public const string OptionsBarFillSprite = "bar_coherence";
         public const int OptionsLabelWidth = 110;
         public const int OptionsValueWidth = 70;
         public const int CreditsWidth = 400;
@@ -220,9 +225,30 @@ namespace Game.EditorTools
                 .Select(index => CreateLabel(panel.transform, $"Value{index}", TopLeft, new Vector2(valueLeft, -BoxTopPadding - index * RowHeight), new Vector2(OptionsValueWidth, RowHeight), TextAlignmentOptions.Right))
                 .ToArray();
 
-            view.Configure(title, labels, values, cursor, uiText);
+            var bars = Enumerable.Range(0, OptionsModel.RowCount)
+                .Select(index => CreateOptionBar(panel.transform, view, index))
+                .ToArray();
+
+            view.Configure(title, labels, values, cursor, uiText, bars);
             panel.gameObject.SetActive(false);
             return view;
+        }
+
+        private static Image CreateOptionBar(Transform parent, OptionsView view, int index)
+        {
+            var top = -BoxTopPadding - index * RowHeight - (RowHeight - OptionsBarHeight) / 2f;
+            var track = CreateRect(parent, $"Bar{index}", TopLeft, new Vector2(OptionsBarLeft, top),
+                new Vector2(OptionsBarWidth, OptionsBarHeight));
+            Paint(track.gameObject, UiSprite(OptionsBarFrameSprite), Color.white);
+            track.gameObject.AddComponent<OptionBarPointer>().Configure(view, index, track);
+
+            var fill = CreateRect(track, "Fill", TopLeft, Vector2.zero, new Vector2(OptionsBarWidth, OptionsBarHeight));
+            var image = fill.gameObject.AddComponent<Image>();
+            image.sprite = UiSprite(OptionsBarFillSprite);
+            image.type = Image.Type.Filled;
+            image.fillMethod = Image.FillMethod.Horizontal;
+            image.raycastTarget = false;
+            return image;
         }
 
         private static CreditsView CreateCreditsPanel(Transform parent, UiTextSO uiText)

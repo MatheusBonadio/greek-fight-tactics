@@ -6,6 +6,8 @@ namespace Game.UI
     public enum OptionRow
     {
         Volume,
+        Music,
+        Effects,
         TextSpeed,
         AssistedMode,
         Back
@@ -13,7 +15,7 @@ namespace Game.UI
 
     public sealed class OptionsModel
     {
-        public const int RowCount = 4;
+        public const int RowCount = 6;
         public const string TitleKey = "options.title";
         public const string OnKey = "options.on";
         public const string OffKey = "options.off";
@@ -59,6 +61,12 @@ namespace Game.UI
                 case OptionRow.Volume:
                     Settings.AdjustVolume(delta);
                     break;
+                case OptionRow.Music:
+                    Settings.AdjustMusicVolume(delta);
+                    break;
+                case OptionRow.Effects:
+                    Settings.AdjustEffectsVolume(delta);
+                    break;
                 case OptionRow.TextSpeed:
                     Settings.CycleTextSpeed(delta);
                     break;
@@ -83,6 +91,29 @@ namespace Game.UI
             return false;
         }
 
-        public int VolumePercent => Settings.VolumeStep * PercentPerVolumeStep;
+        public int VolumePercent => PercentOf(OptionRow.Volume);
+
+        public static bool IsVolume(OptionRow row) =>
+            row is OptionRow.Volume or OptionRow.Music or OptionRow.Effects;
+
+        public int StepOf(OptionRow row) => row switch
+        {
+            OptionRow.Music => Settings.MusicVolumeStep,
+            OptionRow.Effects => Settings.EffectsVolumeStep,
+            _ => Settings.VolumeStep
+        };
+
+        public int PercentOf(OptionRow row) => StepOf(row) * PercentPerVolumeStep;
+
+        public void SetStep(OptionRow row, int step)
+        {
+            if (!IsVolume(row))
+            {
+                return;
+            }
+
+            Cursor = (int)row;
+            Adjust(Math.Clamp(step, 0, GameSettings.VolumeSteps) - StepOf(row));
+        }
     }
 }

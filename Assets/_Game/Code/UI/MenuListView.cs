@@ -79,6 +79,7 @@ namespace Game.UI
         {
             if (Model != null && Model.Point(row))
             {
+                GameAudio.PlayUi(AudioIds.Hover);
                 RestartBlink();
             }
         }

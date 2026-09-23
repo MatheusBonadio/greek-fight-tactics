@@ -135,7 +135,14 @@ namespace Game.Tests.EditMode.UI
             options.Adjust(1);
             Assert.AreEqual(90, options.VolumePercent);
 
-            options.Move(1);
+            options.SetStep(OptionRow.Music, 3);
+            Assert.AreEqual(30, options.PercentOf(OptionRow.Music));
+
+            options.SetStep(OptionRow.Effects, 10);
+            Assert.AreEqual(100, options.PercentOf(OptionRow.Effects));
+            Assert.AreEqual(90, options.VolumePercent, "a volume row moved another row");
+
+            options.Move((int)OptionRow.TextSpeed - options.Cursor);
             options.Adjust(-1);
             Assert.AreEqual(TextSpeed.Slow, settings.TextSpeed);
 
@@ -144,9 +151,9 @@ namespace Game.Tests.EditMode.UI
             Assert.IsTrue(settings.AssistedMode);
 
             options.Move(1);
-            options.Adjust(1);
+            Assert.AreEqual(OptionRow.Back, options.Selected);
             Assert.IsTrue(options.Confirm());
-            Assert.AreEqual(3, changes);
+            Assert.AreEqual(5, changes);
 
             options.Move(1);
             Assert.AreEqual(OptionRow.Volume, options.Selected);
@@ -201,8 +208,8 @@ namespace Game.Tests.EditMode.UI
         {
             var uiText = UiText();
             host = new GameObject("options", typeof(RectTransform));
-            var labels = Enumerable.Range(0, 4).Select(index => Child<TextMeshProUGUI>($"label{index}")).Cast<TMP_Text>().ToArray();
-            var values = Enumerable.Range(0, 4).Select(index => Child<TextMeshProUGUI>($"value{index}")).Cast<TMP_Text>().ToArray();
+            var labels = Enumerable.Range(0, OptionsModel.RowCount).Select(index => Child<TextMeshProUGUI>($"label{index}")).Cast<TMP_Text>().ToArray();
+            var values = Enumerable.Range(0, OptionsModel.RowCount).Select(index => Child<TextMeshProUGUI>($"value{index}")).Cast<TMP_Text>().ToArray();
             var view = host.AddComponent<OptionsView>();
             view.Configure(Child<TextMeshProUGUI>("title"), labels, values, Child<Image>("cursor").rectTransform, uiText);
             GameSettings applied = null;
@@ -218,13 +225,18 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual("90%", values[0].text);
             Assert.IsNotNull(applied);
 
-            view.HandleNavigate(Vector2.down);
-            view.HandleNavigate(Vector2.right);
-            Assert.AreEqual(uiText.Get(OptionsModel.TextSpeedKey(TextSpeed.Fast)), values[1].text);
+            view.HandlePoint((int)OptionRow.Music);
+            view.HandleNavigate(Vector2.left);
+            Assert.AreEqual("70%", values[(int)OptionRow.Music].text);
+            Assert.AreEqual("90%", values[(int)OptionRow.Volume].text, "the music row moved the master");
 
-            view.HandlePoint(2);
+            view.HandlePoint((int)OptionRow.TextSpeed);
+            view.HandleNavigate(Vector2.right);
+            Assert.AreEqual(uiText.Get(OptionsModel.TextSpeedKey(TextSpeed.Fast)), values[(int)OptionRow.TextSpeed].text);
+
+            view.HandlePoint((int)OptionRow.AssistedMode);
             view.HandleConfirm();
-            Assert.AreEqual(uiText.Get(OptionsModel.OnKey), values[2].text);
+            Assert.AreEqual(uiText.Get(OptionsModel.OnKey), values[(int)OptionRow.AssistedMode].text);
 
             view.HandleCancel();
             Assert.IsTrue(closed);

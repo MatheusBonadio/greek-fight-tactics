@@ -4,6 +4,7 @@ using Game.Content;
 using Game.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.UI
 {
@@ -12,6 +13,7 @@ namespace Game.UI
         [SerializeField] private TMP_Text title;
         [SerializeField] private TMP_Text[] labels = Array.Empty<TMP_Text>();
         [SerializeField] private TMP_Text[] values = Array.Empty<TMP_Text>();
+        [SerializeField] private Image[] bars = Array.Empty<Image>();
         [SerializeField] private RectTransform cursor;
         [SerializeField] private UiTextSO text;
 
@@ -25,13 +27,27 @@ namespace Game.UI
 
         public IReadOnlyList<TMP_Text> Values => values;
 
-        public void Configure(TMP_Text titleLabel, TMP_Text[] rowLabels, TMP_Text[] rowValues, RectTransform rowCursor, UiTextSO uiText)
+        public IReadOnlyList<Image> Bars => bars;
+
+        public void Configure(TMP_Text titleLabel, TMP_Text[] rowLabels, TMP_Text[] rowValues, RectTransform rowCursor, UiTextSO uiText, Image[] rowBars = null)
         {
             title = titleLabel;
             labels = rowLabels;
             values = rowValues;
             cursor = rowCursor;
             text = uiText;
+            bars = rowBars ?? Array.Empty<Image>();
+        }
+
+        public void SetStep(int row, int step)
+        {
+            if (Model == null || row < 0 || row >= OptionsModel.RowCount)
+            {
+                return;
+            }
+
+            Model.SetStep((OptionRow)row, step);
+            Render();
         }
 
         public void Bind(OptionsModel model)
@@ -60,10 +76,12 @@ namespace Game.UI
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
                 Model.Adjust(direction.x > 0f ? 1 : -1);
+                GameAudio.PlayUi(AudioIds.Hover);
             }
             else if (!Mathf.Approximately(direction.y, 0f))
             {
                 Model.Move(direction.y > 0f ? -1 : 1);
+                GameAudio.PlayUi(AudioIds.Cursor);
                 Render();
             }
         }
@@ -93,7 +111,13 @@ namespace Game.UI
                 return;
             }
 
+            var before = Model.Cursor;
             Model.Point(row);
+            if (Model.Cursor != before)
+            {
+                GameAudio.PlayUi(AudioIds.Hover);
+            }
+
             Render();
         }
 
@@ -114,6 +138,12 @@ namespace Game.UI
                 var option = (OptionRow)row;
                 labels[row].text = text.Get(OptionsModel.LabelKey(option));
                 values[row].text = ValueText(option);
+                if (row < bars.Length && bars[row])
+                {
+                    var volume = OptionsModel.IsVolume(option);
+                    bars[row].enabled = volume;
+                    bars[row].fillAmount = volume ? Model.StepOf(option) / (float)GameSettings.VolumeSteps : 0f;
+                }
             }
 
             UiCursor.Place(cursor, Model.Cursor < labels.Length ? labels[Model.Cursor] : null, true);
@@ -121,7 +151,7 @@ namespace Game.UI
 
         private string ValueText(OptionRow row) => row switch
         {
-            OptionRow.Volume => $"{Model.VolumePercent}%",
+            OptionRow.Volume or OptionRow.Music or OptionRow.Effects => $"{Model.PercentOf(row)}%",
             OptionRow.TextSpeed => text.Get(OptionsModel.TextSpeedKey(Model.Settings.TextSpeed)),
             OptionRow.AssistedMode => text.Get(Model.Settings.AssistedMode ? OptionsModel.OnKey : OptionsModel.OffKey),
             _ => string.Empty

@@ -840,7 +840,8 @@ namespace Game.UI
                 posing.Add(actor);
             }
 
-            if (outcome.Hit && target && target.PlayOnce(BattleAnimations.CoherenceDamage))
+            var hurt = outcome.ActorCoherenceDelta < 0 || outcome.TargetCoherenceDelta < 0;
+            if (hurt && target && target.PlayOnce(BattleAnimations.CoherenceDamage))
             {
                 posing.Add(target);
             }
@@ -911,6 +912,13 @@ namespace Game.UI
             Speak();
         }
 
+        private void StrikeEndPose()
+        {
+            var won = LastResult == BattleStatus.PlayerWon;
+            sandbox.Player?.PlayOnce(won ? BattleAnimations.Victory : BattleAnimations.Defeat);
+            engaged?.Actor?.PlayOnce(won ? BattleAnimations.Defeat : BattleAnimations.Victory);
+        }
+
         private void AnnounceAbility(Outcome outcome, Action continuation)
         {
             var key = BattleText.AbilityKey(outcome);
@@ -918,6 +926,11 @@ namespace Game.UI
             {
                 continuation();
                 return;
+            }
+
+            if (outcome.TriggeredAbility.HasValue)
+            {
+                sandbox.Player?.PlayOnce(BattleAnimations.ForAbility(outcome.TriggeredAbility.Value));
             }
 
             ShowLine(string.Empty, string.Format(text.Get(key), BattleText.AbilityDetail(outcome, engaged.Opponent.DisplayName)), continuation);
@@ -972,6 +985,7 @@ namespace Game.UI
         private void EndBattle()
         {
             LastResult = Session.State.Status;
+            StrikeEndPose();
             GameAudio.Play(LastResult == BattleStatus.PlayerWon ? AudioIds.Victory : AudioIds.Defeat);
             if (DuelVictoryRule.TryClassify(Session.State, out var victory))
             {

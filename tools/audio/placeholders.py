@@ -15,6 +15,7 @@ BARS = 8
 MUSIC_LEVEL = 0.22
 SFX_LEVEL = 0.55
 BLIP_LEVEL = 0.4
+HOVER_LEVEL = 0.22
 
 SEMITONE = 2 ** (1 / 12)
 BASE_NOTE = 220.0
@@ -119,11 +120,13 @@ MELODIES = {
 
 
 def sfx(name):
+    if name == "sfx_hover":
+        return tone(note(4, 2), 0.028, HOVER_LEVEL, duty=0.125, attack=0.01, release=0.7)
     if name == "sfx_cursor":
         return tone(note(3, 2), 0.05, SFX_LEVEL, duty=0.25, release=0.5)
     if name == "sfx_confirm":
-        return chain(tone(note(2, 1), 0.05, SFX_LEVEL, duty=0.5),
-                     tone(note(4, 2), 0.09, SFX_LEVEL, duty=0.5))
+        return chain(tone(note(4, 1), 0.02, SFX_LEVEL, duty=0.5, attack=0.01, release=0.1),
+                     tone(note(4, 2), 0.08, SFX_LEVEL, duty=0.5))
     if name == "sfx_cancel":
         return tone(note(2, 1), 0.11, SFX_LEVEL, duty=0.5, sweep=0.5)
     if name == "sfx_refute":
@@ -153,7 +156,7 @@ def sfx(name):
     raise ValueError(f"unknown effect {name}")
 
 
-EFFECTS = ("sfx_cursor", "sfx_confirm", "sfx_cancel", "sfx_refute", "sfx_maieutics",
+EFFECTS = ("sfx_hover", "sfx_cursor", "sfx_confirm", "sfx_cancel", "sfx_refute", "sfx_maieutics",
            "sfx_damage", "sfx_counter", "sfx_victory", "sfx_defeat", "voice_blip")
 
 

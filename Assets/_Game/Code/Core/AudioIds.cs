@@ -17,6 +17,7 @@ namespace Game.Core
         public const string MusicBattleSophist = "music_battle_sophist";
         public const string MusicBattlePhilosopher = "music_battle_philosopher";
 
+        public const string Hover = "sfx_hover";
         public const string Cursor = "sfx_cursor";
         public const string Confirm = "sfx_confirm";
         public const string Cancel = "sfx_cancel";

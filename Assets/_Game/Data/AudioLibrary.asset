@@ -33,6 +33,8 @@ MonoBehaviour:
     value: {fileID: 8300000, guid: 3ca63b06892ae3147829acbad37be003, type: 3}
   - key: music_title
     value: {fileID: 8300000, guid: 18d5091e39aa41f49a3c44e4bbacca3e, type: 3}
+  - key: sfx_hover
+    value: {fileID: 8300000, guid: 4d9f87b49848b244e891f70c969c4542, type: 3}
   - key: sfx_cursor
     value: {fileID: 8300000, guid: 5d9e321a1320bb948ac4d2bd74981076, type: 3}
   - key: sfx_confirm

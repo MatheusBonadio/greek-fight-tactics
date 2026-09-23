@@ -96,7 +96,7 @@ namespace Game.UI
         public void SetVolume(AudioBus bus, float volume)
         {
             volumes[bus] = Mathf.Clamp01(volume);
-            if (bus == AudioBus.Music && music)
+            if (bus == AudioBus.Music && music && !music.isPlaying)
             {
                 music.volume = volumes[AudioBus.Music];
             }
@@ -134,7 +134,7 @@ namespace Game.UI
                 blipCooldown -= Time.unscaledDeltaTime;
             }
 
-            if (music && music.isPlaying && music.volume < volumes[AudioBus.Music])
+            if (music && music.isPlaying && !Mathf.Approximately(music.volume, volumes[AudioBus.Music]))
             {
                 music.volume = Mathf.MoveTowards(music.volume, volumes[AudioBus.Music],
                     Time.unscaledDeltaTime / FadeSeconds);
@@ -184,7 +184,7 @@ namespace Game.UI
 
             source.pitch = Mathf.Clamp(pitch, MinimumPitch, MaximumPitch);
             source.volume = volumes[bus];
-            source.PlayOneShot(clip, volumes[bus]);
+            source.PlayOneShot(clip);
         }
 
         private void PlayBlip(string speakerId)

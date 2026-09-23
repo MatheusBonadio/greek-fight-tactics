@@ -81,6 +81,7 @@ namespace Game.UI
             }
 
             IsReady = true;
+            GameAudio.PlayMusic(AudioIds.MusicTitle);
             ShowMain();
         }
 
