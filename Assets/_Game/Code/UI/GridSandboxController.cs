@@ -424,11 +424,18 @@ namespace Game.UI
 
         private bool ApplyPresences(Game.Core.SaveData story)
         {
+            var standingStill = PlacePresences(story, walksIn: false);
+            var walkingIn = PlacePresences(story, walksIn: true);
+            return standingStill && walkingIn;
+        }
+
+        private bool PlacePresences(Game.Core.SaveData story, bool walksIn)
+        {
             var placedEveryone = true;
             foreach (var presence in presences)
             {
                 var actor = presence.Actor;
-                if (!actor)
+                if (!actor || presence.WalksIn != walksIn)
                 {
                     continue;
                 }
@@ -442,7 +449,7 @@ namespace Game.UI
 
                 if (actor.Walker == null && !departed.Contains(actor))
                 {
-                    placedEveryone &= TryPlace(actor, presence.WalksIn ? presence.Entrance : (Coord?)null);
+                    placedEveryone &= TryPlace(actor, walksIn ? presence.Entrance : (Coord?)null);
                 }
             }
 

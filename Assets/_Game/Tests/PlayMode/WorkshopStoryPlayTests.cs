@@ -40,6 +40,7 @@ namespace Game.Tests.PlayMode
         private static readonly string[] MenexenoDialogues = { "menexeno_door_offer", GlanceDialogue, "menexeno_door_lesson", "menexeno_door_learned" };
         private static readonly Coord Workbench = new(4, 11);
         private static readonly Coord Shelves = new(2, 9);
+        private static readonly Coord BackCorner = new(7, 8);
         private static readonly Coord FarCorner = new(6, 9);
         private static readonly Coord Street = new(4, 5);
         private static readonly Coord MenexenoDoor = new(4, 6);
@@ -79,10 +80,10 @@ namespace Game.Tests.PlayMode
             yield return Frames(QuietFrames);
             Assert.IsFalse(map.Dialogues.IsTalking, "no other step plays before Kleia walks");
 
-            Assert.IsTrue(map.Sandbox.TryMovePlayerTo(Shelves));
+            Assert.IsTrue(map.Sandbox.TryMovePlayerTo(BackCorner));
             yield return WaitFor(() => map.Dialogues.IsTalking);
             Assert.AreEqual(FogDialogue, map.Dialogues.ActiveDialogueId, "the first step into the fog explains it");
-            Assert.AreNotEqual(Shelves, player.Cell, "the fog lesson stops Kleia on the step that revealed the room");
+            Assert.AreNotEqual(BackCorner, player.Cell, "the fog lesson stops Kleia on the step that revealed new ground");
             yield return PlayToTheEnd(map.Dialogues, new List<DialogueLine>());
 
             Assert.IsTrue(map.Sandbox.TryMovePlayerTo(Shelves));

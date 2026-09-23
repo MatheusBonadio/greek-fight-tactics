@@ -18,7 +18,7 @@ namespace Game.Tests.PlayMode
         private const float TimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 60f;
 
-        private static readonly Coord HomeArrival = new(14, 1);
+        private static readonly Coord HomeArrival = new(16, 2);
 
         private IsolatedDataDirectory data;
         private SandboxBattleDirector director;

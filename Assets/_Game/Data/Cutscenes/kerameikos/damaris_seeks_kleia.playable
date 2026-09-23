@@ -36,7 +36,7 @@ MonoBehaviour:
   actor: damaris
   toward: 
   hasCell: 1
-  cell: {x: 15, y: 0}
+  cell: {x: 17, y: 0}
   dialogue: 
 --- !u!114 &-69452090774903138
 MonoBehaviour:

@@ -2,85 +2,224 @@
   "id": "kerameikos",
   "home": true,
   "fogRevealDepth": 0,
-  "fogReveal": [{ "x": 0, "y": 7, "width": 9, "height": 9 }],
+  "fogReveal": [
+    {
+      "x": 0,
+      "y": 7,
+      "width": 9,
+      "height": 9
+    }
+  ],
   "floorLegend": {
+    "d": "floor_dirt",
     "p": "floor_packed_dirt",
     "c": "floor_dry_clay",
     "s": "floor_straw",
-    "d": "floor_dirt"
+    "g": "floor_grass",
+    "t": "floor_stone",
+    "w": "floor_water"
   },
   "blockLegend": {
     "B": "wall_brick",
+    "W": "wall_marble",
     "K": "block_kiln",
     "P": "prop_potters_wheel",
     "A": "prop_amphora_stack",
-    "T": "prop_olive_trunk"
+    "T": "prop_olive_trunk",
+    "C": "block_doric_column",
+    "H": "prop_statue_base",
+    "M": "prop_market_stall"
   },
   "floor": [
-    "dddddddddddddddd",
-    "dddddddddddddddd",
-    "ccccdccccccccccc",
-    "ccccdccccccccccc",
-    "ccccdccccccccccc",
-    "ccccdccccccccccc",
-    "cccddddccccccccc",
-    "pppppppppccccccc",
-    "pppppppppccccccc",
-    "pppppppppccccccc",
-    "pppppppppccccccc",
-    "pppppppppcccssss",
-    "pppppppppcccssss",
-    "pppppppppcccssss",
-    "pppppppppcccssss",
-    "pppppppppcccssss"
+    "ddddddddddddddddddpppppppppppppppppppppppppppppp",
+    "ddddddddddddddddddpppppppppppppppppppppppppppppp",
+    "ccccdcccccccccccddpppppppppppppppppppppppppppppp",
+    "ccccdcccccccccccddpppppppppppppppppppppppppppppp",
+    "ccccdcccccccccccddppccccccppppppssssssssppcccccp",
+    "ccccdcccccccccccddppccccccppppppssssssssppcccccp",
+    "cccddddcccccccccddppccccccppppppssssssssppcccccp",
+    "pppppppppcccccccddppccccccppppppssssssssppcccccp",
+    "pppppppppcccccccddppccccccppppppssssssssppcccccp",
+    "pppppppppcccccccddppppccpppppppppppsspppppppccpp",
+    "pppppppppcccccccdddddddddddddddddddddddddddddddd",
+    "pppppppppcccssssdddddddddddddddddddddddddddddddd",
+    "pppppppppcccssssddppppppppppppppppppppppppppddpp",
+    "pppppppppcccssssddppppppppppppppppppppppppppddpp",
+    "pppppppppcccssssddppppppppppppppppppccccccccddpp",
+    "pppppppppcccssssddppppppppppppppppppccccccccddpp",
+    "ppppppppppppppppddppppppppppppppppppccccccccddpp",
+    "ppppppppppppppppddppppppppppppppppppccccccccddpp",
+    "wwwwwwwwwwwwwwwwddppppppppppppppppppccccccccddpp",
+    "wwwwwwwwwwwwwwwwddppppppppppppppppppccccccccddpp",
+    "wwwwwwwwwwwwwwwwdddddddddddddddddddddddddddddddd",
+    "wwwwwwwwwwwwwwwwdddddddddddddddddddddddddddddddd",
+    "wwwwwwwwwwwwwwwwppppppppppppdddddddddddddddddddd",
+    "wwwwwwwwwwwwwwwwppppppppppppdddddddddddddddddddd",
+    "wwwwwgggwwwwwwwwppppppppppppddppggggggggpppppppp",
+    "wwwgggggggwwwwwgppppppppppppddppggggggggpppppppp",
+    "gggggggggggwwgggppppppppppppddppggggggggppcccccp",
+    "ggggggggggggggggppppppppppppddppggggggggppcccccp",
+    "ddddddddddddddddddddddddddddddppggggggggppcccccp",
+    "ddddddddddddddddddddddddddddddppggggggggppcccccp",
+    "ddttttttttttttttttttttttttttddppggggggggppcccccp",
+    "ddttttttttttttttttttttttttttddppggggggggppcccccp",
+    "ddttttttttttttttttttttttttttddppggggggggppcccccp",
+    "ddttttttttttttttttttttttttttddppggggggggppcccccp",
+    "ddttttttttttttttttttttttttttdddddddddddddddddddd",
+    "ddttttttttttttttttttttttttttdddddddddddddddddddd",
+    "ddttttttttttttttttttttttttttddppppggggggggggpppp",
+    "ddttttttttttttttttttttttttttddppppggggggggggpppp",
+    "ddttttttttttttttttttttttttttddppppggggggggggpppp",
+    "ddttttttttttttttttttttttttttddppppggggggggggpppp",
+    "ddddddddddddddddddddddddddddddppppggggggggggpppp",
+    "ddddddddddddddddddddddddddddddppppggggggggggpppp",
+    "ddggggggggggggggggggggggggggddppppggggggggggpppp",
+    "ddggggggggggggggggggggggggggddppppggggggggggpppp",
+    "ddggggggggggggggggggggggggggddppppggggggggggpppp",
+    "ddggggggggggggggggggggggggggddpppppppppppppppppp",
+    "ddggggggggggggggggggggggggggddpppppppppppppppppp",
+    "ddggggggggggggggggggggggggggddpppppppppppppppppp"
   ],
   "blocks": [
-    "----------------",
-    "----------------",
-    "----------------",
-    "-T--------------",
-    "----------------",
-    "----------------",
-    "-----AAA--------",
-    "BBBB-BBBB-------",
-    "B-------B-------",
-    "B-------B--K----",
-    "B-------B-A-----",
-    "B--P----B-------",
-    "B-------B----T--",
-    "B-------B-------",
-    "BAA---AAB-----T-",
-    "BBBBBBBBB-------"
+    "--M----M----M-----BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "------------------BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "------------------BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "-T----------------BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "------------------BB--A-K-BBBBBB---A---ABB-----B",
+    "------------------BB------BBBBBB--------BB-K--AB",
+    "-----AAA----------BBAK----BBBBBB-K---A--BB-----B",
+    "BBBB-BBBB---------BB-----ABBBBBB------K-BB-----B",
+    "B-------B--------MBBA-----BBBBBBA-------BBA----B",
+    "B-------B--K------BBBB--BBBBBBBBBBB--BBBBBBB--BB",
+    "B-------B-A--------M-----A---M---A-----M--A---A-",
+    "B--P----B---------------------------------------",
+    "B-------B----T----BBBBBBBBBBBBBBBBBBBBBBBBBB--BB",
+    "B-------B---------BBBBBBBBBBBBBBBBBBBBBBBBBB--BB",
+    "BAA---AAB-----T--MBBBBBBBBBBBBBBBBBB--------A-BB",
+    "BBBBBBBBB---------BBBBBBBBBBBBBBBBBB--A---A---BB",
+    "BBBBBBBBBBBBBBBB--BBBBBBBBBBBBBBBBBB----------BB",
+    "BBBBBBBBBBBBBBBB--BBBBBBBBBBBBBBBBBB----A-----BB",
+    "------------------BBBBBBBBBBBBBBBBBB--------A-BB",
+    "-----------------MBBBBBBBBBBBBBBBBBB----------BB",
+    "------------------------------------------------",
+    "-------------------M---A---------M----A----M--A-",
+    "----------------BBBBBBBBBBBB--------------------",
+    "----------------BBBBBBBBBBBB----A----M--------A-",
+    "----------------BBBBBBBBBBBB--BB-T--T--TBBBBBBBB",
+    "----------------BBBBBBBBBBBBM-BB--------BBBBBBBB",
+    "----------------BBBBBBBBBBBB--BB--------BB-----B",
+    "----------------BBBBBBBBBBBB--BBT--T--T-BB--A--B",
+    "-----M-------A-------M--------BB--------BB-K---B",
+    "------------------------------BB--------BB-----B",
+    "----C------------C-------C----BB--T--T--BB----AB",
+    "--H-----H-----H-----H-----WWA-BB--------BB---K-B",
+    "---WWWW--------WWW--------WW--BB--------BBA----B",
+    "A--WWWWH-WWWWH-WWW-HWWWWWHWW--BB-T--T--TBB-----B",
+    "---WWWW--WWWW--WWW--WWWWW-WW--------------------",
+    "---------------WWW--------WW-----M-----A-----M--",
+    "----HC----HC----HC----HC--WW--BBBBT--T--T--TBBBB",
+    "---WWW--WWWWW--------WWWW---M-BBBB----------BBBB",
+    "A--WWW-HWWWWWH-WWWWH-WWWWH----BBBB----------BBBB",
+    "---WWW---------WWWW--WWWW-----BBBB--T--T--T-BBBB",
+    "------------------------------BBBB----------BBBB",
+    "----A------M------A------M----BBBB----------BBBB",
+    "------------------------------BBBB----------BBBB",
+    "----------------------------A-BBBB----------BBBB",
+    "A---T--T--T--T--T--T--T--T----BBBB----------BBBB",
+    "------------------------------BBBBBBBBBBBBBBBBBB",
+    "---T--T--T--T--T--T--T--T--T--BBBBBBBBBBBBBBBBBB",
+    "------------------------------BBBBBBBBBBBBBBBBBB"
   ],
   "heights": [
-    "0000000000000000",
-    "0000000000000000",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111",
-    "1111111111111111"
+    "000000000000000000111111111111222222111111112222",
+    "000000000000000000111111111111222222111111112222",
+    "111111111111111100222222222222222222111111112222",
+    "111111111111111100222222222222222222111111112222",
+    "111111111111111100111111111111221111111111111113",
+    "111111111111111100111111111111221111111111111113",
+    "111111111111111100111111111111221111111111111113",
+    "111111111111111100111111111111221111111111111113",
+    "111111111111111100111111111111221111111111111112",
+    "111111111111111100111111111111222221111111111122",
+    "111111111111111100000000000000000000000000000000",
+    "111111111111111100000000000000000000000000000000",
+    "111111111111111100222222333311111111111111220011",
+    "111111111111111100222222333311111111111111220011",
+    "111111111111111100222222333311111111111111110011",
+    "111111111111111100222222333311111111111111110011",
+    "333322222222222200222222222211111111111111110011",
+    "333322222222222200222222222211111111111111110011",
+    "000000000000000000222222222211111111111111110011",
+    "000000000000000000222222222211111111111111110011",
+    "000000000000000000000000000000000000000000000000",
+    "000000000000000000000000000000000000000000000000",
+    "000000000000000022222222222200000000000000000000",
+    "000000000000000022222222222200000000000000000000",
+    "000000000000000022222222222200221111111111111111",
+    "000000000000000022222222222200221111111111111111",
+    "000000000000000022222222222200221111111111111111",
+    "000000000000000022222222222200221111111111111111",
+    "000000000000000000000000000011221111111111111111",
+    "000000000000000000000000000011221111111111111111",
+    "002222221111112222222222222211221111111111111111",
+    "002222221111112222222222222211221111111111111111",
+    "002222222222222222222222222211221111111111111111",
+    "002222222222222222222222222211221111111111111111",
+    "002222222222222222222222222211111111111111111111",
+    "002222222222222222222222222211111111111111111111",
+    "002222222222222222222222222211222211111111112222",
+    "002222222222222222222222222211222211111111112222",
+    "002222222222222222222222222211222211111111112222",
+    "002222222222222222222222222211222211111111112222",
+    "111111111111111111111111111111222211111111112222",
+    "111111111111111111111111111111222211111111112222",
+    "112222222222222222222222222211222211111111112222",
+    "112222223333333333332222222211222211111111112222",
+    "112222223333333333332222222211333311111111112222",
+    "112222223333333333332222222211333322222222222222",
+    "112222223333333333332222222211333322222222222222",
+    "112222222222222222222222222211333322222222222222"
   ],
   "actors": [
-    { "character": "kleia", "x": 4, "y": 11, "facing": "SouthWest" },
-    { "character": "aristeu", "x": 6, "y": 13, "facing": "SouthWest", "dialogue": "aristeu_workshop" },
-    { "character": "citizen", "x": 10, "y": 1, "facing": "SouthWest", "dialogue": "neighbor_kerameikos" },
+    {
+      "character": "kleia",
+      "x": 4,
+      "y": 11,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "aristeu",
+      "x": 6,
+      "y": 13,
+      "facing": "SouthWest",
+      "dialogue": "aristeu_workshop"
+    },
+    {
+      "character": "citizen",
+      "x": 10,
+      "y": 1,
+      "facing": "SouthWest",
+      "dialogue": "neighbor_kerameikos"
+    },
     {
       "character": "menexeno",
       "x": 3,
       "y": 6,
       "facing": "NorthEast",
-      "enters": { "x": 15, "y": 0 },
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+      "enters": {
+        "x": 17,
+        "y": 0
+      },
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked",
+          "absent": true
+        }
+      ]
     },
     {
       "character": "citizen",
@@ -88,7 +227,12 @@
       "y": 5,
       "facing": "NorthWest",
       "dialogue": "customer_oil",
-      "conditions": [{ "flag": "pressure_deserted", "absent": true }]
+      "conditions": [
+        {
+          "flag": "pressure_deserted",
+          "absent": true
+        }
+      ]
     },
     {
       "character": "citizen",
@@ -96,103 +240,316 @@
       "y": 5,
       "facing": "NorthWest",
       "dialogue": "customer_crater",
-      "conditions": [{ "flag": "pressure_deserted", "absent": true }]
+      "conditions": [
+        {
+          "flag": "pressure_deserted",
+          "absent": true
+        }
+      ]
     },
     {
       "character": "damaris",
-      "x": 12,
-      "y": 1,
+      "x": 16,
+      "y": 4,
       "facing": "NorthEast",
-      "enters": { "x": 15, "y": 1 },
-      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "enters": {
+        "x": 16,
+        "y": 0
+      },
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
     }
   ],
   "conditionalBlocks": [
-    { "x": 3, "y": 11, "conditions": [{ "flag": "pressure_tools", "absent": true }] },
-    { "x": 7, "y": 6, "conditions": [{ "flag": "pressure_deserted" }] }
+    {
+      "x": 3,
+      "y": 11,
+      "conditions": [
+        {
+          "flag": "pressure_tools",
+          "absent": true
+        }
+      ]
+    },
+    {
+      "x": 7,
+      "y": 6,
+      "conditions": [
+        {
+          "flag": "pressure_deserted"
+        }
+      ]
+    }
   ],
   "exits": [
-    { "x": 15, "y": 0, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast", "label": "Para a Ágora" },
-    { "x": 15, "y": 1, "location": "agora", "arrivalX": 0, "arrivalY": 1, "facing": "NorthEast", "label": "Para a Ágora" }
+    {
+      "x": 16,
+      "y": 0,
+      "location": "agora",
+      "arrivalX": 0,
+      "arrivalY": 1,
+      "facing": "NorthEast",
+      "label": "Para a Ágora"
+    },
+    {
+      "x": 17,
+      "y": 0,
+      "location": "agora",
+      "arrivalX": 0,
+      "arrivalY": 1,
+      "facing": "NorthEast",
+      "label": "Para a Ágora"
+    }
   ],
   "triggers": [
-    { "x": 4, "y": 7, "dialogue": "kerameikos_leaving_workshop", "flag": "left_workshop" },
+    {
+      "x": 4,
+      "y": 7,
+      "dialogue": "kerameikos_leaving_workshop",
+      "flag": "left_workshop"
+    },
     {
       "x": 4,
       "y": 6,
       "cutscene": "menexeno_follows_home",
       "flag": "menexeno_door_scene",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
-    },
-    {
-      "x": 3,
-      "y": 5,
-      "cutscene": "menexeno_follows_home",
-      "flag": "menexeno_door_scene",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked",
+          "absent": true
+        }
+      ]
     },
     {
       "x": 2,
       "y": 6,
       "cutscene": "menexeno_follows_home",
       "flag": "menexeno_door_scene",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked",
+          "absent": true
+        }
+      ]
     },
     {
-      "x": 13,
-      "y": 1,
-      "cutscene": "damaris_seeks_kleia",
-      "flag": "damaris_offer_scene",
-      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "x": 3,
+      "y": 5,
+      "cutscene": "menexeno_follows_home",
+      "flag": "menexeno_door_scene",
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked",
+          "absent": true
+        }
+      ]
     },
     {
-      "x": 11,
-      "y": 1,
+      "x": 17,
+      "y": 4,
       "cutscene": "damaris_seeks_kleia",
       "flag": "damaris_offer_scene",
-      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
     },
     {
-      "x": 12,
-      "y": 0,
+      "x": 15,
+      "y": 4,
       "cutscene": "damaris_seeks_kleia",
       "flag": "damaris_offer_scene",
-      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
     },
     {
-      "x": 12,
-      "y": 2,
+      "x": 16,
+      "y": 5,
       "cutscene": "damaris_seeks_kleia",
       "flag": "damaris_offer_scene",
-      "conditions": [{ "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
     },
-    { "x": 4, "y": 8, "dialogue": "kerameikos_wheel_sold", "flag": "saw_wheel_sold", "conditions": [{ "flag": "pressure_tools" }] }
+    {
+      "x": 16,
+      "y": 3,
+      "cutscene": "damaris_seeks_kleia",
+      "flag": "damaris_offer_scene",
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "dialogue": "kerameikos_wheel_sold",
+      "flag": "saw_wheel_sold",
+      "conditions": [
+        {
+          "flag": "pressure_tools"
+        }
+      ]
+    }
   ],
   "cutscenes": [
     {
       "id": "menexeno_follows_home",
       "steps": [
-        { "at": 0.25, "action": "Face", "actor": "kleia", "toward": "menexeno" },
-        { "at": 0.5, "action": "Face", "actor": "menexeno", "toward": "kleia" },
-        { "at": 0.75, "action": "Dialogue", "dialogue": "menexeno_door_offer" },
-        { "at": 1.5, "action": "Face", "actor": "menexeno", "x": 3, "y": 0 },
-        { "at": 2.25, "action": "Dialogue", "dialogue": "menexeno_door_glance" },
-        { "at": 2.75, "action": "Face", "actor": "menexeno", "toward": "kleia" },
-        { "at": 3.0, "action": "Dialogue", "dialogue": "menexeno_door_lesson" },
-        { "at": 3.5, "action": "Walk", "actor": "menexeno", "x": 15, "y": 0 },
-        { "at": 3.75, "action": "Leave", "actor": "menexeno" },
-        { "at": 4.5, "action": "Dialogue", "dialogue": "menexeno_door_learned" }
+        {
+          "at": 0.25,
+          "action": "Face",
+          "actor": "kleia",
+          "toward": "menexeno"
+        },
+        {
+          "at": 0.5,
+          "action": "Face",
+          "actor": "menexeno",
+          "toward": "kleia"
+        },
+        {
+          "at": 0.75,
+          "action": "Dialogue",
+          "dialogue": "menexeno_door_offer"
+        },
+        {
+          "at": 1.5,
+          "action": "Face",
+          "actor": "menexeno",
+          "x": 3,
+          "y": 0
+        },
+        {
+          "at": 2.25,
+          "action": "Dialogue",
+          "dialogue": "menexeno_door_glance"
+        },
+        {
+          "at": 2.75,
+          "action": "Face",
+          "actor": "menexeno",
+          "toward": "kleia"
+        },
+        {
+          "at": 3.0,
+          "action": "Dialogue",
+          "dialogue": "menexeno_door_lesson"
+        },
+        {
+          "at": 3.5,
+          "action": "Walk",
+          "actor": "menexeno",
+          "x": 17,
+          "y": 0
+        },
+        {
+          "at": 3.75,
+          "action": "Leave",
+          "actor": "menexeno"
+        },
+        {
+          "at": 4.5,
+          "action": "Dialogue",
+          "dialogue": "menexeno_door_learned"
+        }
       ]
     },
     {
       "id": "damaris_seeks_kleia",
       "steps": [
-        { "at": 0.25, "action": "Face", "actor": "kleia", "toward": "damaris" },
-        { "at": 0.5, "action": "Face", "actor": "damaris", "toward": "kleia" },
-        { "at": 0.75, "action": "Dialogue", "dialogue": "damaris_offer" },
-        { "at": 1.5, "action": "Walk", "actor": "damaris", "x": 15, "y": 0 },
-        { "at": 1.75, "action": "Leave", "actor": "damaris" },
-        { "at": 2.5, "action": "Dialogue", "dialogue": "damaris_technique" }
+        {
+          "at": 0.25,
+          "action": "Face",
+          "actor": "kleia",
+          "toward": "damaris"
+        },
+        {
+          "at": 0.5,
+          "action": "Face",
+          "actor": "damaris",
+          "toward": "kleia"
+        },
+        {
+          "at": 0.75,
+          "action": "Dialogue",
+          "dialogue": "damaris_offer"
+        },
+        {
+          "at": 1.5,
+          "action": "Walk",
+          "actor": "damaris",
+          "x": 17,
+          "y": 0
+        },
+        {
+          "at": 1.75,
+          "action": "Leave",
+          "actor": "damaris"
+        },
+        {
+          "at": 2.5,
+          "action": "Dialogue",
+          "dialogue": "damaris_technique"
+        }
       ]
     }
   ],
@@ -201,25 +558,46 @@
       "on": "MapStart",
       "dialogue": "kerameikos_first_steps",
       "flag": "tutorial_first_steps",
-      "conditions": [{ "flag": "left_workshop", "absent": true }]
+      "conditions": [
+        {
+          "flag": "left_workshop",
+          "absent": true
+        }
+      ]
     },
     {
       "on": "FogRevealed",
       "dialogue": "kerameikos_tutorial_fog",
       "flag": "tutorial_fog",
-      "conditions": [{ "flag": "tutorial_first_steps" }]
+      "conditions": [
+        {
+          "flag": "tutorial_first_steps"
+        }
+      ]
     },
     {
       "on": "WalkFinished",
       "dialogue": "kerameikos_tutorial_talk",
       "flag": "tutorial_talk",
-      "conditions": [{ "flag": "tutorial_fog" }, { "flag": "aristeu_errand", "absent": true }]
+      "conditions": [
+        {
+          "flag": "tutorial_fog"
+        },
+        {
+          "flag": "aristeu_errand",
+          "absent": true
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "kerameikos_no_customers",
       "flag": "saw_empty_workshop",
-      "conditions": [{ "flag": "pressure_deserted" }]
+      "conditions": [
+        {
+          "flag": "pressure_deserted"
+        }
+      ]
     }
   ]
 }

@@ -203,7 +203,7 @@ MonoBehaviour:
   actor: menexeno
   toward: 
   hasCell: 1
-  cell: {x: 15, y: 0}
+  cell: {x: 17, y: 0}
   dialogue: 
 --- !u!114 &5541365287215075297
 MonoBehaviour:

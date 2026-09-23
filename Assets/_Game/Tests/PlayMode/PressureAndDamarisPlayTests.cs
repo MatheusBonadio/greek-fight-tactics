@@ -40,7 +40,7 @@ namespace Game.Tests.PlayMode
 
         private static readonly string[] ActOneOpponents = { "thrasybios", "oron", "phaidra", "kritolaos", "simo", "batilo" };
 
-        private static readonly Coord HomeArrival = new(14, 1);
+        private static readonly Coord HomeArrival = new(16, 2);
         private static readonly Coord CaptureCenter = new(8, 4);
 
         private IsolatedDataDirectory data;
