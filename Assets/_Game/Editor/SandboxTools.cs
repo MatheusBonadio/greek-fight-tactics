@@ -719,18 +719,20 @@ namespace Game.EditorTools
             var focus = new GameObject(ExplorationCamera.DuelFocusName).transform;
             focus.position = new Vector3(followTarget.position.x, followTarget.position.y, 0f);
 
-            var virtualCamera = CreateVirtualCamera("ExplorationCamera", followTarget);
+            var virtualCamera = CreateVirtualCamera("ExplorationCamera", followTarget, ExplorationCamera.DeadZoneFraction);
             virtualCamera.StandbyUpdate = CinemachineVirtualCameraBase.StandbyUpdateMode.Always;
             var confiner = virtualCamera.gameObject.AddComponent<CinemachineConfiner2D>();
             confiner.BoundingShape2D = bounds;
+            confiner.SlowingDistance = 0f;
+            confiner.Damping = 0f;
 
-            var duelCamera = CreateVirtualCamera(ExplorationCamera.DuelCameraName, focus);
+            var duelCamera = CreateVirtualCamera(ExplorationCamera.DuelCameraName, focus, 0f);
             var explorationCamera = virtualCamera.gameObject.AddComponent<ExplorationCamera>();
             explorationCamera.Configure(virtualCamera, duelCamera, ExplorationOrthographicSize, focus);
             return explorationCamera;
         }
 
-        private static CinemachineCamera CreateVirtualCamera(string name, Transform followTarget)
+        private static CinemachineCamera CreateVirtualCamera(string name, Transform followTarget, float deadZone)
         {
             var virtualCameraObject = new GameObject(name);
             var virtualCamera = virtualCameraObject.AddComponent<CinemachineCamera>();
@@ -742,6 +744,14 @@ namespace Game.EditorTools
             var composer = virtualCameraObject.AddComponent<CinemachinePositionComposer>();
             composer.Damping = CameraDamping;
             composer.CameraDistance = -RenderSetupTools.CameraDepth;
+
+            var composition = composer.Composition;
+            composition.DeadZone.Enabled = deadZone > 0f;
+            composition.DeadZone.Size = Vector2.one * deadZone;
+            composition.ScreenPosition = Vector2.zero;
+            composition.HardLimits.Enabled = false;
+            composer.Composition = composition;
+            composer.CenterOnActivate = true;
 
             virtualCameraObject.AddComponent<CinemachinePixelPerfect>();
             return virtualCamera;

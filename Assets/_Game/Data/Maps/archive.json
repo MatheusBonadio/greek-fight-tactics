@@ -47,7 +47,7 @@
     { "character": "academic", "sheet": "citizen", "x": 0, "y": 2, "facing": "NorthEast", "conditions": [{ "flag": "bronze_seal", "absent": true }] }
   ],
   "exits": [
-    { "x": 3, "y": 0, "location": "agora", "arrivalX": 11, "arrivalY": 5, "facing": "SouthWest", "label": "Para a ágora" }
+    { "x": 3, "y": 0, "location": "agora", "arrivalX": 18, "arrivalY": 4, "facing": "SouthWest", "label": "Para a ágora" }
   ],
   "triggers": [
     { "x": 3, "y": 5, "cutscene": "archive_list_scene", "flag": "read_juror_list" }

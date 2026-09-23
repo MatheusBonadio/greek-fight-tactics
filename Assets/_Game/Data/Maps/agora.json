@@ -1,5 +1,6 @@
 {
   "id": "agora",
+  "fogRevealDepth": 26,
   "floorLegend": {
     ".": "floor_marble",
     "o": "floor_marble_ochre",
@@ -18,115 +19,334 @@
     "W": "wall_marble"
   },
   "floor": [
-    "ddssssssss..",
-    "ddssssssss..",
-    "ddmmmmmmmm..",
-    "ddm.o.o.om..",
-    "ddmo.o.o.m..",
-    "ddm.oww.om..",
-    "ggmo.wwo.m..",
-    "ggm.o.o.om..",
-    "ggmo.o.o.m..",
-    "ggmmmmmmmm..",
-    "gggggsssss..",
-    "gggggsssss.."
+    "dddssssssssssswwwwww",
+    "dddsssssssssssssssss",
+    "dddsssssssssssssssss",
+    "dddsssssssssssssssss",
+    "ddd.m.m.m.m.m.....oo",
+    "dddm.m.m.m.m......oo",
+    "ddd.m.m.m.m.m.....oo",
+    "dddm.mww.m.m......oo",
+    "ddd.m.wwm.m.m.....oo",
+    "dddm.m.m.m.m......oo",
+    "ggg.m.m.m.m.m.....oo",
+    "gggm.m.m.m.m......oo",
+    "ggggggddddddd.....oo",
+    "ggggggddddddd.....oo",
+    "ggggggddddddd.....oo",
+    "ggggggddddddd.....oo",
+    "......sssssss...dddd",
+    "......sssssss...dddd",
+    "......sssssss...dddd",
+    "......sssssss...dddd"
   ],
   "blocks": [
-    "----M-M-M---",
-    "----------C-",
-    "--H---------",
-    "----------C-",
-    "------------",
-    "----------C-",
-    "------------",
-    "----------C-",
-    "------------",
-    "-T--------C-",
-    "------------",
-    "T--T-BB-BBWW"
+    "----M-M--M--B------W",
+    "-------------------W",
+    "----------M--B-----W",
+    "-----M-------------W",
+    "-------------C-----W",
+    "----H---------------",
+    "-------------------W",
+    "-------------C-----W",
+    "-------------------W",
+    "-------------------W",
+    "-------------C-----W",
+    "-------------------W",
+    "----T--------------W",
+    "T------------C-----W",
+    "--T----------------W",
+    "-T---T-------------W",
+    "-------------C------",
+    "--------------------",
+    "---------H----------",
+    "WWWWWW--------------"
   ],
   "heights": [
-    "000000000023",
-    "000000000023",
-    "001111111123",
-    "001111111123",
-    "001111111123",
-    "001110011123",
-    "221110011123",
-    "221111111123",
-    "331111111123",
-    "331111111123",
-    "333332222223",
-    "333332222223"
+    "00000000000000000000",
+    "00000000000000000000",
+    "00000000000000000000",
+    "00000000000000000000",
+    "00011111111112222233",
+    "00011111111112222233",
+    "00011111111112222233",
+    "00011100111112222233",
+    "00011100111112222233",
+    "00011111111112222233",
+    "11111111111112222233",
+    "11111111111112222233",
+    "22222222222222222233",
+    "22222222222222222233",
+    "22222222222222222233",
+    "22222222222222222233",
+    "33333333333332223333",
+    "33333333333332223333",
+    "33333333333332223333",
+    "33333333333332223333"
   ],
   "actors": [
-    { "character": "kleia", "x": 0, "y": 1, "facing": "NorthEast" },
-    { "character": "thrasybios", "x": 7, "y": 1, "facing": "SouthWest", "conditions": [{ "flag": "street_trial_called", "absent": true }] },
-    { "character": "citizen", "x": 8, "y": 1, "facing": "SouthWest" },
-    { "character": "citizen", "x": 7, "y": 3, "facing": "SouthEast" },
-    { "character": "citizen", "x": 5, "y": 2, "facing": "NorthEast" },
-    { "character": "eudoro", "x": 4, "y": 7, "facing": "SouthEast", "dialogue": "eudoro_agora" },
-    { "character": "menexeno", "x": 10, "y": 4, "facing": "SouthWest", "dialogue": "menexeno_agora", "conditions": [{ "flag": "menexeno_absent_days", "absent": true }, { "flag": "duel_thrasybios_street_trial", "not": "won" }] },
-    { "character": "oron", "x": 10, "y": 10, "facing": "SouthWest" },
-    { "character": "phaidra", "x": 1, "y": 10, "facing": "SouthEast" },
-    { "character": "kritolaos", "x": 6, "y": 10, "facing": "SouthWest" },
-    { "character": "simo", "x": 8, "y": 8, "facing": "SouthWest" },
-    { "character": "batilo", "x": 7, "y": 6, "facing": "SouthWest" },
-    { "character": "thrasybios_street_trial", "sheet": "thrasybios", "x": 10, "y": 8, "facing": "SouthWest", "enters": { "x": 6, "y": 1 }, "conditions": [{ "flag": "street_trial_called" }, { "flag": "duel_thrasybios_street_trial", "not": "won" }] }
+    {
+      "character": "kleia",
+      "x": 0,
+      "y": 1,
+      "facing": "NorthEast"
+    },
+    {
+      "character": "thrasybios",
+      "x": 7,
+      "y": 1,
+      "facing": "SouthWest",
+      "conditions": [
+        {
+          "flag": "street_trial_called",
+          "absent": true
+        }
+      ]
+    },
+    {
+      "character": "citizen",
+      "x": 8,
+      "y": 1,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "citizen",
+      "x": 9,
+      "y": 3,
+      "facing": "SouthEast"
+    },
+    {
+      "character": "citizen",
+      "x": 5,
+      "y": 2,
+      "facing": "NorthEast"
+    },
+    {
+      "character": "eudoro",
+      "x": 5,
+      "y": 7,
+      "facing": "SouthEast",
+      "dialogue": "eudoro_agora"
+    },
+    {
+      "character": "menexeno",
+      "x": 18,
+      "y": 5,
+      "facing": "SouthWest",
+      "dialogue": "menexeno_agora",
+      "conditions": [
+        {
+          "flag": "menexeno_absent_days",
+          "absent": true
+        },
+        {
+          "flag": "duel_thrasybios_street_trial",
+          "not": "won"
+        }
+      ]
+    },
+    {
+      "character": "oron",
+      "x": 15,
+      "y": 14,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "phaidra",
+      "x": 2,
+      "y": 17,
+      "facing": "SouthEast"
+    },
+    {
+      "character": "kritolaos",
+      "x": 9,
+      "y": 17,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "simo",
+      "x": 8,
+      "y": 13,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "batilo",
+      "x": 16,
+      "y": 2,
+      "facing": "SouthWest"
+    },
+    {
+      "character": "thrasybios_street_trial",
+      "sheet": "thrasybios",
+      "x": 14,
+      "y": 8,
+      "facing": "SouthWest",
+      "enters": {
+        "x": 6,
+        "y": 1
+      },
+      "conditions": [
+        {
+          "flag": "street_trial_called"
+        },
+        {
+          "flag": "duel_thrasybios_street_trial",
+          "not": "won"
+        }
+      ]
+    }
   ],
   "exits": [
-    { "x": 0, "y": 0, "location": "kerameikos", "arrivalX": 14, "arrivalY": 1, "facing": "SouthWest", "heading": "SouthWest", "label": "Para o Cerâmico" },
-    { "x": 11, "y": 4, "location": "archive", "arrivalX": 3, "arrivalY": 1, "facing": "NorthWest", "label": "Para o arquivo", "conditions": [{ "flag": "searching_menexeno" }] },
-    { "x": 7, "y": 11, "location": "academy", "arrivalX": 3, "arrivalY": 1, "facing": "NorthWest", "label": "Para a Academia" }
+    {
+      "x": 0,
+      "y": 0,
+      "location": "kerameikos",
+      "arrivalX": 14,
+      "arrivalY": 1,
+      "facing": "SouthWest",
+      "heading": "SouthWest",
+      "label": "Para o Cerâmico"
+    },
+    {
+      "x": 19,
+      "y": 5,
+      "location": "archive",
+      "arrivalX": 3,
+      "arrivalY": 1,
+      "facing": "NorthWest",
+      "label": "Para o arquivo",
+      "conditions": [
+        {
+          "flag": "searching_menexeno"
+        }
+      ]
+    },
+    {
+      "x": 17,
+      "y": 19,
+      "location": "academy",
+      "arrivalX": 3,
+      "arrivalY": 1,
+      "facing": "NorthWest",
+      "label": "Para a Academia"
+    }
   ],
   "cues": [
     {
       "on": "Idle",
       "dialogue": "agora_after_thrasybios",
       "flag": "headed_home",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked", "absent": true }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked",
+          "absent": true
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_asebeia_rumor",
       "flag": "heard_asebeia",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "pressure_rumor" }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "pressure_rumor"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_asebeia_spreads",
       "flag": "saw_rumor_spread",
-      "conditions": [{ "flag": "heard_asebeia" }, { "flag": "pressure_deserted" }]
+      "conditions": [
+        {
+          "flag": "heard_asebeia"
+        },
+        {
+          "flag": "pressure_deserted"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_pressure_home",
       "flag": "worried_for_home",
-      "conditions": [{ "flag": "saw_rumor_spread" }, { "flag": "pressure_tools" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "equals": "undecided" }]
+      "conditions": [
+        {
+          "flag": "saw_rumor_spread"
+        },
+        {
+          "flag": "pressure_tools"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "equals": "undecided"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_menexeno_away",
       "flag": "noticed_menexeno_gone",
-      "conditions": [{ "flag": "damaris_branch", "equals": "accepted" }, { "flag": "menexeno_absent_days" }]
+      "conditions": [
+        {
+          "flag": "damaris_branch",
+          "equals": "accepted"
+        },
+        {
+          "flag": "menexeno_absent_days"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_street_trial_summons",
       "flag": "street_trial_called",
-      "conditions": [{ "flag": "duel_thrasybios", "equals": "won" }, { "flag": "maieutics_unlocked" }, { "flag": "damaris_branch", "not": "undecided" }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios",
+          "equals": "won"
+        },
+        {
+          "flag": "maieutics_unlocked"
+        },
+        {
+          "flag": "damaris_branch",
+          "not": "undecided"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_menexeno_gone",
       "flag": "searching_menexeno",
-      "conditions": [{ "flag": "duel_thrasybios_street_trial", "equals": "won" }]
+      "conditions": [
+        {
+          "flag": "duel_thrasybios_street_trial",
+          "equals": "won"
+        }
+      ]
     },
     {
       "on": "Idle",
       "dialogue": "agora_academy_road",
       "flag": "saw_academy_road",
-      "conditions": [{ "flag": "act", "equals": "2" }]
+      "conditions": [
+        {
+          "flag": "act",
+          "equals": "2"
+        }
+      ]
     }
   ]
 }

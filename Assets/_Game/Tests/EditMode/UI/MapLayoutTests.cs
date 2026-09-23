@@ -23,7 +23,7 @@ namespace Game.Tests.EditMode.UI
         private const int StallDistance = 2;
         private const int AudienceDistance = 3;
         private const int MinimumAudience = 2;
-        private const int AgoraSize = 12;
+        private const int AgoraSize = 20;
         private const int KerameikosSize = 16;
         private const int InteriorSize = 8;
         private const string AmphoraTile = "prop_amphora_stack";

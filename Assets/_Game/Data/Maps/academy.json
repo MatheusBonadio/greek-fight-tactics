@@ -44,7 +44,7 @@
     { "character": "kleia", "x": 3, "y": 1, "facing": "NorthWest" }
   ],
   "exits": [
-    { "x": 3, "y": 0, "location": "agora", "arrivalX": 7, "arrivalY": 10, "facing": "SouthEast", "label": "Para a ágora" }
+    { "x": 3, "y": 0, "location": "agora", "arrivalX": 18, "arrivalY": 19, "facing": "SouthEast", "label": "Para a ágora" }
   ],
   "cues": [
     { "on": "Idle", "dialogue": "academy_threshold", "flag": "reached_academy" }

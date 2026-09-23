@@ -378,7 +378,11 @@ namespace Game.Tests.EditMode.UI
 
             Assert.AreEqual(map.Width * map.Height, controller.Terrain.Count);
             Assert.AreEqual(map.Width * map.Height, controller.Costs.Count);
-            Assert.AreEqual(SandboxTools.FogRevealDepth, controller.FogRevealDepth, "the agora keeps the default fog depth");
+            Assert.AreEqual(MapLayout.Load(SandboxTools.MapPath).FogRevealDepth, controller.FogRevealDepth,
+                "the agora carries the fog depth its own json declares");
+            var agora = MapLayout.Load(SandboxTools.MapPath);
+            Assert.Less(controller.FogRevealDepth, agora.Width + agora.Height - 2,
+                "the far corner of the map must start hidden");
             Assert.IsNotNull(controller.Controls);
             Assert.IsNotNull(controller.Controls.FindActionMap(GridSandboxController.ActionMapName));
             Assert.GreaterOrEqual(controller.Actors.Count, 7);

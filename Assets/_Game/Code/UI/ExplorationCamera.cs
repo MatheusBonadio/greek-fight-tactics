@@ -5,6 +5,7 @@ namespace Game.UI
 {
     public sealed class ExplorationCamera : MonoBehaviour
     {
+        public const float DeadZoneFraction = 2f / 3f;
         public const float DefaultGlideSeconds = 0.6f;
         public const string DuelFocusName = "DuelFocus";
         public const string DuelCameraName = "DuelCamera";
