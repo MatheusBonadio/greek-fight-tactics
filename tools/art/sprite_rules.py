@@ -11,6 +11,32 @@ MAX_OPAQUE_COLORS = 15
 BACKGROUND_MAX_COLORS = 64
 LISTED_COLORS = 6
 
+CHARACTER_WIDTH = 24
+CHARACTER_HEIGHT = 32
+MAX_STRIP_FRAMES = 16
+ANIMATIONS = "|".join((
+    "argue",
+    "cheer",
+    "coherence_damage",
+    "concede",
+    "defeat",
+    "float",
+    "idle_breath",
+    "idle",
+    "invert",
+    "listen",
+    "maieutics",
+    "paint",
+    "quote",
+    "refute",
+    "talk",
+    "think",
+    "trance",
+    "victory",
+    "walk",
+    "withdraw",
+))
+
 ERROR = "error"
 WARNING = "warning"
 
@@ -37,12 +63,15 @@ class SizeRule:
     diamond: bool = False
     max_colors: int = MAX_OPAQUE_COLORS
     hangs_below: bool = False
+    width_step: int = 0
 
     def matches(self, name):
         return re.search(self.pattern, name) is not None
 
     def accepts(self, width, height):
         within_height = height >= self.min_height and (self.max_height is None or height <= self.max_height)
+        if self.width_step and width % self.width_step:
+            return False
         return self.min_width <= width <= self.max_width and within_height
 
     def fixed_size(self):
@@ -51,6 +80,8 @@ class SizeRule:
         return None
 
     def describe(self):
+        if self.width_step:
+            return f"{self.width_step}xN wide by {self.min_height}, up to {self.max_width // self.width_step} frames"
         width = f"{self.min_width}" if self.min_width == self.max_width else f"{self.min_width}-{self.max_width}"
         if self.max_height is None:
             height = f"{self.min_height}+"
@@ -79,12 +110,20 @@ SIZE_RULES = (
     SizeRule("prop, up to 48x64", r"^prop_", 32, 48, 16, 64),
     SizeRule("overlay", r"^overlay_", 32, 32, 16, None),
     exact("character sheet", r"_sheet$", 96, 128),
-    exact("character frame", r"_idle_(se|sw|ne|nw)$", 24, 32),
-    exact("dialogue portrait", r"_portrait$", 32, 32),
+    SizeRule(
+        "character strip",
+        rf"_({ANIMATIONS})_(se|sw|ne|nw)$",
+        CHARACTER_WIDTH,
+        CHARACTER_WIDTH * MAX_STRIP_FRAMES,
+        CHARACTER_HEIGHT,
+        CHARACTER_HEIGHT,
+        width_step=CHARACTER_WIDTH,
+    ),
+    exact("portrait frame", r"^frame_portrait$", 40, 40),
+    exact("dialogue portrait", r"(^portrait_|_portrait$)", 32, 32),
     exact("bar", r"^bar_", 64, 8),
     exact("menu box", r"^box_menu$", 96, 88),
     exact("dialogue box", r"^box_dialogue$", 208, 48),
-    exact("portrait frame", r"^frame_portrait$", 40, 40),
     exact("bar frame", r"^frame_bar$", 64, 8),
     exact("cursor", r"^cursor$", 8, 8),
     exact("fallacy icon", r"^icon_", 16, 16),

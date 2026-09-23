@@ -124,7 +124,6 @@ class SizeTests(unittest.TestCase):
             "block_kiln_glow.png": (64, 40),
             "prop_potters_wheel_spin.png": (128, 28),
             "kleia_sheet.png": (96, 128),
-            "kleia_idle_se.png": (24, 32),
             "bar_coherence.png": (64, 8),
             "box_menu.png": (96, 88),
             "box_dialogue.png": (208, 48),
@@ -141,6 +140,39 @@ class SizeTests(unittest.TestCase):
         }
         for name, size in expectations.items():
             self.assertEqual(size_rule_for(name).fixed_size(), size, name)
+
+    def test_a_character_strip_is_one_cell_per_frame_side_by_side(self):
+        strip = size_rule_for("kleia_idle_se.png")
+        self.assertEqual(strip.label, "character strip")
+        self.assertIsNone(strip.fixed_size())
+        for frames in (1, 2, 3, 4, 5, 6, 8, 16):
+            self.assertTrue(strip.accepts(24 * frames, 32), frames)
+        self.assertFalse(strip.accepts(25, 32), "a strip is a whole number of cells")
+        self.assertFalse(strip.accepts(48, 33), "a cell is 32 tall")
+        self.assertFalse(strip.accepts(24 * 17, 32), "no animation is longer than 16 frames")
+
+    def test_every_animation_in_the_catalogue_has_a_strip_rule(self):
+        catalogue = ("idle", "idle_breath", "walk", "talk", "think", "argue", "refute", "maieutics",
+                     "quote", "concede", "withdraw", "coherence_damage", "defeat", "victory",
+                     "float", "trance", "listen", "invert", "paint", "cheer")
+        for animation in catalogue:
+            for direction in ("se", "sw", "ne", "nw"):
+                name = f"kleia_{animation}_{direction}.png"
+                rule = size_rule_for(name)
+                self.assertIsNotNone(rule, name)
+                self.assertEqual(rule.label, "character strip", name)
+
+    def test_the_strip_rule_leaves_the_other_families_alone(self):
+        untouched = {
+            "side_earth_lip_sw.png": "side face",
+            "overlay_exit_sw.png": "exit marker",
+            "fog_edge_ne.png": "fog overlay",
+            "hl_refute.png": "range highlight",
+            "kleia_sheet.png": "character sheet",
+            "portrait_kleia_neutral.png": "dialogue portrait",
+        }
+        for name, label in untouched.items():
+            self.assertEqual(size_rule_for(name).label, label, name)
 
     def test_blocks_grow_upwards_and_props_stay_within_48x64(self):
         block = size_rule_for("block_doric_column.png")
