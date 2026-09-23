@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Core;
 using Game.Grid;
 using UnityEngine;
@@ -17,9 +18,15 @@ namespace Game.UI
         [SerializeField] private int startLevel;
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Animator animator;
+        [SerializeField] private SpriteRenderer shadowRenderer;
+
+        public const float OneShotCapSeconds = 2.5f;
+        public const float ShadowOpacity = 0.45f;
 
         private string playingState;
         private Posture posture = Posture.Idle;
+        private string oneShot;
+        private float oneShotRemaining;
 
         public Vector2Int StartCell => startCell;
 
@@ -28,6 +35,24 @@ namespace Game.UI
         public int StartLevel => startLevel;
 
         public SpriteRenderer SpriteRenderer => spriteRenderer;
+
+        public SpriteRenderer ShadowRenderer => shadowRenderer;
+
+        public IEnumerable<SpriteRenderer> Renderers
+        {
+            get
+            {
+                if (spriteRenderer != null)
+                {
+                    yield return spriteRenderer;
+                }
+
+                if (shadowRenderer != null)
+                {
+                    yield return shadowRenderer;
+                }
+            }
+        }
 
         public GridWalker Walker { get; private set; }
 
@@ -55,6 +80,32 @@ namespace Game.UI
 
         public string PlayingState => playingState;
 
+        public bool IsPlayingOneShot => oneShotRemaining > 0f;
+
+        public bool PlayOnce(string animation)
+        {
+            if (string.IsNullOrEmpty(animation) || !HasState(animation))
+            {
+                return false;
+            }
+
+            oneShot = animation;
+            oneShotRemaining = OneShotCapSeconds;
+            Sync();
+            return true;
+        }
+
+        public void StopOneShot()
+        {
+            oneShot = null;
+            oneShotRemaining = 0f;
+            Sync();
+        }
+
+        public bool HasState(string animation) =>
+            animator != null && animator.runtimeAnimatorController != null
+            && animator.HasState(0, Animator.StringToHash(animation));
+
         public static string StateFor(Posture posture, bool stepping) => stepping ? WalkState : posture == Posture.Action ? ActionState : IdleState;
 
         public bool IsShown
@@ -66,16 +117,27 @@ namespace Game.UI
                 {
                     spriteRenderer.enabled = value;
                 }
+
+                if (shadowRenderer != null)
+                {
+                    shadowRenderer.enabled = value;
+                }
             }
         }
 
-        public void Configure(Vector2Int cell, Facing facing, SpriteRenderer renderer, Animator actorAnimator, int level = TileData.GroundLevel)
+        public void Configure(Vector2Int cell, Facing facing, SpriteRenderer renderer, Animator actorAnimator, int level = TileData.GroundLevel, SpriteRenderer shadow = null)
         {
             startCell = cell;
             startFacing = facing;
             startLevel = level;
             spriteRenderer = renderer;
             animator = actorAnimator;
+            shadowRenderer = shadow;
+            if (shadowRenderer != null)
+            {
+                shadowRenderer.color = new Color(1f, 1f, 1f, ShadowOpacity);
+            }
+
             var coord = new Coord(cell.x, cell.y);
             var ground = IsoMath.GridToWorld(coord);
             ApplyPose(ground, level, TerrainSorting.ActorDepth(ground, level, IsoMath.Depth(coord)), facing, false);
@@ -87,7 +149,37 @@ namespace Game.UI
             Sync();
         }
 
-        private void LateUpdate() => Sync();
+        private void LateUpdate()
+        {
+            AdvanceOneShot(Time.deltaTime);
+            Sync();
+        }
+
+        private void AdvanceOneShot(float seconds)
+        {
+            if (oneShotRemaining <= 0f)
+            {
+                return;
+            }
+
+            oneShotRemaining -= seconds;
+            if (oneShotRemaining <= 0f || Finished(oneShot))
+            {
+                oneShot = null;
+                oneShotRemaining = 0f;
+            }
+        }
+
+        private bool Finished(string animation)
+        {
+            if (animator == null || !Application.isPlaying || playingState != animation)
+            {
+                return false;
+            }
+
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            return state.shortNameHash == Animator.StringToHash(animation) && state.normalizedTime >= 1f;
+        }
 
         private void Sync()
         {
@@ -105,6 +197,14 @@ namespace Game.UI
                 spriteRenderer.flipX = FacingRules.IsMirrored(facing);
             }
 
+            if (shadowRenderer != null)
+            {
+                shadowRenderer.transform.localPosition = new Vector3(
+                    -IsoMath.CellWidth,
+                    -IsoMath.CellHeight,
+                    TerrainSorting.TileSortPoint - TerrainSorting.ShadowOffset);
+            }
+
             if (animator == null || animator.runtimeAnimatorController == null || !Application.isPlaying)
             {
                 return;
@@ -113,7 +213,7 @@ namespace Game.UI
             animator.SetFloat(DirectionXParameter, 1f);
             animator.SetFloat(DirectionYParameter, FacingRules.SheetFacing(facing) == Facing.NorthEast ? 1f : -1f);
 
-            var state = StateFor(posture, stepping);
+            var state = oneShotRemaining > 0f ? oneShot : StateFor(posture, stepping);
             if (state == playingState)
             {
                 return;

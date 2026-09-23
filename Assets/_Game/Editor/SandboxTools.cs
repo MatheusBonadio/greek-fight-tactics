@@ -69,6 +69,8 @@ namespace Game.EditorTools
         public const int FogSortingOrder = -5;
         public const int ActorSortingOrder = 0;
         public const int FogRevealDepth = 18;
+        public const string ShadowName = "Shadow";
+        public const string ShadowSpritePath = ArtTools.TileFolder + "/overlays/overlay_shadow.png";
         public const byte BlockedCost = TileData.ImpassableCost;
         public const byte StoneCost = 2;
         public const float BlockSortLift = -TerrainSorting.BlockOffset;
@@ -561,8 +563,15 @@ namespace Game.EditorTools
             var animator = actorObject.AddComponent<Animator>();
             animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<AnimatorController>(ArtTools.ControllerPathFor(character));
 
+            var shadowObject = new GameObject(ShadowName);
+            shadowObject.transform.SetParent(actorObject.transform, false);
+            var shadow = shadowObject.AddComponent<SpriteRenderer>();
+            shadow.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(ShadowSpritePath);
+            shadow.spriteSortPoint = SpriteSortPoint.Pivot;
+            shadow.sortingOrder = ActorSortingOrder;
+
             var view = actorObject.AddComponent<ActorView>();
-            view.Configure(cell, facing, renderer, animator, level);
+            view.Configure(cell, facing, renderer, animator, level, shadow);
             return view;
         }
 

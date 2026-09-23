@@ -203,10 +203,10 @@ namespace Game.UI
 
         private void Light(Spectator spectator, bool outside)
         {
-            var renderer = spectator.View.SpriteRenderer;
-            if (renderer)
+            var material = outside && OutsideMaterial ? OutsideMaterial : template.SpriteRenderer.sharedMaterial;
+            foreach (var renderer in spectator.View.Renderers)
             {
-                renderer.sharedMaterial = outside && OutsideMaterial ? OutsideMaterial : template.SpriteRenderer.sharedMaterial;
+                renderer.sharedMaterial = material;
             }
         }
 

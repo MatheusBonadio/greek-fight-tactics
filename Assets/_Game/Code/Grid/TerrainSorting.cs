@@ -19,6 +19,7 @@ namespace Game.Grid
         public const float RangeOffset = 0.04f;
         public const float HighlightOffset = 0.03f;
         public const float FogOffset = 0.02f;
+        public const float ShadowOffset = 0.01f;
         public const float BlockOffset = -0.25f;
         public const float BlockVeilOffset = -0.26f;
 

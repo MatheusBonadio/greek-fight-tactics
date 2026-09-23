@@ -68,6 +68,7 @@ namespace Game.UI
         private Action dialogueContinuation;
         private Action animationContinuation;
         private ActorView movingActor;
+        private readonly List<ActorView> posing = new();
         private float thinkTimer;
         private int dialogueFrame = -1;
         private MapOpponent engaged;
@@ -432,7 +433,7 @@ namespace Game.UI
                         break;
                     }
 
-                    if (confirmAction.WasPressedThisFrame())
+                    if (confirmAction.WasPressedThisFrame() && sandbox.PointerAllowsConfirm())
                     {
                         TryChooseDestination(sandbox.Cursor.Cell);
                     }
@@ -450,13 +451,16 @@ namespace Game.UI
 
                     break;
                 case BattleFlowPhase.Animating:
-                    if (movingActor == null || movingActor.Walker == null || !movingActor.Walker.IsMoving)
+                    if (StillAnimating())
                     {
-                        movingActor = null;
-                        var next = animationContinuation;
-                        animationContinuation = null;
-                        next?.Invoke();
+                        break;
                     }
+
+                    movingActor = null;
+                    posing.Clear();
+                    var next = animationContinuation;
+                    animationContinuation = null;
+                    next?.Invoke();
 
                     break;
             }
@@ -660,7 +664,7 @@ namespace Game.UI
 
             var outside = sandbox.Actors
                 .Where(actor => actor && actor.gameObject.activeInHierarchy && actor.Walker != null && actor != sandbox.Player && actor != engaged.Actor && !Arena.IsLit(actor.Walker.Cell))
-                .Select(actor => actor.SpriteRenderer)
+                .SelectMany(actor => actor.Renderers)
                 .ToList();
             var fadeIn = Mathf.Max(MinimumVeilFadeSeconds, crowd ? crowd.ExpectedArrivalSeconds : 0f);
             veil.Show(sandbox.Grid.Width, sandbox.Grid.Height, Arena.IsLit, outside, fadeIn);
@@ -813,6 +817,33 @@ namespace Game.UI
             AfterOutcome(sandbox.Player, outcome, text.Get(BattleText.PlayerNameKey), engaged.Opponent.DisplayName);
         }
 
+        private bool StillAnimating()
+        {
+            if (movingActor != null && movingActor.Walker != null && movingActor.Walker.IsMoving)
+            {
+                return true;
+            }
+
+            return posing.Any(actor => actor && actor.IsPlayingOneShot);
+        }
+
+        private bool StrikeAnimation(ActorView actor, Outcome outcome)
+        {
+            posing.Clear();
+            var target = actor == sandbox.Player ? engaged?.Actor : sandbox.Player;
+            if (actor && actor.PlayOnce(BattleAnimations.For(outcome.Action)))
+            {
+                posing.Add(actor);
+            }
+
+            if (outcome.Hit && target && target.PlayOnce(BattleAnimations.CoherenceDamage))
+            {
+                posing.Add(target);
+            }
+
+            return posing.Count > 0;
+        }
+
         private void AfterOutcome(ActorView actor, Outcome outcome, string speaker, string listener)
         {
             hud.Sync();
@@ -841,6 +872,13 @@ namespace Game.UI
             {
                 actor.Walker.Follow(outcome.Path);
                 movingActor = actor;
+                animationContinuation = Speak;
+                Phase = BattleFlowPhase.Animating;
+                return;
+            }
+
+            if (StrikeAnimation(actor, outcome))
+            {
                 animationContinuation = Speak;
                 Phase = BattleFlowPhase.Animating;
                 return;

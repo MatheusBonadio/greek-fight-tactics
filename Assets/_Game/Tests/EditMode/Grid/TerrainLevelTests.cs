@@ -231,6 +231,24 @@ namespace Game.Tests.EditMode.Grid
         }
 
         [Test]
+        public void Sorting_TheShadowLiesUnderItsActorAndOverTheGround()
+        {
+            foreach (var level in new[] { 0, 2 })
+            {
+                var cell = new Coord(4, 4);
+                var actor = StandingActor(cell, level);
+                var shadow = ShadowUnder(cell, level);
+                Assert.Less(actor, shadow, $"the actor stands over its own shadow at level {level}");
+                Assert.Less(shadow, TerrainSorting.TileSortValue(cell, level, TerrainSorting.FogOffset), $"the fog covers the shadow at level {level}");
+                Assert.Less(shadow, Floor(cell, level), $"the shadow lies on the floor at level {level}");
+                Assert.AreEqual(actor + TerrainSorting.ShadowOffset, shadow, Tolerance, $"level {level}");
+            }
+
+            Assert.Less(TerrainSorting.ShadowOffset, TerrainSorting.FogOffset, "the shadow sits under the fog");
+            Assert.Greater(TerrainSorting.ShadowOffset, 0f, "the shadow sits behind the actor");
+        }
+
+        [Test]
         public void Sorting_AnActorWalkingOverARaisedPlateauNeverSinksUnderTheFloor()
         {
             var grid = GridFactory.Open(8, 8);
@@ -342,6 +360,14 @@ namespace Game.Tests.EditMode.Grid
         private static float Face(Coord cell, int level) => TerrainSorting.TileSortValue(cell, level, TerrainSorting.FaceOffset, Game.EditorTools.SandboxTools.FaceSpriteDrop);
 
         private static float Block(Coord cell, int level) => TerrainSorting.TileSortValue(cell, level, TerrainSorting.BlockOffset);
+
+        private static float ShadowUnder(Coord cell, int level)
+        {
+            var ground = IsoMath.GridToWorld(cell);
+            var depth = TerrainSorting.ActorDepth(ground, level, IsoMath.Depth(cell));
+            return IsoMath.GridToSurface(cell, level).y - IsoMath.CellHeight
+                - (depth + TerrainSorting.TileSortPoint - TerrainSorting.ShadowOffset);
+        }
 
         private static float StandingActor(Coord cell, int level) => TerrainSorting.ActorSortValue(IsoMath.GridToWorld(cell), level, IsoMath.Depth(cell));
 
