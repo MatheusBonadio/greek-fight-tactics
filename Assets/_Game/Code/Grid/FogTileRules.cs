@@ -16,23 +16,27 @@ namespace Game.Grid
                 return FogTileKind.None;
             }
 
-            if (IsRevealed(grid, cell + new Coord(1, 0)))
+            if (SharesGroundWithRevealed(grid, cell, tile, new Coord(1, 0)))
             {
                 return FogTileKind.EdgeNorthEast;
             }
 
-            if (IsRevealed(grid, cell + new Coord(0, 1)))
+            if (SharesGroundWithRevealed(grid, cell, tile, new Coord(0, 1)))
             {
                 return FogTileKind.EdgeNorthWest;
             }
 
-            if (IsRevealed(grid, cell + new Coord(0, -1)))
+            if (SharesGroundWithRevealed(grid, cell, tile, new Coord(0, -1)))
             {
                 return FogTileKind.EdgeSouthEast;
             }
 
-            return IsRevealed(grid, cell + new Coord(-1, 0)) ? FogTileKind.EdgeSouthWest : FogTileKind.Full;
+            return SharesGroundWithRevealed(grid, cell, tile, new Coord(-1, 0)) ? FogTileKind.EdgeSouthWest : FogTileKind.Full;
         }
+
+        private static bool SharesGroundWithRevealed(GridModel grid, Coord cell, in TileData tile, Coord towards) =>
+            grid.TryGet(cell + towards, out var neighbour) && neighbour.Revealed
+            && System.Math.Abs(neighbour.Level - tile.Level) <= TerrainSteps.MaxClimb;
 
         private static bool IsRevealed(GridModel grid, Coord cell) => grid.TryGet(cell, out var tile) && tile.Revealed;
     }

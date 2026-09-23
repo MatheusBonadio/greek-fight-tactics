@@ -29,6 +29,33 @@ namespace Game.Tests.EditMode.Grid
             Assert.AreEqual(expected, FogTileRules.KindAt(grid, new Coord(x, y)));
         }
 
+        [TestCase(4, 2)]
+        [TestCase(0, 2)]
+        [TestCase(2, 4)]
+        [TestCase(2, 0)]
+        public void KindAt_ACliffToTheRevealedNeighbour_FillsTheCellInsteadOfDitheringIt(int x, int y)
+        {
+            var cell = new Coord(x, y);
+            Assert.AreNotEqual(FogTileKind.Full, FogTileRules.KindAt(grid, cell), "level ground dithers");
+
+            GridFactory.Raise(grid, cell, TerrainSteps.MaxClimb);
+            Assert.AreNotEqual(FogTileKind.Full, FogTileRules.KindAt(grid, cell), "one step is still walkable, so it still dithers");
+
+            GridFactory.Raise(grid, cell, TerrainSteps.MaxClimb + 1);
+            Assert.AreEqual(FogTileKind.Full, FogTileRules.KindAt(grid, cell), "a cliff fills the cell");
+        }
+
+        [Test]
+        public void KindAt_TheDitherFacesTheRevealedNeighbourItCanBeReachedFrom()
+        {
+            var cell = new Coord(2, 0);
+            GridFactory.Raise(grid, cell, TerrainSteps.MaxClimb + 1);
+            Assert.AreEqual(FogTileKind.Full, FogTileRules.KindAt(grid, cell), "the only revealed neighbour is a cliff below");
+
+            GridFactory.Raise(grid, new Coord(2, 1), TerrainSteps.MaxClimb + 1);
+            Assert.AreEqual(FogTileKind.EdgeNorthWest, FogTileRules.KindAt(grid, cell), "level with it again, the dither comes back");
+        }
+
         [TestCase(2, 2, true)]
         [TestCase(3, 2, true)]
         [TestCase(4, 2, false)]
