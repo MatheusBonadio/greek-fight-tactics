@@ -72,6 +72,48 @@ namespace Game.Tests.EditMode.Grid
         }
 
         [Test]
+        public void Hover_OverACellAnObjectFills_KeepsTheCursorWhereItWas()
+        {
+            var blocked = new Coord(7, 3);
+            GridFactory.Block(grid, blocked);
+
+            Assert.IsFalse(cursor.TryHover(Origin + IsoMath.GridToWorld(blocked), Origin));
+            Assert.AreEqual(new Coord(5, 5), cursor.Cell);
+        }
+
+        [Test]
+        public void Step_IntoACellAnObjectFills_KeepsTheCursorWhereItWas()
+        {
+            GridFactory.Block(grid, new Coord(6, 6));
+            var moves = new List<Coord>();
+            cursor.Moved += moves.Add;
+
+            Assert.IsFalse(cursor.TryStep(new Vector2(0f, 1f)));
+            Assert.AreEqual(new Coord(5, 5), cursor.Cell);
+            CollectionAssert.IsEmpty(moves);
+        }
+
+        [Test]
+        public void Hover_OverAnActor_StillReachesTheCellSoSheCanBeTalkedTo()
+        {
+            var npc = new Coord(7, 3);
+            GridFactory.Occupy(grid, npc, 42);
+
+            Assert.IsTrue(cursor.TryHover(Origin + IsoMath.GridToWorld(npc), Origin));
+            Assert.AreEqual(npc, cursor.Cell);
+        }
+
+        [Test]
+        public void Point_StillReachesABlockedCellBecauseItAnswersToCodeAndNotToThePlayer()
+        {
+            var blocked = new Coord(7, 3);
+            GridFactory.Block(grid, blocked);
+
+            Assert.IsTrue(cursor.TryPoint(blocked));
+            Assert.AreEqual(blocked, cursor.Cell);
+        }
+
+        [Test]
         public void Step_AtTheEdge_StaysInsideAndRaisesMovedOnlyOnChange()
         {
             var edge = new GridCursor(grid, new Coord(11, 11));

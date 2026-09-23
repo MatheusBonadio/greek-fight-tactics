@@ -28,7 +28,7 @@ namespace Game.Grid
         public bool TryHover(Vector2 worldPoint, Vector2 gridOrigin)
         {
             var cell = TerrainPicking.CellAt(grid, worldPoint - gridOrigin);
-            return TryMoveTo(cell);
+            return TryReach(cell);
         }
 
         public bool TryPoint(Coord cell) => TryMoveTo(cell);
@@ -43,8 +43,11 @@ namespace Game.Grid
             }
 
             var delta = new Coord(Math.Sign(up + right), Math.Sign(up - right));
-            return TryMoveTo(Cell + delta);
+            return TryReach(Cell + delta);
         }
+
+        private bool TryReach(Coord cell) =>
+            grid.TryGet(cell, out var tile) && tile.IsPassable && TryMoveTo(cell);
 
         private bool TryMoveTo(Coord cell)
         {

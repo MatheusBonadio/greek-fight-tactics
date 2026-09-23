@@ -66,6 +66,7 @@ namespace Game.UI
         private PauseMenuController pause;
         private Vector2 lastPointer;
         private bool navigateHeld;
+        private bool pointerOnCursor = true;
         private Vector3Int? paintedSelection;
         private double selectionMovedAt;
         private bool exitCheckPending;
@@ -853,7 +854,7 @@ namespace Game.UI
             }
 
             var world = camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, -camera.transform.position.z));
-            cursor.TryHover(world, Vector2.zero);
+            pointerOnCursor = cursor.TryHover(world, Vector2.zero);
         }
 
         private void SkipCursorInput()
@@ -869,8 +870,14 @@ namespace Game.UI
                 return false;
             }
 
+            return PointerAllowsConfirm();
+        }
+
+        public bool PointerAllowsConfirm()
+        {
             var mouse = Mouse.current;
-            return mouse == null || !mouse.leftButton.wasPressedThisFrame || (!IsOverDebugPanel(mouse.position.ReadValue()) && !IsPointerOverUi());
+            return mouse == null || !mouse.leftButton.wasPressedThisFrame
+                || (pointerOnCursor && !IsOverDebugPanel(mouse.position.ReadValue()) && !IsPointerOverUi());
         }
 
         public static bool IsPointerOverUi() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
