@@ -435,7 +435,8 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(RenderSetupTools.MainCameraTag, camera.tag);
             Assert.AreSame(explorationCamera.gameObject, virtualCamera.gameObject);
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePositionComposer>());
-            Assert.IsNotNull(virtualCamera.GetComponent<CinemachinePixelPerfect>());
+            Assert.IsNull(virtualCamera.GetComponent<CinemachinePixelPerfect>(),
+                "the lens extension hunts a pixel against a damped dead-zone camera; PixelSnappedCamera owns the grid");
             Assert.IsNotNull(virtualCamera.GetComponent<CinemachineConfiner2D>().BoundingShape2D);
             Assert.AreEqual(CinemachineVirtualCameraBase.StandbyUpdateMode.Always, virtualCamera.StandbyUpdate, "the bounded camera keeps tracking Kleia during the duel so the way back is exact");
             Assert.AreEqual(Find<GridSandboxController>().Actors[0].transform, virtualCamera.Follow);
@@ -455,7 +456,8 @@ namespace Game.Tests.EditMode.UI
             Assert.Greater((int)duelCamera.Priority, (int)explorationCamera.VirtualCamera.Priority);
             Assert.IsNull(duelCamera.GetComponent<CinemachineConfiner2D>(), "the duel is centred even beside the map edge");
             Assert.IsNotNull(duelCamera.GetComponent<CinemachinePositionComposer>());
-            Assert.IsNotNull(duelCamera.GetComponent<CinemachinePixelPerfect>());
+            Assert.IsNull(duelCamera.GetComponent<CinemachinePixelPerfect>(),
+                "both cameras leave the grid to PixelSnappedCamera, so a blend never mixes two snapping models");
             Assert.AreEqual(SandboxTools.ExplorationOrthographicSize, duelCamera.Lens.OrthographicSize, "the duel keeps the exploration zoom");
         }
 

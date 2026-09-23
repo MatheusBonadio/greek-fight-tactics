@@ -21,7 +21,7 @@ namespace Game.Tests.PlayMode
         private const string MenexenoGone = "agora_menexeno_gone";
         private const string LostFlag = "lost_street_trial";
 
-        private static readonly Coord TrialPost = new(10, 8);
+        private static readonly Coord TrialPost = new(14, 8);
         private const float TimeoutSeconds = 10f;
         private const float BattleTimeoutSeconds = 90f;
         private const int MaxConfirms = 128;

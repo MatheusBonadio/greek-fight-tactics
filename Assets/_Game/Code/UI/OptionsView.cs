@@ -141,7 +141,7 @@ namespace Game.UI
                 if (row < bars.Length && bars[row])
                 {
                     var volume = OptionsModel.IsVolume(option);
-                    bars[row].enabled = volume;
+                    bars[row].transform.parent.gameObject.SetActive(volume);
                     bars[row].fillAmount = volume ? Model.StepOf(option) / (float)GameSettings.VolumeSteps : 0f;
                 }
             }

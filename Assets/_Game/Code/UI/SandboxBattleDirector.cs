@@ -912,6 +912,12 @@ namespace Game.UI
             Speak();
         }
 
+        private void ClearEndPose()
+        {
+            sandbox.Player?.StopOneShot();
+            engaged?.Actor?.StopOneShot();
+        }
+
         private void StrikeEndPose()
         {
             var won = LastResult == BattleStatus.PlayerWon;
@@ -1040,6 +1046,7 @@ namespace Game.UI
                 TopUpArguments(engaged);
             }
 
+            ClearEndPose();
             var from = StateMachine.Mode;
             StateMachine.TryTransition(GameMode.Exploration);
             GameAudio.PlayMusic(AudioIds.MusicForLocation(sandbox.LocationId));

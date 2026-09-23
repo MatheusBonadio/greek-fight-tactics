@@ -6,6 +6,9 @@ namespace Game.UI
     public sealed class ExplorationCamera : MonoBehaviour
     {
         public const float DeadZoneFraction = 2f / 3f;
+        public const float DefaultAspect = 16f / 9f;
+        public const float PinnedDeadZone = 1f;
+        public const float MinimumDeadZone = 1f / 4f;
         public const float DefaultGlideSeconds = 0.6f;
         public const string DuelFocusName = "DuelFocus";
         public const string DuelCameraName = "DuelCamera";
@@ -39,6 +42,32 @@ namespace Game.UI
 
         public static Vector2 FramingFor(Vector2 duelCenter, float orthographicSize) =>
             new(duelCenter.x, duelCenter.y - HudLayout.BottomStripFraction * orthographicSize);
+
+        private void Start()
+        {
+            TuneDeadZone();
+        }
+
+        public void TuneDeadZone()
+        {
+            if (!virtualCamera || !virtualCamera.TryGetComponent<CinemachinePositionComposer>(out var composer))
+            {
+                return;
+            }
+
+            var confiner = virtualCamera.GetComponent<CinemachineConfiner2D>();
+            var bounds = confiner && confiner.BoundingShape2D ? confiner.BoundingShape2D.bounds.size : Vector3.zero;
+            var brain = Brain;
+            var view = new Vector2(LensOrthographicSize * (brain && brain.OutputCamera ? brain.OutputCamera.aspect : DefaultAspect),
+                LensOrthographicSize) * 2f;
+            var composition = composer.Composition;
+            composition.DeadZone.Enabled = true;
+            composition.DeadZone.Size = new Vector2(AxisDeadZone(bounds.x, view.x), AxisDeadZone(bounds.y, view.y));
+            composer.Composition = composition;
+        }
+
+        private static float AxisDeadZone(float span, float view) =>
+            view <= 0f || span <= view ? PinnedDeadZone : Mathf.Clamp((span - view) / view, MinimumDeadZone, DeadZoneFraction);
 
         public void Configure(CinemachineCamera camera, CinemachineCamera duel, float explorationSize, Transform focus)
         {

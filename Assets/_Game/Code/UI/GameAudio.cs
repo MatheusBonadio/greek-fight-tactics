@@ -18,6 +18,9 @@ namespace Game.UI
         [AutoStaticsCleanup]
         private static GameAudio active;
 
+        [AutoStaticsCleanup]
+        private static bool muted;
+
         [SerializeField] private AudioLibrarySO library;
 
         private readonly Dictionary<AudioBus, float> volumes = new()
@@ -36,6 +39,19 @@ namespace Game.UI
         private float blipCooldown;
 
         public static GameAudio Active => active;
+
+        public static bool Muted
+        {
+            get => muted;
+            set
+            {
+                muted = value;
+                if (value && active && active.music)
+                {
+                    active.music.Stop();
+                }
+            }
+        }
 
         public AudioLibrarySO Library => library;
 
@@ -164,7 +180,7 @@ namespace Game.UI
 
         private void PlaySound(string id, AudioBus bus, float pitch)
         {
-            var clip = library ? library.Get(id) : null;
+            var clip = muted || !library ? null : library.Get(id);
             if (clip == null)
             {
                 return;
@@ -211,7 +227,7 @@ namespace Game.UI
                 return;
             }
 
-            var clip = id != null && library ? library.Get(id) : null;
+            var clip = id != null && library && !muted ? library.Get(id) : null;
             music.Stop();
             music.clip = clip;
             if (clip == null)

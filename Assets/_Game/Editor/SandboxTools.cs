@@ -89,7 +89,7 @@ namespace Game.EditorTools
         public static readonly Vector3 CellSize = new(2f, 1f, 1f);
         public static readonly Vector3 TileAnchor = new(-0.5f, 0.5f, 0f);
         public static readonly Vector3 GridPosition = new(0f, -IsoMath.CellHeight, 0f);
-        public static readonly Vector3 CameraDamping = new(0.2f, 0.2f, 0f);
+        public static readonly Vector3 CameraDamping = new(0.45f, 0.45f, 0f);
 
         public static readonly string[] FloorTileNames = { "floor_marble", "floor_marble_ochre", "floor_dirt", "floor_grass", "floor_stone", "floor_water", "floor_mosaic", "floor_packed_dirt", "floor_dry_clay", "floor_straw" };
         public static readonly string[] BlockTileNames = { "wall_marble", "wall_brick", "block_doric_column", "block_step", "prop_market_stall", "prop_statue_base", "prop_olive_trunk", "block_kiln", "prop_potters_wheel", "prop_amphora_stack" };
@@ -109,7 +109,7 @@ namespace Game.EditorTools
             ["floor_marble_ochre"] = SideFaceTiles.Stone,
             ["floor_mosaic"] = SideFaceTiles.Stone,
             ["floor_stone"] = SideFaceTiles.Stone,
-            ["floor_water"] = SideFaceTiles.Stone,
+            ["floor_water"] = SideFaceTiles.Water,
             ["floor_dirt"] = SideFaceTiles.Earth,
             ["floor_grass"] = SideFaceTiles.Earth,
             ["floor_packed_dirt"] = SideFaceTiles.Earth,
@@ -340,6 +340,9 @@ namespace Game.EditorTools
             var actors = CreateActors(map);
 
             controller.ConfigureLayout(width, height, terrain, costs, map.FogRevealDepth ?? FogRevealDepth, levels);
+            controller.ConfigureRevealedAreas(map.FogReveal
+                .Select(area => new RectInt(area.X, area.Y, area.Width, area.Height))
+                .ToArray());
             controller.ConfigureLocation(locationId);
             controller.ConfigureExits(map.Exits
                 .Select(exit => new MapExitLink(
@@ -753,7 +756,6 @@ namespace Game.EditorTools
             composer.Composition = composition;
             composer.CenterOnActivate = true;
 
-            virtualCameraObject.AddComponent<CinemachinePixelPerfect>();
             return virtualCamera;
         }
 

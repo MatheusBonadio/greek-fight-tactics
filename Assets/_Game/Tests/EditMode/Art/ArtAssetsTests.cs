@@ -1,3 +1,4 @@
+using Game.Core;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -12,7 +13,7 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 158;
+        private const int PlaceholderPngCount = 165;
         private const int SpritesPerSheet = 16;
         private const int SheetDirections = 4;
         private const int StripDirections = 2;
@@ -21,6 +22,17 @@ namespace Game.Tests.EditMode.Art
         private const string AristeuCharacter = "aristeu";
         private const int MaxColorsPerSprite = 15;
         private const int MaxColorsPerBackground = 64;
+
+
+        [Test]
+        public void AnAnimationThatHoldsItsLastFrame_IsOneTheCodeKeepsOnScreen()
+        {
+            foreach (var (id, definition) in ArtTools.Definitions)
+            {
+                Assert.AreEqual(definition.HoldsLast, BattleAnimations.Holds(id),
+                    $"{id}: animations.json and BattleAnimations.Holds disagree about holding the last frame");
+            }
+        }
 
         [Test]
         public void Placeholders_AreCopiedIntoTheProject()

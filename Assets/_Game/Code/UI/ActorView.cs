@@ -22,6 +22,7 @@ namespace Game.UI
 
         public const float OneShotCapSeconds = 2.5f;
         public const float ShadowOpacity = 0.45f;
+        public const int PixelsPerUnit = PixelSnappedCamera.DefaultPixelsPerUnit;
 
         private string playingState;
         private Posture posture = Posture.Idle;
@@ -90,7 +91,7 @@ namespace Game.UI
             }
 
             oneShot = animation;
-            oneShotRemaining = OneShotCapSeconds;
+            oneShotRemaining = BattleAnimations.Holds(animation) ? float.PositiveInfinity : OneShotCapSeconds;
             Sync();
             return true;
         }
@@ -157,7 +158,7 @@ namespace Game.UI
 
         private void AdvanceOneShot(float seconds)
         {
-            if (oneShotRemaining <= 0f)
+            if (oneShotRemaining <= 0f || float.IsPositiveInfinity(oneShotRemaining))
             {
                 return;
             }
@@ -191,7 +192,8 @@ namespace Game.UI
 
         private void ApplyPose(Vector2 ground, float level, float depth, Facing facing, bool stepping)
         {
-            transform.position = new Vector3(ground.x, ground.y + IsoMath.Lift(level), depth);
+            var drawn = PixelSnappedCamera.Snap(new Vector3(ground.x, ground.y + IsoMath.Lift(level), 0f), PixelsPerUnit);
+            transform.position = new Vector3(drawn.x, drawn.y, depth);
             if (spriteRenderer != null)
             {
                 spriteRenderer.flipX = FacingRules.IsMirrored(facing);

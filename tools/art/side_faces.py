@@ -40,6 +40,17 @@ STONE_BODY = (
     "################",
 )
 
+WATER_BODY = (
+    "..o....:....o...",
+    "..o....:....o..:",
+    "..o....:....o...",
+    "..o....:....o.o.",
+    "..o....:....o...",
+    "..o....:....o..:",
+    "..o....:....o...",
+    "..o....:....o.o.",
+)
+
 MATERIALS = {
     "earth": (
         EARTH_BODY,
@@ -50,6 +61,11 @@ MATERIALS = {
         STONE_BODY,
         {LIP: "marble_light", BASE: "marble_mid", JOINT: "marble_cold_shade", LIGHT: "marble_mid", DARK: "marble_cold_shade"},
         {LIP: "marble_mid", BASE: "marble_cold_shade", JOINT: "marble_cold_dark", LIGHT: "marble_cold_shade", DARK: "marble_cold_dark"},
+    ),
+    "water": (
+        WATER_BODY,
+        {LIP: "aegean_light", BASE: "aegean_mid", JOINT: "aegean_dark", LIGHT: "aegean_light", DARK: "aegean_shade"},
+        {LIP: "aegean_mid", BASE: "aegean_shade", JOINT: "aegean_dark", LIGHT: "aegean_mid", DARK: "aegean_dark"},
     ),
 }
 

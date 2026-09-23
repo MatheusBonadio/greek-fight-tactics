@@ -64,6 +64,17 @@ namespace Game.EditorTools
         public int Y { get; set; }
     }
 
+    public sealed class MapArea
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public int Width { get; set; }
+
+        public int Height { get; set; }
+    }
+
     public sealed class MapTrigger
     {
         public int X { get; set; }
@@ -185,6 +196,8 @@ namespace Game.EditorTools
         public List<MapActor> Actors { get; set; } = new();
 
         public List<MapExit> Exits { get; set; } = new();
+
+        public List<MapArea> FogReveal { get; set; } = new();
 
         public List<MapTrigger> Triggers { get; set; } = new();
 
@@ -312,6 +325,19 @@ namespace Game.EditorTools
             if (FogRevealDepth is < 0)
             {
                 throw new InvalidOperationException($"map {Id}: fogRevealDepth cannot be negative");
+            }
+
+            foreach (var area in FogReveal)
+            {
+                if (area.Width <= 0 || area.Height <= 0)
+                {
+                    throw new InvalidOperationException($"map {Id}: a revealed area needs a positive width and height");
+                }
+
+                if (!Contains(area.X, area.Y) || !Contains(area.X + area.Width - 1, area.Y + area.Height - 1))
+                {
+                    throw new InvalidOperationException($"map {Id}: the revealed area at {area.X},{area.Y} leaves the map");
+                }
             }
 
             var doors = new HashSet<(int, int)>();

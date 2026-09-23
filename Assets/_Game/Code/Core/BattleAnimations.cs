@@ -19,6 +19,8 @@ namespace Game.Core
         public const string Listen = "listen";
         public const string Invert = "invert";
 
+        public static bool Holds(string animation) => animation is Defeat or Victory;
+
         public static string For(ActionId action) => action switch
         {
             ActionId.Circulate => Walk,

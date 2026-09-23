@@ -97,7 +97,11 @@ namespace Game.Tests.PlayMode
             yield return WaitUntilStill(probe, explorationCamera);
 
             Assert.AreSame(sandbox.Player.transform, explorationCamera.FollowTarget, "the camera follows Kleia again after the battle");
-            AssertOnPixel(Snap(sandbox.Player.transform.position), camera.transform.position, "the camera must come back to Kleia");
+            var view = new Vector2(camera.orthographicSize * camera.aspect, camera.orthographicSize);
+            var slack = view * ExplorationCamera.DeadZoneFraction;
+            var offset = (Vector2)(sandbox.Player.transform.position - camera.transform.position);
+            Assert.LessOrEqual(Mathf.Abs(offset.x), slack.x, "the camera must bring Kleia back inside its dead zone (x)");
+            Assert.LessOrEqual(Mathf.Abs(offset.y), slack.y, "the camera must bring Kleia back inside its dead zone (y)");
             AssertMovesOneWay(probe.Positions, "moving back to Kleia");
             Assert.AreEqual(zoom, camera.orthographicSize);
             Object.Destroy(probe.gameObject);

@@ -7,20 +7,22 @@ namespace Game.UI
     public sealed class PixelSnappedCamera : MonoBehaviour
     {
         public const int DefaultPixelsPerUnit = 16;
-        public const float LagHysteresisPixels = 0.25f;
-
-        private const float HalfPixel = 0.5f;
-        private const float StillThreshold = 1e-8f;
+        public const float HysteresisPixels = 0.35f;
 
         [SerializeField] private int pixelsPerUnit = DefaultPixelsPerUnit;
 
-        private Vector2 heldLag;
-        private Vector3 lastOutput;
+        private Vector2 shown;
+        private bool settled;
 
         public int PixelsPerUnit => pixelsPerUnit;
 
         public static Vector3 Snap(Vector3 position, int pixelsPerUnit) =>
             new(Mathf.Round(position.x * pixelsPerUnit) / pixelsPerUnit, Mathf.Round(position.y * pixelsPerUnit) / pixelsPerUnit, position.z);
+
+        public static float Steady(float shownValue, float wanted, int pixelsPerUnit) =>
+            Mathf.Abs(wanted - shownValue) * pixelsPerUnit > 0.5f + HysteresisPixels
+                ? Mathf.Round(wanted * pixelsPerUnit) / pixelsPerUnit
+                : shownValue;
 
         private void OnEnable()
         {
@@ -32,15 +34,6 @@ namespace Game.UI
             CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
         }
 
-        public static Vector2 HoldLag(Vector2 held, Vector2 lag, int pixelsPerUnit) =>
-            new(HoldAxis(held.x, lag.x, pixelsPerUnit), HoldAxis(held.y, lag.y, pixelsPerUnit));
-
-        private static float HoldAxis(float held, float lag, int pixelsPerUnit)
-        {
-            var driftPixels = Mathf.Abs(lag - held) * pixelsPerUnit;
-            return driftPixels > HalfPixel + LagHysteresisPixels ? Mathf.Round(lag * pixelsPerUnit) / pixelsPerUnit : held;
-        }
-
         private void OnCameraUpdated(CinemachineBrain brain)
         {
             if (!brain.OutputCamera || brain.OutputCamera.transform != transform)
@@ -48,24 +41,18 @@ namespace Game.UI
                 return;
             }
 
-            var target = (brain.ActiveVirtualCamera as CinemachineVirtualCameraBase)?.Follow;
-            var camera = transform.position;
-            var moving = ((Vector2)(camera - lastOutput)).sqrMagnitude > StillThreshold;
-            lastOutput = camera;
-            if (!target || !moving)
+            var wanted = transform.position;
+            if (!settled)
             {
-                transform.position = Snap(camera, pixelsPerUnit);
-                if (target)
-                {
-                    heldLag = Snap(camera - target.position, pixelsPerUnit);
-                }
-
-                return;
+                settled = true;
+                shown = Snap(wanted, pixelsPerUnit);
+            }
+            else
+            {
+                shown = new Vector2(Steady(shown.x, wanted.x, pixelsPerUnit), Steady(shown.y, wanted.y, pixelsPerUnit));
             }
 
-            heldLag = HoldLag(heldLag, (Vector2)(camera - target.position), pixelsPerUnit);
-            var anchor = Snap(target.position, pixelsPerUnit);
-            transform.position = new Vector3(anchor.x + heldLag.x, anchor.y + heldLag.y, camera.z);
+            transform.position = new Vector3(shown.x, shown.y, wanted.z);
         }
     }
 }

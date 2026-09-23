@@ -2,6 +2,7 @@
   "id": "kerameikos",
   "home": true,
   "fogRevealDepth": 0,
+  "fogReveal": [{ "x": 0, "y": 7, "width": 9, "height": 9 }],
   "floorLegend": {
     "p": "floor_packed_dirt",
     "c": "floor_dry_clay",

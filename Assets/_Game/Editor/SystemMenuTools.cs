@@ -239,7 +239,7 @@ namespace Game.EditorTools
             var top = -BoxTopPadding - index * RowHeight - (RowHeight - OptionsBarHeight) / 2f;
             var track = CreateRect(parent, $"Bar{index}", TopLeft, new Vector2(OptionsBarLeft, top),
                 new Vector2(OptionsBarWidth, OptionsBarHeight));
-            Paint(track.gameObject, UiSprite(OptionsBarFrameSprite), Color.white);
+            Paint(track.gameObject, UiSprite(OptionsBarFrameSprite), Color.white).raycastTarget = true;
             track.gameObject.AddComponent<OptionBarPointer>().Configure(view, index, track);
 
             var fill = CreateRect(track, "Fill", TopLeft, Vector2.zero, new Vector2(OptionsBarWidth, OptionsBarHeight));

@@ -12,13 +12,14 @@ namespace Game.EditorTools
         public const string SideFolder = ArtTools.SourceFolder + "/tiles/sides";
         public const string Earth = "earth";
         public const string Stone = "stone";
+        public const string Water = "water";
         public const int CanvasSize = 32;
         public const int SplitColumn = 16;
         public const int BandRows = IsoMath.LevelPixels;
         public const string LipBand = "lip";
         public const string BodyBand = "body";
 
-        public static readonly string[] Materials = { Earth, Stone };
+        public static readonly string[] Materials = { Earth, Stone, Water };
         public static readonly string[] Bands = { LipBand, BodyBand };
         public static readonly int[] FootprintBottomRows = { 8, 8, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 14, 14, 13, 13, 12, 12, 11, 11, 10, 10, 9, 9, 8, 8 };
 

@@ -41,6 +41,7 @@ namespace Game.UI
         [SerializeField] private List<ActorView> actors = new();
         [SerializeField] private GridGizmoView gizmos;
         [SerializeField] private string locationId = DefaultLocationId;
+        [SerializeField] private RectInt[] revealedAreas = new RectInt[0];
         [SerializeField] private MapExitLink[] exits = new MapExitLink[0];
         [SerializeField] private List<ActorPresenceLink> presences = new();
         [SerializeField] private List<BlockPresenceLink> blockPresences = new();
@@ -266,6 +267,11 @@ namespace Game.UI
             actor.Bind(null);
             actor.gameObject.SetActive(false);
             return true;
+        }
+
+        public void ConfigureRevealedAreas(RectInt[] areas)
+        {
+            revealedAreas = areas ?? new RectInt[0];
         }
 
         public void ConfigureLayout(int newWidth, int newHeight, TerrainId[] newTerrain, byte[] newCosts, int newFogRevealDepth, byte[] newLevels = null)
@@ -908,13 +914,26 @@ namespace Game.UI
             }
         }
 
+        private bool InRevealedArea(int x, int y)
+        {
+            foreach (var area in revealedAreas)
+            {
+                if (area.Contains(new Vector2Int(x, y)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void RevealInitialArea(GridModel model)
         {
             for (var y = 0; y < model.Height; y++)
             {
                 for (var x = 0; x < model.Width; x++)
                 {
-                    if (x + y >= fogRevealDepth)
+                    if (x + y >= fogRevealDepth && !InRevealedArea(x, y))
                     {
                         continue;
                     }
