@@ -578,6 +578,7 @@ Conteúdo é ScriptableObject em `Assets/_Game/Data/`, nunca código. Se você e
 | `TerrainCostTableSO` | `Dictionary<TerrainId, byte>` |
 | `AbilitySO` | `Inversion` e `Listening` (ramificação Damaris) |
 | `QuoteItemSO` | `displayName`, `effectDescription`, `coherenceDelta`, `audienceDelta`, `uses` |
+| `AudioLibrarySO` | `Dictionary<string, AudioClip>` por id e `Dictionary<string, float>` com o tom da voz de cada falante |
 | `DialogueLibrarySO` | `Dictionary<string, DialogueSpeaker>` (nome e retrato) e `Dictionary<string, DialogueEntry>` (linhas com condições e efeitos) por id |
 
 Tabelas por id são `Dictionary` serializado com `[SerializeField]`, nativo no 6.6 — nada de listas paralelas. O analyzer de serialização (UAC1xxx) roda na compilação e não pode emitir aviso.
@@ -693,6 +694,22 @@ Resumo; o detalhe está na skill `pixel-art-pipeline`.
 
 ---
 
+## Áudio
+
+Som é dado, como a arte: um script versionado desenha os placeholders, o Unity os importa por ferramenta de CLI, e o jogo os chama por id. Trocar o arquivo mantendo o nome é tudo o que a arte definitiva exige.
+
+- **Fonte:** `tools/audio/placeholders.py` desenha os 20 clipes de `audio/placeholders/` em WAV mono 16-bit a 11025 Hz — ondas quadradas e triangulares em escala pentatônica, com envelope de ataque e decaimento. São 10 trilhas em loop (título, os quatro mapas, os dois temas de duelo por perfil e as três fases do julgamento de rua), 9 efeitos e um blip de voz. `--check` falha quando o WAV versionado não é o que o script desenha, como em `side_faces.py`. Toda trilha começa e termina perto do silêncio, para emendar no loop, e um teste cobra isso.
+- **Import:** `AudioTools.ImportPlaceholders` copia `audio/placeholders/` para `Assets/_Game/Audio/Placeholder/`, apaga o que sobrou e reimporta. O `PlaceholderAudioImporter` (`AssetPostprocessor`, pelo mesmo motivo do `PixelArtImporter`) força mono e PCM sem compressão, e dá *Streaming* só aos `music_*` — o resto é *Decompress On Load*, porque um blip de 40 ms não se transmite.
+- **Ids (Core):** `AudioIds` é puro e guarda as constantes e as regras de escolha: `MusicFor(Profile)` separa o tema sofista do filósofo, `SoundFor(ActionId)` dá o som da jogada, e `MusicForLocation`/`MusicForPhase` derivam a trilha do mapa e da fase. `AudioBus` é `Music`, `Sfx` ou `Ui`. Nenhum `switch` de perfil ou de ação vive na `Game.UI`.
+- **Biblioteca:** `AudioLibrarySO` sai de `Assets/_Game/Data/Source/audio.json` em `DataTools.Regenerate`, que **falha** se um id declarado não tiver clipe, se uma voz apontar para falante inexistente ou se um falante ficar sem tom.
+- **Tocador:** `Game.UI.GameAudio` tem uma fonte de música com fade e pools de 4 fontes para efeitos e para UI. A API é estática (`Play`, `PlayUi`, `Blip`, `PlayMusic`, `StopMusic`) e **não faz nada sem instância** — é o que permite aos testes montarem view crua sem áudio. O campo estático leva `[AutoStaticsCleanup]`, então a classe é `partial`, e `Shutdown()` existe para o teardown de PlayMode, senão o objeto com `DontDestroyOnLoad` vaza de um teste para o outro.
+- **`AudioListener`:** existe num lugar só, no `RenderSetupTools.CreateCameraRigPrefab`. Toda cena instancia esse rig, então há exatamente um por cena. Dois viram aviso da Unity, e aviso reprova os `LogAssert.NoUnexpectedReceived()` do modo avião.
+- **Voz:** há um `voice_blip` só, tocado com `pitch` por falante (`AudioLibrarySO.PitchFor`), dos 0,7 do Menexeno aos 1,15 da Kleia. O `DialogueBoxView` o dispara quando o typewriter revela um caractere novo, e `GameAudio.BlipCooldownSeconds` (45 ms) impede que vire metralhadora. `DialoguePlayer` passa o id do falante em `DialogueBoxView.VoiceId`.
+- **Volume:** `GameSettings` tem `MasterVolume`, `MusicVolume` e `EffectsVolume`, nos mesmos passos de 10%. `GameServices.ApplySettings` continua escrevendo `AudioListener.volume` e leva os outros dois aos buses. Arquivo de settings antigo, com só `master_volume`, continua válido. Ainda **não há linha de música e efeitos no menu de opções** — o volume é aplicado, mas só o mestre é ajustável pela UI.
+- **Não há `AudioMixer`.** Os buses são pools com multiplicador próprio. Criar um `.mixer` por CLI só é possível por reflexão sobre `UnityEditor.Audio.AudioMixerController`, que é interno; enquanto o Ato I não pedir ducking, snapshot ou filtro, o multiplicador entrega o mesmo e não depende de API interna.
+
+---
+
 ## Unity CLI
 
 O Unity CLI (`unity`) resolve a versão do editor pelo `ProjectVersion.txt`. O patch fica congelado em `6000.6.0f1` até a entrega acadêmica.
@@ -710,6 +727,7 @@ unity build . --profile "Web" --output-path Build/Web
 
 unity run . -- -nographics -executeMethod Game.EditorTools.DataTools.Regenerate -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.ArtTools.SliceSheets -logFile -
+unity run . -- -nographics -executeMethod Game.EditorTools.AudioTools.ImportPlaceholders -logFile -
 
 unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.CreateProfiles -logFile -
 unity run . -- -nographics -executeMethod Game.EditorTools.BuildProfileTools.ConfigureProfiles -logFile -

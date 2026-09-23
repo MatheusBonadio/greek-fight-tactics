@@ -735,6 +735,7 @@ namespace Game.UI
 
         private void Start()
         {
+            GameAudio.PlayMusic(AudioIds.MusicForLocation(locationId));
             pause = FindAnyObjectByType<PauseMenuController>();
             if (!pause)
             {

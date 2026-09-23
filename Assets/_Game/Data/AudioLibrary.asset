@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7df73de205d1e3348a277e2d0f21c4ee, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: Game.Content::Game.Content.AudioLibrarySO
+  clips:
+  - key: music_academy
+    value: {fileID: 8300000, guid: 5b9026beb058e954080ae8af68a32045, type: 3}
+  - key: music_agora
+    value: {fileID: 8300000, guid: 41cc09f3a92d4564a8e44050080994d1, type: 3}
+  - key: music_archive
+    value: {fileID: 8300000, guid: a3c67a8acf4e06440b86678de589541c, type: 3}
+  - key: music_battle_philosopher
+    value: {fileID: 8300000, guid: e194db1c33f543d49a9775c86f1698bb, type: 3}
+  - key: music_battle_sophist
+    value: {fileID: 8300000, guid: 99e6dfd4228ef1a419c294c7a6351e6c, type: 3}
+  - key: music_kerameikos
+    value: {fileID: 8300000, guid: 607f9c114cba80b489e1c110e3bc5d43, type: 3}
+  - key: music_street_trial_false_dilemma
+    value: {fileID: 8300000, guid: 0da1e17fc4149e1408b5bdf32e3458bc, type: 3}
+  - key: music_street_trial_personal_attack
+    value: {fileID: 8300000, guid: 63882a60474b3a24da9d8cc46a3ee4ea, type: 3}
+  - key: music_street_trial_political_fear
+    value: {fileID: 8300000, guid: 3ca63b06892ae3147829acbad37be003, type: 3}
+  - key: music_title
+    value: {fileID: 8300000, guid: 18d5091e39aa41f49a3c44e4bbacca3e, type: 3}
+  - key: sfx_cursor
+    value: {fileID: 8300000, guid: 5d9e321a1320bb948ac4d2bd74981076, type: 3}
+  - key: sfx_confirm
+    value: {fileID: 8300000, guid: 70fcadb966bd12f459668508a32056be, type: 3}
+  - key: sfx_cancel
+    value: {fileID: 8300000, guid: 090c1e6a7d222ba4683fd1413f26c423, type: 3}
+  - key: sfx_refute
+    value: {fileID: 8300000, guid: 85666f70b21e8d74082003fccdd5b274, type: 3}
+  - key: sfx_maieutics
+    value: {fileID: 8300000, guid: ced5b845d168bf24d89cc4f315989f8a, type: 3}
+  - key: sfx_damage
+    value: {fileID: 8300000, guid: a7761e414af9f2a43bf38513576e40c3, type: 3}
+  - key: sfx_counter
+    value: {fileID: 8300000, guid: 2174769ae4cd4134a940c0ca288c0f16, type: 3}
+  - key: sfx_victory
+    value: {fileID: 8300000, guid: 603e88e5e2c98bd4b9911d3ce651d57f, type: 3}
+  - key: sfx_defeat
+    value: {fileID: 8300000, guid: 6043ce039d33ac246922f93f70ece7f1, type: 3}
+  - key: voice_blip
+    value: {fileID: 8300000, guid: 1864f5cd02d831d4885a98942bd3d7de, type: 3}
+  voices:
+  - key: kleia
+    value: 1.15
+  - key: oron
+    value: 0.9
+  - key: phaidra
+    value: 1.05
+  - key: simo
+    value: 1.1
+  - key: batilo
+    value: 0.8
+  - key: kritolaos
+    value: 0.85
+  - key: menexeno
+    value: 0.7
+  - key: eudoro
+    value: 0.85
+  - key: neighbor
+    value: 0.95
+  - key: aristeu
+    value: 0.72
+  - key: thrasybios
+    value: 0.75
+  - key: customer
+    value: 1
+  - key: crowd
+    value: 0.95
+  - key: damaris
+    value: 1
+  - key: archivist
+    value: 0.9
+  - key: academic
+    value: 0.88

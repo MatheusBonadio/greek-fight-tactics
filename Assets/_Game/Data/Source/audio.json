@@ -1,0 +1,42 @@
+{
+  "clips": [
+    "music_academy",
+    "music_agora",
+    "music_archive",
+    "music_battle_philosopher",
+    "music_battle_sophist",
+    "music_kerameikos",
+    "music_street_trial_false_dilemma",
+    "music_street_trial_personal_attack",
+    "music_street_trial_political_fear",
+    "music_title",
+    "sfx_cursor",
+    "sfx_confirm",
+    "sfx_cancel",
+    "sfx_refute",
+    "sfx_maieutics",
+    "sfx_damage",
+    "sfx_counter",
+    "sfx_victory",
+    "sfx_defeat",
+    "voice_blip"
+  ],
+  "voices": {
+    "kleia": 1.15,
+    "oron": 0.9,
+    "phaidra": 1.05,
+    "simo": 1.1,
+    "batilo": 0.8,
+    "kritolaos": 0.85,
+    "menexeno": 0.7,
+    "eudoro": 0.85,
+    "neighbor": 0.95,
+    "aristeu": 0.72,
+    "thrasybios": 0.75,
+    "customer": 1.0,
+    "crowd": 0.95,
+    "damaris": 1.0,
+    "archivist": 0.9,
+    "academic": 0.88
+  }
+}

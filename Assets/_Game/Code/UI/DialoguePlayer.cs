@@ -123,6 +123,7 @@ namespace Game.UI
                 return;
             }
 
+            box.VoiceId = line.SpeakerId;
             box.Show(
                 new DialogueLine(speakerName(line.SpeakerId), portraitFor(line.SpeakerId), line.Text),
                 line.HasChoices ? line.Choices.Select(choice => choice.Text).ToList() : null);

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Game.Content;
 using Game.Core;
 using Game.Grid;
 using Game.UI;
 using TMPro;
+using TileData = Game.Grid.TileData;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -15,7 +17,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
-using TileData = Game.Grid.TileData;
 
 namespace Game.EditorTools
 {
@@ -523,6 +524,7 @@ namespace Game.EditorTools
 
             var services = new GameObject(nameof(GameServices)).AddComponent<GameServices>();
             services.Configure(network, catalog, fallback, null);
+            services.ConfigureAudio(AssetDatabase.LoadAssetAtPath<AudioLibrarySO>(DataTools.AudioLibraryPath));
             return services;
         }
 

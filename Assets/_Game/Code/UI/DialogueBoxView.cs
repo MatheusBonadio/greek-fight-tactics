@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Core;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -142,6 +143,8 @@ namespace Game.UI
             RenderChoices();
         }
 
+        public string VoiceId { get; set; }
+
         public void Advance(float deltaSeconds)
         {
             if (!IsOpen)
@@ -149,7 +152,13 @@ namespace Game.UI
                 return;
             }
 
+            var revealed = typewriter.VisibleCharacters;
             typewriter.Tick(deltaSeconds);
+            if (typewriter.VisibleCharacters > revealed)
+            {
+                GameAudio.Blip(VoiceId);
+            }
+
             body.maxVisibleCharacters = pageStart + typewriter.VisibleCharacters;
             blinkClock += Mathf.Max(0f, deltaSeconds);
             RenderChoices();

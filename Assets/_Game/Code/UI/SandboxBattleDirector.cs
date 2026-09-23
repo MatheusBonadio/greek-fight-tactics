@@ -242,6 +242,7 @@ namespace Game.UI
             tutorial = tutorialData != null ? new RefuteTutorial() : null;
             phaseData = tutorial == null && opponent.IsPhased ? opponent.Phases : null;
             lineData = tutorial == null ? opponent.Lines : null;
+            GameAudio.PlayMusic(AudioIds.MusicFor(opponent.Profile));
             phasedDuel = phaseData?.ToDuel();
             phaseIndex = PhasedDuel.NoPhase;
             CurrentPhaseCue = null;
@@ -729,6 +730,7 @@ namespace Game.UI
             StrikePose(phase.Posture, phase.Tint);
             var cue = new DuelPhaseCue(engaged.Opponent.Id, index, phase.Id, phase.Music, phase.Posture);
             CurrentPhaseCue = cue;
+            GameAudio.PlayMusic(AudioIds.MusicForPhase(phase.Music));
             PhaseStarted?.Invoke(cue);
             hud.Sync();
             PlayScript(phase.Dialogue, next);
@@ -846,9 +848,29 @@ namespace Game.UI
             return posing.Count > 0;
         }
 
+        private static void SoundOf(Outcome outcome)
+        {
+            if (outcome.IsRejected)
+            {
+                GameAudio.Play(AudioIds.Cancel);
+                return;
+            }
+
+            GameAudio.Play(AudioIds.SoundFor(outcome.Action));
+            if (outcome.Counterattack)
+            {
+                GameAudio.Play(AudioIds.Counter);
+            }
+            else if (outcome.ActorCoherenceDelta < 0 || outcome.TargetCoherenceDelta < 0)
+            {
+                GameAudio.Play(AudioIds.Damage);
+            }
+        }
+
         private void AfterOutcome(ActorView actor, Outcome outcome, string speaker, string listener)
         {
             hud.Sync();
+            SoundOf(outcome);
 
             void Continue() => ContinueAfter(outcome);
 
@@ -950,6 +972,7 @@ namespace Game.UI
         private void EndBattle()
         {
             LastResult = Session.State.Status;
+            GameAudio.Play(LastResult == BattleStatus.PlayerWon ? AudioIds.Victory : AudioIds.Defeat);
             if (DuelVictoryRule.TryClassify(Session.State, out var victory))
             {
                 sandbox.Duels.RecordVictory(engaged.Opponent.Id, victory);
@@ -1005,6 +1028,7 @@ namespace Game.UI
 
             var from = StateMachine.Mode;
             StateMachine.TryTransition(GameMode.Exploration);
+            GameAudio.PlayMusic(AudioIds.MusicForLocation(sandbox.LocationId));
             DisperseCrowd();
             sandbox.CursorInputEnabled = false;
             sandbox.ExplorationInputEnabled = true;

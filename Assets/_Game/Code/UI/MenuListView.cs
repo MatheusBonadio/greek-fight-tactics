@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Content;
+using Game.Core;
 using TMPro;
 using UnityEngine;
 
@@ -55,6 +56,7 @@ namespace Game.UI
             }
 
             Model.Move(direction.y > 0f ? -1 : 1);
+            GameAudio.PlayUi(AudioIds.Cursor);
             RestartBlink();
         }
 
@@ -62,12 +64,14 @@ namespace Game.UI
         {
             if (Model != null && Model.TryConfirm(out var id))
             {
+                GameAudio.PlayUi(AudioIds.Confirm);
                 Chosen?.Invoke(id);
             }
         }
 
         public void HandleCancel()
         {
+            GameAudio.PlayUi(AudioIds.Cancel);
             Cancelled?.Invoke();
         }
 

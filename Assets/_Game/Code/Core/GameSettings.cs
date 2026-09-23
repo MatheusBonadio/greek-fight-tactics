@@ -14,6 +14,8 @@ namespace Game.Core
         private const int TextSpeedCount = 3;
 
         private int volumeStep = DefaultVolumeStep;
+        private int musicStep = DefaultVolumeStep;
+        private int effectsStep = DefaultVolumeStep;
 
         public int VolumeStep => volumeStep;
 
@@ -21,6 +23,22 @@ namespace Game.Core
         {
             get => volumeStep / (float)VolumeSteps;
             set => volumeStep = Math.Clamp((int)Math.Round(value * VolumeSteps), 0, VolumeSteps);
+        }
+
+        public int MusicVolumeStep => musicStep;
+
+        public int EffectsVolumeStep => effectsStep;
+
+        public float MusicVolume
+        {
+            get => musicStep / (float)VolumeSteps;
+            set => musicStep = Math.Clamp((int)Math.Round(value * VolumeSteps), 0, VolumeSteps);
+        }
+
+        public float EffectsVolume
+        {
+            get => effectsStep / (float)VolumeSteps;
+            set => effectsStep = Math.Clamp((int)Math.Round(value * VolumeSteps), 0, VolumeSteps);
         }
 
         public TextSpeed TextSpeed { get; set; } = TextSpeed.Normal;
@@ -39,11 +57,28 @@ namespace Game.Core
             volumeStep = Math.Clamp(volumeStep + steps, 0, VolumeSteps);
         }
 
+        public void AdjustMusicVolume(int steps)
+        {
+            musicStep = Math.Clamp(musicStep + steps, 0, VolumeSteps);
+        }
+
+        public void AdjustEffectsVolume(int steps)
+        {
+            effectsStep = Math.Clamp(effectsStep + steps, 0, VolumeSteps);
+        }
+
         public void CycleTextSpeed(int delta)
         {
             TextSpeed = (TextSpeed)((((int)TextSpeed + delta) % TextSpeedCount + TextSpeedCount) % TextSpeedCount);
         }
 
-        public GameSettings Clone() => new() { MasterVolume = MasterVolume, TextSpeed = TextSpeed, AssistedMode = AssistedMode };
+        public GameSettings Clone() => new()
+        {
+            MasterVolume = MasterVolume,
+            MusicVolume = MusicVolume,
+            EffectsVolume = EffectsVolume,
+            TextSpeed = TextSpeed,
+            AssistedMode = AssistedMode
+        };
     }
 }

@@ -20,6 +20,7 @@ namespace Game.UI
 
         [SerializeField] private NetworkConfigSO network;
         [SerializeField] private FallacyCatalogSO catalog;
+        [SerializeField] private AudioLibrarySO audioLibrary;
         [SerializeField] private FallbackLibrarySO fallbackLibrary;
         [SerializeField] private string dataDirectoryOverride;
 
@@ -87,6 +88,11 @@ namespace Game.UI
             catalog = fallacyCatalog;
             fallbackLibrary = fallbacks;
             dataDirectoryOverride = dataDirectory;
+        }
+
+        public void ConfigureAudio(AudioLibrarySO library)
+        {
+            audioLibrary = library;
         }
 
         public Task SaveArgumentCache() => ArgumentCache?.SaveAsync() ?? Task.CompletedTask;
@@ -301,6 +307,32 @@ namespace Game.UI
         private void ApplySettings()
         {
             AudioListener.volume = Settings.MasterVolume;
+            var audio = EnsureAudio();
+            if (audio == null)
+            {
+                return;
+            }
+
+            audio.SetVolume(AudioBus.Music, Settings.MusicVolume);
+            audio.SetVolume(AudioBus.Sfx, Settings.EffectsVolume);
+            audio.SetVolume(AudioBus.Ui, Settings.EffectsVolume);
+        }
+
+        private GameAudio EnsureAudio()
+        {
+            if (audioLibrary == null)
+            {
+                return null;
+            }
+
+            var audio = GameAudio.Active;
+            if (audio == null)
+            {
+                audio = new GameObject(GameAudio.ObjectName).AddComponent<GameAudio>();
+            }
+
+            audio.Configure(audioLibrary);
+            return audio;
         }
 
         private ArgumentValidator Validator() => validator ??= new ArgumentValidator(catalog.RefutableIds);

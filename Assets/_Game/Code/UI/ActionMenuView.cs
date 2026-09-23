@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Content;
+using Game.Core;
 using TMPro;
 using UnityEngine;
 
@@ -136,6 +137,7 @@ namespace Game.UI
             }
 
             Controller.Navigate(direction.y > 0f ? -1 : 1);
+            GameAudio.PlayUi(AudioIds.Cursor);
             RestartBlink();
         }
 
@@ -150,6 +152,7 @@ namespace Game.UI
             RestartBlink();
             if (chosen)
             {
+                GameAudio.PlayUi(AudioIds.Confirm);
                 ChoiceMade?.Invoke(choice);
             }
         }
@@ -158,6 +161,7 @@ namespace Game.UI
         {
             if (Controller != null && Interactive && Controller.Cancel())
             {
+                GameAudio.PlayUi(AudioIds.Cancel);
                 RestartBlink();
             }
         }

@@ -8,6 +8,8 @@ namespace Game.Net
     public static class SettingsJson
     {
         public const string VolumeField = "master_volume";
+        public const string MusicVolumeField = "music_volume";
+        public const string EffectsVolumeField = "effects_volume";
         public const string TextSpeedField = "text_speed";
         public const string AssistedModeField = "assisted_mode";
 
@@ -21,6 +23,8 @@ namespace Game.Net
             return new JObject
             {
                 [VolumeField] = Math.Round(settings.MasterVolume, 2),
+                [MusicVolumeField] = Math.Round(settings.MusicVolume, 2),
+                [EffectsVolumeField] = Math.Round(settings.EffectsVolume, 2),
                 [TextSpeedField] = settings.TextSpeed.ToString().ToLowerInvariant(),
                 [AssistedModeField] = settings.AssistedMode
             }.ToString(Formatting.Indented);
@@ -37,6 +41,16 @@ namespace Game.Net
             if (document[VolumeField] is JValue { Type: JTokenType.Float or JTokenType.Integer } volume)
             {
                 settings.MasterVolume = volume.Value<float>();
+            }
+
+            if (document[MusicVolumeField] is JValue { Type: JTokenType.Float or JTokenType.Integer } musicVolume)
+            {
+                settings.MusicVolume = musicVolume.Value<float>();
+            }
+
+            if (document[EffectsVolumeField] is JValue { Type: JTokenType.Float or JTokenType.Integer } effectsVolume)
+            {
+                settings.EffectsVolume = effectsVolume.Value<float>();
             }
 
             if (document[TextSpeedField] is JValue { Type: JTokenType.String } speedValue &&

@@ -24,6 +24,8 @@ namespace Game.EditorTools
         public const string FallacySourcePath = "Assets/_Game/Data/Source/fallacies.json";
         public const string TerrainCostSourcePath = "Assets/_Game/Data/Source/terrain_costs.json";
         public const string UiTextSourcePath = "Assets/_Game/Data/Source/ui_text.json";
+        public const string AudioSourcePath = "Assets/_Game/Data/Source/audio.json";
+        public const string AudioLibraryPath = "Assets/_Game/Data/AudioLibrary.asset";
         public const string OpponentSourcePath = "Assets/_Game/Data/Source/opponents.json";
         public const string FallbackFolder = "Assets/_Game/Data/Fallback";
         public const string FallacyFolder = "Assets/_Game/Data/Fallacies";
@@ -54,9 +56,10 @@ namespace Game.EditorTools
             var opponentCount = RegenerateOpponents(fallacies);
             var fallbackCount = RegenerateFallbackLibrary(fallacies);
             var dialogueCount = RegenerateDialogues();
+            var audioCount = RegenerateAudio();
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts, {opponentCount} opponents, {fallbackCount} fallback arguments and {dialogueCount} dialogues");
+            Debug.Log($"[DataTools] regenerated {fallacies.Count} fallacies, the terrain cost table, {uiTextCount} ui texts, {opponentCount} opponents, {fallbackCount} fallback arguments, {dialogueCount} dialogues and {audioCount} audio clips");
         }
 
         public static (IReadOnlyDictionary<string, DialogueSpeaker> Speakers, IReadOnlyList<DialogueScript> Scripts) LoadDialogueSource(string path)
@@ -104,6 +107,38 @@ namespace Game.EditorTools
             uiText.SetEntries(entries);
             EditorUtility.SetDirty(uiText);
             return entries.Count;
+        }
+
+        private static int RegenerateAudio()
+        {
+            var source = JObject.Parse(File.ReadAllText(AudioSourcePath));
+            var ids = source["clips"]?.ToObject<List<string>>()
+                ?? throw new InvalidOperationException($"{AudioSourcePath} has no clips");
+            var voices = source["voices"]?.ToObject<Dictionary<string, float>>() ?? new Dictionary<string, float>();
+            var speakers = new HashSet<string>(LoadDialogueSource(DialogueSourcePath).Speakers.Keys);
+
+            var clips = new Dictionary<string, AudioClip>();
+            foreach (var id in ids)
+            {
+                clips[id] = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioTools.ClipPathFor(id))
+                    ?? throw new InvalidOperationException($"{AudioSourcePath}: {id} has no clip at {AudioTools.ClipPathFor(id)}");
+            }
+
+            foreach (var speaker in voices.Keys.Where(speaker => !speakers.Contains(speaker)))
+            {
+                throw new InvalidOperationException($"{AudioSourcePath}: {speaker} is not a speaker of {DialogueSourcePath}");
+            }
+
+            foreach (var speaker in speakers.Where(speaker => !voices.ContainsKey(speaker)))
+            {
+                throw new InvalidOperationException($"{AudioSourcePath}: {speaker} has no voice pitch");
+            }
+
+            var library = AssetFolders.LoadOrCreate<AudioLibrarySO>(AudioLibraryPath);
+            library.SetClips(clips);
+            library.SetVoices(voices);
+            EditorUtility.SetDirty(library);
+            return clips.Count;
         }
 
         private static int RegenerateOpponents(IReadOnlyList<FallacySO> fallacies)

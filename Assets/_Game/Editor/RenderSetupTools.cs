@@ -39,6 +39,8 @@ namespace Game.EditorTools
                 root.transform.position = new Vector3(0f, 0f, CameraDepth);
                 root.tag = MainCameraTag;
 
+                root.AddComponent<AudioListener>();
+
                 var camera = root.AddComponent<Camera>();
                 camera.orthographic = true;
                 camera.clearFlags = CameraClearFlags.SolidColor;
