@@ -54,13 +54,24 @@ namespace Game.Tests.EditMode.UI
 
             var graphics = host.GetComponentsInChildren<Graphic>(true);
             Assert.IsNotEmpty(graphics);
+            var submenu = strip.Find("Submenu");
+            Assert.IsNotNull(submenu, "the fallacy grid is the one piece allowed above the strip");
             foreach (var graphic in graphics)
             {
                 Assert.IsTrue(graphic.transform.IsChildOf(strip), $"{graphic.name} is outside the strip");
+                if (graphic.transform == submenu || graphic.transform.IsChildOf(submenu))
+                {
+                    continue;
+                }
+
                 var (bottom, top) = VerticalSpan(graphic.rectTransform, strip);
                 Assert.GreaterOrEqual(bottom, 0f, graphic.name);
                 Assert.LessOrEqual(top, BattleHudTools.StripHeight, graphic.name);
             }
+
+            var (grid, gridTop) = VerticalSpan((RectTransform)submenu, strip);
+            Assert.GreaterOrEqual(grid, BattleHudTools.StripHeight, "the fallacy grid never covers the HUD it grows out of");
+            Assert.LessOrEqual(gridTop, BattleHudTools.CanvasHeight, "the fallacy grid stays on screen");
 
             Assert.IsTrue(hud.Dialogue.transform.IsChildOf(strip));
             Assert.IsTrue(hud.Menu.transform.IsChildOf(strip));
@@ -120,7 +131,7 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void OpeningASubmenu_MovesTheDialogueBesideItAndBackWhenItCloses()
+        public void OpeningASubmenu_LeavesTheDialogueWhereItIsAndKeepsTheGridClearOfIt()
         {
             var hud = InstantiateHud();
             var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
@@ -133,9 +144,10 @@ namespace Game.Tests.EditMode.UI
             hud.Menu.HandleNavigate(Vector2.down);
             hud.Menu.HandleConfirm();
             Assert.IsTrue(hud.Menu.SubmenuPanel.activeSelf);
-            Assert.AreEqual(hud.DialogueLeftBesideSubmenu, hud.DialogueArea.offsetMin.x);
+            Assert.AreEqual(hud.DialogueLeft, hud.DialogueArea.offsetMin.x, "the grid grows upward, so the dialogue stays put");
             var submenu = (RectTransform)hud.Menu.SubmenuPanel.transform;
-            Assert.LessOrEqual(submenu.anchoredPosition.x + submenu.sizeDelta.x, hud.DialogueLeftBesideSubmenu, "the dialogue never covers the list it talks about");
+            Assert.GreaterOrEqual(submenu.anchoredPosition.y, BattleHudTools.StripHeight, "the grid never covers the dialogue it talks about");
+            Assert.LessOrEqual(submenu.anchoredPosition.x + submenu.sizeDelta.x, BattleHudTools.CanvasWidth, "the grid stays on screen");
 
             hud.Menu.HandleCancel();
             Assert.IsFalse(hud.Menu.SubmenuPanel.activeSelf);
@@ -143,7 +155,7 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void FallacyList_ShowsArrowsWhenMoreOptionsHideAboveOrBelow()
+        public void FallacyList_FitsTheWholeRefutableCatalogueWithoutScrolling()
         {
             var hud = InstantiateHud();
             var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
@@ -155,9 +167,11 @@ namespace Game.Tests.EditMode.UI
 
             hud.Menu.HandleNavigate(Vector2.down);
             hud.Menu.HandleConfirm();
-            Assert.Greater(controller.SubmenuOptions.Count, hud.Menu.SubmenuRows.Count, "the list must be longer than the box for this test");
-            Assert.IsFalse(hud.Menu.MoreAbove.activeSelf);
-            Assert.IsTrue(hud.Menu.MoreBelow.activeSelf, "a hidden option below needs an arrow, or the player thinks it does not exist");
+            Assert.AreEqual(catalog.RefutableIds.Count(), controller.SubmenuOptions.Count, "every refutable fallacy is offered");
+            Assert.LessOrEqual(controller.SubmenuOptions.Count, hud.Menu.SubmenuRows.Count, "the grid holds the whole catalogue");
+            Assert.AreEqual(BattleHudTools.SubmenuCells, hud.Menu.SubmenuRows.Count);
+            Assert.IsFalse(hud.Menu.MoreAbove.activeSelf, "nothing hides above, so no arrow");
+            Assert.IsFalse(hud.Menu.MoreBelow.activeSelf, "nothing hides below, so no arrow");
 
             for (var step = 1; step < controller.SubmenuOptions.Count; step++)
             {
@@ -165,7 +179,7 @@ namespace Game.Tests.EditMode.UI
             }
 
             Assert.AreEqual(controller.SubmenuOptions.Count - 1, controller.SubmenuCursor, "the cursor must stop on the last option");
-            Assert.IsTrue(hud.Menu.MoreAbove.activeSelf);
+            Assert.IsFalse(hud.Menu.MoreAbove.activeSelf, "the player never scrolls a grid that already fits");
             Assert.IsFalse(hud.Menu.MoreBelow.activeSelf);
         }
 

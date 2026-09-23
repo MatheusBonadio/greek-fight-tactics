@@ -35,8 +35,7 @@ namespace Game.Grid
         }
 
         private static bool SharesGroundWithRevealed(GridModel grid, Coord cell, in TileData tile, Coord towards) =>
-            grid.TryGet(cell + towards, out var neighbour) && neighbour.Revealed
-            && System.Math.Abs(neighbour.Level - tile.Level) <= TerrainSteps.MaxClimb;
+            grid.TryGet(cell + towards, out var neighbour) && neighbour.Revealed && neighbour.Level == tile.Level;
 
         private static bool IsRevealed(GridModel grid, Coord cell) => grid.TryGet(cell, out var tile) && tile.Revealed;
     }

@@ -36,8 +36,11 @@ namespace Game.EditorTools
         public const int TierHeight = 28;
         public const int MessageHeight = StripHeight - 2 * Margin - Gap - TierHeight;
         public const int MessageLeft = Margin + MenuWidth + Gap;
-        public const int SubmenuWidth = 300;
-        public const int SubmenuRows = 4;
+        public const int SubmenuColumns = 3;
+        public const int SubmenuRows = 5;
+        public const int SubmenuColumnWidth = 176;
+        public const int SubmenuWidth = SubmenuColumns * SubmenuColumnWidth;
+        public const int SubmenuCells = SubmenuColumns * SubmenuRows;
         public const int SubmenuTopPadding = 4;
         public const int ScrollArrowInset = 8;
         public const float UpArrowDegrees = 90f;
@@ -150,7 +153,7 @@ namespace Game.EditorTools
             root.AddComponent<BattleMenuInput>().Configure(controls, menu);
             var hud = root.AddComponent<BattleHud>();
             hud.Configure(canvas, player, opponent, audience, menu, dialogue);
-            hud.ConfigureDialogueArea(area, MessageLeft, MessageLeft + SubmenuWidth + Gap);
+            hud.ConfigureDialogueArea(area, MessageLeft, MessageLeft);
         }
 
         private static void BuildCompendiumRoot(GameObject root, UiTextSO uiText, FallacyCatalogSO catalog, InputActionAsset controls)
@@ -242,18 +245,23 @@ namespace Game.EditorTools
 
             var cursor = CreateCursor(box.transform);
 
-            var panel = CreateBox(strip, "Submenu", BottomLeft, new Vector2(MessageLeft, Margin), new Vector2(SubmenuWidth, MessageHeight));
-            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(SubmenuWidth + Gap + DialoguePadding, -DialogueTopPadding), new Vector2(SubmenuTitleWidth, RowHeight), TextAlignmentOptions.Left);
+            var panelHeight = SubmenuTopPadding + RowHeight + SubmenuRows * RowHeight + SubmenuTopPadding;
+            var panel = CreateBox(strip, "Submenu", BottomLeft, new Vector2(MessageLeft, StripHeight + Gap), new Vector2(SubmenuWidth, panelHeight));
+            var title = CreateLabel(panel.transform, "Title", TopLeft, new Vector2(RowInset, -SubmenuTopPadding), new Vector2(SubmenuTitleWidth, RowHeight), TextAlignmentOptions.Left);
             title.color = AccentColor;
-            var options = new TMP_Text[SubmenuRows];
-            for (var index = 0; index < SubmenuRows; index++)
+            var options = new TMP_Text[SubmenuCells];
+            for (var index = 0; index < SubmenuCells; index++)
             {
-                options[index] = CreateRow(panel.transform, $"Option{index}", new Vector2(RowInset, -SubmenuTopPadding - index * RowHeight), SubmenuWidth - RowInset - 4, view, BattleMenuLayer.Fallacies, index);
+                var column = index / SubmenuRows;
+                var row = index % SubmenuRows;
+                var position = new Vector2(RowInset + column * SubmenuColumnWidth,
+                    -SubmenuTopPadding - RowHeight - row * RowHeight);
+                options[index] = CreateRow(panel.transform, $"Option{index}", position, SubmenuColumnWidth - RowInset - 4, view, BattleMenuLayer.Fallacies, index);
             }
 
             var optionCursor = CreateCursor(panel.transform);
             var moreAbove = CreateScrollArrow(panel.transform, "MoreAbove", -SubmenuTopPadding - RowHeight / 2f, UpArrowDegrees);
-            var moreBelow = CreateScrollArrow(panel.transform, "MoreBelow", -SubmenuTopPadding - (SubmenuRows - 0.5f) * RowHeight, DownArrowDegrees);
+            var moreBelow = CreateScrollArrow(panel.transform, "MoreBelow", -SubmenuTopPadding - (SubmenuRows + 0.5f) * RowHeight, DownArrowDegrees);
             panel.gameObject.SetActive(false);
 
             view.Configure(rows, cursor, reason, panel.gameObject, title, options, optionCursor, uiText, catalog);
