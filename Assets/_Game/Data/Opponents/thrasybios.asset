@@ -41,7 +41,12 @@ MonoBehaviour:
       value: agora_wrong_laughter
   sheetId: 
   phases:
+    lines:
+      intro: 
+      victory: 
+      defeat: 
+    phases: []
+  lines:
     intro: 
     victory: 
     defeat: 
-    phases: []

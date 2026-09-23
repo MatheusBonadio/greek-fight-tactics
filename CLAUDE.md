@@ -414,6 +414,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - O menu para de receber input, o alcance azul fica no chão e o cursor da exploração volta a responder a mouse, teclado e gamepad por `GridSandboxController.CursorInputEnabled`.
     - Confirmar numa célula azul move a Kleia: o destino vai em `BattleMenuChoice.Destination` e é validado por `CirculateTargeting`. Cancelar volta ao menu.
     - Uma escolha sem destino ainda cai em `BattleSession.CirculateDestination`, a célula alcançável mais próxima do oponente.
+  - **Voz do oponente:** ator com `dialogue` não pode ser oponente, então a fala de um duelista vem do bloco `dialogue` dele em `opponents.json` (`intro`, `victory`, `defeat`), que vira `OpponentSO.Lines`. `OpponentLines` é o tipo dessas três falas; `OpponentPhases` o contém e delega, então o julgamento de rua continua igual e `OpponentSO.Lines` devolve as falas das fases quando o duelo é em fases e as próprias quando não é. O `SandboxBattleDirector` toca `Intro` no lugar da fala de abertura e `DialogueFor(resultado)` no lugar da linha de status — `victory` é a vitória da Kleia, `defeat` a derrota dela. O tutorial vence os dois: enquanto ele está pendente, as deixas dele mandam. `DataTools` recusa `dialogue` em oponente que já é tutorial ou duelo em fases, e cobra que cada id exista em `dialogues.json`.
   - **Dados:** o elenco vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id` e folha (`<id>_sheet.png`), e as falas vêm de `battle.*` em `ui_text.json`. `initial_audience` é a Plateia inicial da Kleia; a tabela do GDD dá a do oponente, que é o complemento.
   - **Elenco do Ato I:** Thrasybios e os cinco duelistas de bairro do beat I.5: Óron (falso dilema), Phaidra (apelo à ignorância), Kritolaos (ad hominem), Simo (espantalho) e Bátilo (generalização apressada, perfil `Philosopher`). Cada pool tem a falácia da família e uma aparentada. Um teste simula duelos contra cada um, na célula em que ele está na Ágora e com a Kleia na célula ao lado a que ela chega andando da entrada, e exige vitória do jogador. O julgamento de rua entra na mesma simulação com o `PhasedOpponent` e um jogador que conhece a resposta de cada fase.
   - **Julgamento de rua (beat I.8):** `thrasybios_street_trial` é outro oponente, com a folha do Thrasybios (`sheet`), então o duelo do tutorial, o `duel_thrasybios` e os saves antigos continuam iguais.
@@ -571,7 +572,7 @@ Conteúdo é ScriptableObject em `Assets/_Game/Data/`, nunca código. Se você e
 |---|---|
 | `FallacySO` | `id`, `displayName`, `description`, `playerHint`, `icon`, `category` (`Informal` / `Formal` / `Paradox`) |
 | `FallacyCatalogSO` | `Dictionary<string, FallacySO>` por id |
-| `OpponentSO` | `displayName`, `sheet` (e `sheetId`, quando a folha é de outro personagem), `maxCoherence`, `initialAudience`, `fallacyPool`, `act`, `profile`, `tutorial`, `phases` |
+| `OpponentSO` | `displayName`, `sheet` (e `sheetId`, quando a folha é de outro personagem), `maxCoherence`, `initialAudience`, `fallacyPool`, `act`, `profile`, `tutorial`, `phases`, `lines` |
 | `ArgumentSO` | espelha o JSON do argumento |
 | `FallbackLibrarySO` | `Dictionary<string, TextAsset>`: id do catálogo → JSON com os argumentos escritos à mão |
 | `TerrainCostTableSO` | `Dictionary<TerrainId, byte>` |

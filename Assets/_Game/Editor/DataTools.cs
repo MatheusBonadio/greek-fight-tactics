@@ -127,6 +127,7 @@ namespace Game.EditorTools
                 opponent.ConfigureSheet(AssetDatabase.LoadAssetAtPath<Texture2D>(ArtTools.SheetPathFor(entry.SheetId)), entry.Sheet);
                 opponent.ConfigureTutorial(ToTutorial(entry, pool, dialogueIds));
                 opponent.ConfigurePhases(ToPhases(entry, pool, dialogueIds, validator));
+                opponent.ConfigureLines(ToLines(entry, dialogueIds));
                 EditorUtility.SetDirty(opponent);
             }
 
@@ -140,6 +141,33 @@ namespace Game.EditorTools
             var pool = entry.FallacyPool.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
             var validator = new ArgumentValidator(fallacies.Where(fallacy => fallacy.IsRefutable).Select(fallacy => fallacy.Id));
             return ToPhases(entry, pool, dialogueIds, validator);
+        }
+
+        private static OpponentLines ToLines(OpponentEntry entry, ISet<string> dialogueIds)
+        {
+            var source = entry.Dialogue;
+            if (source == null)
+            {
+                return new OpponentLines();
+            }
+
+            var where = $"{OpponentSourcePath}: the dialogue of {entry.Id}";
+            if (entry.PhasedDuel != null)
+            {
+                throw new InvalidOperationException($"{where} is already carried by its phased duel");
+            }
+
+            if (entry.Tutorial != null)
+            {
+                throw new InvalidOperationException($"{where} cannot also be a tutorial");
+            }
+
+            foreach (var dialogue in new[] { source.Intro, source.Victory, source.Defeat }.Where(id => id != null))
+            {
+                RequireDialogue(where, dialogue, dialogueIds);
+            }
+
+            return new OpponentLines(source.Intro, source.Victory, source.Defeat);
         }
 
         private static OpponentPhases ToPhases(OpponentEntry entry, IReadOnlyList<FallacySO> pool, ISet<string> dialogueIds, ArgumentValidator validator)
@@ -515,7 +543,22 @@ namespace Game.EditorTools
             [JsonProperty("phased_duel")]
             public PhasedDuelSource PhasedDuel { get; set; }
 
+            [JsonProperty("dialogue")]
+            public LinesSource Dialogue { get; set; }
+
             public string SheetId => string.IsNullOrWhiteSpace(Sheet) ? Id : Sheet;
+        }
+
+        private sealed class LinesSource
+        {
+            [JsonProperty("intro")]
+            public string Intro { get; set; }
+
+            [JsonProperty("victory")]
+            public string Victory { get; set; }
+
+            [JsonProperty("defeat")]
+            public string Defeat { get; set; }
         }
 
         private sealed class PhasedDuelSource

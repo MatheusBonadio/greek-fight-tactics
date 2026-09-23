@@ -28,7 +28,12 @@ MonoBehaviour:
     dialogues: []
   sheetId: 
   phases:
-    intro: 
-    victory: 
-    defeat: 
+    lines:
+      intro: 
+      victory: 
+      defeat: 
     phases: []
+  lines:
+    intro: agora_duel_kritolaos_intro
+    victory: agora_duel_kritolaos_victory
+    defeat: agora_duel_kritolaos_defeat

@@ -132,7 +132,7 @@
         "Fase 1 · Entrega acadêmica",
         "QA / Testes"
       ],
-      "description": "Regra única para fechar card. Sem isso o board vira lista de desejos.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Compila sem warning novo\n- [ ] Roda no Editor e num build standalone\n- [ ] Tem teste automatizado OU passo de teste manual escrito no card\n- [ ] Não quebrou o save existente\n- [ ] Card movido para Concluído só depois do check verde do CI ([CLI-02]): `unity test` e `unity build`\n\n**Dois combinados do board.** Card travado por dependência externa fica na coluna em que está, com o motivo num comentário; se ficar travado mais de 3 dias, o sprint é replanejado — não vale esperar. E só vai para ✅ Concluído o que passou por esta régua.\n\n**A label *Bloqueante* não quer dizer travado.** Marca o card de que outros dependem — é o primeiro a ser puxado dentro do sprint."
+      "description": "Regra única para fechar card. Sem isso o board vira lista de desejos.\n\n**Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [ ] Compila sem warning novo\n- [ ] Roda no Editor e num build standalone\n- [ ] Tem teste automatizado OU passo de teste manual escrito no card\n- [x] Não quebrou o save existente\n- [ ] Card movido para Concluído só depois do check verde do CI ([CLI-02]): `unity test` e `unity build`\n\n**Dois combinados do board.** Card travado por dependência externa fica na coluna em que está, com o motivo num comentário; se ficar travado mais de 3 dias, o sprint é replanejado — não vale esperar. E só vai para ✅ Concluído o que passou por esta régua.\n\n**A label *Bloqueante* não quer dizer travado.** Marca o card de que outros dependem — é o primeiro a ser puxado dentro do sprint."
     },
     {
       "title": "[CLI-02] Integração contínua com Unity CLI",
@@ -586,7 +586,7 @@
         "Narrativa",
         "Unity / Core"
       ],
-      "description": "Beat I.5. Cada um ensina uma família de falácia.\n\n**Depende de:** [REL-01], [DAT-06] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [ ] Óron, o cambista (Stoa) — falso dilema\n- [ ] Phaidra, a adivinha (Templo de Hefesto) — apelo à ignorância\n- [ ] Kritolaos, o político menor (Pnyx) — ad hominem\n- [ ] Simo, o ator (Teatro) — espantalho\n- [ ] Bátilo, o pescador (Porto) — generalização apressada\n- [ ] Bátilo é vencível por MAIÊUTICA sem humilhação — teste moral opcional"
+      "description": "Beat I.5. Cada um ensina uma família de falácia.\n\n**Depende de:** [REL-01], [DAT-06] · **Estimativa:** 6 dias\n\n**Critérios de aceitação:**\n- [x] Óron, o cambista (Stoa) — falso dilema\n- [ ] Phaidra, a adivinha (Templo de Hefesto) — apelo à ignorância\n- [ ] Kritolaos, o político menor (Pnyx) — ad hominem\n- [ ] Simo, o ator (Teatro) — espantalho\n- [ ] Bátilo, o pescador (Porto) — generalização apressada\n- [ ] Bátilo é vencível por MAIÊUTICA sem humilhação — teste moral opcional"
     },
     {
       "title": "[AVA-01] Métricas da IA para a monografia",
@@ -724,7 +724,7 @@
         "Fase 2 · Comercial",
         "Arte"
       ],
-      "description": "Fechar a direção antes de gerar volume.\n\n**Critérios de aceitação:**\n- [ ] Painel de referência de cerâmica de figuras vermelhas\n- [ ] Definir contraste de iluminação (canto superior esquerdo)\n- [ ] Escolher 3 sprites-piloto e aprovar antes do resto"
+      "description": "Fechar a direção antes de gerar volume.\n\n**Critérios de aceitação:**\n- [ ] Painel de referência de cerâmica de figuras vermelhas\n- [x] Definir contraste de iluminação (canto superior esquerdo)\n- [ ] Escolher 3 sprites-piloto e aprovar antes do resto"
     },
     {
       "title": "[ART-04] Template de prompt validado",
@@ -734,7 +734,7 @@
         "Arte",
         "IA / LLM"
       ],
-      "description": "Ver seção 9 do GDD.\n\n**Critérios de aceitação:**\n- [ ] Testar o template com 3 geradores diferentes\n- [ ] Documentar qual deu melhor resultado por tipo de asset\n- [ ] Fixar os negativos obrigatórios"
+      "description": "Ver seção 9 do GDD.\n\n**Critérios de aceitação:**\n- [ ] Testar o template com 3 geradores diferentes\n- [ ] Documentar qual deu melhor resultado por tipo de asset\n- [x] Fixar os negativos obrigatórios"
     },
     {
       "title": "[BTL-06] Modo paradoxo: REFUTAR desabilitado",
@@ -814,7 +814,7 @@
         "Fase 2 · Comercial",
         "Arte"
       ],
-      "description": "**Depende de:** [ART-05] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] idle(2), idle_respiro(4), walk(4), falar(3)\n- [ ] refutar(5), maieutica(6), conceder(4), citar(4)\n- [ ] dano_coerencia(3), derrota(6), vitoria(4), pensar(3)\n- [ ] Todas as curvas em Constant no Animator\n- [ ] Flash de dano: paleta inteira vira `marble_light` por 1 frame, via Shader Graph no material do sprite — sem pass de tela"
+      "description": "**Depende de:** [ART-05] · **Estimativa:** 8 dias\n\n**Critérios de aceitação:**\n- [ ] idle(2), idle_respiro(4), walk(4), falar(3)\n- [ ] refutar(5), maieutica(6), conceder(4), citar(4)\n- [ ] dano_coerencia(3), derrota(6), vitoria(4), pensar(3)\n- [x] Todas as curvas em Constant no Animator\n- [ ] Flash de dano: paleta inteira vira `marble_light` por 1 frame, via Shader Graph no material do sprite — sem pass de tela"
     },
     {
       "title": "[BTL-07] Custo da derrota e descanso",

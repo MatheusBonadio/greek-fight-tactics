@@ -28,7 +28,8 @@
       "act": "One",
       "max_coherence": 40,
       "initial_audience": 40,
-      "fallacy_pool": ["false_dilemma", "invalid_disjunctive_syllogism"]
+      "fallacy_pool": ["false_dilemma", "invalid_disjunctive_syllogism"],
+      "dialogue": { "intro": "agora_duel_oron_intro", "victory": "agora_duel_oron_victory", "defeat": "agora_duel_oron_defeat" }
     },
     {
       "id": "phaidra",
@@ -37,7 +38,8 @@
       "act": "One",
       "max_coherence": 30,
       "initial_audience": 30,
-      "fallacy_pool": ["appeal_to_ignorance", "appeal_to_authority"]
+      "fallacy_pool": ["appeal_to_ignorance", "appeal_to_authority"],
+      "dialogue": { "intro": "agora_duel_phaidra_intro", "victory": "agora_duel_phaidra_victory", "defeat": "agora_duel_phaidra_defeat" }
     },
     {
       "id": "kritolaos",
@@ -46,7 +48,8 @@
       "act": "One",
       "max_coherence": 50,
       "initial_audience": 20,
-      "fallacy_pool": ["ad_hominem", "appeal_to_emotion"]
+      "fallacy_pool": ["ad_hominem", "appeal_to_emotion"],
+      "dialogue": { "intro": "agora_duel_kritolaos_intro", "victory": "agora_duel_kritolaos_victory", "defeat": "agora_duel_kritolaos_defeat" }
     },
     {
       "id": "simo",
@@ -55,7 +58,8 @@
       "act": "One",
       "max_coherence": 45,
       "initial_audience": 35,
-      "fallacy_pool": ["straw_man", "slippery_slope"]
+      "fallacy_pool": ["straw_man", "slippery_slope"],
+      "dialogue": { "intro": "agora_duel_simo_intro", "victory": "agora_duel_simo_victory", "defeat": "agora_duel_simo_defeat" }
     },
     {
       "id": "batilo",
@@ -64,7 +68,8 @@
       "act": "One",
       "max_coherence": 60,
       "initial_audience": 70,
-      "fallacy_pool": ["hasty_generalization", "undistributed_middle"]
+      "fallacy_pool": ["hasty_generalization", "undistributed_middle"],
+      "dialogue": { "intro": "agora_duel_batilo_intro", "victory": "agora_duel_batilo_victory", "defeat": "agora_duel_batilo_defeat" }
     },
     {
       "id": "thrasybios_street_trial",

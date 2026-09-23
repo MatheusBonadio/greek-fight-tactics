@@ -17,6 +17,26 @@ MonoBehaviour:
     value:
       displayName: Kleia
       portrait: kleia
+  - key: oron
+    value:
+      displayName: "\xD3ron"
+      portrait: oron
+  - key: phaidra
+    value:
+      displayName: Phaidra
+      portrait: phaidra
+  - key: simo
+    value:
+      displayName: Simo
+      portrait: simo
+  - key: batilo
+    value:
+      displayName: "B\xE1tilo"
+      portrait: batilo
+  - key: kritolaos
+    value:
+      displayName: Kritolaos
+      portrait: kritolaos
   - key: menexeno
     value:
       displayName: Menexeno
@@ -1866,6 +1886,316 @@ MonoBehaviour:
         choices: []
       - speaker: kleia
         text: "Ningu\xE9m aqui vende respostas. Vamos ver se algu\xE9m tem alguma."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_oron_intro
+    value:
+      lines:
+      - speaker: 
+        text: "Na ponta da stoa, \xE0 sombra da parede de m\xE1rmore, um cambista alinha moedas de muitas cidades sobre uma mesa baixa."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: oron
+        text: "Esta pesa. Esta n\xE3o pesa. Boa ou falsa, n\xE3o existe terceira pilha nesta mesa \u2014 nem em lugar nenhum."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "E esta aqui, gasta de tanto passar de m\xE3o? Pesa menos e ainda compra p\xE3o."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: oron
+        text: "Gasta \xE9 falsa que ainda n\xE3o foi pega. Ou voc\xEA troca no meu balc\xE3o, ou entrega o que tem aos ladr\xF5es do porto."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_oron_victory
+    value:
+      lines:
+      - speaker: oron
+        text: "N\xE3o perdi. Errei o c\xE2mbio de uma moeda, e erro de c\xE2mbio se corrige amanh\xE3, quando eu puser a mesa outra vez."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: Ele varre as pilhas para dentro do saco de couro e fecha a banca antes da hora, sem olhar para quem assistiu.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: oron
+        text: "Mas anote: a terceira sa\xEDda tamb\xE9m \xE9 mercadoria. A partir de hoje ela est\xE1 na minha mesa, e quem a quiser paga."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_oron_defeat
+    value:
+      lines:
+      - speaker: oron
+        text: "Duas sa\xEDdas eu te ofereci, e voc\xEA ficou parada entre elas. No meu balc\xE3o, quem hesita paga a diferen\xE7a."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Uma moeda rola da mesa e para aos p\xE9s de Kleia. Ningu\xE9m se abaixa para peg\xE1-la."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Eu volto. E da pr\xF3xima vez eu pergunto pelas moedas que voc\xEA n\xE3o p\xF4s na mesa."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_phaidra_intro
+    value:
+      lines:
+      - speaker: 
+        text: "No morro das oliveiras, acima da pra\xE7a, uma mulher l\xEA o voo dos p\xE1ssaros. De um galho baixo pendem amuletos de barro, duas dracmas cada."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: phaidra
+        text: "Suba. Os p\xE1ssaros vieram do seu lado da cidade hoje, e ningu\xE9m que subiu este morro desceu daqui desmentido."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Ningu\xE9m desceu desmentido, ou ningu\xE9m desceu sabendo o que a senhora tinha dito?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: phaidra
+        text: "Hefesto aben\xE7oou estes amuletos. Nenhum homem em Atenas provou o contr\xE1rio, e \xE9 por isso que eles valem duas dracmas."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_phaidra_victory
+    value:
+      lines:
+      - speaker: 
+        text: "Phaidra n\xE3o baixa a cabe\xE7a. Recolhe os amuletos do galho, um a um, sem pressa."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: phaidra
+        text: "Voc\xEA n\xE3o provou que Hefesto n\xE3o os aben\xE7oa. Provou que eu n\xE3o sei dizer por qu\xEA. Amanh\xE3 eles continuam valendo duas dracmas."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: phaidra
+        text: "E te dou uma coisa de gra\xE7a: na \xE1gora, quem tira a f\xE9 da m\xE3o dos outros \xE9 chamada de \xEDmpia. Pergunte por a\xED."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_phaidra_defeat
+    value:
+      lines:
+      - speaker: 
+        text: "Kleia abre a boca e n\xE3o encontra a pergunta. Em volta, os que subiram o morro j\xE1 procuram as dracmas para os amuletos."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: phaidra
+        text: "N\xE3o \xE9 vergonha, menina. Voc\xEA tentou mostrar que eu estava errada e n\xE3o conseguiu. \xC9 exatamente o que eu venho dizendo."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Hoje eu n\xE3o consegui. Isso ainda n\xE3o faz dos seus amuletos coisa aben\xE7oada."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_simo_intro
+    value:
+      lines:
+      - speaker: 
+        text: "Na pra\xE7a em xadrez, um homem ergue uma m\xE1scara de com\xE9dia e imita a voz de um vendedor de peixe. Meia d\xFAzia de gente j\xE1 parou para rir."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: simo
+        text: "Simo, segundo ator. J\xE1 morri em cena nas Leneias, quando ainda havia rico que pagasse um coro. Hoje o palco \xE9 esta pra\xE7a."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: simo
+        text: "A voc\xEA eu ouvi no mercado, oleira: que se deve perguntar aos mais velhos. Ponho isso na m\xE1scara e sai um filho cuspindo no pr\xF3prio pai."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Perguntar n\xE3o \xE9 desobedecer. Ponha a m\xE1scara no que eu disse, n\xE3o no que d\xE1 risada."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_simo_victory
+    value:
+      lines:
+      - speaker: simo
+        text: "Est\xE1 bem, est\xE1 bem! Eu n\xE3o disse aquilo \u2014 quem disse foi a m\xE1scara. Ator n\xE3o responde pelo que diz em cena."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ele baixa a m\xE1scara e faz uma rever\xEAncia larga, como quem acaba de sair de cena. A pra\xE7a aplaude, e n\xE3o se sabe a quem."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: simo
+        text: "A fala boa hoje era sua, oleira. Fico com ela para as Leneias, e l\xE1 ningu\xE9m vai lembrar de quem era."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_simo_defeat
+    value:
+      lines:
+      - speaker: simo
+        text: "N\xE3o se aflija, menina. Fa\xE7o a sua parte melhor do que voc\xEA faz \u2014 \xE9 of\xEDcio, e ningu\xE9m na pra\xE7a nota a diferen\xE7a."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ele ergue a m\xE1scara e repete a fala dela com a voz fininha. A pra\xE7a ri, e \xE9 a vers\xE3o dele que a plateia leva para casa."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Riram de uma fala que n\xE3o \xE9 minha. Da pr\xF3xima vez eu repito a minha at\xE9 a m\xE1scara ficar sem gra\xE7a."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_batilo_intro
+    value:
+      lines:
+      - speaker: 
+        text: "Junto \xE0 fonte, B\xE1tilo lava os cestos vazios. Vendeu tudo antes do sol alto \u2014 sobrou o cheiro e o sal nas m\xE3os."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: batilo
+        text: "Filha do Aristeu! Salgo peixe nos potes do seu pai h\xE1 doze anos e nenhum rachou nunca."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: batilo
+        text: "Dizem que voc\xEA discute no mercado. Eu n\xE3o discuto: eu vi. E o que eu vejo duas vezes, eu j\xE1 n\xE3o preciso ver a terceira."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Duas vezes, e o senhor j\xE1 decidiu o mar inteiro. E das pessoas, o senhor decide com quantas? Eu gosto do senhor, e isso atrapalha."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_batilo_victory
+    value:
+      lines:
+      - speaker: batilo
+        text: "N\xE3o sei responder. Ningu\xE9m nunca me perguntou quantas vezes eu tinha visto."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: batilo
+        text: "Eu conto assim desde menino, e nunca contei at\xE9 o fim. Agora fico pensando no que mais eu venho dizendo desse jeito."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "B\xE1tilo volta aos cestos sem raiva nenhuma. Kleia percebe que preferia que ele tivesse gritado."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_batilo_defeat
+    value:
+      lines:
+      - speaker: batilo
+        text: "Viu, menina? N\xE3o \xE9 contra voc\xEA: \xE9 que eu j\xE1 tinha visto isso antes, e hoje vi de novo."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: batilo
+        text: "Leva um peixe daqui para o seu pai. N\xE3o \xE9 pena, n\xE3o: \xE9 o troco de um dia bom."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Kleia pega o peixe e n\xE3o agradece. Ele n\xE3o levantou a voz uma vez, e \xE9 isso que pesa mais que o peixe no cesto."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_kritolaos_intro
+    value:
+      lines:
+      - speaker: 
+        text: Na rua de pedra, diante das casas de tijolo, um homem de coroa de murta cumprimenta cada porta pelo nome do dono.
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kritolaos
+        text: "Kritolaos, desta rua mesmo. Na Assembleia eu falo quando a fila chega at\xE9 mim, e esta rua inteira vota comigo."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "O senhor prometeu \xE0 porta de tr\xE1s o contr\xE1rio do que prometeu a esta. Qual das duas \xE9 para valer?"
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kritolaos
+        text: "Ouviram, vizinhos? Quem me corrige na porta de voc\xEAs \xE9 a filha do oleiro, que n\xE3o p\xF5e o p\xE9 na Assembleia. J\xE1 respondi."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_kritolaos_victory
+    value:
+      lines:
+      - speaker: kritolaos
+        text: "Muito bem. Que fique dito nesta rua: Kritolaos escutou a filha do oleiro at\xE9 o fim, de p\xE9 e em p\xFAblico."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: 
+        text: "Ele abre os bra\xE7os para as portas, n\xE3o para ela. Duas ou tr\xEAs se fecham assim mesmo."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kritolaos
+        text: "Da pr\xF3xima vez eu n\xE3o discuto com voc\xEA, menina. Discuto o seu pai: \xE9 mais r\xE1pido."
+        conditions: []
+        effects: []
+        choices: []
+      branches: []
+  - key: agora_duel_kritolaos_defeat
+    value:
+      lines:
+      - speaker: 
+        text: "Kleia come\xE7a a responder e percebe que j\xE1 n\xE3o est\xE3o discutindo o que ela disse."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kritolaos
+        text: "Ningu\xE9m aqui quer o seu mal, filha de Aristeu. S\xF3 ningu\xE9m aqui lhe deve resposta: volte quando um homem de peso falar por voc\xEA."
+        conditions: []
+        effects: []
+        choices: []
+      - speaker: kleia
+        text: "Ele falou da minha rua, do meu pai e do meu nome. Do que eu disse, n\xE3o falou nada \u2014 e mesmo assim ganhou."
         conditions: []
         effects: []
         choices: []

@@ -29,9 +29,10 @@ MonoBehaviour:
     dialogues: []
   sheetId: thrasybios
   phases:
-    intro: street_trial_intro
-    victory: street_trial_victory
-    defeat: street_trial_defeat
+    lines:
+      intro: street_trial_intro
+      victory: street_trial_victory
+      defeat: street_trial_defeat
     phases:
     - id: personal_attack
       counter: 4
@@ -99,3 +100,7 @@ MonoBehaviour:
         - Thrasybios ficou do lado do povo sob os Trinta
         weakPremise: 1
         tone: theatrical
+  lines:
+    intro: 
+    victory: 
+    defeat: 

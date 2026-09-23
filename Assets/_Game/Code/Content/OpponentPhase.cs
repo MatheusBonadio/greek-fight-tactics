@@ -57,9 +57,7 @@ namespace Game.Content
     [Serializable]
     public sealed class OpponentPhases
     {
-        [SerializeField] private string intro;
-        [SerializeField] private string victory;
-        [SerializeField] private string defeat;
+        [SerializeField] private OpponentLines lines = new();
         [SerializeField] private List<OpponentPhase> phases = new();
 
         public OpponentPhases()
@@ -68,28 +66,23 @@ namespace Game.Content
 
         public OpponentPhases(string introDialogue, string victoryDialogue, string defeatDialogue, IEnumerable<OpponentPhase> duelPhases)
         {
-            intro = introDialogue;
-            victory = victoryDialogue;
-            defeat = defeatDialogue;
+            lines = new OpponentLines(introDialogue, victoryDialogue, defeatDialogue);
             phases = (duelPhases ?? Enumerable.Empty<OpponentPhase>()).ToList();
         }
 
-        public string Intro => intro;
+        public OpponentLines Lines => lines ?? new OpponentLines();
 
-        public string Victory => victory;
+        public string Intro => Lines.Intro;
 
-        public string Defeat => defeat;
+        public string Victory => Lines.Victory;
+
+        public string Defeat => Lines.Defeat;
 
         public IReadOnlyList<OpponentPhase> Phases => phases ?? new List<OpponentPhase>();
 
         public bool IsDefined => phases != null && phases.Count > 0;
 
-        public string DialogueFor(BattleStatus status) => status switch
-        {
-            BattleStatus.PlayerWon => victory,
-            BattleStatus.PlayerLost => defeat,
-            _ => null
-        };
+        public string DialogueFor(BattleStatus status) => Lines.DialogueFor(status);
 
         public PhasedDuel ToDuel() => IsDefined ? new PhasedDuel(phases.Select(phase => phase.ToPhase())) : null;
     }

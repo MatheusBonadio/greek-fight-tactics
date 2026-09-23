@@ -19,6 +19,7 @@ namespace Game.Content
         [SerializeField] private OpponentTutorial tutorial = new();
         [SerializeField] private string sheetId;
         [SerializeField] private OpponentPhases phases = new();
+        [SerializeField] private OpponentLines lines = new();
 
         public string Id => id;
 
@@ -31,6 +32,8 @@ namespace Game.Content
         public OpponentPhases Phases => phases ?? new OpponentPhases();
 
         public bool IsPhased => Phases.IsDefined;
+
+        public OpponentLines Lines => IsPhased ? Phases.Lines : lines ?? new OpponentLines();
 
         public int MaxCoherence => maxCoherence;
 
@@ -69,6 +72,11 @@ namespace Game.Content
         public void ConfigurePhases(OpponentPhases newPhases)
         {
             phases = newPhases ?? new OpponentPhases();
+        }
+
+        public void ConfigureLines(OpponentLines newLines)
+        {
+            lines = newLines ?? new OpponentLines();
         }
 
         public void ConfigureTutorial(OpponentTutorial newTutorial)

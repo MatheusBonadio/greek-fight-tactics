@@ -60,6 +60,7 @@ namespace Game.UI
         private RefuteTutorial tutorial;
         private OpponentTutorial tutorialData;
         private OpponentPhases phaseData;
+        private OpponentLines lineData;
         private PhasedDuel phasedDuel;
         private int phaseIndex = PhasedDuel.NoPhase;
         private int targetingFrame = -1;
@@ -240,6 +241,7 @@ namespace Game.UI
             tutorialData = PendingTutorial(opponent);
             tutorial = tutorialData != null ? new RefuteTutorial() : null;
             phaseData = tutorial == null && opponent.IsPhased ? opponent.Phases : null;
+            lineData = tutorial == null ? opponent.Lines : null;
             phasedDuel = phaseData?.ToDuel();
             phaseIndex = PhasedDuel.NoPhase;
             CurrentPhaseCue = null;
@@ -293,7 +295,7 @@ namespace Game.UI
                 return;
             }
 
-            if (phaseData != null && TryPlayScript(phaseData.Intro, BeginFirstTurn))
+            if (lineData != null && TryPlayScript(lineData.Intro, BeginFirstTurn))
             {
                 return;
             }
@@ -974,7 +976,7 @@ namespace Game.UI
                 return;
             }
 
-            if (phaseData != null && TryPlayScript(phaseData.DialogueFor(LastResult), FinishBattle))
+            if (lineData != null && TryPlayScript(lineData.DialogueFor(LastResult), FinishBattle))
             {
                 return;
             }
@@ -1017,6 +1019,7 @@ namespace Game.UI
             tutorial = null;
             tutorialData = null;
             phaseData = null;
+            lineData = null;
             phasedDuel = null;
             phaseIndex = PhasedDuel.NoPhase;
             CurrentPhaseCue = null;

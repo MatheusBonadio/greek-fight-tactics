@@ -1,6 +1,11 @@
 {
   "speakers": {
     "kleia": { "name": "Kleia", "portrait": "kleia" },
+    "oron": { "name": "Óron", "portrait": "oron" },
+    "phaidra": { "name": "Phaidra", "portrait": "phaidra" },
+    "simo": { "name": "Simo", "portrait": "simo" },
+    "batilo": { "name": "Bátilo", "portrait": "batilo" },
+    "kritolaos": { "name": "Kritolaos", "portrait": "kritolaos" },
     "menexeno": { "name": "Menexeno", "portrait": "menexeno" },
     "eudoro": { "name": "Eudoro", "portrait": "eudoro" },
     "neighbor": { "name": "Vizinho", "portrait": "citizen" },
@@ -1177,6 +1182,266 @@
         {
           "speaker": "kleia",
           "text": "Ninguém aqui vende respostas. Vamos ver se alguém tem alguma."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_oron_intro",
+      "lines": [
+        {
+          "text": "Na ponta da stoa, à sombra da parede de mármore, um cambista alinha moedas de muitas cidades sobre uma mesa baixa."
+        },
+        {
+          "speaker": "oron",
+          "text": "Esta pesa. Esta não pesa. Boa ou falsa, não existe terceira pilha nesta mesa — nem em lugar nenhum."
+        },
+        {
+          "speaker": "kleia",
+          "text": "E esta aqui, gasta de tanto passar de mão? Pesa menos e ainda compra pão."
+        },
+        {
+          "speaker": "oron",
+          "text": "Gasta é falsa que ainda não foi pega. Ou você troca no meu balcão, ou entrega o que tem aos ladrões do porto."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_oron_victory",
+      "lines": [
+        {
+          "speaker": "oron",
+          "text": "Não perdi. Errei o câmbio de uma moeda, e erro de câmbio se corrige amanhã, quando eu puser a mesa outra vez."
+        },
+        {
+          "text": "Ele varre as pilhas para dentro do saco de couro e fecha a banca antes da hora, sem olhar para quem assistiu."
+        },
+        {
+          "speaker": "oron",
+          "text": "Mas anote: a terceira saída também é mercadoria. A partir de hoje ela está na minha mesa, e quem a quiser paga."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_oron_defeat",
+      "lines": [
+        {
+          "speaker": "oron",
+          "text": "Duas saídas eu te ofereci, e você ficou parada entre elas. No meu balcão, quem hesita paga a diferença."
+        },
+        {
+          "text": "Uma moeda rola da mesa e para aos pés de Kleia. Ninguém se abaixa para pegá-la."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Eu volto. E da próxima vez eu pergunto pelas moedas que você não pôs na mesa."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_phaidra_intro",
+      "lines": [
+        {
+          "text": "No morro das oliveiras, acima da praça, uma mulher lê o voo dos pássaros. De um galho baixo pendem amuletos de barro, duas dracmas cada."
+        },
+        {
+          "speaker": "phaidra",
+          "text": "Suba. Os pássaros vieram do seu lado da cidade hoje, e ninguém que subiu este morro desceu daqui desmentido."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ninguém desceu desmentido, ou ninguém desceu sabendo o que a senhora tinha dito?"
+        },
+        {
+          "speaker": "phaidra",
+          "text": "Hefesto abençoou estes amuletos. Nenhum homem em Atenas provou o contrário, e é por isso que eles valem duas dracmas."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_phaidra_victory",
+      "lines": [
+        {
+          "text": "Phaidra não baixa a cabeça. Recolhe os amuletos do galho, um a um, sem pressa."
+        },
+        {
+          "speaker": "phaidra",
+          "text": "Você não provou que Hefesto não os abençoa. Provou que eu não sei dizer por quê. Amanhã eles continuam valendo duas dracmas."
+        },
+        {
+          "speaker": "phaidra",
+          "text": "E te dou uma coisa de graça: na ágora, quem tira a fé da mão dos outros é chamada de ímpia. Pergunte por aí."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_phaidra_defeat",
+      "lines": [
+        {
+          "text": "Kleia abre a boca e não encontra a pergunta. Em volta, os que subiram o morro já procuram as dracmas para os amuletos."
+        },
+        {
+          "speaker": "phaidra",
+          "text": "Não é vergonha, menina. Você tentou mostrar que eu estava errada e não conseguiu. É exatamente o que eu venho dizendo."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Hoje eu não consegui. Isso ainda não faz dos seus amuletos coisa abençoada."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_simo_intro",
+      "lines": [
+        {
+          "text": "Na praça em xadrez, um homem ergue uma máscara de comédia e imita a voz de um vendedor de peixe. Meia dúzia de gente já parou para rir."
+        },
+        {
+          "speaker": "simo",
+          "text": "Simo, segundo ator. Já morri em cena nas Leneias, quando ainda havia rico que pagasse um coro. Hoje o palco é esta praça."
+        },
+        {
+          "speaker": "simo",
+          "text": "A você eu ouvi no mercado, oleira: que se deve perguntar aos mais velhos. Ponho isso na máscara e sai um filho cuspindo no próprio pai."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Perguntar não é desobedecer. Ponha a máscara no que eu disse, não no que dá risada."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_simo_victory",
+      "lines": [
+        {
+          "speaker": "simo",
+          "text": "Está bem, está bem! Eu não disse aquilo — quem disse foi a máscara. Ator não responde pelo que diz em cena."
+        },
+        {
+          "text": "Ele baixa a máscara e faz uma reverência larga, como quem acaba de sair de cena. A praça aplaude, e não se sabe a quem."
+        },
+        {
+          "speaker": "simo",
+          "text": "A fala boa hoje era sua, oleira. Fico com ela para as Leneias, e lá ninguém vai lembrar de quem era."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_simo_defeat",
+      "lines": [
+        {
+          "speaker": "simo",
+          "text": "Não se aflija, menina. Faço a sua parte melhor do que você faz — é ofício, e ninguém na praça nota a diferença."
+        },
+        {
+          "text": "Ele ergue a máscara e repete a fala dela com a voz fininha. A praça ri, e é a versão dele que a plateia leva para casa."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Riram de uma fala que não é minha. Da próxima vez eu repito a minha até a máscara ficar sem graça."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_batilo_intro",
+      "lines": [
+        {
+          "text": "Junto à fonte, Bátilo lava os cestos vazios. Vendeu tudo antes do sol alto — sobrou o cheiro e o sal nas mãos."
+        },
+        {
+          "speaker": "batilo",
+          "text": "Filha do Aristeu! Salgo peixe nos potes do seu pai há doze anos e nenhum rachou nunca."
+        },
+        {
+          "speaker": "batilo",
+          "text": "Dizem que você discute no mercado. Eu não discuto: eu vi. E o que eu vejo duas vezes, eu já não preciso ver a terceira."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Duas vezes, e o senhor já decidiu o mar inteiro. E das pessoas, o senhor decide com quantas? Eu gosto do senhor, e isso atrapalha."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_batilo_victory",
+      "lines": [
+        {
+          "speaker": "batilo",
+          "text": "Não sei responder. Ninguém nunca me perguntou quantas vezes eu tinha visto."
+        },
+        {
+          "speaker": "batilo",
+          "text": "Eu conto assim desde menino, e nunca contei até o fim. Agora fico pensando no que mais eu venho dizendo desse jeito."
+        },
+        {
+          "text": "Bátilo volta aos cestos sem raiva nenhuma. Kleia percebe que preferia que ele tivesse gritado."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_batilo_defeat",
+      "lines": [
+        {
+          "speaker": "batilo",
+          "text": "Viu, menina? Não é contra você: é que eu já tinha visto isso antes, e hoje vi de novo."
+        },
+        {
+          "speaker": "batilo",
+          "text": "Leva um peixe daqui para o seu pai. Não é pena, não: é o troco de um dia bom."
+        },
+        {
+          "text": "Kleia pega o peixe e não agradece. Ele não levantou a voz uma vez, e é isso que pesa mais que o peixe no cesto."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_kritolaos_intro",
+      "lines": [
+        {
+          "text": "Na rua de pedra, diante das casas de tijolo, um homem de coroa de murta cumprimenta cada porta pelo nome do dono."
+        },
+        {
+          "speaker": "kritolaos",
+          "text": "Kritolaos, desta rua mesmo. Na Assembleia eu falo quando a fila chega até mim, e esta rua inteira vota comigo."
+        },
+        {
+          "speaker": "kleia",
+          "text": "O senhor prometeu à porta de trás o contrário do que prometeu a esta. Qual das duas é para valer?"
+        },
+        {
+          "speaker": "kritolaos",
+          "text": "Ouviram, vizinhos? Quem me corrige na porta de vocês é a filha do oleiro, que não põe o pé na Assembleia. Já respondi."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_kritolaos_victory",
+      "lines": [
+        {
+          "speaker": "kritolaos",
+          "text": "Muito bem. Que fique dito nesta rua: Kritolaos escutou a filha do oleiro até o fim, de pé e em público."
+        },
+        {
+          "text": "Ele abre os braços para as portas, não para ela. Duas ou três se fecham assim mesmo."
+        },
+        {
+          "speaker": "kritolaos",
+          "text": "Da próxima vez eu não discuto com você, menina. Discuto o seu pai: é mais rápido."
+        }
+      ]
+    },
+    {
+      "id": "agora_duel_kritolaos_defeat",
+      "lines": [
+        {
+          "text": "Kleia começa a responder e percebe que já não estão discutindo o que ela disse."
+        },
+        {
+          "speaker": "kritolaos",
+          "text": "Ninguém aqui quer o seu mal, filha de Aristeu. Só ninguém aqui lhe deve resposta: volte quando um homem de peso falar por você."
+        },
+        {
+          "speaker": "kleia",
+          "text": "Ele falou da minha rua, do meu pai e do meu nome. Do que eu disse, não falou nada — e mesmo assim ganhou."
         }
       ]
     }
