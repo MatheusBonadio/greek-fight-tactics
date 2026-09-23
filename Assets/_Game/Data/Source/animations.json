@@ -1,0 +1,25 @@
+{
+  "cell": { "width": 24, "height": 32 },
+  "animations": [
+    { "id": "idle", "msPerFrame": 300, "loop": true, "holdsLast": false },
+    { "id": "idle_breath", "msPerFrame": 200, "loop": true, "holdsLast": false },
+    { "id": "walk", "msPerFrame": 150, "loop": true, "holdsLast": false },
+    { "id": "talk", "msPerFrame": 200, "loop": true, "holdsLast": false },
+    { "id": "think", "msPerFrame": 500, "loop": true, "holdsLast": false },
+    { "id": "argue", "msPerFrame": 200, "loop": false, "holdsLast": false },
+    { "id": "refute", "msPerFrame": 120, "loop": false, "holdsLast": false },
+    { "id": "maieutics", "msPerFrame": 180, "loop": false, "holdsLast": false },
+    { "id": "quote", "msPerFrame": 200, "loop": false, "holdsLast": false },
+    { "id": "concede", "msPerFrame": 250, "loop": false, "holdsLast": false },
+    { "id": "withdraw", "msPerFrame": 150, "loop": false, "holdsLast": false },
+    { "id": "coherence_damage", "msPerFrame": 100, "loop": false, "holdsLast": false },
+    { "id": "defeat", "msPerFrame": 220, "loop": false, "holdsLast": true },
+    { "id": "victory", "msPerFrame": 300, "loop": false, "holdsLast": true },
+    { "id": "float", "msPerFrame": 300, "loop": true, "holdsLast": false },
+    { "id": "trance", "msPerFrame": 200, "loop": true, "holdsLast": false },
+    { "id": "listen", "msPerFrame": 250, "loop": false, "holdsLast": false },
+    { "id": "invert", "msPerFrame": 200, "loop": false, "holdsLast": false },
+    { "id": "paint", "msPerFrame": 400, "loop": true, "holdsLast": false },
+    { "id": "cheer", "msPerFrame": 250, "loop": true, "holdsLast": false }
+  ]
+}

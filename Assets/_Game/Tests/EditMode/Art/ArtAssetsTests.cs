@@ -12,8 +12,10 @@ namespace Game.Tests.EditMode.Art
 {
     public sealed class ArtAssetsTests
     {
-        private const int PlaceholderPngCount = 113;
+        private const int PlaceholderPngCount = 158;
         private const int SpritesPerSheet = 16;
+        private const int SheetDirections = 4;
+        private const int StripDirections = 2;
         private const float PivotTolerance = 0.0001f;
         private const string PalettePath = "art/palette/snes.gpl";
         private const string AristeuCharacter = "aristeu";
@@ -70,7 +72,7 @@ namespace Game.Tests.EditMode.Art
             CollectionAssert.IsSupersetOf(controller.parameters.Select(parameter => parameter.name), new[] { ArtTools.DirectionXParameter, ArtTools.DirectionYParameter });
 
             var states = controller.layers[0].stateMachine.states.Select(child => child.state).ToList();
-            CollectionAssert.AreEquivalent(ArtTools.StateNames, states.Select(state => state.name));
+            CollectionAssert.AreEquivalent(ArtTools.StatesFor(character), states.Select(state => state.name));
 
             foreach (var state in states)
             {
@@ -79,7 +81,8 @@ namespace Game.Tests.EditMode.Art
                 Assert.AreEqual(BlendTreeType.SimpleDirectional2D, tree.blendType);
                 Assert.AreEqual(ArtTools.DirectionXParameter, tree.blendParameter);
                 Assert.AreEqual(ArtTools.DirectionYParameter, tree.blendParameterY);
-                Assert.AreEqual(4, tree.children.Length, $"{character}/{state.name}");
+                Assert.AreEqual(ArtTools.HasStrip(character, state.name) ? StripDirections : SheetDirections,
+                    tree.children.Length, $"{character}/{state.name}");
             }
         }
 

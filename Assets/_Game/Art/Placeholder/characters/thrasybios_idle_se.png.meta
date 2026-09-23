@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 0
   alignment: 0
@@ -118,12 +118,12 @@ TextureImporter:
       name: thrasybios_idle_se_0
       rect:
         serializedVersion: 2
-        x: 4
+        x: 0
         y: 0
-        width: 17
-        height: 31
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -132,6 +132,72 @@ TextureImporter:
       bones: []
       spriteID: c72525cc2f4530340800000000000000
       internalID: 4828796627258069628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: thrasybios_idle_se_1
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed8cc218ba468bc4290fa6a4200ee656
+      internalID: 346022109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: thrasybios_idle_se_2
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ec246024229e4b44a51b7da6b866e7c
+      internalID: -139060520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: thrasybios_idle_se_3
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71d522e29a041a04e86790dd83e82414
+      internalID: -748936004
       vertices: []
       indices: 
       edges: []
@@ -151,6 +217,9 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       thrasybios_idle_se_0: 4828796627258069628
+      thrasybios_idle_se_1: 346022109
+      thrasybios_idle_se_2: -139060520
+      thrasybios_idle_se_3: -748936004
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

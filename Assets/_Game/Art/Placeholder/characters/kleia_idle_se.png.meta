@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 0
   alignment: 0
@@ -118,12 +118,12 @@ TextureImporter:
       name: kleia_idle_se_0
       rect:
         serializedVersion: 2
-        x: 4
+        x: 0
         y: 0
-        width: 17
-        height: 31
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -132,6 +132,72 @@ TextureImporter:
       bones: []
       spriteID: c7785210143447760800000000000000
       internalID: 7454657229676185468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: kleia_idle_se_1
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1bec26b0a9c737442bb1eb59f8cec12f
+      internalID: -1478091270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: kleia_idle_se_2
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e1499590b6dae640845191ef845295e
+      internalID: 1284421067
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: kleia_idle_se_3
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 0
+        width: 24
+        height: 32
+      alignment: 9
+      pivot: {x: 0.5, y: 0.0625}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70bec59f7a4bdb54a99229273b843792
+      internalID: -352091283
       vertices: []
       indices: 
       edges: []
@@ -151,6 +217,9 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       kleia_idle_se_0: 7454657229676185468
+      kleia_idle_se_1: -1478091270
+      kleia_idle_se_2: 1284421067
+      kleia_idle_se_3: -352091283
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
