@@ -72,6 +72,9 @@ namespace Game.Tests.PlayMode
             var sawPlayerTurn = false;
             var sawRange = false;
             var sawOpponentPortrait = false;
+            var heardTheMapAfterTheDuel = false;
+            var mapMusic = AudioIds.MusicForLocation(sandbox.LocationId);
+            Assert.IsNotNull(GameAudio.Active, "GridSandbox scene must create the audio player");
             Assert.IsNotNull(director.PlayerPortrait, "GridSandbox scene must wire Kleia's portrait");
             Assert.IsNotNull(director.OpponentPortrait, "GridSandbox scene must wire the opponent's portrait");
             Assert.IsNotNull(director.RangeView, "GridSandbox scene must wire the range highlight view");
@@ -86,6 +89,11 @@ namespace Game.Tests.PlayMode
 
                 if (director.Phase == BattleFlowPhase.Dialogue)
                 {
+                    if (director.StateMachine.Mode == GameMode.BattleOutro)
+                    {
+                        heardTheMapAfterTheDuel |= GameAudio.Active.PlayingMusic == mapMusic && Mathf.Approximately(GameAudio.AfterDuelMusicLevel, GameAudio.Active.MusicLevel);
+                    }
+
                     var dialogue = director.Hud.Dialogue;
                     if (dialogue.Line.SpeakerName == director.Opponent.DisplayName)
                     {
@@ -114,6 +122,9 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(sawPlayerTurn);
             Assert.IsTrue(sawRange, "the selected action range was never painted on the floor");
             Assert.IsTrue(sawOpponentPortrait, "the opponent spoke without his portrait");
+            Assert.IsTrue(heardTheMapAfterTheDuel, "the map music must come back, lower, under the words after the duel");
+            Assert.AreEqual(mapMusic, GameAudio.Active.PlayingMusic);
+            Assert.AreEqual(GameAudio.FullMusicLevel, GameAudio.Active.MusicLevel, "back in the map the music rises to its level");
             Assert.AreEqual(0, director.RangeView.PaintedCount);
             Assert.AreNotEqual(BattleStatus.Ongoing, director.LastResult);
             Assert.AreEqual(GameMode.Exploration, director.StateMachine.Mode);

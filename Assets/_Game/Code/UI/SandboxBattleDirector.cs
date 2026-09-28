@@ -934,7 +934,7 @@ namespace Game.UI
         {
             LastResult = Session.State.Status;
             StrikeEndPose();
-            GameAudio.StopMusic(GameAudio.StingFadeSeconds);
+            GameAudio.PlayMusic(AudioIds.MusicForLocation(sandbox.LocationId), GameAudio.StingFadeSeconds, GameAudio.AfterDuelMusicLevel);
             GameAudio.Play(LastResult == BattleStatus.PlayerWon ? AudioIds.Victory : AudioIds.Defeat);
             if (DuelVictoryRule.TryClassify(Session.State, out var victory))
             {
