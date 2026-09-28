@@ -79,17 +79,52 @@ namespace Game.Tests.EditMode.Content
         }
 
         [Test]
-        public void EveryCommittedPlaceholder_IsImportedAndMono()
+        public void EveryClip_ComesFromAnImportedFile()
         {
             foreach (var id in library.Ids)
             {
-                var path = AudioTools.ClipPathFor(id);
+                var clip = library.Get(id);
+                var path = AssetDatabase.GetAssetPath(clip);
+                Assert.IsTrue(path.StartsWith(AudioTools.PlaceholderFolder + "/") || path.StartsWith(AudioTools.MusicFolder + "/"), $"{id}: {path}");
                 Assert.IsTrue(File.Exists(path), path);
-                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
-                Assert.IsNotNull(clip, path);
-                Assert.AreEqual(1, clip.channels, id);
                 Assert.Greater(clip.length, 0f, id);
             }
+        }
+
+        [Test]
+        public void Effects_AreMonoInMemory_AndMusic_IsRecordedStereoAndStreamed()
+        {
+            foreach (var id in library.Ids)
+            {
+                var clip = library.Get(id);
+                var path = AssetDatabase.GetAssetPath(clip);
+                var importer = (UnityEditor.AudioImporter)AssetImporter.GetAtPath(path);
+                var settings = importer.defaultSampleSettings;
+                if (AudioIds.BusFor(id) == AudioBus.Music)
+                {
+                    StringAssert.StartsWith(AudioTools.MusicFolder + "/", path, id);
+                    Assert.IsFalse(importer.forceToMono, id);
+                    Assert.AreEqual(2, clip.channels, id);
+                    Assert.AreEqual(AudioClipLoadType.Streaming, settings.loadType, id);
+                    Assert.AreEqual(AudioCompressionFormat.Vorbis, settings.compressionFormat, id);
+                }
+                else
+                {
+                    StringAssert.StartsWith(AudioTools.PlaceholderFolder + "/", path, id);
+                    Assert.AreEqual(1, clip.channels, id);
+                    Assert.AreEqual(AudioClipLoadType.DecompressOnLoad, settings.loadType, id);
+                }
+            }
+        }
+
+        [Test]
+        public void PlacesThatShareATrack_ShareTheSameClip()
+        {
+            Assert.AreSame(library.Get(AudioIds.MusicAgora), library.Get(AudioIds.MusicArchive), "the archive stands in the agora");
+            Assert.AreSame(library.Get(AudioIds.MusicBattle), library.Get(AudioIds.MusicFor(Profile.Sophist)));
+            Assert.AreSame(library.Get(AudioIds.MusicBattle), library.Get(AudioIds.MusicFor(Profile.Philosopher)));
+            Assert.AreNotSame(library.Get(AudioIds.MusicAgora), library.Get(AudioIds.MusicBattle));
+            Assert.AreNotSame(library.Get(AudioIds.MusicTitle), library.Get(AudioIds.MusicKerameikos));
         }
 
         [Test]

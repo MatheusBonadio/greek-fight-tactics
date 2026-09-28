@@ -14,6 +14,7 @@ namespace Game.Core
         public const string MusicAgora = "music_agora";
         public const string MusicArchive = "music_archive";
         public const string MusicAcademy = "music_academy";
+        public const string MusicBattle = "music_battle";
         public const string MusicBattleSophist = "music_battle_sophist";
         public const string MusicBattlePhilosopher = "music_battle_philosopher";
 

@@ -117,11 +117,25 @@ namespace Game.EditorTools
             var voices = source["voices"]?.ToObject<Dictionary<string, float>>() ?? new Dictionary<string, float>();
             var speakers = new HashSet<string>(LoadDialogueSource(DialogueSourcePath).Speakers.Keys);
 
+            var aliases = source["aliases"]?.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
             var clips = new Dictionary<string, AudioClip>();
             foreach (var id in ids)
             {
                 clips[id] = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioTools.ClipPathFor(id))
                     ?? throw new InvalidOperationException($"{AudioSourcePath}: {id} has no clip at {AudioTools.ClipPathFor(id)}");
+            }
+
+            foreach (var (alias, target) in aliases)
+            {
+                if (ids.Contains(alias))
+                {
+                    throw new InvalidOperationException($"{AudioSourcePath}: {alias} is both a clip and an alias");
+                }
+
+                clips[alias] = ids.Contains(target)
+                    ? clips[target]
+                    : throw new InvalidOperationException($"{AudioSourcePath}: the alias {alias} points to {target}, which is not a clip");
             }
 
             foreach (var speaker in voices.Keys.Where(speaker => !speakers.Contains(speaker)))

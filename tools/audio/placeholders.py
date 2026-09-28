@@ -1,18 +1,15 @@
 import argparse
-import math
 import os
 import struct
 import wave
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_OUT = os.path.join(ROOT, "audio", "placeholders")
+MUSIC_DIR = os.path.join(ROOT, "audio", "music")
 SAMPLE_RATE = 11025
 BIT_DEPTH = 16
 PEAK = 2 ** (BIT_DEPTH - 1) - 1
 CHANNELS = 1
-BEAT_SECONDS = 0.25
-BARS = 8
-MUSIC_LEVEL = 0.22
 SFX_LEVEL = 0.55
 BLIP_LEVEL = 0.4
 HOVER_LEVEL = 0.22
@@ -88,37 +85,6 @@ def chain(*parts):
     return out
 
 
-def silence(seconds):
-    return [0.0] * max(1, int(seconds * SAMPLE_RATE))
-
-
-def loop(melody, bass, duty):
-    lead = []
-    for degree, length in melody:
-        lead.extend(silence(length * BEAT_SECONDS) if degree is None
-                    else tone(note(degree, 1), length * BEAT_SECONDS, MUSIC_LEVEL, duty=duty, release=0.25))
-    low = []
-    for degree, length in bass:
-        low.extend(silence(length * BEAT_SECONDS) if degree is None
-                   else tone(note(degree, -1), length * BEAT_SECONDS, MUSIC_LEVEL * 0.8, shape=triangle, release=0.2))
-    bars = max(1, math.ceil(BARS * 4 * BEAT_SECONDS * SAMPLE_RATE / max(len(lead), 1)))
-    return mix(lead * bars, low * bars)
-
-
-MELODIES = {
-    "music_title": ([(0, 4), (2, 2), (1, 2), (3, 4), (2, 4)], [(0, 8), (3, 8)], 0.5),
-    "music_kerameikos": ([(0, 2), (1, 2), (2, 4), (1, 2), (0, 6)], [(0, 8), (2, 8)], 0.5),
-    "music_agora": ([(2, 2), (3, 2), (4, 2), (3, 2), (2, 4), (0, 4)], [(0, 4), (2, 4), (3, 4), (2, 4)], 0.25),
-    "music_archive": ([(0, 6), (None, 2), (1, 6), (None, 2)], [(0, 16)], 0.5),
-    "music_academy": ([(4, 4), (3, 2), (2, 2), (1, 4), (0, 4)], [(4, 8), (0, 8)], 0.25),
-    "music_battle_sophist": ([(2, 1), (2, 1), (3, 2), (1, 1), (1, 1), (2, 2), (4, 4)], [(2, 2), (2, 2), (1, 2), (1, 2)], 0.125),
-    "music_battle_philosopher": ([(0, 4), (2, 4), (1, 4), (3, 4)], [(0, 8), (1, 8)], 0.5),
-    "music_street_trial_personal_attack": ([(1, 2), (1, 2), (0, 4), (1, 2), (2, 2), (0, 4)], [(1, 4), (0, 4)], 0.25),
-    "music_street_trial_false_dilemma": ([(3, 2), (1, 2), (3, 2), (1, 2), (4, 4), (2, 4)], [(3, 4), (1, 4)], 0.25),
-    "music_street_trial_political_fear": ([(0, 8), (1, 4), (0, 4)], [(0, 8), (4, 8)], 0.5),
-}
-
-
 def sfx(name):
     if name == "sfx_hover":
         return tone(note(4, 2), 0.028, HOVER_LEVEL, duty=0.125, attack=0.01, release=0.7)
@@ -161,14 +127,11 @@ EFFECTS = ("sfx_hover", "sfx_cursor", "sfx_confirm", "sfx_cancel", "sfx_refute",
 
 
 def render(name):
-    if name in MELODIES:
-        melody, bass, duty = MELODIES[name]
-        return loop(melody, bass, duty)
     return sfx(name)
 
 
 def clip_names():
-    return tuple(sorted(MELODIES)) + EFFECTS
+    return EFFECTS
 
 
 def encode(samples):
@@ -189,7 +152,7 @@ def read(path):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Draw the placeholder sounds the game plays until real audio lands")
+    parser = argparse.ArgumentParser(description="Draw the placeholder sound effects the game plays until real ones land")
     parser.add_argument("--out", default=DEFAULT_OUT)
     parser.add_argument("--check", action="store_true", help="fail when a committed wav is not what this draws")
     arguments = parser.parse_args(argv)

@@ -1,15 +1,9 @@
 {
   "clips": [
-    "music_academy",
-    "music_agora",
-    "music_archive",
-    "music_battle_philosopher",
-    "music_battle_sophist",
-    "music_kerameikos",
-    "music_street_trial_false_dilemma",
-    "music_street_trial_personal_attack",
-    "music_street_trial_political_fear",
     "music_title",
+    "music_kerameikos",
+    "music_agora",
+    "music_battle",
     "sfx_hover",
     "sfx_cursor",
     "sfx_confirm",
@@ -22,6 +16,15 @@
     "sfx_defeat",
     "voice_blip"
   ],
+  "aliases": {
+    "music_archive": "music_agora",
+    "music_academy": "music_kerameikos",
+    "music_battle_sophist": "music_battle",
+    "music_battle_philosopher": "music_battle",
+    "music_street_trial_personal_attack": "music_battle",
+    "music_street_trial_false_dilemma": "music_battle",
+    "music_street_trial_political_fear": "music_battle"
+  },
   "voices": {
     "kleia": 1.15,
     "oron": 0.9,

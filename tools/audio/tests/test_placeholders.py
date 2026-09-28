@@ -2,11 +2,11 @@ import os
 import unittest
 import wave
 
-from placeholders import (BIT_DEPTH, CHANNELS, DEFAULT_OUT, EFFECTS, MELODIES, PEAK, SAMPLE_RATE, clip_names, encode,
+from placeholders import (BIT_DEPTH, CHANNELS, DEFAULT_OUT, EFFECTS, MUSIC_DIR, PEAK, SAMPLE_RATE, clip_names, encode,
                           render)
 
-SHORTEST_MUSIC_SECONDS = 4.0
 LONGEST_EFFECT_SECONDS = 1.0
+MUSIC_PREFIX = "music_"
 
 
 def committed(name):
@@ -43,19 +43,20 @@ class PlaceholderAudioTests(unittest.TestCase):
             self.assertLessEqual(max(abs(value) for value in samples), 1.0, name)
             self.assertEqual(PEAK, 2 ** (BIT_DEPTH - 1) - 1)
 
-    def test_music_loops_and_effects_do_not_overlap_in_length(self):
-        for name in MELODIES:
-            _, frames = committed(name)
-            self.assertGreaterEqual(seconds(frames), SHORTEST_MUSIC_SECONDS, name)
+    def test_every_effect_stays_short(self):
         for name in EFFECTS:
             _, frames = committed(name)
             self.assertLessEqual(seconds(frames), LONGEST_EFFECT_SECONDS, name)
 
-    def test_a_music_loop_ends_near_silence_so_it_can_repeat(self):
-        for name in MELODIES:
-            samples = render(name)
-            self.assertLess(abs(samples[0]), 0.05, name)
-            self.assertLess(abs(samples[-1]), 0.05, name)
+    def test_music_is_recorded_and_never_drawn(self):
+        recorded = [name for name in os.listdir(MUSIC_DIR) if name.endswith(".wav")]
+        self.assertTrue(recorded)
+        for name in recorded:
+            self.assertTrue(name.startswith(MUSIC_PREFIX), name)
+            with wave.open(os.path.join(MUSIC_DIR, name), "rb") as handle:
+                self.assertGreater(handle.getnframes(), 0, name)
+        for name in os.listdir(DEFAULT_OUT):
+            self.assertFalse(name.startswith(MUSIC_PREFIX), f"{name} would shadow a recorded track")
 
     def test_drawing_twice_gives_the_same_bytes(self):
         for name in clip_names():

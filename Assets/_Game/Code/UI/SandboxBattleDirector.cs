@@ -242,7 +242,7 @@ namespace Game.UI
             tutorial = tutorialData != null ? new RefuteTutorial() : null;
             phaseData = tutorial == null && opponent.IsPhased ? opponent.Phases : null;
             lineData = tutorial == null ? opponent.Lines : null;
-            GameAudio.PlayMusic(AudioIds.MusicFor(opponent.Profile));
+            GameAudio.PlayMusic(AudioIds.MusicFor(opponent.Profile), GameAudio.BattleCrossfadeSeconds);
             phasedDuel = phaseData?.ToDuel();
             phaseIndex = PhasedDuel.NoPhase;
             CurrentPhaseCue = null;
@@ -730,7 +730,7 @@ namespace Game.UI
             StrikePose(phase.Posture, phase.Tint);
             var cue = new DuelPhaseCue(engaged.Opponent.Id, index, phase.Id, phase.Music, phase.Posture);
             CurrentPhaseCue = cue;
-            GameAudio.PlayMusic(AudioIds.MusicForPhase(phase.Music));
+            GameAudio.PlayMusic(AudioIds.MusicForPhase(phase.Music), GameAudio.BattleCrossfadeSeconds);
             PhaseStarted?.Invoke(cue);
             hud.Sync();
             PlayScript(phase.Dialogue, next);
@@ -992,6 +992,7 @@ namespace Game.UI
         {
             LastResult = Session.State.Status;
             StrikeEndPose();
+            GameAudio.StopMusic(GameAudio.StingFadeSeconds);
             GameAudio.Play(LastResult == BattleStatus.PlayerWon ? AudioIds.Victory : AudioIds.Defeat);
             if (DuelVictoryRule.TryClassify(Session.State, out var victory))
             {

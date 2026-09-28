@@ -10,7 +10,10 @@ namespace Game.UI
     {
         public const string ObjectName = "GameAudio";
         public const int PoolSize = 4;
-        public const float FadeSeconds = 0.4f;
+        public const float CrossfadeSeconds = 1.5f;
+        public const float BattleCrossfadeSeconds = 0.6f;
+        public const float StingFadeSeconds = 0.8f;
+        public const float InstantFadeRate = 1_000_000f;
         public const float BlipCooldownSeconds = 0.045f;
         public const float MinimumPitch = 0.5f;
         public const float MaximumPitch = 2f;
@@ -30,7 +33,11 @@ namespace Game.UI
             { AudioBus.Ui, 1f }
         };
 
+        private readonly MusicResume resume = new();
         private AudioSource music;
+        private AudioSource fadingOut;
+        private float fadeInRate;
+        private float fadeOutRate;
         private AudioSource[] effects;
         private AudioSource[] interfaceSounds;
         private int nextEffect;
@@ -46,9 +53,9 @@ namespace Game.UI
             set
             {
                 muted = value;
-                if (value && active && active.music)
+                if (value && active)
                 {
-                    active.music.Stop();
+                    active.SilenceMusic();
                 }
             }
         }
@@ -78,19 +85,19 @@ namespace Game.UI
             }
         }
 
-        public static void PlayMusic(string id)
+        public static void PlayMusic(string id, float fadeSeconds = CrossfadeSeconds)
         {
             if (active)
             {
-                active.ChangeMusic(id);
+                active.ChangeMusic(id, fadeSeconds);
             }
         }
 
-        public static void StopMusic()
+        public static void StopMusic(float fadeSeconds = CrossfadeSeconds)
         {
             if (active)
             {
-                active.ChangeMusic(null);
+                active.ChangeMusic(null, fadeSeconds);
             }
         }
 
@@ -112,9 +119,9 @@ namespace Game.UI
         public void SetVolume(AudioBus bus, float volume)
         {
             volumes[bus] = Mathf.Clamp01(volume);
-            if (bus == AudioBus.Music && music && !music.isPlaying)
+            if (bus == AudioBus.Music && music && music.isPlaying)
             {
-                music.volume = volumes[AudioBus.Music];
+                music.volume = Mathf.Min(music.volume, volumes[AudioBus.Music]);
             }
         }
 
@@ -131,6 +138,7 @@ namespace Game.UI
             active = this;
             DontDestroyOnLoad(gameObject);
             music = CreateSource(true);
+            fadingOut = CreateSource(true);
             effects = CreatePool();
             interfaceSounds = CreatePool();
         }
@@ -150,12 +158,28 @@ namespace Game.UI
                 blipCooldown -= Time.unscaledDeltaTime;
             }
 
-            if (music && music.isPlaying && !Mathf.Approximately(music.volume, volumes[AudioBus.Music]))
+            FadeMusic(Time.unscaledDeltaTime);
+        }
+
+        private void FadeMusic(float deltaSeconds)
+        {
+            if (music && music.isPlaying)
             {
-                music.volume = Mathf.MoveTowards(music.volume, volumes[AudioBus.Music],
-                    Time.unscaledDeltaTime / FadeSeconds);
+                music.volume = Mathf.MoveTowards(music.volume, volumes[AudioBus.Music], deltaSeconds * fadeInRate);
+            }
+
+            if (fadingOut && fadingOut.isPlaying)
+            {
+                fadingOut.volume = Mathf.MoveTowards(fadingOut.volume, 0f, deltaSeconds * fadeOutRate);
+                if (fadingOut.volume <= 0f)
+                {
+                    fadingOut.Stop();
+                    fadingOut.clip = null;
+                }
             }
         }
+
+        private static float RateFor(float fadeSeconds) => fadeSeconds > 0f ? 1f / fadeSeconds : InstantFadeRate;
 
         private AudioSource CreateSource(bool looping)
         {
@@ -214,7 +238,7 @@ namespace Game.UI
             PlaySound(AudioIds.VoiceBlip, AudioBus.Ui, library ? library.PitchFor(speakerId) : AudioLibrarySO.DefaultPitch);
         }
 
-        private void ChangeMusic(string id)
+        private void ChangeMusic(string id, float fadeSeconds)
         {
             if (playing == id)
             {
@@ -228,15 +252,55 @@ namespace Game.UI
             }
 
             var clip = id != null && library && !muted ? library.Get(id) : null;
-            music.Stop();
+            fadeInRate = RateFor(fadeSeconds);
+            fadeOutRate = fadeInRate;
+            if (clip != null && music.clip == clip && music.isPlaying)
+            {
+                return;
+            }
+
+            RememberWhereItStopped(music);
+            if (clip != null && fadingOut.clip == clip && fadingOut.isPlaying)
+            {
+                (music, fadingOut) = (fadingOut, music);
+                return;
+            }
+
+            fadingOut.Stop();
+            (music, fadingOut) = (fadingOut, music);
             music.clip = clip;
             if (clip == null)
             {
                 return;
             }
 
+            music.time = resume.StartFor(clip.name, clip.length, Time.unscaledTime);
             music.volume = 0f;
             music.Play();
+        }
+
+        private void RememberWhereItStopped(AudioSource source)
+        {
+            if (source.isPlaying && source.clip != null)
+            {
+                resume.Remember(source.clip.name, source.time, Time.unscaledTime);
+            }
+        }
+
+        private void SilenceMusic()
+        {
+            playing = null;
+            if (music)
+            {
+                music.Stop();
+                music.clip = null;
+            }
+
+            if (fadingOut)
+            {
+                fadingOut.Stop();
+                fadingOut.clip = null;
+            }
         }
     }
 }
