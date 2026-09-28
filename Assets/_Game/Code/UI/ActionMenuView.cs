@@ -269,7 +269,7 @@ namespace Game.UI
             PlaceCursor(actionCursor, actionRows, Controller.Actions.CursorIndex, inActions);
 
             var selected = Controller.Actions.Selected;
-            reasonLabel.text = inActions && !selected.IsAvailable ? text.Get(UiTextKeys.For(selected.Reason)) : string.Empty;
+            reasonLabel.text = Interactive && inActions && !selected.IsAvailable ? text.Get(UiTextKeys.For(selected.Reason)) : string.Empty;
         }
 
         private void RenderSubmenu()

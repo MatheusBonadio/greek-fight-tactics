@@ -151,6 +151,23 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void ActionMenuView_OutsideThePlayersTurn_ExplainsNothing()
+        {
+            var (view, _) = CreateMenu();
+            view.Bind(Controller(new Argument("Um grão de areia não é um monte, e somar um grão nunca faz o monte.", null, new[] { "um grão", "outro grão" }, 1, ArgumentTones.Curious), Act.Two));
+            view.HandlePoint(BattleMenuLayer.Actions, 1);
+            Assert.IsNotEmpty(view.ReasonLabel.text);
+
+            view.SetInteractive(false);
+
+            Assert.IsEmpty(view.ReasonLabel.text, "while the opponent thinks, the help box does not nag that it is not her turn");
+
+            view.SetInteractive(true);
+
+            Assert.IsNotEmpty(view.ReasonLabel.text);
+        }
+
+        [Test]
         public void ActionMenuView_DimsUnavailableActionsAndShowsTheReasonFromData()
         {
             var (view, uiText) = CreateMenu();
