@@ -173,6 +173,8 @@ MonoBehaviour:
     value: Falta um argumento para responder.
   - key: rejection.action_locked
     value: "Kleia ainda n\xE3o aprendeu a perguntar assim."
+  - key: rejection.argument_already_answered
+    value: "Esse argumento j\xE1 caiu."
   - key: hud.coherence
     value: "COER\xCANCIA"
   - key: hud.audience

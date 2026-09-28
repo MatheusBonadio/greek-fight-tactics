@@ -80,6 +80,7 @@
     "rejection.no_quote_uses": "Nenhum pergaminho restante.",
     "rejection.missing_argument": "Falta um argumento para responder.",
     "rejection.action_locked": "Kleia ainda não aprendeu a perguntar assim.",
+    "rejection.argument_already_answered": "Esse argumento já caiu.",
     "hud.coherence": "COERÊNCIA",
     "hud.audience": "PLATEIA",
     "battle.concede_counter": "{0} aceita o fato, e o ataque fica sem alvo.",

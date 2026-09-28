@@ -15,6 +15,7 @@ namespace Game.Battle
         InvalidPremise,
         NoQuoteUses,
         MissingArgument,
-        ActionLocked
+        ActionLocked,
+        ArgumentAlreadyAnswered
     }
 }

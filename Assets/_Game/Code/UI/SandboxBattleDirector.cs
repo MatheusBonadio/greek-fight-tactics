@@ -546,7 +546,9 @@ namespace Game.UI
             tutorial != null ? RefuteTutorial.Rules(opponent.MaxCoherence) : phasedDuel?.Rules();
 
         private IArgumentSource ArgumentsFor(MapOpponent target, int seed) =>
-            tutorial != null ? TutorialArguments(tutorialData) : phasedDuel != null ? null : CreateArgumentSource(target, seed);
+            tutorial != null
+                ? TutorialArguments(tutorialData)
+                : phasedDuel != null ? null : new ShuffledPremiseSource(CreateArgumentSource(target, seed), new System.Random(seed));
 
         private IOpponentPolicy PolicyFor() =>
             tutorial != null ? new TutorialOpponent() : phasedDuel != null ? new PhasedOpponent(phasedDuel) : null;

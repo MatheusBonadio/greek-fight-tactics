@@ -14,7 +14,7 @@ namespace Game.Battle
         public Play Decide(BattleState state, Debater player)
         {
             var opponent = state.Opponent;
-            if ((double)player.Coherence / player.MaxCoherence < ConcedeBelowCoherenceRatio || !state.CurrentArgument.HasValue)
+            if ((double)player.Coherence / player.MaxCoherence < ConcedeBelowCoherenceRatio || !state.HasOpenArgument)
             {
                 return Play.Concede(player.Id);
             }

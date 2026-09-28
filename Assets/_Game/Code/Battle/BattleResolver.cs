@@ -88,6 +88,11 @@ namespace Game.Battle
                 return Outcome.Rejected(actor.Id, play.Action, RejectionReason.NoArgumentToAnswer);
             }
 
+            if (state.IsArgumentAnswered)
+            {
+                return Outcome.Rejected(actor.Id, play.Action, RejectionReason.ArgumentAlreadyAnswered);
+            }
+
             var argument = state.CurrentArgument.Value;
             if (!argument.IsRefutable)
             {
@@ -121,6 +126,11 @@ namespace Game.Battle
                 return Outcome.Rejected(actor.Id, play.Action, RejectionReason.NoArgumentToAnswer);
             }
 
+            if (state.IsArgumentAnswered)
+            {
+                return Outcome.Rejected(actor.Id, play.Action, RejectionReason.ArgumentAlreadyAnswered);
+            }
+
             var argument = state.CurrentArgument.Value;
             if (play.ChosenPremise < 0 || play.ChosenPremise >= argument.Premises.Count)
             {
@@ -130,6 +140,7 @@ namespace Game.Battle
             var outcome = new Outcome(actor.Id, play.Action) { TargetId = target.Id, TurnCost = state.Rules.MaieuticsTurnCost };
             if (play.ChosenPremise != argument.WeakPremise)
             {
+                outcome.ActorCoherenceDelta = -state.Rules.MaieuticsMissCoherenceLoss;
                 outcome.PlayerAudienceDelta = -AudienceTowards(actor, state.Rules.MaieuticsMissAudienceLoss);
                 return outcome;
             }

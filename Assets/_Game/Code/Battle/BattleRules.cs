@@ -12,7 +12,7 @@ namespace Game.Battle
 
         public int RefuteRange { get; set; } = 3;
 
-        public int RefuteDamage { get; set; } = 20;
+        public int RefuteDamage { get; set; } = 25;
 
         public int RefuteAudienceGain { get; set; } = 10;
 
@@ -20,9 +20,11 @@ namespace Game.Battle
 
         public int MaieuticsRange { get; set; } = 2;
 
-        public int MaieuticsDamage { get; set; } = 35;
+        public int MaieuticsDamage { get; set; } = 30;
 
-        public int MaieuticsMissAudienceLoss { get; set; } = 5;
+        public int MaieuticsMissAudienceLoss { get; set; } = 10;
+
+        public int MaieuticsMissCoherenceLoss { get; set; } = 8;
 
         public int MaieuticsTurnCost { get; set; } = 2;
 

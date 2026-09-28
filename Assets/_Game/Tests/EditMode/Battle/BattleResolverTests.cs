@@ -107,6 +107,37 @@ namespace Game.Tests.EditMode.Battle
 
             Assert.AreEqual(50, state.Opponent.Coherence);
             Assert.AreEqual(audience - state.Rules.MaieuticsMissAudienceLoss, state.PlayerAudience);
+            Assert.AreEqual(60 - state.Rules.MaieuticsMissCoherenceLoss, state.Player.Coherence, "a wrong question exposes Kleia too");
+        }
+
+        [Test]
+        public void AnAnsweredArgument_CannotBeAnsweredAgainUntilTheNextOne()
+        {
+            var state = CreateWithArgument(RefutableArgument());
+            state.Apply(resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, 0), state));
+            state.Apply(resolver.Resolve(Play.Concede(OpponentId), state));
+            state.Apply(resolver.Resolve(Play.Concede(OpponentId), state));
+
+            Assert.IsTrue(state.IsArgumentAnswered);
+            Assert.IsFalse(state.HasOpenArgument);
+            Assert.AreEqual(RejectionReason.ArgumentAlreadyAnswered, resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, WeakPremise), state).Rejection,
+                "a missed question already told Kleia which premise holds");
+            Assert.AreEqual(RejectionReason.ArgumentAlreadyAnswered, resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state).Rejection);
+
+            state.Apply(resolver.Resolve(Play.Concede(PlayerId), state));
+            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
+
+            Assert.IsTrue(state.HasOpenArgument, "a new argument opens the floor again");
+            Assert.IsFalse(resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state).IsRejected);
+        }
+
+        [Test]
+        public void AWrongRefutation_LeavesTheArgumentOnTheTable()
+        {
+            var state = CreateWithArgument(RefutableArgument());
+            state.Apply(resolver.Resolve(Play.Refute(PlayerId, OpponentId, "straw_man"), state));
+
+            Assert.IsTrue(state.HasOpenArgument);
         }
 
         [Test]

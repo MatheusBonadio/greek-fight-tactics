@@ -82,6 +82,10 @@ namespace Game.Battle
 
         public Argument? CurrentArgument { get; private set; }
 
+        public bool IsArgumentAnswered { get; private set; }
+
+        public bool HasOpenArgument => CurrentArgument.HasValue && !IsArgumentAnswered;
+
         public IReadOnlyList<BattleLogEntry> Log => log;
 
         public int AudienceFor(Side side) => side == Side.Player ? PlayerAudience : BattleRules.MaxAudience - PlayerAudience;
@@ -153,6 +157,11 @@ namespace Game.Battle
             if (outcome.PresentedArgument.HasValue)
             {
                 CurrentArgument = outcome.PresentedArgument;
+                IsArgumentAnswered = false;
+            }
+            else if (AnswersTheArgument(outcome))
+            {
+                IsArgumentAnswered = true;
             }
 
             SpendAbility(outcome);
@@ -167,6 +176,9 @@ namespace Game.Battle
                 Status = BattleStatus.PlayerWithdrew;
             }
         }
+
+        private static bool AnswersTheArgument(Outcome outcome) =>
+            outcome.Action == ActionId.Maieutics || (outcome.Action == ActionId.Refute && outcome.Hit);
 
         private void Move(Debater actor, IReadOnlyList<Coord> path)
         {

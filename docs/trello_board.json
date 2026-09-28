@@ -826,6 +826,14 @@
       "description": "Perder ou fugir precisa doer na jornada, e a Kleia precisa de um jeito de se recuperar.\n\n**Depende de:** [BTL-03], [AT1-06] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Coerência sobra de um duelo para o outro\n- [x] Perder deixa a Kleia no piso, fugir cobra um pedaço\n- [x] Dormir na oficina do Cerâmico devolve a Coerência inteira\n- [x] Reputação cai ao perder e ao fugir, e sobe ao vencer\n- [x] Save antigo sem o registro continua valendo"
     },
     {
+      "title": "[BTL-08] Equilíbrio entre REFUTAR e MAIÊUTICA",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Unity / Core"
+      ],
+      "description": "A MAIÊUTICA resolvia todo duelo: tirava mais que a REFUTAÇÃO, errar custava pouco e a premissa fraca era a segunda em 72% dos argumentos.\n\n**Depende de:** [BTL-02] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Argumento respondido: REFUTAÇÃO certa ou qualquer MAIÊUTICA derruba o argumento até o próximo (`RejectionReason.ArgumentAlreadyAnswered`)\n- [x] Premissas embaralhadas com a seed do duelo (`ShuffledPremiseSource`), com o `WeakPremise` acompanhando o texto\n- [x] MAIÊUTICA errada custa Coerência (`BattleRules.MaieuticsMissCoherenceLoss`), e a REFUTAÇÃO certa passa a tirar 25\n- [x] Caixa de ajuda vazia fora da vez da Kleia, sem repetir \"Ainda não é a sua vez\"\n- [ ] Passo manual: jogar um duelo de bairro e confirmar que só MAIÊUTICA não vence mais sem risco"
+    },
+    {
       "title": "[UI-06] Medidor de 501 jurados",
       "labels": [
         "Sprint 05 · Tribunal & Lançamento",

@@ -14,6 +14,7 @@ namespace Game.Battle
             var rules = new BattleRules
             {
                 CounterattackDamage = 0,
+                MaieuticsMissCoherenceLoss = 0,
                 CorneredCoherencePenalty = 0
             };
 
