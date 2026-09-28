@@ -10,52 +10,67 @@ namespace Game.Tests.EditMode.Battle
     public sealed class MoraleReachTests
     {
         private const int OpenSize = 20;
-        private const int FirstSpectatorId = 100;
         private const int SeedsToSample = 16;
 
         private static readonly Coord Player = new(9, 9);
         private static readonly Coord Opponent = new(10, 9);
 
         [Test]
-        public void WhenTheCrowdGathers_ItStandsOutsideTheReachOfMorale()
+        public void TheCrowdNeverSitsCloserThanTheClearance()
         {
-            var rules = new BattleRules();
+            var crowdRules = new CrowdRules();
             foreach (var seed in Enumerable.Range(0, SeedsToSample))
             {
-                var arena = Plan(seed);
+                var arena = Plan(seed, crowdRules);
                 var closest = arena.Seats.Min(seat => Manhattan(seat.Seat, Player));
 
-                Assert.Greater(closest, rules.MoraleRadius,
-                    $"seed {seed}: a spectator sat {closest} cells from Kleia, so the duel would open with morale already weighing");
+                Assert.GreaterOrEqual(closest, crowdRules.DebaterClearance,
+                    $"seed {seed}: a spectator sat {closest} cells from Kleia, inside the clearance the planner promises");
             }
         }
 
         [Test]
-        public void ASingleStepOfCirculate_ReachesTheCrowd()
+        public void TheClearance_LeavesTheCrowdInsideTheReachOfMorale()
+        {
+            var rules = new BattleRules();
+
+            Assert.GreaterOrEqual(rules.MoraleRadius, new CrowdRules().DebaterClearance,
+                "the crowd must be able to weigh on the duel it came to watch: a morale radius under the seating clearance would leave the indicator dark in every duel");
+        }
+
+        [Test]
+        public void ASingleStepOfCirculate_ChangesHowManyListenersAreInReach()
         {
             var rules = new BattleRules();
             var reachable = new PathFinder();
             var cells = new System.Collections.Generic.List<Coord>();
+            var seedsThatMove = 0;
 
             foreach (var seed in Enumerable.Range(0, SeedsToSample))
             {
-                var arena = Plan(seed);
+                var crowdRules = new CrowdRules();
+                var arena = Plan(seed, crowdRules);
                 var grid = OpenRevealed();
                 for (var index = 0; index < arena.Seats.Count; index++)
                 {
-                    GridFactory.Occupy(grid, arena.Seats[index].Seat, FirstSpectatorId + index);
+                    GridFactory.Occupy(grid, arena.Seats[index].Seat, 100 + index);
                 }
 
                 reachable.Reachable(grid, Player, rules.MoveRange, cells);
-                var best = cells.Max(cell => arena.Seats.Count(seat => Manhattan(seat.Seat, cell) <= rules.MoraleRadius));
-
-                Assert.GreaterOrEqual(best, 2,
-                    $"seed {seed}: circulating within {rules.MoveRange} steps must bring Kleia beside at least two listeners");
+                var here = InReach(arena, Player, rules.MoraleRadius);
+                var best = cells.Max(cell => InReach(arena, cell, rules.MoraleRadius));
+                seedsThatMove += best > here ? 1 : 0;
             }
+
+            Assert.AreEqual(SeedsToSample, seedsThatMove,
+                "circulating must always be able to bring more listeners into reach, or the morale would be a number the player cannot act on");
         }
 
-        private static DuelArena Plan(int seed) =>
-            DuelCrowdPlanner.Plan(OpenRevealed(), Player, Opponent, new CrowdRules(), seed);
+        private static int InReach(DuelArena arena, Coord cell, int radius) =>
+            arena.Seats.Count(seat => Manhattan(seat.Seat, cell) <= radius);
+
+        private static DuelArena Plan(int seed, CrowdRules crowdRules) =>
+            DuelCrowdPlanner.Plan(OpenRevealed(), Player, Opponent, crowdRules, seed);
 
         private static GridModel OpenRevealed()
         {

@@ -119,14 +119,22 @@ namespace Game.Tests.EditMode.Battle
         }
 
         [Test]
-        public void TheTutorial_IgnoresTheCrowd()
+        public void TheTutorial_ShowsTheCrowdWeighingAndStillFallsToOneRefutation()
         {
-            var crowd = new[] { CitizenId, CitizenId + 1 };
-            var state = Create(playerInitiative: 5, opponentInitiative: 10, initialPlayerAudience: 20, audienceMembers: crowd, rules: RefuteTutorial.Rules(50));
-            Occupy(state, crowd, BesideKleia, TwoFromKleia);
+            const int OpponentCoherence = 50;
+            var crowd = new[] { CitizenId, CitizenId + 1, CitizenId + 2, CitizenId + 3 };
+            var state = Create(playerInitiative: 5, opponentInitiative: 10, initialPlayerAudience: 10, audienceMembers: crowd, rules: RefuteTutorial.Rules(OpponentCoherence));
+            Occupy(state, crowd, BesideKleia, TwoFromKleia, BelowKleia, BehindKleia);
+            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
 
-            Assert.AreEqual(0, MoraleRule.ShiftFor(state, state.Player));
-            Assert.AreEqual(0, MoraleRule.ShiftFor(state, state.Opponent));
+            Assert.AreEqual(-state.Rules.MaxMoraleShift, MoraleRule.ShiftFor(state, state.Player), "the lesson shows the crowd booing her");
+
+            var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
+            state.Apply(outcome);
+
+            Assert.AreEqual(-state.Rules.MaxMoraleShift, outcome.MoraleShift);
+            Assert.AreEqual(0, state.Opponent.Coherence, "one refutation still ends the lesson, whatever the crowd thinks");
+            Assert.AreEqual(BattleStatus.PlayerWon, state.Status);
         }
 
         private BattleState ArguedWithCrowd(int initialPlayerAudience, params Coord[] cells)

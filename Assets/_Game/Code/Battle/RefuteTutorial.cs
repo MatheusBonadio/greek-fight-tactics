@@ -15,11 +15,10 @@ namespace Game.Battle
             {
                 CounterattackDamage = 0,
                 MaieuticsMissCoherenceLoss = 0,
-                MoraleDamageStep = 0,
                 CorneredCoherencePenalty = 0
             };
 
-            rules.RefuteDamage = Math.Max(rules.RefuteDamage, opponentMaxCoherence);
+            rules.RefuteDamage = Math.Max(rules.RefuteDamage, opponentMaxCoherence + rules.MaxMoraleShift);
             return rules;
         }
 

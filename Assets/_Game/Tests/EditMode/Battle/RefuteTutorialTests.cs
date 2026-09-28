@@ -118,7 +118,8 @@ namespace Game.Tests.EditMode.Battle
 
                 Assert.AreEqual(0, tutorial.CounterattackDamage);
                 Assert.AreEqual(0, tutorial.CorneredCoherencePenalty);
-                Assert.GreaterOrEqual(tutorial.RefuteDamage, coherence, $"one refutation must empty {coherence} coherence");
+                Assert.GreaterOrEqual(tutorial.RefuteDamage - tutorial.MaxMoraleShift, coherence, $"one refutation must empty {coherence} coherence even with the whole crowd against Kleia");
+                Assert.AreEqual(standard.MoraleDamageStep, tutorial.MoraleDamageStep, "the lesson shows the crowd weighing like any other duel");
                 Assert.GreaterOrEqual(tutorial.RefuteDamage, standard.RefuteDamage);
                 Assert.AreEqual(standard.RefuteRange, tutorial.RefuteRange);
                 Assert.AreEqual(standard.MaieuticsDamage, tutorial.MaieuticsDamage);
