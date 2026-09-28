@@ -69,6 +69,7 @@ namespace Game.UI
             playerPanel.RenderValue();
             opponentPanel.RenderValue();
             audience.Bind(new AudienceMeter(state.PlayerAudience));
+            ShowMorale();
             menu.SubmenuToggled -= PlaceDialogue;
             menu.SubmenuToggled += PlaceDialogue;
             menu.Bind(controller);
@@ -118,8 +119,15 @@ namespace Game.UI
             PlayerCoherence.Bar.SetValue(State.Player.Coherence);
             OpponentCoherence.Bar.SetValue(State.Opponent.Coherence);
             audience.Meter.SetPlayerShare(State.PlayerAudience);
+            ShowMorale();
             menu.Controller?.Refresh();
             menu.Render();
+        }
+
+        private void ShowMorale()
+        {
+            playerPanel.ShowMorale(MoraleRule.ShiftFor(State, State.Player));
+            opponentPanel.ShowMorale(MoraleRule.ShiftFor(State, State.Opponent));
         }
 
         private void OnDestroy()

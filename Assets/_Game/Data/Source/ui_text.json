@@ -83,6 +83,7 @@
     "rejection.argument_already_answered": "Esse argumento já caiu.",
     "hud.coherence": "COERÊNCIA",
     "hud.audience": "PLATEIA",
+    "hud.morale": "MORAL {0}",
     "battle.concede_counter": "{0} aceita o fato, e o ataque fica sem alvo.",
     "battle.phase_deflected": "{0} tem razão, mas não é essa a resposta agora, e o golpe se volta contra ela.",
     "location.archive": "Arquivo",

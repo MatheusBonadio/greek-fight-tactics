@@ -138,7 +138,8 @@ namespace Game.UI
                 new[] { new QuoteItem(BattleArena.StarterQuoteId, StarterQuoteCoherence, StarterQuoteAudience, StarterQuoteUses) },
                 setup.AudienceIds,
                 setup.LockedActions,
-                setup.Abilities);
+                setup.Abilities,
+                spectators.Select(spectator => spectator.Key));
 
             return new BattleSession(state, arguments, opponentPolicy ?? new OpponentBrain(new Random(setup.Seed)));
         }

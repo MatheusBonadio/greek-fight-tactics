@@ -12,6 +12,7 @@ namespace Game.Battle
         private readonly Dictionary<string, QuoteItem> quotes;
         private readonly Dictionary<string, int> quoteUses;
         private readonly HashSet<int> audienceMemberIds;
+        private readonly HashSet<int> spectatorIds;
         private readonly HashSet<ActionId> lockedActions;
         private readonly Dictionary<AbilityId, int> abilityUses;
         private readonly List<BattleLogEntry> log = new();
@@ -25,7 +26,8 @@ namespace Game.Battle
             IEnumerable<QuoteItem> quotes = null,
             IEnumerable<int> audienceMemberIds = null,
             IEnumerable<ActionId> lockedPlayerActions = null,
-            IEnumerable<AbilityId> playerAbilities = null)
+            IEnumerable<AbilityId> playerAbilities = null,
+            IEnumerable<int> spectatorIds = null)
         {
             lockedActions = new HashSet<ActionId>(lockedPlayerActions ?? Enumerable.Empty<ActionId>());
             Grid = grid ?? throw new ArgumentNullException(nameof(grid));
@@ -54,6 +56,7 @@ namespace Game.Battle
             this.quotes = (quotes ?? Enumerable.Empty<QuoteItem>()).ToDictionary(quote => quote.Id);
             quoteUses = this.quotes.Values.ToDictionary(quote => quote.Id, quote => quote.Uses);
             this.audienceMemberIds = new HashSet<int>(audienceMemberIds ?? Enumerable.Empty<int>());
+            this.spectatorIds = new HashSet<int>(spectatorIds ?? Enumerable.Empty<int>());
             PlayerAudience = Math.Clamp(initialPlayerAudience, 0, BattleRules.MaxAudience);
             Queue = new TurnQueue(this.debaters);
         }
@@ -93,6 +96,8 @@ namespace Game.Battle
         public Debater Find(int id) => debaters.FirstOrDefault(debater => debater.Id == id);
 
         public bool IsAudienceMember(int occupantId) => audienceMemberIds.Contains(occupantId);
+
+        public bool IsInCrowd(int occupantId) => audienceMemberIds.Contains(occupantId) || spectatorIds.Contains(occupantId);
 
         public IReadOnlyCollection<ActionId> LockedPlayerActions => lockedActions;
 

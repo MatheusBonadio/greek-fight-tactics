@@ -179,6 +179,8 @@ MonoBehaviour:
     value: "COER\xCANCIA"
   - key: hud.audience
     value: PLATEIA
+  - key: hud.morale
+    value: MORAL {0}
   - key: battle.concede_counter
     value: '{0} aceita o fato, e o ataque fica sem alvo.'
   - key: battle.phase_deflected

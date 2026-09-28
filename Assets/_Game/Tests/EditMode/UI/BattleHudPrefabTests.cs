@@ -128,6 +128,12 @@ namespace Game.Tests.EditMode.UI
             Assert.AreEqual(DebaterPanelView.ValueText(state.Player.Coherence, state.Player.MaxCoherence), hud.PlayerPanel.ValueLabel.text);
             Assert.AreEqual(DebaterPanelView.ValueText(state.Opponent.Coherence, state.Opponent.MaxCoherence), hud.OpponentPanel.ValueLabel.text);
             Assert.AreEqual(AudienceMeterView.ShareText(state.PlayerAudience), hud.Audience.PlayerShareLabel.text);
+            Assert.IsNotNull(hud.PlayerPanel.MoraleLabel, "each panel shows how the crowd weighs on its debater");
+            Assert.IsNotNull(hud.OpponentPanel.MoraleLabel);
+            Assert.AreEqual(BattleHudTools.MoraleFavourColor, hud.PlayerPanel.FavourColor);
+            Assert.AreEqual(BattleHudTools.MoraleAgainstColor, hud.PlayerPanel.AgainstColor);
+            var shift = MoraleRule.ShiftFor(state, state.Player);
+            Assert.AreEqual(shift == 0 ? string.Empty : hud.PlayerPanel.MoraleText(shift), hud.PlayerPanel.MoraleLabel.text);
         }
 
         [Test]

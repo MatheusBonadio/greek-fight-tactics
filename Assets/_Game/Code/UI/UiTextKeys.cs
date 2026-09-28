@@ -10,6 +10,7 @@ namespace Game.UI
         public const string ChoosePremise = "menu.choose_premise";
         public const string CoherenceCaption = "hud.coherence";
         public const string AudienceCaption = "hud.audience";
+        public const string MoraleLabel = "hud.morale";
         public const string GameSubtitle = "system.game_subtitle";
 
         private const string ActionPrefix = "action.";

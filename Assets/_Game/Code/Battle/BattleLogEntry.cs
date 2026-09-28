@@ -22,6 +22,7 @@ namespace Game.Battle
             PlayerAudience = playerAudience;
             Status = status;
             TriggeredAbility = outcome.TriggeredAbility;
+            MoraleShift = outcome.MoraleShift;
             LogId = $"turn-{turn}-actor-{outcome.ActorId}-{outcome.Action}".ToLowerInvariant();
         }
 
@@ -58,5 +59,7 @@ namespace Game.Battle
         public BattleStatus Status { get; }
 
         public AbilityId? TriggeredAbility { get; }
+
+        public int MoraleShift { get; }
     }
 }

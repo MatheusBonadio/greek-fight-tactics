@@ -24,6 +24,24 @@ namespace Game.Battle
             return count;
         }
 
+        public static int CrowdWithin(BattleState state, Coord cell, int radius)
+        {
+            var count = 0;
+            for (var dx = -radius; dx <= radius; dx++)
+            {
+                for (var dy = -radius; dy <= radius; dy++)
+                {
+                    var near = new Coord(cell.X + dx, cell.Y + dy);
+                    if ((dx != 0 || dy != 0) && Distance(cell, near) <= radius && state.Grid.TryGet(near, out var tile) && state.IsInCrowd(tile.OccupantId))
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
         public static int BlockedNeighbours(BattleState state, Coord cell)
         {
             var blocked = 0;

@@ -259,6 +259,16 @@ namespace Game.Battle
 
 A Plateia soma zero: `PlayerAudience` vai de 0 a 100 e a do oponente é o complemento. Todo número de balanceamento (dano, alcance, bônus posicional, limite de 50 turnos) mora em `BattleRules`, nunca espalhado pelo resolver.
 
+**Moral: a plateia perto de quem golpeia.** `MoraleRule` (Battle, puro) é uma linha do `BattleResolver.Resolve`, antes da penalidade de encurralado.
+- **Quem conta:** todo mundo do público a até `MoraleRadius` (2) células de quem desfere o golpe, em distância de Manhattan — os cidadãos do mapa e os espectadores que vieram assistir (`BattleState.IsInCrowd`). O público ao lado de quem apanha não faz diferença.
+- **Para que lado:** a barra decide o sinal. Com a Plateia acima de 50% para quem golpeia, cada ouvinte soma `MoraleDamageStep` (3) de dano; abaixo, tira 3. Empate em 50% não muda nada. O total para em `MaxMoraleShift` (9), e o golpe nunca cai abaixo de `MoraleRule.MinimumBlow` (1): posição não anula um acerto.
+- **O que ela pesa:** REFUTAR e MAIÊUTICA certas, o ataque do filósofo e o contra-ataque de uma refutação errada, que usa a moral do oponente. Ganho de Plateia, recuperação de CONCEDER e pergaminho não mudam.
+- **`Outcome.MoraleShift`** guarda o ajuste, e o `BattleLogEntry` o registra, então uma batalha simulada mostra de onde veio o dano.
+- **No HUD:** cada painel de debatedor mostra `MORAL +6` em dourado ou `MORAL -6` em vermelho (`hud.morale`, `DebaterPanelView.ShowMorale`), atualizado a cada `BattleHud.Sync`. Empate não mostra nada.
+- **O tutorial fica de fora:** `RefuteTutorial.Rules` zera o `MoraleDamageStep`, como já zera o contra-ataque.
+- **O duelo abre neutro:** `CrowdRules.DebaterClearance` (2) senta o público fora do alcance da moral, então nenhum dos dois começa com vantagem. É a CIRCULAR que a liga: com `MoveRange` (3), a Kleia sempre alcança pelo menos dois ouvintes. `MoraleReachTests` mede as duas coisas em 16 seeds, e é ele que trava o par `MoraleRadius`/`DebaterClearance` se algum dos dois mudar.
+- **A IA não busca a plateia:** o `OpponentBrain` pontua movimento pelos vizinhos imediatos (`AdjacentAudienceMembers`), não pela moral. O sofista não caça o público para bater mais forte; se um dia isso for desejado, o gancho é `ScoreMove`.
+
 **Duelo em fases.** `BattleRules.Phases` (um `PhasedDuel`) liga o duelo por fases; sem ele, nada muda. As regras puras ficam em `Game.Battle`:
 - **`DuelPhase`:** id, ação que responde (`Counter`: REFUTAR, MAIÊUTICA ou CONCEDER), `UntilCoherence` (o piso da fase) e os argumentos da fase.
 - **`PhasedDuel`:** a fase vem da Coerência do oponente (`IndexFor`, a primeira cujo piso está abaixo dela), então não há estado novo no `BattleState`. `Problems` recusa fase sem argumento, contra-ataque que não responde, piso que não desce, último piso diferente de 0 e REFUTAR contra paradoxo. `Rules()` devolve as regras com `AudienceVictory` desligado: a Plateia sozinha não pula fase.

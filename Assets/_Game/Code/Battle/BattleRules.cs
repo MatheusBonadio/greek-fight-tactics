@@ -5,6 +5,7 @@ namespace Game.Battle
     public sealed class BattleRules
     {
         public const int MaxAudience = 100;
+        public const int DefaultMaxMoraleShift = 9;
 
         public int TurnLimit { get; set; } = 50;
 
@@ -61,6 +62,12 @@ namespace Game.Battle
         public int PhaseCounterDamage { get; set; } = 20;
 
         public int PhaseCounterAudienceGain { get; set; } = 10;
+
+        public int MoraleRadius { get; set; } = 2;
+
+        public int MoraleDamageStep { get; set; } = 3;
+
+        public int MaxMoraleShift { get; set; } = DefaultMaxMoraleShift;
 
         public PhasedDuel Phases { get; set; }
     }

@@ -15,6 +15,7 @@ namespace Game.Battle
             {
                 CounterattackDamage = 0,
                 MaieuticsMissCoherenceLoss = 0,
+                MoraleDamageStep = 0,
                 CorneredCoherencePenalty = 0
             };
 

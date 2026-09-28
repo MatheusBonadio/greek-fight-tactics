@@ -48,6 +48,7 @@ namespace Game.Battle
                 _ => ResolveArgue(play, actor, state)
             };
 
+            MoraleRule.Apply(outcome, actor, state);
             if (!outcome.IsRejected && PositionalModifiers.IsCornered(state, actor.Position))
             {
                 outcome.ActorCoherenceDelta -= state.Rules.CorneredCoherencePenalty;

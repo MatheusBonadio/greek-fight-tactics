@@ -866,6 +866,14 @@
       "description": "O jogo passa a rodar inteiro no dispositivo: saves e opções num banco SQLite, falas dos adversários só do banco escrito à mão, sem servidor nem conta.\n\n**Depende de:** [UI-07] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Saves, slot ativo e opções num banco SQLite local (`SaveDatabase`, pacote `com.gilzoide.sqlite-net` 1.3.2)\n- [x] Migração única dos JSON antigos (`saves/slot*.json`, `active_slot.txt`, `settings.json`), mantidos no disco como backup\n- [x] Backend Firebase removido: login anônimo, Cloud Function da OpenAI, Firestore, emuladores e a pasta `functions/`\n- [x] Oponentes falam só com o banco escrito à mão (`FallbackArgumentSource`), sem nenhuma chamada de rede\n- [x] Build Windows Development gerado com o plugin nativo do SQLite\n- [ ] Passo manual: abrir a build de Windows, jogar, fechar e continuar do save\n- [ ] Passo manual: build Web salvando no IndexedDB e continuando depois de recarregar a página"
     },
     {
+      "title": "[BTL-09] Moral da plateia no dano",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Unity / Core"
+      ],
+      "description": "A plateia só mexia na própria barra. Agora a posição dela em volta de quem golpeia pesa no dano, então CIRCULAR passa a ser escolha de terreno social.\n\n**Depende de:** [BTL-08] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Moral: público a até 2 células de quem golpeia soma ou tira 3 de dano por ouvinte, pelo lado da barra (`MoraleRule`)\n- [x] Teto de 9 e piso de 1 de dano, e o contra-ataque usa a moral de quem revida\n- [x] Indicador `MORAL ±N` nos painéis dos dois debatedores, dourado a favor e vermelho contra\n- [x] Trilha do mapa volta a 60% sob as falas do fim do duelo e sobe ao voltar à exploração\n- [ ] Passo manual: num duelo da Ágora, circular para perto e longe do público e ver o dano e o indicador mudarem\n- [x] MoraleReachTests: o público senta fora do alcance e a CIRCULAR alcança pelo menos dois ouvintes, em 16 seeds"
+    },
+    {
       "title": "[UI-06] Medidor de 501 jurados",
       "labels": [
         "Sprint 05 · Tribunal & Lançamento",

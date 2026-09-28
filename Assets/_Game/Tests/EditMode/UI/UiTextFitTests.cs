@@ -46,6 +46,9 @@ namespace Game.Tests.EditMode.UI
             AssertFits(hud.Menu.ReasonLabel, Enum.GetValues(typeof(RejectionReason)).Cast<RejectionReason>().Where(reason => reason != RejectionReason.None).Select(reason => uiText.Get(UiTextKeys.For(reason))));
             AssertFits(hud.PlayerPanel.ValueLabel, new[] { WidestCoherence });
             AssertFits(hud.OpponentPanel.ValueLabel, new[] { WidestCoherence });
+            var widestMorale = new[] { hud.PlayerPanel.MoraleText(BattleRules.DefaultMaxMoraleShift), hud.PlayerPanel.MoraleText(-BattleRules.DefaultMaxMoraleShift) };
+            AssertFits(hud.PlayerPanel.MoraleLabel, widestMorale);
+            AssertFits(hud.OpponentPanel.MoraleLabel, widestMorale);
             AssertFits(hud.Audience.PlayerShareLabel, new[] { WidestShare });
             AssertFits(hud.Audience.OpponentShareLabel, new[] { WidestShare });
         }

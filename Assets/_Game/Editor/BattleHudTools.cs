@@ -46,12 +46,13 @@ namespace Game.EditorTools
         public const float UpArrowDegrees = 90f;
         public const float DownArrowDegrees = -90f;
         public const int SubmenuTitleWidth = 200;
-        public const int BadgeWidth = 156;
+        public const int BadgeWidth = 186;
         public const int BadgeInset = 2;
         public const int FaceFrameSize = 24;
         public const int FaceSize = 22;
         public const int BadgeContent = BadgeInset + FaceFrameSize + 3;
         public const int ValueWidth = 36;
+        public const int MoraleWidth = 48;
         public const int CaptionWidth = 60;
         public const int MeterWidth = 128;
         public const int ShareWidth = 28;
@@ -71,6 +72,8 @@ namespace Game.EditorTools
         public const int CompendiumRows = 12;
         public const int CompendiumListWidth = 150;
         public const int JurorPadding = 4;
+        public static readonly Color MoraleFavourColor = AccentColor;
+        public static readonly Color MoraleAgainstColor = ChallengerColor;
 
         public static void BuildHud() => BatchRunner.Run(BuildHudPrefabs);
 
@@ -186,9 +189,12 @@ namespace Game.EditorTools
             var bar = CreateBar(box.transform, "Coherence", barSprite, nearBottom, new Vector2(toward * BadgeContent, BadgeInset), mirrored ? Image.OriginHorizontal.Right : Image.OriginHorizontal.Left);
             var value = CreateLabel(box.transform, "Value", nearBottom, new Vector2(toward * (BadgeContent + BarWidth + 3f), 0f), new Vector2(ValueWidth, RowHeight), mirrored ? TextAlignmentOptions.Right : TextAlignmentOptions.Left);
             value.color = MarkerColor;
+            var farBottom = mirrored ? BottomLeft : BottomRight;
+            var morale = CreateLabel(box.transform, "Morale", farBottom, new Vector2(-toward * 4f, 0f), new Vector2(MoraleWidth, RowHeight), mirrored ? TextAlignmentOptions.Left : TextAlignmentOptions.Right);
 
             var view = box.gameObject.AddComponent<DebaterPanelView>();
             view.Configure(nameLabel, portrait, bar, value);
+            view.ConfigureMorale(morale, uiText, MoraleFavourColor, MoraleAgainstColor);
             return view;
         }
 

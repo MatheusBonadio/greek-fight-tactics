@@ -50,6 +50,8 @@ namespace Game.Battle
 
         public AbilityId? TriggeredAbility { get; internal set; }
 
+        public int MoraleShift { get; internal set; }
+
         internal static Outcome Rejected(int actorId, ActionId action, RejectionReason reason) =>
             new(actorId, action) { Rejection = reason, TurnCost = 0 };
     }

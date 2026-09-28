@@ -115,6 +115,27 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
+        public void DebaterPanelView_ShowsTheMoraleOnlyWhenTheCrowdWeighs()
+        {
+            host = new GameObject("panel", typeof(RectTransform));
+            var view = host.AddComponent<DebaterPanelView>();
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            view.ConfigureMorale(Child<TextMeshProUGUI>("morale"), uiText, Color.yellow, Color.red);
+            Assert.IsEmpty(view.MoraleLabel.text, "an even crowd shows nothing");
+
+            view.ShowMorale(6);
+            Assert.AreEqual(string.Format(uiText.Get(UiTextKeys.MoraleLabel), "+6"), view.MoraleLabel.text);
+            Assert.AreEqual(Color.yellow, view.MoraleLabel.color);
+
+            view.ShowMorale(-3);
+            Assert.AreEqual(string.Format(uiText.Get(UiTextKeys.MoraleLabel), "-3"), view.MoraleLabel.text);
+            Assert.AreEqual(Color.red, view.MoraleLabel.color);
+
+            view.ShowMorale(0);
+            Assert.IsEmpty(view.MoraleLabel.text);
+        }
+
+        [Test]
         public void DebaterPanelView_NamesTheDebaterShowsThePortraitAndCountsCoherenceDown()
         {
             host = new GameObject("panel", typeof(RectTransform));
