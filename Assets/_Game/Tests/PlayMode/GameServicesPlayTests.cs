@@ -56,40 +56,21 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator OfflineBoot_LoadsTheArgumentCacheAndSkipsOnlineServices()
+        public IEnumerator Boot_OpensTheLocalDatabaseWithoutTouchingTheNetwork()
         {
-            var seeded = new ArgumentDiskCache(Path.Combine(directory, GameServices.ArgumentCacheFolder));
-            seeded.Put("cached-key", "{\"speech\":\"cached\"}");
-            seeded.SaveAsync().Wait();
-
             var services = CreateServices();
             yield return WaitForBoot(services);
 
-            Assert.AreEqual(1, services.ArgumentCache.Count);
-            Assert.IsTrue(services.ArgumentCache.TryGet("cached-key", out _));
+            Assert.IsNotNull(services.Database);
             Assert.IsNotNull(services.LocalSaves);
-            Assert.IsNull(services.Auth);
-            Assert.IsNull(services.Arguments);
-            Assert.IsNull(services.Saves);
+            Assert.IsFalse(services.HasContinue);
+            Assert.AreEqual(SaveDatabase.SchemaVersion, services.Database.ReadVersion());
         }
 
         [UnityTest]
-        public IEnumerator SaveArgumentCache_PersistsNewEntriesForTheNextBoot()
+        public IEnumerator SandboxScene_BootsItsServicesFromTheLocalDatabase()
         {
-            var services = CreateServices();
-            yield return WaitForBoot(services);
-
-            services.ArgumentCache.Put("fresh-key", "{\"speech\":\"fresh\"}");
-            var save = services.SaveArgumentCache();
-            yield return new WaitUntil(() => save.IsCompleted);
-
-            Assert.IsNull(save.Exception);
-            Assert.AreEqual(1, new ArgumentDiskCache(Path.Combine(directory, GameServices.ArgumentCacheFolder)).Load());
-        }
-
-        [UnityTest]
-        public IEnumerator SandboxScene_BootsServicesOfflineAndServesFallbackArguments()
-        {
+            using var data = IsolatedDataDirectory.Enter();
             yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("GridSandbox", UnityEngine.SceneManagement.LoadSceneMode.Single);
             yield return null;
 
@@ -97,19 +78,14 @@ namespace Game.Tests.PlayMode
             Assert.IsNotNull(services, "GridSandbox scene must contain GameServices");
             yield return WaitForBoot(services);
 
-            var source = services.CreateArgumentSource(402);
-            Assert.AreEqual(services.Arguments != null, source.IsOnline);
-            source.Register(7, new OpponentContext("thrasybios", "Thrasybios", Game.Core.Profile.Sophist, Game.Core.Act.One, new[] { "ad_hominem", "false_dilemma" }));
-
-            var debater = new Game.Battle.Debater(7, Game.Battle.Side.Opponent, Game.Core.Profile.Sophist, 50, 5, new Game.Core.Coord(1, 1), Game.Grid.Facing.SouthWest);
-            Assert.IsTrue(source.TryNext(debater, out var argument));
-            Assert.IsNotEmpty(argument.Speech);
+            Assert.IsNotNull(services.Catalog, "the scene wires the fallacy catalog for the compendium");
+            StringAssert.StartsWith(data.Directory, services.Database.FilePath, "the scene never touches the player's real data");
         }
 
         [UnityTest]
         public IEnumerator Settings_LoadOnBootApplyTheVolumeAndPersistChanges()
         {
-            new LocalSettingsStore(directory).Save(new Game.Core.GameSettings { MasterVolume = 0.3f, AssistedMode = true });
+            new LocalSettingsStore(new SaveDatabase(directory)).Save(new Game.Core.GameSettings { MasterVolume = 0.3f, AssistedMode = true });
 
             var services = CreateServices();
             yield return WaitForBoot(services);
@@ -125,7 +101,7 @@ namespace Game.Tests.PlayMode
 
             Assert.AreSame(changed, notified);
             Assert.AreEqual(Game.Core.GameSettings.DefaultVolume, AudioListener.volume, 0.0001f);
-            Assert.AreEqual(Game.Core.TextSpeed.Fast, new LocalSettingsStore(directory).Load().TextSpeed);
+            Assert.AreEqual(Game.Core.TextSpeed.Fast, new LocalSettingsStore(new SaveDatabase(directory)).Load().TextSpeed);
         }
 
         [UnityTest]
@@ -140,6 +116,26 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(services.HasContinue);
             Assert.IsTrue(services.LocalSaves.TryLoad(out var save, out var error), error);
             Assert.AreEqual(5, save.Reputation);
+            Assert.IsTrue(File.Exists(Path.Combine(directory, SaveDatabase.FileName)), "the save lives in the SQLite database");
+            Assert.IsTrue(new LocalSaveStore(new SaveDatabase(directory)).TryLoad(out var reread, out error), error);
+            Assert.AreEqual(42, reread.Timestamp);
+        }
+
+        [UnityTest]
+        public IEnumerator Boot_ImportsTheOldJsonSavesIntoTheDatabase()
+        {
+            var saves = Directory.CreateDirectory(Path.Combine(directory, SaveDatabase.LegacySaveFolder)).FullName;
+            File.WriteAllText(Path.Combine(saves, "slot1.json"), "{\"actFlag\":2,\"location\":\"agora\",\"timestamp\":9}");
+            File.WriteAllText(Path.Combine(saves, SaveDatabase.LegacyActiveSlotFileName), "1");
+
+            var services = CreateServices();
+            yield return WaitForBoot(services);
+
+            Assert.AreEqual(1, services.ActiveSlot);
+            Assert.IsTrue(services.HasContinue);
+            Assert.IsTrue(services.TryLoadActiveSave(out var imported));
+            Assert.AreEqual("agora", imported.Location);
+            Assert.AreEqual(Game.Core.Act.Two, imported.ActFlag);
         }
 
         [UnityTest]
@@ -202,7 +198,7 @@ namespace Game.Tests.PlayMode
             host = new GameObject(nameof(GameServices));
             host.SetActive(false);
             var services = host.AddComponent<GameServices>();
-            services.Configure(null, catalog, null, directory);
+            services.Configure(catalog, directory);
             host.SetActive(true);
             return services;
         }

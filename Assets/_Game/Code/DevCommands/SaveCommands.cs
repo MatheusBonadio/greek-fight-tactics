@@ -10,12 +10,10 @@ namespace Game.DevCommands
 {
     public static class SaveCommands
     {
-        public const string SaveFolderName = "saves";
-
         [CliCommand("save_dump", "Return the local save slot as JSON.", Tags = new[] { GftCommands.Tag })]
         public static string SaveDump(
-            [CliArg("directory", "Save directory; defaults to <persistentDataPath>/saves")] string directory = "",
-            [CliArg("slot", "Save slot name")] string slot = LocalSaveStore.DefaultSlot)
+            [CliArg("directory", "Data directory holding gft.db; defaults to <persistentDataPath>")] string directory = "",
+            [CliArg("slot", "Save slot index, from 0 to 2")] int slot = SaveSlots.DefaultIndex)
         {
             if (!TryOpen(directory, slot, out var store, out var openError))
             {
@@ -33,8 +31,8 @@ namespace Game.DevCommands
         [CliCommand("save_load", "Validate a save JSON file and install it into the local save slot. Returns JSON.", Tags = new[] { GftCommands.Tag })]
         public static string SaveLoad(
             [CliArg("file", "Path to a save JSON file", Required = true)] string file = "",
-            [CliArg("directory", "Save directory; defaults to <persistentDataPath>/saves")] string directory = "",
-            [CliArg("slot", "Save slot name")] string slot = LocalSaveStore.DefaultSlot)
+            [CliArg("directory", "Data directory holding gft.db; defaults to <persistentDataPath>")] string directory = "",
+            [CliArg("slot", "Save slot index, from 0 to 2")] int slot = SaveSlots.DefaultIndex)
         {
             if (string.IsNullOrWhiteSpace(file) || !File.Exists(file))
             {
@@ -59,8 +57,8 @@ namespace Game.DevCommands
         public static string SetFlag(
             [CliArg("name", "Flag name", Required = true)] string name = "",
             [CliArg("value", "Flag value", Required = true)] string value = "",
-            [CliArg("directory", "Save directory; defaults to <persistentDataPath>/saves")] string directory = "",
-            [CliArg("slot", "Save slot name")] string slot = LocalSaveStore.DefaultSlot)
+            [CliArg("directory", "Data directory holding gft.db; defaults to <persistentDataPath>")] string directory = "",
+            [CliArg("slot", "Save slot index, from 0 to 2")] int slot = SaveSlots.DefaultIndex)
         {
             if (!TryOpen(directory, slot, out var store, out var openError))
             {
@@ -78,14 +76,14 @@ namespace Game.DevCommands
             return Respond(store, save, "set_flag");
         }
 
-        private static bool TryOpen(string directory, string slot, out LocalSaveStore store, out string error)
+        private static bool TryOpen(string directory, int slot, out LocalSaveStore store, out string error)
         {
             store = null;
             error = null;
             try
             {
-                var root = string.IsNullOrWhiteSpace(directory) ? Path.Combine(Application.persistentDataPath, SaveFolderName) : directory;
-                store = new LocalSaveStore(root, string.IsNullOrWhiteSpace(slot) ? LocalSaveStore.DefaultSlot : slot);
+                var root = string.IsNullOrWhiteSpace(directory) ? Application.persistentDataPath : directory;
+                store = new LocalSaveStore(new SaveDatabase(root), slot);
                 return true;
             }
             catch (ArgumentException exception)
@@ -100,7 +98,8 @@ namespace Game.DevCommands
             {
                 ["success"] = true,
                 ["action"] = action,
-                ["path"] = store.FilePath,
+                ["path"] = store.DatabasePath,
+                ["slot"] = store.Slot,
                 ["save"] = JObject.Parse(SaveJson.Serialize(save))
             }.ToString();
     }

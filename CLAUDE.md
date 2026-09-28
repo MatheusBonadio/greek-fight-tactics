@@ -1,6 +1,6 @@
 # Greek Fight Tactics (GFT) — Arquitetura
 
-Tactics isométrico de dialética (Atenas, 402 a.C.). Unity 6.6 (`6000.6.0f1`) 2D URP, pixel art 16-bit, batalha por turnos vencida no argumento. Backend Firebase, texto dos adversários gerado por LLM.
+Tactics isométrico de dialética (Atenas, 402 a.C.). Unity 6.6 (`6000.6.0f1`) 2D URP, pixel art 16-bit, batalha por turnos vencida no argumento. Roda inteiro no dispositivo: saves em SQLite e falas dos adversários escritas à mão, sem servidor.
 
 **Fluxo de trabalho por CLI, sem Editor.** Isso atravessa todo o resto: nada pode depender de clique no Inspector. Configuração de import, fatiamento de sprite, criação de asset e build são código versionado, não estado de projeto.
 
@@ -28,7 +28,7 @@ A dependência é estritamente unidirecional. `Game.Grid` não conhece `Game.Bat
 | `Game.Grid` | `GridModel`, `IsoMath`, `PathFinder`, `FogOfWar`, `DuelCrowdPlanner`, `TerrainSteps`, `TerrainSorting`, `TerrainPicking` | só `Vector2` |
 | `Game.Battle` | resolver, estado e ações | No Engine References |
 | `Game.Content` | ScriptableObjects e tabelas por id | `ScriptableObject` |
-| `Game.Net` | JSON (Newtonsoft), fallback, cliente da Cloud Function | I/O |
+| `Game.Net` | saves em SQLite, JSON (Newtonsoft) e o banco de argumentos escritos à mão | I/O |
 | `Game.UI` | `MonoBehaviour`, views, input | tudo |
 
 **Core, Grid e Battle não dependem da Unity** além de tipos matemáticos. Não é purismo: é o que torna a suíte inteira executável em EditMode headless, em segundos. Como tudo roda por CLI, um resolver que precisa de `MonoBehaviour` para ser testado é um resolver que não vai ser testado.
@@ -41,31 +41,25 @@ O contrato do argumento mora em `Game.Core` porque é a fronteira entre duas cam
 
 ## Invariantes
 
-Cinco regras que, se quebradas, causam retrabalho estrutural ou risco real.
+Quatro regras que, se quebradas, causam retrabalho estrutural ou risco real.
 
-### 1. A chave da OpenAI nunca entra no cliente
+### 1. O argumento traz texto e etiqueta; a engine julga a regra
 
-```
-Unity ──(Auth token + App Check)──▶ Cloud Function ──(Secret Manager)──▶ OpenAI
-```
+As falas dos adversários são argumentos escritos à mão, etiquetados com a falácia e a premissa fraca. O argumento nunca decide vencedor, nunca calcula dano, nunca muta estado: o `BattleResolver` lê a etiqueta e decide tudo. Argumento que não valida contra o catálogo de falácias não entra no jogo (`DataTools.Regenerate` falha).
 
-Nada de chave em `.asset`, `PlayerPrefs`, Remote Config ou string ofuscada. Build de Unity é descompilável e strings são recuperáveis mesmo com IL2CPP. A Unity chama o nosso endpoint e recebe um `Argument` já validado no servidor — ela não sabe que a OpenAI existe.
+Não há servidor. Se texto gerado por IA voltar um dia, ele fica atrás de um servidor próprio: chave de API nunca entra no build, que é descompilável mesmo com IL2CPP.
 
-### 2. O LLM gera texto, a engine julga a regra
-
-O modelo nunca decide vencedor, nunca calcula dano, nunca muta estado. Ele devolve um argumento etiquetado; o `BattleResolver` lê a etiqueta e decide tudo. Payload que não valida contra o catálogo de falácias é descartado e substituído pelo fallback local antes de chegar ao resolver.
-
-### 3. `GridModel` é a fonte de verdade; o Tilemap é render
+### 2. `GridModel` é a fonte de verdade; o Tilemap é render
 
 Nunca consulte `Tilemap` para decidir regra. Ocupação, custo, transponibilidade e revelação vivem em `TileData[,]`. O Tilemap desenha o que o modelo já decidiu.
 
-### 4. O resolver é puro e a mutação acontece num ponto só
+### 3. O resolver é puro e a mutação acontece num ponto só
 
 `BattleResolver.Resolve(play, state)` não altera nada — devolve um `Outcome`. Só `BattleState.Apply(outcome)` muta. A view apenas reproduz. É isso que permite simular mil batalhas em teste headless e reproduzir qualquer bug a partir de uma seed.
 
-### 5. O jogo é completável offline
+### 4. O jogo é local
 
-Cada entrada do catálogo tem no mínimo 3 argumentos escritos à mão em `Assets/_Game/Data/Fallback/{id}.json`, referenciados como `TextAsset` pelo `FallbackLibrarySO` — sem pasta `Resources/`. Timeout de 2 s, 1 retry, falha silenciosa — o jogador nunca espera nem vê erro. Modo avião faz parte do critério de aceite de todo card que toca rede, com o roteiro de `docs/qa/airplane-mode.md`.
+Nada no jogo usa rede. Os saves e as opções ficam num banco SQLite no dispositivo (ver **Persistência**), e cada entrada do catálogo tem no mínimo 3 argumentos escritos à mão em `Assets/_Game/Data/Fallback/{id}.json`, referenciados como `TextAsset` pelo `FallbackLibrarySO` — sem pasta `Resources/`.
 
 ---
 
@@ -269,7 +263,7 @@ A Plateia soma zero: `PlayerAudience` vai de 0 a 100 e a do oponente é o comple
 - **`DuelPhase`:** id, ação que responde (`Counter`: REFUTAR, MAIÊUTICA ou CONCEDER), `UntilCoherence` (o piso da fase) e os argumentos da fase.
 - **`PhasedDuel`:** a fase vem da Coerência do oponente (`IndexFor`, a primeira cujo piso está abaixo dela), então não há estado novo no `BattleState`. `Problems` recusa fase sem argumento, contra-ataque que não responde, piso que não desce, último piso diferente de 0 e REFUTAR contra paradoxo. `Rules()` devolve as regras com `AudienceVictory` desligado: a Plateia sozinha não pula fase.
 - **`DuelPhaseRule.Apply`:** é a única linha nova do `BattleResolver.Resolve`, depois da penalidade de encurralado. A resposta da fase acerta (CONCEDER só com argumento na mesa) e leva o oponente até o piso, no máximo `PhaseCounterDamage` (20), com `PhaseCounterAudienceGain` (10) de Plateia. REFUTAR ou MAIÊUTICA certos na fase errada viram `Outcome.Deflected`: REFUTAR leva o contragolpe, MAIÊUTICA perde Plateia. Resposta errada continua sendo erro comum, e CONCEDER fora da fase é só conceder. Nenhum outro efeito passa o piso da fase.
-- **`PhasedOpponent`:** argumenta sempre com os argumentos da fase atual, em rodízio, sem LLM.
+- **`PhasedOpponent`:** argumenta sempre com os argumentos da fase atual, em rodízio.
 
 ---
 
@@ -404,7 +398,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
     - **Exploração de volta:** o input volta na hora. Como o público só existe nas grades próprias, a Kleia anda por cima de quem ainda está saindo. O véu some, e a câmera volta a seguir a Kleia, de novo presa aos limites do mapa.
   - **Resultado como flag:** todo duelo terminado grava `duel_<id>` (`DuelStoryFlags` no Core, `won`, `lost`, `withdrew` ou `stalemate` por `DuelStoryResults` no Battle) nas flags da história pelo `ExplorationDialogueDirector.Remember` e no save automático da saída. Diálogos, gatilhos e NPCs condicionais leem essa flag, como o Menexeno na porta da oficina depois de `duel_thrasybios=won`. Save de antes das flags continua valendo: sem a flag, `SaveFlags.TryGet` lê `duel_<id>=won` do duelo vencido em `SaveData.Duels`.
   - **Custo do duelo (card BTL-07):** a Coerência é da jornada, não do duelo.
-    - `StoryStamina` (Core, puro) guarda o desgaste na flag `coherence_lost` da história, então nada muda no schema do save nem no documento do Firestore. `Carried(save, full)` é com quanto a Kleia entra no duelo (`BattleSetup.PlayerCoherence`), e o piso é `StoryStamina.Bruised` (20 de 60): derrota nenhuma a deixa sem chão para a próxima.
+    - `StoryStamina` (Core, puro) guarda o desgaste na flag `coherence_lost` da história, então nada muda no schema do save. `Carried(save, full)` é com quanto a Kleia entra no duelo (`BattleSetup.PlayerCoherence`), e o piso é `StoryStamina.Bruised` (20 de 60): derrota nenhuma a deixa sem chão para a próxima.
     - Ao fim de cada duelo, `SandboxBattleDirector.RememberTheToll` grava dois efeitos pelo `Remember`: o que sobrou dela (perder cai ao piso, fugir cobra `WithdrawToll`, vencer guarda o que restou) e a Reputação por `ReputationRules` (vencer +5, perder e fugir −10, entre 0 e 100). O `BattleRules.WithdrawReputationPenalty` lê o mesmo número do Core.
     - **Descanso:** chegar em casa (`"home": true`) passa o dia e devolve a Coerência inteira, no mesmo ponto do `GridSandboxController` em que `StoryDays.Pass` roda, no save da chegada e na cópia da história. É a única cura, e é isso que faz a volta ao Cerâmico valer a viagem.
     - O duelo do tutorial fica de fora: ele começa cheio e não cobra pedágio.
@@ -424,8 +418,8 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
   - **Dados:** o elenco vem de `Assets/_Game/Data/Source/opponents.json`, gerado como `OpponentSO` com `id` e folha (`<id>_sheet.png`), e as falas vêm de `battle.*` em `ui_text.json`. `initial_audience` é a Plateia inicial da Kleia; a tabela do GDD dá a do oponente, que é o complemento.
   - **Elenco do Ato I:** Thrasybios e os cinco duelistas de bairro do beat I.5: Óron (falso dilema), Phaidra (apelo à ignorância), Kritolaos (ad hominem), Simo (espantalho) e Bátilo (generalização apressada, perfil `Philosopher`). Cada pool tem a falácia da família e uma aparentada. Um teste simula duelos contra cada um, na célula em que ele está na Ágora e com a Kleia na célula ao lado a que ela chega andando da entrada, e exige vitória do jogador. O julgamento de rua entra na mesma simulação com o `PhasedOpponent` e um jogador que conhece a resposta de cada fase.
   - **Julgamento de rua (beat I.8):** `thrasybios_street_trial` é outro oponente, com a folha do Thrasybios (`sheet`), então o duelo do tutorial, o `duel_thrasybios` e os saves antigos continuam iguais.
-    - **Fases:** o `phased_duel` de `opponents.json` vira `OpponentSO.Phases` (`OpponentPhases`): diálogos `intro`, `victory` e `defeat`, e três fases. Ataque pessoal (ad hominem, piso 40, CONCEDER), falso dilema (piso 20, REFUTAR) e medo político (apelo à emoção invocando os Trinta, piso 0, só MAIÊUTICA na premissa sobre o que ele mesmo fez sob a tirania). Cada fase tem `dialogue`, `music`, `posture`, `tint` opcional e seus `arguments` escritos à mão, validados pelo `ArgumentValidator` na regeneração. O julgamento inteiro roda offline e nunca chama o LLM.
-    - **Diretor:** com `OpponentSO.IsPhased`, o `SandboxBattleDirector` usa `PhasedDuel.Rules()` e o `PhasedOpponent`, toca o `intro` no lugar da fala de abertura e, a cada fase que começa (`ContinueWithPhase`), toca o diálogo dela, aplica a postura e dispara `PhaseStarted` com um `DuelPhaseCue` (oponente, índice, fase, id da música e postura, também em `CurrentPhaseCue`). Vitória e derrota tocam `victory` e `defeat` no lugar da linha de status. Oponente em fases não é pré-aquecido (`SandboxBattleDirector.Prewarms`).
+    - **Fases:** o `phased_duel` de `opponents.json` vira `OpponentSO.Phases` (`OpponentPhases`): diálogos `intro`, `victory` e `defeat`, e três fases. Ataque pessoal (ad hominem, piso 40, CONCEDER), falso dilema (piso 20, REFUTAR) e medo político (apelo à emoção invocando os Trinta, piso 0, só MAIÊUTICA na premissa sobre o que ele mesmo fez sob a tirania). Cada fase tem `dialogue`, `music`, `posture`, `tint` opcional e seus `arguments` escritos à mão, validados pelo `ArgumentValidator` na regeneração.
+    - **Diretor:** com `OpponentSO.IsPhased`, o `SandboxBattleDirector` usa `PhasedDuel.Rules()` e o `PhasedOpponent`, toca o `intro` no lugar da fala de abertura e, a cada fase que começa (`ContinueWithPhase`), toca o diálogo dela, aplica a postura e dispara `PhaseStarted` com um `DuelPhaseCue` (oponente, índice, fase, id da música e postura, também em `CurrentPhaseCue`). Vitória e derrota tocam `victory` e `defeat` no lugar da linha de status.
     - **Postura:** `ActorView.Posture` troca o estado parado por `action` (a coluna de ação da folha), e `ActorView.Tint` pinta o `SpriteRenderer`. Na fase 2 ele gesticula; na 3, empalidece (`#D0C8F8`). Tudo volta ao normal no fim do duelo.
     - **Música:** cada fase pede `MusicForPhase(MusicId)` (`street_trial_personal_attack`, `street_trial_false_dilemma`, `street_trial_political_fear`). Hoje as três são apelidos de `music_battle` em `audio.json`, então a trilha segue sem recomeçar. Uma gravação com o nome da fase passa a tocar sem mudar código.
     - **Textos:** `battle.concede_counter` narra o CONCEDER que acerta, e `battle.phase_deflected` a resposta certa na fase errada (`BattleText.OutcomeKey`).
@@ -442,7 +436,7 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
   - Aceitar dá a flag `ability_inversion`, soma 200 em `drachmas` e grava `menexeno_absent_days` = 3.
   - Recusar dá `ability_listening` e `menexeno_respect`.
   - O efeito `damaris_branch` de diálogo passa por ela: `SaveFlags.TrySet` chama `DamarisOffer.Apply` quando o ramo ainda está `undecided`. Reaplicar o mesmo ramo (o `CaptureSave` reaplica os efeitos da sessão) não faz nada, então as dracmas entram uma vez só. Trocar um ramo já decidido só muda o campo, para o `set_flag` de depuração.
-  - O `damarisBranch` sobrevive ao JSON local, ao documento do Firestore e a saves antigos carregados por `save_load`. O boss do Thrasybios (beat I.8) só abre com o ramo decidido.
+  - O `damarisBranch` sobrevive ao banco local e a saves antigos carregados por `save_load`. O boss do Thrasybios (beat I.8) só abre com o ramo decidido.
   - **Cena (beat I.7):** ver o Cerâmico em **Mapas**. `damaris_offer` termina na escolha "Aceitar a oferta" ou "Recusar", e `damaris_technique` narra a habilidade do ramo depois que ela vai embora.
 - **Tribunal:** `TribunalScript` guarda as regras puras. Damaris trai no turno 3 se aceitou e defende se recusou. A ação final escolhe o desfecho: REFUTAR leva ao Sofista (340 absolvições), CONCEDER ao Filósofo (261 condenações) e MAIÊUTICA à Mestra (281). Menexeno vota pela absolvição em todos os finais, exceto o do Filósofo; na Mestra o GDD não define o voto dele.
 
@@ -450,43 +444,18 @@ Vitória: Coerência do oponente em 0, **ou** Plateia em 100%. Derrota: Coerênc
 
 ## Fluxo: obtenção de argumento
 
-O turno é síncrono (`IArgumentSource.TryNext`); a rede nunca entra nele. Montagem em `Game.Net`:
+Não há rede no jogo. As falas dos adversários saem do banco de argumentos escritos à mão, e o turno as tira de forma síncrona (`IArgumentSource.TryNext`). Montagem, em `SandboxBattleDirector.CreateArgumentSource`:
 
 ```csharp
-var transport = new UnityWebRequestTransport();
-var endpoints = FirebaseEndpoints.Production(webApiKey, projectId);
-var auth = new FirebaseAnonymousAuth(transport, endpoints, new FileAuthSessionStore(Application.persistentDataPath));
-var client = new ArgumentServiceClient(transport, auth, endpoints.ArgumentUrl, validator);
-var source = new PrewarmedArgumentSource(client, diskCache, validator, new FallbackArgumentLibrary(fallbackLibrary, validator, seed), seed);
-
-source.Register(opponent.Id, OpponentContext.From(opponentSO, topic));
-await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
+var library = new FallbackArgumentLibrary(fallbackLibrary, new ArgumentValidator(catalog.RefutableIds), seed);
+var source = new FallbackArgumentSource(library, seed);
+source.Register(debaterId, opponent.FallacyPool.Select(fallacy => fallacy.Id));
+var arguments = new ShuffledPremiseSource(source, new Random(seed));
 ```
 
-- `ArgumentServiceClient.FetchAsync` nunca lança: devolve `ArgumentFetch` com `Delivered`, `Declined` (204), `Invalid`, `Unavailable` ou `Cancelled`. Timeout de 2 s, 1 retry com backoff para timeout, erro de rede, 429 e 5xx; 401 força renovar o ID token antes do retry; 204 e payload inválido não reintentam.
-- `PrewarmedArgumentSource.PrewarmAsync` consulta o `ArgumentDiskCache` pela mesma chave do servidor, busca o que falta, grava no cache e enfileira. Para no primeiro `Unavailable`, `Declined` ou `Cancelled`. `TryNext` serve a fila e, vazia, cai no `FallbackArgumentLibrary` — silencioso para o jogador.
-- A seed do pedido fica em `0..SeedVariants-1` (8) para o cache compartilhado do servidor ter acerto alto.
-- `FirebaseAnonymousAuth` usa a REST do Identity Toolkit (`accounts:signUp`) e do Secure Token (`grant_type=refresh_token`), guarda uid e refresh token em `auth.json`, renova o ID token 5 min antes de expirar, cria conta nova se o refresh for recusado (4xx) e devolve `null` offline. `FirebaseEndpoints` recusa chave começando com `sk-`; `FirebaseEndpoints.Emulator("demo-gft")` aponta para os emuladores locais.
-- Testes EditMode usam `IHttpTransport` e `IIdTokenProvider` falsos que completam na hora, então as `Task` terminam síncronas.
-- **Modo avião ([QA-02]):** `Assets/_Game/Tests/Support` (assembly `Game.Tests.Support`) tem `FlakyNetwork`, `FlakyIdTokenProvider`, `FakeFirebase` e `LoopbackHttpServer`.
-  - A rede cai com timeout, conexão recusada, 5xx, pedido travado ou host que não resolve, e volta com `Reconnect`.
-  - No `Unresolvable`, o pedido sai pelo `UnityWebRequestTransport` de verdade para `https://gft-airplane-mode.invalid`, e o DNS da máquina falha de verdade. O `.invalid` é reservado e nunca resolve. Tem de ser HTTPS: fora de `127.0.0.1`, a Unity recusa HTTP antes do DNS e registra um aviso, que o `LogAssert.NoUnexpectedReceived` reprova.
-  - `LoopbackHttpServer` atende o `FakeFirebase.ServedAt` em `127.0.0.1` por socket de verdade, então o `UnityWebRequestTransport` também entra no teste. Ele responde, trava (`Hang`) ou recusa conexão (`GoDown`), e as respostas saem na thread principal.
-  - `AirplaneModeTests` (EditMode) e `AirplaneModePlayTests` (PlayMode) usam essas classes.
-  - `AirplaneModePlaythroughPlayTests` joga, com a rede caída desde o menu, tudo o que existe: novo jogo, Cerâmico, Ágora, todas as conversas, os seis duelos com todas as ações, a pressão sobre a oficina, a oferta de Damaris, a ausência do Menexeno, um duelo com a habilidade ganha, o julgamento de rua perdido e depois vencido, o arquivo com a lista e o selo, a Academia, a pausa e o Continuar. Cada queda de rede responde a Damaris de um jeito (`Hanging` recusa, as outras aceitam), então os dois ramos rodam offline. Ao ganhar conteúdo novo, estenda esse teste.
-  - Os testes rodam no Editor e não fecham o card sozinhos. O roteiro manual na build de Windows fica em `docs/qa/airplane-mode.md`, e cada rodada é anotada na tabela de registro dele.
-
-**Pré-aquecimento:** ao entrar num mapa, chame `PrewarmAsync` para os adversários presentes. Quando o jogador chegar perto, os argumentos já estão na fila e a latência é zero.
-
-**Boot:** `Game.UI.GameServices` é quem monta tudo isso numa cena.
-- **No `Start`:** carrega o `ArgumentDiskCache` de `persistentDataPath/argument_cache` e cria o `LocalSaveStore`. Se `NetworkConfigSO.IsConfigured`, faz sign-in anônimo e roda `SaveSynchronizer.ReconcileAsync`.
-- **Orçamento do boot:** o sign-in e a reconciliação têm `OnlineBootBudgetSeconds` (2 s). Passado o prazo, são cancelados, e o `IsBooted` libera o jogo com o save local, sem que o menu ou o mapa esperem timeout.
-- **Backend:** vem de `OnlineBackend.FromConfig(network)` (transporte, endpoints do Firebase e do Firestore, espera de backoff). `OnlineBackendOverride.Set` troca o backend de todo `GameServices` que iniciar depois. É a costura dos testes de modo avião, e o teardown chama `Clear`.
-- **Salvamento do cache:** em pause, quit e destroy, e depois de cada `GameServices.PrewarmAsync`.
-- **Fonte de argumentos:** `CreateArgumentSource(seed)` devolve um `PrewarmedArgumentSource`. Sem configuração de rede, ele fica sem cliente (`IsOnline == false`) e serve só o fallback.
-- **Configuração de rede:** fica em `Assets/_Game/Data/NetworkConfig.asset`, que `SandboxTools.BuildSandbox` cria vazio só se não existir. A chave web do Firebase não é segredo; a da OpenAI nunca entra ali. `useEmulator` aponta para os emuladores locais.
-
-**Validação é do servidor.** A Cloud Function valida o payload antes de responder:
+- **`FallbackArgumentSource` (Net):** sorteia, com a seed, uma falácia do grupo do oponente e pede ao `FallbackArgumentLibrary` o próximo argumento dela (`FallbackArgumentPicker`, que só repete depois de esgotar a entrada). Falácia sem argumento é pulada, e oponente sem grupo fica calado. A mesma seed tira as mesmas falas, então um bug de duelo se reproduz pela seed.
+- **Uma fonte por cena:** o diretor cria a fonte no primeiro duelo e a reaproveita nos seguintes, então as falas não se repetem de um duelo para o outro. O tutorial usa o `TutorialOpponent`, e o julgamento de rua o `PhasedOpponent`, com os argumentos das fases.
+- **Validação:** `DataTools.Regenerate` falha se algum argumento do banco não passar no `ArgumentValidator`, e o `FallbackArgumentLibrary` revalida ao carregar. O formato:
 
 ```json
 {
@@ -498,37 +467,19 @@ await source.PrewarmAsync(opponent.Id, count, destroyCancellationToken);
 }
 ```
 
-`fallacy_id` é uma falácia refutável do catálogo (ou `null` num paradoxo), `weak_premise` é índice válido de `premises`, `speech` tem entre 40 e 300 caracteres e `tone` pertence a `ArgumentTones`. Chaves e valores de enum em inglês; `speech` e `premises` em português, porque são texto de jogo. O schema formal está em `docs/argument.schema.json`, e um teste EditMode garante que ele bate com o catálogo. O cliente revalida com `ArgumentValidator` por garantia, mas a fronteira de confiança é o servidor.
+`fallacy_id` é uma falácia refutável do catálogo (ou `null` num paradoxo), `weak_premise` é índice válido de `premises`, `speech` tem entre 40 e 300 caracteres e `tone` pertence a `ArgumentTones`. Chaves e valores de enum em inglês; `speech` e `premises` em português, porque são texto de jogo.
 
-### Backend (`functions/`)
+**Sem backend.** O jogo já teve login anônimo do Firebase, uma Cloud Function que gerava falas com a OpenAI e saves sincronizados no Firestore. Tudo isso saiu, com a pasta `functions/`, as regras, os emuladores e o código de rede do cliente: o jogo roda do mesmo jeito em qualquer máquina, sem conta e sem custo por jogador.
 
-Firebase Functions v2 em TypeScript, região `southamerica-east1`, função HTTP `generateArgument`. A ordem dentro de `handleGenerateArgument` é o contrato: `POST` → ID token (401) → corpo (400) → kill switch `config/runtime.llm_enabled` (204) → rate limit por UID/hora em `rate_limits` (429) → `argument_cache/{hash}` (200, `X-Cache: hit`) → OpenAI com `json_schema` estrito e teto de tokens → validação → lista de bloqueio e moderação → grava cache (200, `X-Cache: miss`). `fallacy_id` inesperado tenta mais uma vez; qualquer outra falha vira 204 e o cliente usa o fallback.
+**Boot:** `Game.UI.GameServices` abre o banco (`SaveDatabase`) no `Start`, carrega o slot ativo e as opções e fica pronto (`IsBooted`) no mesmo quadro, sem esperar nada. `Configure(catalog, dataDirectory)` é tudo o que as cenas e os testes passam, e as cenas saem das ferramentas (`SandboxTools.CreateGameServices`).
 
-- `handler.ts` não importa Firebase nem OpenAI: tudo entra por `Dependencies`, e os testes unitários usam dublês. Os adaptadores reais ficam em `firestoreAdapters.ts` e `openaiAdapters.ts`.
-- A chave de cache é `sha256("opponent|fallacy|seed")` cortada em 32 hex, a mesma do `ArgumentDiskCache`.
-- `src/generated/content.json` é gerado por `npm run sync-content` a partir de `fallacies.json`, do banco de fallback e de `docs/argument.schema.json`; um teste falha se estiver desatualizado. Os few-shot são os 2 primeiros argumentos de fallback de cada entrada.
-- O schema enviado à OpenAI passa por `toStrictSchema`, que remove `minLength`, `minimum` e afins; os limites continuam valendo na validação do servidor.
-- `OPENAI_API_KEY` é `defineSecret` (Secret Manager). Os demais parâmetros (`OPENAI_MODEL`, `MAX_COMPLETION_TOKENS`, `RATE_LIMIT_PER_HOUR`, `CACHE_TTL_DAYS`, `BLOCKED_TERMS`, preços por milhão de tokens) são `defineString`/`defineInt`. `usage/{yyyy-mm-dd}` agrega chamadas, cache hits, tokens e custo.
-- `firestore.rules` libera só `saves/{uid}` e `progress/{uid}/duels/*` ao dono; `argument_cache`, `rate_limits`, `usage` e `config` são exclusivos do servidor. TTL de `expires_at` declarado em `firestore.indexes.json`.
-- O projeto padrão é `demo-gft`, que só existe nos emuladores.
-
-```powershell
-cd functions
-npm ci
-npm run build
-npm test
-npm run test:emulators
-npm run usage-report -- 2026-09-01 2026-09-15
-```
-
-- **`test:emulators`:** precisa de Java e sobe Firestore e Auth via `firebase emulators:exec`. No Windows, o CLI deixa o `java.exe` do emulador do Firestore órfão, segurando a porta 8080. O `scripts/run-emulator-tests.mjs` encerra, ao final, apenas os emuladores iniciados por aquela execução.
-- **`usage-report`:** imprime o dashboard de `usage/{yyyy-mm-dd}`: chamadas por dia, chamadas à OpenAI, cache hits, taxa de acerto e custo diário e acumulado. O padrão são os últimos 30 dias. Contra produção, precisa de credenciais do Google e de `GCLOUD_PROJECT`. Com `FIRESTORE_EMULATOR_HOST`, lê o emulador. A taxa de acerto é `cache_hits / requests`, e `requests` conta cada chamada à OpenAI (inclusive o retry) mais cada hit, então ela subestima levemente o acerto real.
+**Partida completa:** `FullPlaythroughPlayTests` joga tudo o que existe: novo jogo, Cerâmico, Ágora, todas as conversas, os seis duelos com todas as ações, a pressão sobre a oficina, a oferta de Damaris, a ausência do Menexeno, um duelo com a habilidade ganha, o julgamento de rua perdido e depois vencido, o arquivo com a lista e o selo, a Academia, a pausa e o Continuar. Cada caso responde a Damaris de um jeito (`Accepted` e `Refused`), então os dois ramos rodam. Ao ganhar conteúdo novo, estenda esse teste.
 
 ---
 
 ## Persistência
 
-Offline-first, sempre. O jogador nunca espera Firestore.
+Tudo fica no dispositivo, num banco SQLite em `persistentDataPath/gft.db`, pelo pacote `com.gilzoide.sqlite-net` (SQLite-net para Unity, versão fixa por URL git no `Packages/manifest.json`). O jogador nunca espera rede, porque não há rede.
 
 ```csharp
 public enum DamarisChoice { Undecided, Accepted, Refused }
@@ -543,26 +494,27 @@ public sealed record SaveData(
     long Timestamp);
 ```
 
-Escrita local primeiro, sempre por `SaveSynchronizer`:
+- **`SaveDatabase` (Net):** dono do arquivo e do esquema.
+  - **Tabelas:** `save_slots` (`slot`, `payload`, `updated_at`), uma linha por slot com o JSON do `SaveJson`, e `preferences` (`key`, `value`), com o slot ativo (`active_slot`) e as opções (`settings`, o JSON do `SettingsJson`).
+  - **O save é um documento:** o `payload` é o mesmo JSON de antes, com a mesma validação e a mesma compatibilidade com saves antigos. Normalizar flags, duelos e névoa em tabelas faria cada autosave gravar dezenas de linhas sem ganho nenhum.
+  - **Conexão por operação:** cada chamada abre o banco, faz o trabalho e fecha. Save é raro e abrir custa microssegundos. Nada fica preso ao arquivo, e isso importa porque, no Windows, arquivo aberto não se apaga, e os testes apagam a pasta temporária logo depois.
+  - **Esquema:** toda abertura confere `PRAGMA user_version` (`SchemaVersion`, hoje 1) e cria as tabelas se faltarem, então o banco se recompõe se o arquivo sumir no meio da sessão. Mudança de esquema sobe o `SchemaVersion` e ganha a migração ali.
+  - **SQL direto** (`Execute`, `ExecuteScalar`), sem o ORM do SQLite-net: o mapeamento dele é por reflexão, e o *stripping* do IL2CPP no build Web pode remover o que só a reflexão usa.
+  - **Migração dos JSON:** na criação do esquema, `saves/slot0.json` a `slot2.json`, `saves/active_slot.txt` e `settings.json` entram no banco numa transação. O save ilegível entra como está e continua ilegível. Os arquivos ficam no disco como backup, e a importação roda uma vez só: um JSON antigo nunca sobrescreve progresso mais novo.
+  - **WebGL:** o pacote registra sozinho um VFS sobre o IndexedDB, então o banco persiste no navegador.
+- **`LocalSaveStore`, `SaveSlotCatalog` e `LocalSettingsStore`:** a mesma API de antes, sobre o banco. `LocalSaveStore` é um slot (índice de 0 a 2), o catálogo resume os três numa conexão e guarda o slot ativo, e as opções são uma preferência.
+- **Comandos `gft`:** `save_dump`, `save_load` e `set_flag` recebem o diretório de dados (padrão `persistentDataPath`) e o índice do slot, e respondem com o caminho do banco.
 
-- `SaveLocal` grava o arquivo com `LocalSaveStore` e marca push pendente, sem tocar a rede.
-- `PushPendingAsync` envia em background com `FirestoreSaveClient`: um `:commit` REST com `saves/{uid}` e `progress/{uid}/duels/{id}`, autenticado pelo ID token. São até 3 tentativas com backoff de 2 s e 4 s, e 401 força renovar o token. Se um save mais novo chegar durante o envio, ele continua pendente.
-- `ReconcileAsync` roda no boot e o `Timestamp` mais recente vence: remoto mais novo sobrescreve o arquivo, local mais novo é enviado, e offline mantém o local como pendente.
-- `FirestoreDocuments` converte o JSON de `SaveJson` em valores tipados do Firestore (`integerValue` como string, `mapValue`, `arrayValue`). O corpo de commit de referência fica em `functions/test/fixtures/save_commit.json`: o teste EditMode compara com ele e `rest-contract.emulator.test.ts` o envia ao emulador, junto com os corpos de signUp e refresh da auth. Mudou o formato, atualize o fixture e rode as duas suítes.
+`DamarisBranch` é lido no Tribunal do Ato II. `ActFlag` só muda por efeito de diálogo (`{ "flag": "act", "value": "2" }`, hoje só no selo de bronze do arquivo). O `ExplorationSaveMapper` o preserva de save em save, e `ActGate` (Core) é a regra única de "o Ato II já começou".
 
-Regras em `firestore.rules`: só o dono lê e escreve `saves/{uid}` e `progress/{uid}/duels/*`. `DamarisBranch` é lido no Tribunal do Ato II.
-
-`ActFlag` só muda por efeito de diálogo (`{ "flag": "act", "value": "2" }`, hoje só no selo de bronze do arquivo). O `ExplorationSaveMapper` o preserva de save em save, e `ActGate` (Core) é a regra única de "o Ato II já começou".
-
-**Slots.** São 3 slots locais (`saves/slot0.json` a `slot2.json`, `SaveSlots`).
-- **Catálogo:** `SaveSlotCatalog` resume cada slot como vazio, ilegível ou usável, com ato, `Location` e `PlaytimeSeconds`, e guarda o slot ativo em `saves/active_slot.txt` para a escolha sobreviver à troca de cena.
+**Slots.** São 3 slots (`SaveSlots`), linhas de `save_slots`.
+- **Catálogo:** `SaveSlotCatalog` resume cada slot como vazio, ilegível ou usável, com ato, `Location` e `PlaytimeSeconds`, e guarda o slot ativo na preferência `active_slot` para a escolha sobreviver à troca de cena.
 - **GameServices:** `SelectSlot`, `SaveToSlot`, `StartNewGame` (grava um save vazio no slot escolhido) e `TryLoadActiveSave`. O tempo de jogo só avança com `Time.timeScale` > 0.
-- **Nuvem:** só o slot 0 sincroniza com `saves/{uid}`; os outros são apenas locais.
-- **Campos novos:** `location` e `playtimeSeconds` entraram no JSON e no documento do Firestore. Saves antigos sem eles continuam válidos, e `playtimeSeconds` negativo é rejeitado.
+- **Campos novos:** `location` e `playtimeSeconds` entraram no JSON. Saves antigos sem eles continuam válidos, e `playtimeSeconds` negativo é rejeitado.
 - **Compêndio:** as falácias desbloqueadas ficam em `SaveData.Compendium`.
-  - No JSON é `compendium`, uma lista de ids em ordem ordinal, gravada só quando não está vazia. Por isso o fixture do commit não muda. No Firestore vira `arrayValue` de `stringValue`.
+  - No JSON é `compendium`, uma lista de ids em ordem ordinal, gravada só quando não está vazia.
   - Saves antigos sem o campo continuam válidos, e id em branco é rejeitado.
-  - `GameServices.Compendium` é o `FallacyCompendium` da sessão, com os ids do catálogo. O boot, `SelectSlot` e `SaveToSlot` o restauram do save do slot, junto com o tempo de jogo, e `StartNewGame` o esvazia. Depois do `ReconcileAsync`, as falácias do save remoto são somadas.
+  - `GameServices.Compendium` é o `FallacyCompendium` da sessão, com os ids do catálogo. O boot, `SelectSlot` e `SaveToSlot` o restauram do save do slot, junto com o tempo de jogo, e `StartNewGame` o esvazia.
   - `GridSandboxController.CaptureSave` passa as desbloqueadas para `ExplorationSaveMapper.ToSave`, que soma com as do save anterior.
 - **Restauração:** `ExplorationRestore` só aplica o save quando o `Location` bate com o mapa atual. Cada mapa usa o `GridSandboxController.LocationId` gravado na própria cena (`agora`, `kerameikos`). Se a célula salva estiver ocupada, como a de partida de um oponente que andou na batalha, a Kleia volta na célula livre mais próxima (`GridWalker.TryFindFreeCellNear`). Célula fora do mapa ou bloqueada não restaura nada.
 
@@ -718,7 +670,7 @@ Som é dado, como a arte: a música é gravada, os efeitos saem de um script ver
   - **Mesmo clipe não recomeça:** pedir um id cujo clipe já toca não faz nada. Por isso a Ágora e o arquivo emendam, e a troca de fase do julgamento não reinicia a batalha. Pedir a trilha que ainda está saindo a traz de volta do volume em que estava.
   - **Retomada:** `MusicResume` (Core, puro) guarda onde cada clipe parou. Voltar a ele em até `WindowSeconds` (5 min) retoma dali, então sair de um duelo não recomeça a música da Ágora. Depois disso, a trilha começa do início.
   - `Muted` para as duas fontes e esquece a trilha, então o próximo `PlayMusic` volta a tocar.
-- **`AudioListener`:** existe num lugar só, no `RenderSetupTools.CreateCameraRigPrefab`. Toda cena instancia esse rig, então há exatamente um por cena. Dois viram aviso da Unity, e aviso reprova os `LogAssert.NoUnexpectedReceived()` do modo avião.
+- **`AudioListener`:** existe num lugar só, no `RenderSetupTools.CreateCameraRigPrefab`. Toda cena instancia esse rig, então há exatamente um por cena. Dois viram aviso da Unity, e aviso reprova os `LogAssert.NoUnexpectedReceived()` dos testes PlayMode.
 - **Voz:** há um `voice_blip` só, tocado com `pitch` por falante (`AudioLibrarySO.PitchFor`), dos 0,7 do Menexeno aos 1,15 da Kleia. O `DialogueBoxView` o dispara quando o typewriter revela um caractere novo, e `GameAudio.BlipCooldownSeconds` (45 ms) impede que vire metralhadora. `DialoguePlayer` passa o id do falante em `DialogueBoxView.VoiceId`.
 - **Volume:** `GameSettings` tem `MasterVolume`, `MusicVolume` e `EffectsVolume`, nos mesmos passos de 10%. `GameServices.ApplySettings` continua escrevendo `AudioListener.volume` e leva os outros dois aos buses. Arquivo de settings antigo, com só `master_volume`, continua válido. Ainda **não há linha de música e efeitos no menu de opções** — o volume é aplicado, mas só o mestre é ajustável pela UI.
 - **Não há `AudioMixer`.** Os buses são pools com multiplicador próprio. Criar um `.mixer` por CLI só é possível por reflexão sobre `UnityEditor.Audio.AudioMixerController`, que é interno; enquanto o Ato I não pedir ducking, snapshot ou filtro, o multiplicador entrega o mesmo e não depende de API interna.
@@ -799,8 +751,8 @@ unity vcs doctor
   - O título `system.game_title` fica no alto, em dourado no dobro do tamanho da fonte, com contorno escuro, e `system.game_subtitle` embaixo dele. O céu fica livre abaixo do título, e o Partenon não é coberto.
   - A lista do menu fica no canto de baixo à direita, sobre os telhados. Slots, opções, créditos e confirmação abrem no centro, no mesmo estilo de caixa.
 - **Painéis:** `MenuListModel` pula entradas desabilitadas. `MenuListView`, `OptionsView`, `CreditsView` e `CompendiumView` implementam `IMenuPanel`. `SystemMenuInput` repassa teclado e gamepad ao painel ativo, e `PanelRowPointer` repassa o mouse.
-- **Opções:** `GameSettings` (Core) guarda volume em passos de 10%, velocidade do texto (15, 30 ou 60 caracteres por segundo) e modo assistido, persistidos em `settings.json` por `LocalSettingsStore`, com JSON tolerante que volta ao padrão. `GameServices.UpdateSettings` grava, aplica em `AudioListener.volume` e dispara `SettingsChanged`. `BattleHud.ApplySettings` leva velocidade e modo assistido para o diálogo e o menu.
-- **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava local e, com rede configurada, empurra pelo `SaveSynchronizer`. Se o envio falhar, o `Update` reenvia o save da sessão a cada `PushRetrySeconds` (30 s) até ele subir. Um save pendente que a sessão não gravou, carregado num boot offline, espera a reconciliação do próximo boot, para nunca sobrescrever um save mais novo da nuvem. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot`, preserva o progresso do save anterior e acrescenta as falácias desbloqueadas e os duelos vencidos na sessão (`DuelProgress`).
+- **Opções:** `GameSettings` (Core) guarda volume em passos de 10%, velocidade do texto (15, 30 ou 60 caracteres por segundo) e modo assistido, persistidos na preferência `settings` do banco por `LocalSettingsStore`, com JSON tolerante que volta ao padrão. `GameServices.UpdateSettings` grava, aplica em `AudioListener.volume` e dispara `SettingsChanged`. `BattleHud.ApplySettings` leva velocidade e modo assistido para o diálogo e o menu.
+- **Save automático:** `AutosavePolicy.ShouldSave` é verdadeiro ao voltar à exploração depois de batalha ou diálogo. `GameServices.Autosave` grava o slot ativo no banco. `ExplorationSaveMapper` monta o `SaveData` a partir do `ExplorationSnapshot`, preserva o progresso do save anterior e acrescenta as falácias desbloqueadas e os duelos vencidos na sessão (`DuelProgress`).
 - **Pausa:** `PauseMenu.prefab` fica em toda cena de mapa, com a tela escurecida e a lista numa caixa central com o título `system.pause_title` na aba. Cancel fora da pausa abre o menu, `Time.timeScale` vai a 0 e o `GameStateMachine` entra em `Paused` quando houver um. O menu tem Voltar ao jogo, Salvar, Opções, Compêndio e Menu principal. Salvar só habilita com `SaveProvider` e serviços prontos e abre os slots com confirmação de sobrescrita. Menu principal salva no slot ativo por `SaveProvider` antes de trocar de cena. `GridSandboxController.CaptureSave` é o provedor da sandbox.
   - **Compêndio:** o painel vem dentro do prefab da pausa. No `Start`, o `PauseMenuController` chama `BindCompendium` com o `GameServices.Compendium` da cena, então a entrada fica habilitada em toda cena com `GameServices`. Sem painel ou sem serviços, ela fica desabilitada.
 - **Créditos:** vêm de `credits.body` em `ui_text.json`, paginados. Ao adicionar fonte, biblioteca ou asset de terceiros, acrescente a licença ali.
@@ -829,7 +781,7 @@ Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, na
 ### CI (GitHub Actions)
 
 `.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão no README.
-- **Jobs:** `functions-tests` e `unity-tests` rodam em todo push e em PR para a `main`. São os checks que o ruleset da `main` deve exigir. O ruleset é configuração do GitHub, fora do repositório: enquanto ninguém o criar, um check vermelho não bloqueia nada. `windows-build` roda só em push ou disparo manual na `main`, depois dos dois: build, `tools/scan-secrets.ps1` e upload do player.
+- **Jobs:** `unity-tests` roda em todo push e em PR para a `main`. É o check que o ruleset da `main` deve exigir. O ruleset é configuração do GitHub, fora do repositório: enquanto ninguém o criar, um check vermelho não bloqueia nada. `windows-build` roda só em push ou disparo manual na `main`, depois dele: build, `tools/scan-secrets.ps1` e upload do player.
 - **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa o serial quando o runner não tem licença e devolve a chave de `unity cache key` para o cache da `Library`.
 - **Licença:** a Unity não ativa licença para conta de serviço.
   - Os jobs Unity rodam no runner da variável `UNITY_RUNNER` (JSON de rótulos, padrão `"windows-latest"`).
@@ -839,7 +791,6 @@ Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, na
   - Sem licença, o job ativa `UNITY_SERIAL` e marca `RUNNER_TEMP/unity-license-activated`. `.github/actions/return-unity-license` só devolve a licença quando essa marca existe, então a licença que já estava na máquina nunca é devolvida.
   - `.ulf` não entra: a Personal não tem ativação manual e o arquivo fica preso ao hardware que o gerou.
 - **Push direto na `main`:** com o ruleset ativo, a `main` só aceita commit que já passou nos checks. Por isso o commit sobe antes para o branch `ci` e depois para a `main`.
-- **Fim de linha:** `functions/src/generated/*.json` é `eol=lf` no `.gitattributes`. Sem isso, um checkout novo no Windows traz CRLF e o teste de sincronia do `content.json` falha.
 - **Claude Code:**
   - **Skill:** a skill `unity-cli` fica em `.claude/skills/unity-cli`, gerada por `unity skill install claude-code --local`. O `allowed-tools` do cabeçalho foi tirado, porque pré-aprovaria o Bash em toda sessão com a skill ativa. Ao regravar a skill, tire de novo. O `unity skill refresh` não sobrescreve a cópia editada sem `--force`.
   - **Este arquivo vence as skills da Unity.** A skill manda dirigir o Editor aberto em vez de editar cena e asset. Aqui, cena, prefab e asset só saem das ferramentas de `Assets/_Game/Editor/` por `unity run ... -executeMethod`, nunca de `unity command` ou do MCP. O Editor conectado serve para inspecionar e verificar (inclusive os comandos `gft` de `Assets/_Game/Code/DevCommands`), e `unity command eval` fica só na máquina local.
@@ -874,8 +825,6 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Unity.exe"
 
 **Cor fora do RGB555.** Todos os canais são múltiplos de 8. Quantizar contra `art/palette/snes.gpl` com dithering desligado, máximo 15 cores + transparente por sprite.
 
-**Custo de IA escala com jogadores.** Antes de adicionar chamada nova ao LLM, confira se o cache compartilhado cobre o caso. Existe kill switch no Remote Config que força o fallback.
-
 ---
 
 ## Convenções
@@ -900,4 +849,4 @@ Tipos: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`
 
 **Branches:** trabalho direto na `main`, sem branches `feature/*` (projeto solo). O hook de pre-commit do Unity demora minutos: rode o `git commit` em background.
 
-**Definition of Done** (card [SET-03]): compila sem warning novo; passa EditMode e PlayMode por `unity test`; tem teste automatizado ou passo manual escrito no card; não quebrou save existente; se toca rede, testado em modo avião.
+**Definition of Done** (card [SET-03]): compila sem warning novo; passa EditMode e PlayMode por `unity test`; tem teste automatizado ou passo manual escrito no card; não quebrou save existente.

@@ -9,7 +9,6 @@
     "Game.Battle",
     "Game.Content",
     "Game.Net",
-    "Game.Tests.Support",
     "Game.UI",
     "Unity.Timeline",
     "Game.DevCommands",

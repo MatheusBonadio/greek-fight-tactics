@@ -86,14 +86,14 @@ namespace Game.Tests.EditMode.Net
         }
 
         [Test]
-        public void Store_ReturnsDefaultsWithoutAFileAndPersistsChanges()
+        public void Store_ReturnsDefaultsWithoutARowAndPersistsChanges()
         {
-            var store = new LocalSettingsStore(directory);
+            var store = new LocalSettingsStore(new SaveDatabase(directory));
             Assert.AreEqual(TextSpeed.Normal, store.Load().TextSpeed);
 
             store.Save(new GameSettings { TextSpeed = TextSpeed.Fast, AssistedMode = true });
 
-            var loaded = new LocalSettingsStore(directory).Load();
+            var loaded = new LocalSettingsStore(new SaveDatabase(directory)).Load();
             Assert.AreEqual(TextSpeed.Fast, loaded.TextSpeed);
             Assert.IsTrue(loaded.AssistedMode);
         }

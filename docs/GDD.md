@@ -46,11 +46,11 @@ Sofistas: Plateia alta, Coerência baixa. Filósofos: o inverso. Isso dá inimig
 | DEFEND | **CONCEDER** | Aceita o ponto. Recupera Coerência, perde Plateia. Às vezes é a única jogada certa. |
 | RUN | **RETIRAR-SE** | Foge. Reputação cai, o adversário fica mais forte no reencontro. |
 
-### 2.3 A regra de ouro da IA embarcada
+### 2.3 A regra de ouro do argumento
 
-**O LLM gera. A engine julga.** O modelo nunca decide quem venceu.
+**O texto argumenta. A engine julga.** A fala nunca decide quem venceu.
 
-O LLM devolve o argumento do adversário já etiquetado:
+Cada argumento do adversário é escrito à mão e já vem etiquetado:
 
 ```json
 {
@@ -64,9 +64,9 @@ O LLM devolve o argumento do adversário já etiquetado:
 
 Chaves e valores de enum em inglês; `speech` e `premises` em português, porque são texto exibido ao jogador.
 
-O jogador não digita: ele **aponta**. Qual premissa é frágil, qual falácia foi cometida. Verificável em código, funciona offline com conteúdo pré-gerado, e o texto nunca se repete.
+O jogador não digita: ele **aponta**. Qual premissa é frágil, qual falácia foi cometida. Verificável em código e sem depender de rede: o jogo roda inteiro no dispositivo.
 
-**Obrigatório:** cache por seed, fallback escrito à mão para cada `fallacy_id`, timeout de 2s. Se a API cair, o jogo continua.
+**Obrigatório:** no mínimo 3 argumentos escritos à mão para cada `fallacy_id`, sorteados com seed e sem repetir até esgotar a entrada, e premissas embaralhadas a cada fala para a premissa fraca não ter lugar fixo.
 
 ---
 
@@ -453,5 +453,5 @@ Nenhum gerador entrega RGB555 limpo. Sempre rodar depois:
 - [ ] `GameStateMachine`: Exploration ↔ Battle na **mesma cena**, sem load
 - [ ] Névoa: Tilemap sobreposto + bitmask serializado no save
 - [ ] `ActFlag` (1 ou 2) controla portas **e** o pool de adversários gerados
-- [ ] Cliente LLM: timeout 2 s, cache por seed, fallback local por `fallacy_id`
-- [ ] Nenhuma decisão de regra vem do LLM — apenas texto e etiqueta
+- [ ] Banco de argumentos escritos à mão por `fallacy_id`, sorteado com seed
+- [ ] Nenhuma decisão de regra vem do texto — apenas a etiqueta

@@ -59,11 +59,13 @@ namespace Game.Tests.EditMode.DevCommands
             var corruptFile = Path.Combine(directory, "corrupt.json");
             File.WriteAllText(corruptFile, "{\"actFlag\": 9}");
 
-            var loaded = JObject.Parse(SaveCommands.SaveLoad(validFile, directory, "slot1"));
-            var rejected = JObject.Parse(SaveCommands.SaveLoad(corruptFile, directory, "slot1"));
-            var dump = JObject.Parse(SaveCommands.SaveDump(directory, "slot1"));
+            var loaded = JObject.Parse(SaveCommands.SaveLoad(validFile, directory, 1));
+            var rejected = JObject.Parse(SaveCommands.SaveLoad(corruptFile, directory, 1));
+            var dump = JObject.Parse(SaveCommands.SaveDump(directory, 1));
 
             Assert.IsTrue((bool)loaded["success"]);
+            Assert.AreEqual(1, (int)loaded["slot"]);
+            StringAssert.EndsWith("gft.db", (string)loaded["path"]);
             Assert.IsFalse((bool)rejected["success"]);
             Assert.AreEqual("refused", (string)dump["save"]["damarisBranch"]);
             Assert.AreEqual(40, (int)dump["save"]["reputation"]);
@@ -73,6 +75,12 @@ namespace Game.Tests.EditMode.DevCommands
         public void SaveDump_WithoutASave_ReturnsAJsonError()
         {
             Assert.IsFalse((bool)JObject.Parse(SaveCommands.SaveDump(directory))["success"]);
+        }
+
+        [Test]
+        public void ASlotOutsideTheCatalog_ReturnsAJsonError()
+        {
+            Assert.IsFalse((bool)JObject.Parse(SaveCommands.SetFlag("act", "2", directory, 3))["success"]);
         }
     }
 }

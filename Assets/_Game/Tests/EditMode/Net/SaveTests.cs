@@ -29,7 +29,7 @@ namespace Game.Tests.EditMode.Net
         }
 
         [Test]
-        public void Json_UsesTheFirestoreDocumentFieldNames()
+        public void Json_UsesTheSaveFieldNames()
         {
             var document = JObject.Parse(SaveJson.Serialize(BuildSave()));
 
@@ -116,31 +116,20 @@ namespace Game.Tests.EditMode.Net
         }
 
         [Test]
-        public void LocalStore_SavesAtomicallyAndLoadsBack()
+        public void LocalStore_SavesToTheDatabaseAndLoadsBack()
         {
-            var store = new LocalSaveStore(directory);
-            Assert.IsFalse(store.TryLoad(out _, out _));
+            var store = new LocalSaveStore(new SaveDatabase(directory));
+            Assert.IsFalse(store.TryLoad(out _, out var missing));
+            StringAssert.Contains("slot 0", missing);
 
             store.Save(BuildSave());
 
             Assert.IsTrue(store.Exists);
-            Assert.IsFalse(File.Exists(store.FilePath + ".tmp"));
-            Assert.IsTrue(store.TryLoad(out var loaded, out var error), error);
+            Assert.IsTrue(new LocalSaveStore(new SaveDatabase(directory)).TryLoad(out var loaded, out var error), error);
             Assert.AreEqual(12, loaded.Reputation);
             Assert.IsTrue(store.Delete());
             Assert.IsFalse(store.Exists);
-        }
-
-        [Test]
-        public void ConflictResolver_KeepsTheNewestTimestamp()
-        {
-            var local = new SaveData { Timestamp = 100, Reputation = 1 };
-            var remote = new SaveData { Timestamp = 200, Reputation = 2 };
-
-            Assert.AreSame(remote, SaveConflictResolver.PickNewest(local, remote));
-            Assert.AreSame(local, SaveConflictResolver.PickNewest(local, new SaveData { Timestamp = 100 }));
-            Assert.AreSame(local, SaveConflictResolver.PickNewest(local, null));
-            Assert.AreSame(remote, SaveConflictResolver.PickNewest(null, remote));
+            Assert.IsFalse(store.Delete());
         }
 
         [TestCase("act", "2", true)]

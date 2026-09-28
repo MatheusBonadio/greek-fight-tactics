@@ -18,8 +18,6 @@ namespace Game.Tests.EditMode.Battle
 {
     public sealed class StoryRulesTests
     {
-        private const string DocumentsRoot = "projects/demo-gft/databases/(default)/documents";
-
         private string directory;
         private GameObject host;
 
@@ -74,19 +72,18 @@ namespace Game.Tests.EditMode.Battle
 
         [TestCase(DamarisChoice.Accepted)]
         [TestCase(DamarisChoice.Refused)]
-        public void DamarisBranch_SurvivesTheLocalJsonAndTheFirestoreDocument(DamarisChoice choice)
+        public void DamarisBranch_SurvivesTheLocalDatabase(DamarisChoice choice)
         {
             var save = new SaveData { ActFlag = Act.Two, Timestamp = 9 };
             DamarisOffer.Apply(save, choice);
 
-            Assert.IsTrue(SaveJson.TryDeserialize(SaveJson.Serialize(save), out var local, out var localError), localError);
-            Assert.AreEqual(choice, local.DamarisBranch);
+            var store = new LocalSaveStore(new SaveDatabase(directory), 2);
+            store.Save(save);
 
-            var commit = FirestoreDocuments.SaveCommit(DocumentsRoot, "uid-1", save);
-            var document = new JObject { ["fields"] = commit["writes"][0]["update"]["fields"] }.ToString();
-            Assert.IsTrue(FirestoreDocuments.TryReadSave(document, out var remote, out var remoteError), remoteError);
-            Assert.AreEqual(choice, remote.DamarisBranch);
-            Assert.AreEqual(save.Flags[DamarisOffer.AbilityFlag(DamarisOffer.GrantedAbility(choice).Value)], remote.Flags[DamarisOffer.AbilityFlag(DamarisOffer.GrantedAbility(choice).Value)]);
+            Assert.IsTrue(new LocalSaveStore(new SaveDatabase(directory), 2).TryLoad(out var loaded, out var error), error);
+            Assert.AreEqual(choice, loaded.DamarisBranch);
+            var ability = DamarisOffer.AbilityFlag(DamarisOffer.GrantedAbility(choice).Value);
+            Assert.AreEqual(save.Flags[ability], loaded.Flags[ability]);
         }
 
         [TestCase("accepted", DamarisChoice.Accepted, DamarisTribunalStance.Betrays)]
@@ -97,10 +94,10 @@ namespace Game.Tests.EditMode.Battle
             var file = Path.Combine(directory, $"{branch}.json");
             File.WriteAllText(file, $"{{\"actFlag\": 2, \"damarisBranch\": \"{branch}\", \"timestamp\": 5}}");
 
-            var loaded = JObject.Parse(SaveCommands.SaveLoad(file, directory, SaveSlots.NameFor(1)));
+            var loaded = JObject.Parse(SaveCommands.SaveLoad(file, directory, 1));
             Assert.IsTrue((bool)loaded["success"], loaded.ToString());
 
-            var store = new LocalSaveStore(directory, SaveSlots.NameFor(1));
+            var store = new LocalSaveStore(new SaveDatabase(directory), 1);
             Assert.IsTrue(store.TryLoad(out var save, out var error), error);
             Assert.AreEqual(expected, save.DamarisBranch);
             Assert.AreEqual(string.Empty, save.Location);

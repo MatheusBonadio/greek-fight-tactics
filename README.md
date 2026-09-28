@@ -88,13 +88,12 @@ O fluxo inteiro é por CLI, sem Editor. Arquitetura e convenções em [CLAUDE.md
 
 ## Integração contínua
 
-O workflow `.github/workflows/ci.yml` roda em runner Windows. `functions-tests` usa sempre o `windows-latest`. Os jobs Unity usam o runner da variável `UNITY_RUNNER` (veja [Licença do Editor](#licença-do-editor)).
+O workflow `.github/workflows/ci.yml` roda em runner Windows. Os jobs usam o runner da variável `UNITY_RUNNER` (veja [Licença do Editor](#licença-do-editor)).
 
 | Job | Quando | O que faz |
 |---|---|---|
-| `functions-tests` | todo push e todo PR para a `main` | `npm ci`, `npm run typecheck` e `npm test` em `functions/` |
 | `unity-tests` | todo push e todo PR para a `main` | instala o CLI fixo e o Editor do `ProjectVersion.txt` com `unity install`, restaura a `Library` pela chave de `unity cache key` e roda `tools/test.ps1` em EditMode e PlayMode com `-Format github` |
-| `windows-build` | push ou disparo manual na `main`, depois dos dois jobs acima | `tools/build.ps1` no perfil Windows Development, `tools/scan-secrets.ps1` no player e upload do artefato `GFT-WindowsDevelopment-<sha>` (14 dias) |
+| `windows-build` | push ou disparo manual na `main`, depois do `unity-tests` | `tools/build.ps1` no perfil Windows Development, `tools/scan-secrets.ps1` no player e upload do artefato `GFT-WindowsDevelopment-<sha>` (14 dias) |
 
 O ambiente fixa `UNITY_NON_INTERACTIVE`, `UNITY_NO_UPDATE_CHECK`, `UNITY_BUILD_TIMEOUT` e `UNITY_TEST_TIMEOUT` (45 min), e cada job tem `timeout-minutes`, para nada ficar pendurado num prompt.
 
@@ -144,7 +143,7 @@ O ruleset é configuração do GitHub, não fica no repositório. Enquanto ningu
 Em **Settings → Rules → Rulesets → New branch ruleset**:
 
 1. Enforcement status **Active**, alvo **Include default branch**.
-2. Ligue **Require status checks to pass** e adicione `unity-tests` e `functions-tests`. Eles só aparecem na busca depois da primeira execução do workflow.
+2. Ligue **Require status checks to pass** e adicione `unity-tests`. Ele só aparece na busca depois da primeira execução do workflow.
 3. Mantenha **Block force pushes**.
 4. Não coloque ninguém em **Bypass list**.
 

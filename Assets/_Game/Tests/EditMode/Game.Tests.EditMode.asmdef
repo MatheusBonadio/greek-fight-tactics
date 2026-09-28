@@ -10,7 +10,6 @@
     "Game.Battle",
     "Game.Content",
     "Game.Net",
-    "Game.Tests.Support",
     "Game.EditorTools",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.2D.Sprite.Editor",
@@ -22,7 +21,8 @@
     "Game.DevCommands",
     "Unity.TextMeshPro",
     "UnityEngine.UI",
-    "Unity.2D.Tilemap.Extras"
+    "Unity.2D.Tilemap.Extras",
+    "Gilzoide.SqliteNet"
   ],
   "includePlatforms": [
     "Editor"

@@ -147,6 +147,6 @@ O sentido é sempre JSON → Trello, e não há script de importação versionad
 
 ## Contexto do projeto
 
-As regras de arquitetura estão no `CLAUDE.md`. Duas aparecem com frequência nos critérios e vale reconhecê-las: a chave da OpenAI nunca entra no cliente Unity, e o LLM gera texto enquanto a engine julga a regra. Itens que mencionam modo avião, fallback, cache ou Cloud Function estão sempre ligados a uma das duas.
+As regras de arquitetura estão no `CLAUDE.md`. Uma aparece com frequência nos critérios e vale reconhecê-la: o argumento traz texto e etiqueta, e a engine julga a regra. O jogo roda inteiro no dispositivo, com saves em SQLite: o backend Firebase (login, Cloud Function com a OpenAI, Firestore) saiu, então critérios antigos que mencionam modo avião, cache de argumentos ou Cloud Function descrevem o que foi removido.
 
 A `board_description` do JSON explica a ordem dos sprints e o ponto de corte da entrega acadêmica. `docs/GDD.md` tem história, personagens e especificação de arte — consulte quando um card de conteúdo não trouxer detalhe suficiente. Cards de arte usam também a skill `pixel-art-pipeline`.

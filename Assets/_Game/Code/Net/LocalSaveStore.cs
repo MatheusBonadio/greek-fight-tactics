@@ -1,37 +1,25 @@
 using System;
-using System.IO;
 using Game.Core;
 
 namespace Game.Net
 {
     public sealed class LocalSaveStore
     {
-        public const string DefaultSlot = "slot0";
-        public const string FileExtension = ".json";
+        private readonly SaveDatabase database;
 
-        private readonly string directory;
-
-        public LocalSaveStore(string directory, string slot = DefaultSlot)
+        public LocalSaveStore(SaveDatabase database, int slot = SaveSlots.DefaultIndex)
         {
-            if (string.IsNullOrWhiteSpace(directory))
-            {
-                throw new ArgumentException("Save directory is required.", nameof(directory));
-            }
-
-            if (string.IsNullOrWhiteSpace(slot) || slot.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            {
-                throw new ArgumentException($"Invalid save slot '{slot}'.", nameof(slot));
-            }
-
-            this.directory = directory;
-            Slot = slot;
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
+            Slot = SaveSlots.IsValid(slot)
+                ? slot
+                : throw new ArgumentOutOfRangeException(nameof(slot), slot, $"Save slots go from 0 to {SaveSlots.Count - 1}.");
         }
 
-        public string Slot { get; }
+        public int Slot { get; }
 
-        public string FilePath => Path.Combine(directory, Slot + FileExtension);
+        public string DatabasePath => database.FilePath;
 
-        public bool Exists => File.Exists(FilePath);
+        public bool Exists => database.TryReadSlot(Slot, out _);
 
         public void Save(SaveData save)
         {
@@ -40,38 +28,21 @@ namespace Game.Net
                 throw new ArgumentNullException(nameof(save));
             }
 
-            Directory.CreateDirectory(directory);
-            var temporary = FilePath + ".tmp";
-            File.WriteAllText(temporary, SaveJson.Serialize(save));
-            if (File.Exists(FilePath))
-            {
-                File.Delete(FilePath);
-            }
-
-            File.Move(temporary, FilePath);
+            database.WriteSlot(Slot, SaveJson.Serialize(save));
         }
 
         public bool TryLoad(out SaveData save, out string error)
         {
             save = null;
-            if (!Exists)
+            if (!database.TryReadSlot(Slot, out var payload))
             {
-                error = $"no save at {FilePath}";
+                error = $"no save in slot {Slot} of {database.FilePath}";
                 return false;
             }
 
-            return SaveJson.TryDeserialize(File.ReadAllText(FilePath), out save, out error);
+            return SaveJson.TryDeserialize(payload, out save, out error);
         }
 
-        public bool Delete()
-        {
-            if (!Exists)
-            {
-                return false;
-            }
-
-            File.Delete(FilePath);
-            return true;
-        }
+        public bool Delete() => database.DeleteSlot(Slot);
     }
 }

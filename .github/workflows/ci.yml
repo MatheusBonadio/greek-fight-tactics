@@ -21,28 +21,6 @@ env:
   UNITY_TEST_TIMEOUT: "2700"
 
 jobs:
-  functions-tests:
-    runs-on: windows-latest
-    timeout-minutes: 20
-    defaults:
-      run:
-        shell: pwsh
-        working-directory: functions
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: functions/package.json
-          cache: npm
-          cache-dependency-path: functions/package-lock.json
-
-      - run: npm ci --no-audit --no-fund
-
-      - run: npm run typecheck
-
-      - run: npm test
-
   unity-tests:
     runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
     timeout-minutes: 150
@@ -100,7 +78,7 @@ jobs:
 
   windows-build:
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-    needs: [functions-tests, unity-tests]
+    needs: [unity-tests]
     runs-on: ${{ fromJSON(vars.UNITY_RUNNER || '"windows-latest"') }}
     timeout-minutes: 120
     env:

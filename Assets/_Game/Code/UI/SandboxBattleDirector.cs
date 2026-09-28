@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Game.Battle;
 using Game.Content;
@@ -26,8 +25,6 @@ namespace Game.UI
     public sealed class SandboxBattleDirector : MonoBehaviour, IDuelChallenges
     {
         public const float DefaultThinkSeconds = 0.6f;
-        public const int PrewarmCount = 3;
-        public const string OfflineCacheFolder = "battle_cache";
         public const float MinimumVeilFadeSeconds = 0.5f;
 
         [SerializeField] private GridSandboxController sandbox;
@@ -73,7 +70,7 @@ namespace Game.UI
         private float thinkTimer;
         private int dialogueFrame = -1;
         private MapOpponent engaged;
-        private PrewarmedArgumentSource preparedArguments;
+        private FallbackArgumentSource arguments;
         private int crowdSeed;
         private BattleFlowPhase phase = BattleFlowPhase.Exploring;
 
@@ -117,8 +114,6 @@ namespace Game.UI
         public bool AutosaveEnabled { get; set; } = true;
 
         public BattleStatus LastResult { get; private set; } = BattleStatus.Ongoing;
-
-        public PrewarmedArgumentSource PreparedArguments => preparedArguments;
 
         public ExplorationDialogueDirector Story => story;
 
@@ -193,8 +188,6 @@ namespace Game.UI
 
         public bool IsDefeated(MapOpponent entry) =>
             entry != null && entry.Opponent && sandbox && sandbox.Duels.HasWon(entry.Opponent.Id);
-
-        public static bool Prewarms(MapOpponent entry) => entry != null && entry.IsPlaced && !entry.Opponent.IsPhased;
 
         public ActorView ChallengerAt(Coord cell)
         {
@@ -400,9 +393,6 @@ namespace Game.UI
         {
             switch (Phase)
             {
-                case BattleFlowPhase.Exploring:
-                    PrepareArguments();
-                    break;
                 case BattleFlowPhase.Dialogue:
                     if (Time.frameCount == dialogueFrame)
                     {
@@ -485,61 +475,11 @@ namespace Game.UI
             }
         }
 
-        private void PrepareArguments()
-        {
-            if (preparedArguments != null || !services || !services.IsBooted || !sandbox.ProgressLoaded)
-            {
-                return;
-            }
-
-            preparedArguments = services.CreateArgumentSource(Environment.TickCount);
-            foreach (var entry in opponents)
-            {
-                if (!Prewarms(entry))
-                {
-                    continue;
-                }
-
-                preparedArguments.Register(entry.Actor.Walker.ActorId, OpponentContext.From(entry.Opponent));
-                if (!IsDefeated(entry))
-                {
-                    TopUpArguments(entry);
-                }
-            }
-        }
-
-        private void TopUpArguments(MapOpponent entry)
-        {
-            if (preparedArguments == null || !Prewarms(entry))
-            {
-                return;
-            }
-
-            var opponentId = entry.Actor.Walker.ActorId;
-            var missing = PrewarmCount - preparedArguments.ReadyCount(opponentId);
-            if (missing > 0)
-            {
-                _ = services.PrewarmAsync(preparedArguments, opponentId, missing);
-            }
-        }
-
         private IArgumentSource CreateArgumentSource(MapOpponent target, int seed)
         {
-            PrepareArguments();
-            if (preparedArguments != null)
-            {
-                return preparedArguments;
-            }
-
-            var validator = new ArgumentValidator(catalog.RefutableIds);
-            var offline = new PrewarmedArgumentSource(
-                null,
-                new ArgumentDiskCache(Path.Combine(Application.temporaryCachePath, OfflineCacheFolder)),
-                validator,
-                new FallbackArgumentLibrary(fallbackLibrary, validator, seed),
-                seed);
-            offline.Register(target.Actor.Walker.ActorId, OpponentContext.From(target.Opponent));
-            return offline;
+            arguments ??= new FallbackArgumentSource(new FallbackArgumentLibrary(fallbackLibrary, new ArgumentValidator(catalog.RefutableIds), seed), seed);
+            arguments.Register(target.Actor.Walker.ActorId, target.Opponent.FallacyPool.Where(fallacy => fallacy).Select(fallacy => fallacy.Id));
+            return arguments;
         }
 
         private BattleRules RulesFor(OpponentSO opponent) =>
@@ -1043,11 +983,6 @@ namespace Game.UI
             hud.gameObject.SetActive(false);
             reveal?.Hide();
             StrikePose(Posture.Idle, Color.white);
-
-            if (!IsDefeated(engaged))
-            {
-                TopUpArguments(engaged);
-            }
 
             ClearEndPose();
             var from = StateMachine.Mode;

@@ -4,7 +4,6 @@ using Game.Content;
 using Game.Core;
 using Game.EditorTools;
 using Game.Grid;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -81,21 +80,6 @@ namespace Game.Tests.EditMode.Content
                 .ToList();
 
             Assert.AreEqual(CatalogSize, signatures.Distinct().Count());
-        }
-
-        [Test]
-        public void ArgumentSchema_ListsExactlyTheRefutableFallaciesAndKnownTones()
-        {
-            var schema = JObject.Parse(File.ReadAllText(Path.Combine("docs", "argument.schema.json")));
-            var schemaFallacies = schema["properties"]["fallacy_id"]["enum"]
-                .Where(token => token.Type != JTokenType.Null)
-                .Select(token => (string)token);
-            var schemaTones = schema["properties"]["tone"]["enum"].Select(token => (string)token);
-
-            CollectionAssert.AreEquivalent(catalog.RefutableIds, schemaFallacies);
-            CollectionAssert.AreEquivalent(ArgumentTones.All, schemaTones);
-            Assert.AreEqual(ArgumentValidator.MinSpeechLength, (int)schema["properties"]["speech"]["minLength"]);
-            Assert.AreEqual(ArgumentValidator.MaxSpeechLength, (int)schema["properties"]["speech"]["maxLength"]);
         }
 
         [Test]

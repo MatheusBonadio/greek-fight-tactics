@@ -39,32 +39,6 @@ namespace Game.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator EnteringTheMap_PreparesEveryOpponentsArgumentsBeforeTheBattle()
-        {
-            yield return SceneManager.LoadSceneAsync(SandboxScene, LoadSceneMode.Single);
-            yield return null;
-
-            var director = Object.FindAnyObjectByType<SandboxBattleDirector>();
-            var services = Object.FindAnyObjectByType<GameServices>();
-            Assert.IsNotNull(services, "GridSandbox scene must contain GameServices");
-            director.AutosaveEnabled = false;
-
-            yield return WaitFor(() => director.PreparedArguments != null, StartTimeoutSeconds);
-            Assert.IsNotNull(director.PreparedArguments, "arguments must be prepared on map enter, not on battle start");
-            Assert.AreEqual(BattleFlowPhase.Exploring, director.Phase);
-            Assert.AreEqual(services.Arguments != null, director.PreparedArguments.IsOnline);
-
-            foreach (var entry in director.Opponents.Where(SandboxBattleDirector.Prewarms))
-            {
-                var walker = entry.Actor.Walker;
-                var opponent = new Debater(walker.ActorId, Side.Opponent, entry.Opponent.Profile, entry.Opponent.MaxCoherence, 5, walker.Cell, walker.Facing);
-                Assert.IsTrue(director.PreparedArguments.TryNext(opponent, out var argument), entry.Opponent.Id);
-                Assert.IsNotEmpty(argument.Speech);
-                CollectionAssert.Contains(entry.Opponent.FallacyPool.Select(fallacy => fallacy.Id), argument.FallacyId, $"{entry.Opponent.Id} argued outside its pool");
-            }
-        }
-
-        [UnityTest]
         public IEnumerator ConfirmingOnAnOpponent_WalksBesideHimPlaysABattleAndReturnsToExploration()
         {
             var (director, sandbox) = default((SandboxBattleDirector, GridSandboxController));

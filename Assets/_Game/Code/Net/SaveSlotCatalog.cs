@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using Game.Core;
 
@@ -40,50 +39,33 @@ namespace Game.Net
 
     public sealed class SaveSlotCatalog
     {
-        public const string ActiveSlotFileName = "active_slot.txt";
+        private readonly SaveDatabase database;
 
-        private readonly string directory;
-
-        public SaveSlotCatalog(string directory)
+        public SaveSlotCatalog(SaveDatabase database)
         {
-            if (string.IsNullOrWhiteSpace(directory))
-            {
-                throw new ArgumentException("Save directory is required.", nameof(directory));
-            }
-
-            this.directory = directory;
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
-        public string ActiveSlotPath => Path.Combine(directory, ActiveSlotFileName);
+        public LocalSaveStore StoreFor(int index) => new(database, index);
 
-        public LocalSaveStore StoreFor(int index) => new(directory, SaveSlots.NameFor(index));
-
-        public IReadOnlyList<SaveSlotSummary> ReadAll() => Enumerable.Range(0, SaveSlots.Count).Select(Read).ToList();
-
-        public SaveSlotSummary Read(int index)
+        public IReadOnlyList<SaveSlotSummary> ReadAll()
         {
-            var store = StoreFor(index);
-            if (!store.Exists)
-            {
-                return SaveSlotSummary.Empty(index);
-            }
-
-            return store.TryLoad(out var save, out _) ? SaveSlotSummary.From(index, save) : SaveSlotSummary.Corrupt(index);
+            var payloads = database.ReadSlots();
+            return Enumerable.Range(0, SaveSlots.Count)
+                .Select(index => Summarize(index, payloads.TryGetValue(index, out var payload) ? payload : null))
+                .ToList();
         }
+
+        public SaveSlotSummary Read(int index) => Summarize(index, database.TryReadSlot(index, out var payload) ? payload : null);
 
         public bool AnyUsable() => ReadAll().Any(summary => summary.IsUsable);
 
-        public int ReadActiveSlot()
-        {
-            if (!File.Exists(ActiveSlotPath))
-            {
-                return SaveSlots.DefaultIndex;
-            }
-
-            return int.TryParse(File.ReadAllText(ActiveSlotPath).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var index) && SaveSlots.IsValid(index)
+        public int ReadActiveSlot() =>
+            database.TryReadPreference(SaveDatabase.ActiveSlotKey, out var value) &&
+            int.TryParse(value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var index) &&
+            SaveSlots.IsValid(index)
                 ? index
                 : SaveSlots.DefaultIndex;
-        }
 
         public void WriteActiveSlot(int index)
         {
@@ -92,8 +74,17 @@ namespace Game.Net
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Unknown save slot.");
             }
 
-            Directory.CreateDirectory(directory);
-            File.WriteAllText(ActiveSlotPath, index.ToString(CultureInfo.InvariantCulture));
+            database.WritePreference(SaveDatabase.ActiveSlotKey, index.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private static SaveSlotSummary Summarize(int index, string payload)
+        {
+            if (payload == null)
+            {
+                return SaveSlotSummary.Empty(index);
+            }
+
+            return SaveJson.TryDeserialize(payload, out var save, out _) ? SaveSlotSummary.From(index, save) : SaveSlotSummary.Corrupt(index);
         }
     }
 }

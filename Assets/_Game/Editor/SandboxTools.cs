@@ -42,7 +42,6 @@ namespace Game.EditorTools
         public const string AnimatedTileAssetFolder = TileAssetFolder + "/Animated";
         public const float AnimatedTileFramesPerSecond = 6f;
         public const string ControlsPath = "Assets/_Game/Settings/GridControls.inputactions";
-        public const string NetworkConfigPath = "Assets/_Game/Data/NetworkConfig.asset";
         public const string AudienceCharacter = "citizen";
         public const string PortraitRow = "se";
         public const string CapturePath = "artifacts/reference/grid_sandbox.png";
@@ -514,19 +513,9 @@ namespace Game.EditorTools
         {
             var catalog = AssetDatabase.LoadAssetAtPath<Game.Content.FallacyCatalogSO>(DataTools.CatalogPath)
                 ?? throw new InvalidOperationException($"missing {DataTools.CatalogPath}; run DataTools.Regenerate first");
-            var fallback = AssetDatabase.LoadAssetAtPath<Game.Content.FallbackLibrarySO>(DataTools.FallbackLibraryPath)
-                ?? throw new InvalidOperationException($"missing {DataTools.FallbackLibraryPath}; run DataTools.Regenerate first");
-
-            var network = AssetDatabase.LoadAssetAtPath<Game.Content.NetworkConfigSO>(NetworkConfigPath);
-            if (network == null)
-            {
-                network = ScriptableObject.CreateInstance<Game.Content.NetworkConfigSO>();
-                AssetDatabase.CreateAsset(network, NetworkConfigPath);
-                AssetDatabase.SaveAssets();
-            }
 
             var services = new GameObject(nameof(GameServices)).AddComponent<GameServices>();
-            services.Configure(network, catalog, fallback, null);
+            services.Configure(catalog, null);
             services.ConfigureAudio(AssetDatabase.LoadAssetAtPath<AudioLibrarySO>(DataTools.AudioLibraryPath));
             return services;
         }

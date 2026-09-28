@@ -54,7 +54,7 @@ namespace Game.Tests.EditMode.Net
         [Test]
         public void SlotNames_CoverThreeSlotsStartingAtTheLegacyDefault()
         {
-            Assert.AreEqual(LocalSaveStore.DefaultSlot, SaveSlots.NameFor(SaveSlots.DefaultIndex));
+            Assert.AreEqual("slot0", SaveSlots.NameFor(SaveSlots.DefaultIndex));
             Assert.AreEqual("slot2", SaveSlots.NameFor(2));
             Assert.Throws<ArgumentOutOfRangeException>(() => SaveSlots.NameFor(SaveSlots.Count));
         }
@@ -62,12 +62,12 @@ namespace Game.Tests.EditMode.Net
         [Test]
         public void Catalog_SummarizesEmptyUsableAndCorruptSlots()
         {
-            var catalog = new SaveSlotCatalog(directory);
+            var database = new SaveDatabase(directory);
+            var catalog = new SaveSlotCatalog(database);
             Assert.IsFalse(catalog.AnyUsable());
 
             catalog.StoreFor(0).Save(SampleSave());
-            Directory.CreateDirectory(directory);
-            File.WriteAllText(catalog.StoreFor(2).FilePath, "{ not json");
+            database.WriteSlot(2, "{ not json");
 
             var slots = catalog.ReadAll();
 
@@ -84,13 +84,16 @@ namespace Game.Tests.EditMode.Net
         [Test]
         public void Catalog_RemembersTheActiveSlotAndIgnoresGarbage()
         {
-            var catalog = new SaveSlotCatalog(directory);
+            var database = new SaveDatabase(directory);
+            var catalog = new SaveSlotCatalog(database);
             Assert.AreEqual(SaveSlots.DefaultIndex, catalog.ReadActiveSlot());
 
             catalog.WriteActiveSlot(2);
-            Assert.AreEqual(2, new SaveSlotCatalog(directory).ReadActiveSlot());
+            Assert.AreEqual(2, new SaveSlotCatalog(new SaveDatabase(directory)).ReadActiveSlot());
 
-            File.WriteAllText(catalog.ActiveSlotPath, "7");
+            database.WritePreference(SaveDatabase.ActiveSlotKey, "7");
+            Assert.AreEqual(SaveSlots.DefaultIndex, catalog.ReadActiveSlot());
+            database.WritePreference(SaveDatabase.ActiveSlotKey, "slot");
             Assert.AreEqual(SaveSlots.DefaultIndex, catalog.ReadActiveSlot());
             Assert.Throws<ArgumentOutOfRangeException>(() => catalog.WriteActiveSlot(-1));
         }

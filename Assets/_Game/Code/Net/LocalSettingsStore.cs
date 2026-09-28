@@ -1,41 +1,20 @@
 using System;
-using System.IO;
 using Game.Core;
 
 namespace Game.Net
 {
     public sealed class LocalSettingsStore
     {
-        public const string FileName = "settings.json";
+        private readonly SaveDatabase database;
 
-        private readonly string directory;
-
-        public LocalSettingsStore(string directory)
+        public LocalSettingsStore(SaveDatabase database)
         {
-            if (string.IsNullOrWhiteSpace(directory))
-            {
-                throw new ArgumentException("Settings directory is required.", nameof(directory));
-            }
-
-            this.directory = directory;
+            this.database = database ?? throw new ArgumentNullException(nameof(database));
         }
 
-        public string FilePath => Path.Combine(directory, FileName);
+        public GameSettings Load() =>
+            database.TryReadPreference(SaveDatabase.SettingsKey, out var json) ? SettingsJson.Deserialize(json) : new GameSettings();
 
-        public GameSettings Load() => File.Exists(FilePath) ? SettingsJson.Deserialize(File.ReadAllText(FilePath)) : new GameSettings();
-
-        public void Save(GameSettings settings)
-        {
-            var json = SettingsJson.Serialize(settings);
-            Directory.CreateDirectory(directory);
-            var temporary = FilePath + ".tmp";
-            File.WriteAllText(temporary, json);
-            if (File.Exists(FilePath))
-            {
-                File.Delete(FilePath);
-            }
-
-            File.Move(temporary, FilePath);
-        }
+        public void Save(GameSettings settings) => database.WritePreference(SaveDatabase.SettingsKey, SettingsJson.Serialize(settings));
     }
 }

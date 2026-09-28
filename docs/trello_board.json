@@ -387,7 +387,11 @@
         "Bloqueante",
         "Backend"
       ],
-      "description": "Offline-first: salva local primeiro, sincroniza quando houver rede. Nunca deixe o jogador esperando o Firestore.\n\n**Depende de:** [BCK-02], [EXP-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] `saves/{uid}`: `actFlag`, `fogBitmask` (base64), `damarisBranch`, `reputation`, `inventory`, `position`, `timestamp`\n- [x] `progress/{uid}/duels/{id}`: vencido, como venceu (refutar/maieutica/conceder)\n- [x] Regras de segurança: `request.auth.uid == resource.id`, leitura e escrita\n- [x] Leitura e escrita pela REST API do Firestore, autenticadas com o ID token do [BCK-02]\n- [ ] Save local em arquivo sob `Application.persistentDataPath` como fonte primária — no Web ele fica em IndexedDB; confirmar que sobrevive a fechar a aba\n- [x] Push para Firestore em background, com retry\n- [x] Resolução de conflito: timestamp mais recente vence\n- [ ] Teste: jogar 20 min em modo avião, reconectar e confirmar sync"
+      "description": "Offline-first: salva local primeiro, sincroniza quando houver rede. Nunca deixe o jogador esperando o Firestore.\n\n**Depende de:** [BCK-02], [EXP-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] `saves/{uid}`: `actFlag`, `fogBitmask` (base64), `damarisBranch`, `reputation`, `inventory`, `position`, `timestamp`\n- [x] `progress/{uid}/duels/{id}`: vencido, como venceu (refutar/maieutica/conceder)\n- [x] Regras de segurança: `request.auth.uid == resource.id`, leitura e escrita\n- [x] Leitura e escrita pela REST API do Firestore, autenticadas com o ID token do [BCK-02]\n- [ ] Save local em arquivo sob `Application.persistentDataPath` como fonte primária — no Web ele fica em IndexedDB; confirmar que sobrevive a fechar a aba\n- [x] Push para Firestore em background, com retry\n- [x] Resolução de conflito: timestamp mais recente vence\n- [ ] Teste: jogar 20 min em modo avião, reconectar e confirmar sync",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[BCK-04] Cache compartilhado de argumentos",
@@ -397,7 +401,11 @@
         "Backend",
         "IA / LLM"
       ],
-      "description": "Reduz custo drasticamente: o argumento gerado para um jogador serve para todos.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Coleção `argument_cache/{hash}` onde hash = adversario+falacia+seed\n- [x] Function consulta o cache antes de chamar a OpenAI\n- [x] TTL longo (90 dias) — conteúdo não envelhece\n- [ ] Meta: 70% de cache hit depois de 100 sessões"
+      "description": "Reduz custo drasticamente: o argumento gerado para um jogador serve para todos.\n\n**Depende de:** [BCK-01] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [x] Coleção `argument_cache/{hash}` onde hash = adversario+falacia+seed\n- [x] Function consulta o cache antes de chamar a OpenAI\n- [x] TTL longo (90 dias) — conteúdo não envelhece\n- [ ] Meta: 70% de cache hit depois de 100 sessões",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[BCK-05] Orçamento e monitoramento",
@@ -407,7 +415,11 @@
         "Backend",
         "Risco"
       ],
-      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [x] Estimar custo por sessão de 1h e documentar em `docs/ai-cost-estimate.md` — vira dado da avaliação ([AVA-01])\n- [x] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [x] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova"
+      "description": "**Depende de:** [BCK-04] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Budget alert no GCP com teto mensal e e-mail\n- [x] Estimar custo por sessão de 1h e documentar em `docs/ai-cost-estimate.md` — vira dado da avaliação ([AVA-01])\n- [x] Dashboard simples: chamadas/dia, cache hit rate, custo acumulado\n- [x] Kill switch do lado do servidor: flag lida pela function antes de chamar a OpenAI; desligada, responde 204 e o cliente usa o fallback — sem SDK de Remote Config e sem build nova",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[LLM-01] Cliente da Cloud Function",
@@ -428,7 +440,11 @@
         "IA / LLM",
         "Narrativa"
       ],
-      "description": "Cada personagem precisa soar diferente. O tom é o que o LLM faz melhor — a lógica quem garante é o schema.\n\n**Depende de:** [LLM-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] System prompt por perfil: sofista (ornamentado, confiante) vs filósofo (seco, preciso)\n- [x] Few-shot com 2 exemplos por falácia\n- [x] Injetar contexto: nome do adversário, ato, tema do debate, tom desejado\n- [x] Temperatura por personagem: Thrasybios 0.9, Damaris 0.5, Menexeno 0.3\n- [x] Proibir no prompt: declarar vencedor, citar regras do jogo, quebrar a 4ª parede\n- [ ] Gerar 50 argumentos por falácia e revisar manualmente\n- [ ] Marcar os bons e promovê-los ao banco de fallback"
+      "description": "Cada personagem precisa soar diferente. O tom é o que o LLM faz melhor — a lógica quem garante é o schema.\n\n**Depende de:** [LLM-01] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [x] System prompt por perfil: sofista (ornamentado, confiante) vs filósofo (seco, preciso)\n- [x] Few-shot com 2 exemplos por falácia\n- [x] Injetar contexto: nome do adversário, ato, tema do debate, tom desejado\n- [x] Temperatura por personagem: Thrasybios 0.9, Damaris 0.5, Menexeno 0.3\n- [x] Proibir no prompt: declarar vencedor, citar regras do jogo, quebrar a 4ª parede\n- [ ] Gerar 50 argumentos por falácia e revisar manualmente\n- [ ] Marcar os bons e promovê-los ao banco de fallback",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[LLM-03] Cache local no cliente",
@@ -449,7 +465,11 @@
         "QA / Testes",
         "Risco"
       ],
-      "description": "Critério de aceite não-negociável: o jogo precisa ser completável sem internet.\n\n**Depende de:** [LLM-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Tudo que já existe jogável com Wi-Fi desligado — reexecutado no [ENT-01] com o conteúdo final da entrega\n- [x] Nenhum diálogo vazio, nenhum travamento, nenhum popup de erro\n- [x] Tempo de turno idêntico ao modo online (sem espera de timeout visível)\n- [x] Save funciona e sincroniza ao reconectar"
+      "description": "Critério de aceite não-negociável: o jogo precisa ser completável sem internet.\n\n**Depende de:** [LLM-03] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [ ] Tudo que já existe jogável com Wi-Fi desligado — reexecutado no [ENT-01] com o conteúdo final da entrega\n- [x] Nenhum diálogo vazio, nenhum travamento, nenhum popup de erro\n- [x] Tempo de turno idêntico ao modo online (sem espera de timeout visível)\n- [x] Save funciona e sincroniza ao reconectar",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[LLM-04] Moderação de conteúdo",
@@ -596,7 +616,11 @@
         "IA / LLM",
         "QA / Testes"
       ],
-      "description": "A tese do projeto é que o LLM pode gerar o texto enquanto a engine garante a regra. Este card transforma a tese em número.\n\n**Depende de:** [BCK-05], [LLM-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Registro por chamada: latência, tokens, custo, cache hit, resultado da validação do schema e motivo do fallback\n- [ ] Taxa de JSON rejeitado pelo schema e de `fallacy_id` desconhecido, antes e depois do retry\n- [ ] Latência p50/p95 no cliente, e quantas vezes o timeout de 2s acionou o fallback\n- [ ] Custo por sessão de 1h e evolução do cache hit ao longo das sessões de playtest\n- [ ] Moderação: quantidade reprovada, com os casos revisados à mão\n- [ ] Exportação em CSV para as tabelas e gráficos da monografia\n- [ ] Nenhum texto gerado nem UID no export — só agregados e ids anônimos"
+      "description": "A tese do projeto é que o LLM pode gerar o texto enquanto a engine garante a regra. Este card transforma a tese em número.\n\n**Depende de:** [BCK-05], [LLM-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Registro por chamada: latência, tokens, custo, cache hit, resultado da validação do schema e motivo do fallback\n- [ ] Taxa de JSON rejeitado pelo schema e de `fallacy_id` desconhecido, antes e depois do retry\n- [ ] Latência p50/p95 no cliente, e quantas vezes o timeout de 2s acionou o fallback\n- [ ] Custo por sessão de 1h e evolução do cache hit ao longo das sessões de playtest\n- [ ] Moderação: quantidade reprovada, com os casos revisados à mão\n- [ ] Exportação em CSV para as tabelas e gráficos da monografia\n- [ ] Nenhum texto gerado nem UID no export — só agregados e ids anônimos",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[AVA-02] Playtest com usuários e questionário",
@@ -834,6 +858,14 @@
       "description": "A MAIÊUTICA resolvia todo duelo: tirava mais que a REFUTAÇÃO, errar custava pouco e a premissa fraca era a segunda em 72% dos argumentos.\n\n**Depende de:** [BTL-02] · **Estimativa:** 1 dia\n\n**Critérios de aceitação:**\n- [x] Argumento respondido: REFUTAÇÃO certa ou qualquer MAIÊUTICA derruba o argumento até o próximo (`RejectionReason.ArgumentAlreadyAnswered`)\n- [x] Premissas embaralhadas com a seed do duelo (`ShuffledPremiseSource`), com o `WeakPremise` acompanhando o texto\n- [x] MAIÊUTICA errada custa Coerência (`BattleRules.MaieuticsMissCoherenceLoss`), e a REFUTAÇÃO certa passa a tirar 25\n- [x] Caixa de ajuda vazia fora da vez da Kleia, sem repetir \"Ainda não é a sua vez\"\n- [ ] Passo manual: jogar um duelo de bairro e confirmar que só MAIÊUTICA não vence mais sem risco"
     },
     {
+      "title": "[SAV-01] Persistência local em SQLite, sem Firebase",
+      "labels": [
+        "Sprint 04 · Atos I e II",
+        "Unity / Core"
+      ],
+      "description": "O jogo passa a rodar inteiro no dispositivo: saves e opções num banco SQLite, falas dos adversários só do banco escrito à mão, sem servidor nem conta.\n\n**Depende de:** [UI-07] · **Estimativa:** 2 dias\n\n**Critérios de aceitação:**\n- [x] Saves, slot ativo e opções num banco SQLite local (`SaveDatabase`, pacote `com.gilzoide.sqlite-net` 1.3.2)\n- [x] Migração única dos JSON antigos (`saves/slot*.json`, `active_slot.txt`, `settings.json`), mantidos no disco como backup\n- [x] Backend Firebase removido: login anônimo, Cloud Function da OpenAI, Firestore, emuladores e a pasta `functions/`\n- [x] Oponentes falam só com o banco escrito à mão (`FallbackArgumentSource`), sem nenhuma chamada de rede\n- [x] Build Windows Development gerado com o plugin nativo do SQLite\n- [ ] Passo manual: abrir a build de Windows, jogar, fechar e continuar do save\n- [ ] Passo manual: build Web salvando no IndexedDB e continuando depois de recarregar a página"
+    },
+    {
       "title": "[UI-06] Medidor de 501 jurados",
       "labels": [
         "Sprint 05 · Tribunal & Lançamento",
@@ -929,7 +961,11 @@
         "Backend",
         "Risco"
       ],
-      "description": "**Depende de:** [QA-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Recalcular custo por jogador com cache hit real\n- [ ] Confirmar rate limit funcionando sob carga simulada\n- [ ] Kill switch testado: desligar a flag do servidor e confirmar o fallback sem build nova\n- [ ] Plano para o dia em que a chave da OpenAI for rotacionada"
+      "description": "**Depende de:** [QA-04] · **Estimativa:** 3 dias\n\n**Critérios de aceitação:**\n- [ ] Recalcular custo por jogador com cache hit real\n- [ ] Confirmar rate limit funcionando sob carga simulada\n- [ ] Kill switch testado: desligar a flag do servidor e confirmar o fallback sem build nova\n- [ ] Plano para o dia em que a chave da OpenAI for rotacionada",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[BCK-07] App Check e contas permanentes",
@@ -939,7 +975,11 @@
         "Backend",
         "Risco"
       ],
-      "description": "Na entrega acadêmica o endpoint é protegido por Auth, rate limit e orçamento. Em produção isso não basta: um token anônimo não custa nada para criar.\n\n**Depende de:** [BCK-01], [BCK-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Web: App Check com reCAPTCHA Enterprise por bridge JavaScript (`.jslib`), já que o SDK Unity não roda no Web\n- [ ] Desktop: provedor customizado de App Check — ex.: a function valida o ticket de sessão da loja e emite o token\n- [ ] Debug provider só em build Development, nunca na de release\n- [ ] Function passa a recusar chamada sem token de App Check\n- [ ] Vincular a conta anônima a um login permanente sem perder o save — opcional, não bloqueia o jogo\n- [ ] Cota de criação de contas por IP revisada no Firebase Auth"
+      "description": "Na entrega acadêmica o endpoint é protegido por Auth, rate limit e orçamento. Em produção isso não basta: um token anônimo não custa nada para criar.\n\n**Depende de:** [BCK-01], [BCK-02] · **Estimativa:** 4 dias\n\n**Critérios de aceitação:**\n- [ ] Web: App Check com reCAPTCHA Enterprise por bridge JavaScript (`.jslib`), já que o SDK Unity não roda no Web\n- [ ] Desktop: provedor customizado de App Check — ex.: a function valida o ticket de sessão da loja e emite o token\n- [ ] Debug provider só em build Development, nunca na de release\n- [ ] Function passa a recusar chamada sem token de App Check\n- [ ] Vincular a conta anônima a um login permanente sem perder o save — opcional, não bloqueia o jogo\n- [ ] Cota de criação de contas por IP revisada no Firebase Auth",
+      "blocked": {
+        "reason": "Backend Firebase removido em 2026-09-27 (ver [SAV-01]): o jogo roda local, sem IA. Replanejar ou descartar",
+        "since": "2026-09-27"
+      }
     },
     {
       "title": "[REL-02] Localização",

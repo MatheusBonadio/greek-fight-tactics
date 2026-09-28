@@ -44,7 +44,6 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(ArtTools.SheetPathFor(opponent.SheetId), AssetDatabase.GetAssetPath(opponent.Sheet));
             Assert.IsNotEmpty(opponent.FallacyPool);
             Assert.LessOrEqual(opponent.FallacyPool.Count, MaxPoolSize);
-            Assert.AreEqual(id, OpponentContext.From(opponent).Id);
         }
 
         [TestCaseSource(nameof(OpponentIds))]

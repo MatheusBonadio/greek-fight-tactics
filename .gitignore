@@ -122,12 +122,4 @@ __pycache__/
 /Assets/Resources/PerformanceTestRun*
 /Assets/Resources.meta
 
-# Firebase backend
-/functions/node_modules/
-/functions/lib/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
-.firebase/
-
 .claude/worktrees/
