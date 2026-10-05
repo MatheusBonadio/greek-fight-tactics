@@ -799,7 +799,7 @@ Todo `-executeMethod` aponta para um `static void` em `Assets/_Game/Editor/`, na
 
 ### CI (GitHub Actions)
 
-`.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão no README.
+`.github/workflows/ci.yml`, runner Windows. Detalhes, segredos e o passo a passo do ruleset estão em `docs/DEVELOPMENT.md`. O README apresenta o jogo em português simples, com só os comandos para rodar e compilar.
 - **Jobs:** `unity-tests` roda em todo push e em PR para a `main`. É o check que o ruleset da `main` deve exigir. O ruleset é configuração do GitHub, fora do repositório: enquanto ninguém o criar, um check vermelho não bloqueia nada. `windows-build` roda só em push ou disparo manual na `main`, depois dele: build, `tools/scan-secrets.ps1` e upload do player.
 - **Setup:** `.github/actions/setup-unity` instala o CLI fixo por `tools/install-cli.ps1` (versão e SHA-256 no script), valida a conta de serviço com `unity auth login --secret-from-stdin --no-store`, instala o Editor do `ProjectVersion.txt` com `unity install`, ativa o serial quando o runner não tem licença e devolve a chave de `unity cache key` para o cache da `Library`.
 - **Licença:** a Unity não ativa licença para conta de serviço.
