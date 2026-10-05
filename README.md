@@ -1,64 +1,80 @@
-# Greek Fight Tactics
+<h1 align="center">
+    <img alt="Greek Fight Tactics" src="docs/images/banner.png" width="100%">
+</h1>
 
-Um jogo de estratégia por turnos em que as batalhas são vencidas com argumentos, não com espadas.
+<p align='center'>
+  <img alt='Unity' src='https://img.shields.io/badge/Unity-000000?style=for-the-badge&logo=unity&logoColor=white' />
+  <img alt='C#' src='https://img.shields.io/badge/C%23-512BD4?style=for-the-badge&logo=dotnet&logoColor=white' />
+  <img alt='SQLite' src='https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white' />
+  <img alt='Python' src='https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white' />
+</p>
 
-## A história
+## 💻 Projeto
 
-Atenas, 402 a.C. A cidade acabou de se livrar de um governo de tiranos e ainda desconfia de todo mundo.
+**Greek Fight Tactics** é um jogo de estratégia por turnos, em pixel art no estilo dos 16 bits, em que as batalhas são vencidas com argumentos, não com espadas.
 
-Kleia tem dezessete anos e é filha de um oleiro do Cerâmico, o bairro dos ceramistas. Ela não pode votar, não pode estudar na Academia e não pode se defender num tribunal. Passou a vida pintando ânforas no chão da oficina enquanto os homens discutiam em volta dela, e aprendeu a discutir só de ouvir.
+Atenas, 402 a.C. Kleia tem dezessete anos e é filha de um oleiro. Ela não pode votar, não pode estudar na Academia e não pode se defender num tribunal, mas ninguém proibiu uma garota de fazer uma pergunta. Ela percorre a cidade desafiando charlatães e sofistas em debates públicos e expondo, diante da plateia, os erros de raciocínio de cada um.
 
-Ninguém proibiu uma garota de fazer uma pergunta.
+<img src="docs/images/battle.png" width="100%">
 
-## Como se joga
+### ✨ Principais Funcionalidades
 
-Você anda pela cidade num mapa de pixel art visto na diagonal. Os bairros vão aparecendo conforme você explora. As pessoas conversam, contam o que está acontecendo e, às vezes, dizem bobagens em público.
+- 🗣️ **Debates por turnos**: cada fala do adversário esconde um erro, e você escolhe refutar, perguntar, conceder, circular pela arena, citar os antigos ou se retirar
+- 🎯 **Uma resposta certa por fala**: se o erro está no raciocínio, só a refutação funciona; se a fala se apoia numa ideia falsa, só a pergunta, a maiêutica de Sócrates
+- 📊 **Coerência e Plateia**: vence quem zerar a Coerência do outro ou conquistar o público inteiro, e a plateia por perto fortalece ou enfraquece cada golpe
+- 🗺️ **Exploração isométrica**: bairros de Atenas com relevo e uma névoa que se revela conforme Kleia anda
+- 📖 **Compêndio de falácias**: cada falácia exposta entra num livro, com explicação e dica
+- 🧭 **Modo assistido**: mostra qual é a resposta certa em cada rodada
+- 🎭 **História com escolhas**: diálogos, cenas e decisões que mudam o caminho de Kleia até o julgamento na ágora
+- 💾 **Saves locais**: três espaços de save guardados no próprio computador, sem precisar de internet
+- 🎨 **Pixel art e trilha original**: paleta de 16 bits e música composta para o jogo
 
-Quando alguém diz uma bobagem, Kleia pode desafiá-lo para um debate. O público se junta em volta, e o debate acontece ali mesmo, no meio da rua.
+## 📦 Instalação e Execução
 
-No debate, cada lado tem duas barras:
+### Para jogar
 
-- **Coerência** é o quanto o raciocínio de cada um aguenta. Se a de Kleia chegar a zero, ela perde.
-- **Plateia** mostra de que lado o público está. Se o público inteiro ficar com Kleia, ela vence.
+1. Baixe o `GFT-windows-x64.zip` na página de [Releases](https://github.com/MatheusBonadio/greek-fight-tactics/releases).
+2. Extraia o arquivo em qualquer pasta.
+3. Abra o `GFT.exe`.
 
-A cada rodada, o adversário fala algo com um erro escondido, e você escolhe como responder:
+Requer Windows 10 ou 11 de 64 bits.
 
-- **Refutar** é apontar o erro de raciocínio, a falácia que ele cometeu.
-- **Perguntar** (a maiêutica de Sócrates) é fazer a pergunta que mostra que uma das ideias em que ele se apoia é falsa.
-- **Conceder** é aceitar o ponto para recuperar o fôlego.
-- Também dá para andar pela arena, citar os filósofos antigos ou desistir.
+### Pré-requisitos para compilar
 
-Cada fala tem uma resposta certa. Se o erro está no raciocínio, só refutar funciona. Se a fala se apoia numa ideia falsa, só a pergunta funciona. Responder do jeito errado sai caro, então é preciso entender o argumento antes de reagir.
+- Windows 10 ou 11 de 64 bits
+- PowerShell 7
+- Git com Git LFS
+- Unity CLI `1.0.0-beta.8` e Unity Editor `6000.6.0f1`
 
-Nas opções há um **modo assistido**, que mostra qual é a resposta certa em cada rodada.
-
-## A jornada
-
-**Ato I: O Cerâmico e a Ágora.** Kleia descobre que sabe discutir. Ela enfrenta charlatães que vendem "a arte de vencer qualquer discussão", e cada um ensina um tipo de falácia. Um velho misterioso se oferece para ensiná-la a perguntar, de graça. A fama dela cresce, e com a fama vem o perigo: começam a chamá-la de ímpia, a mesma acusação que um dia vai condenar Sócrates. O ato termina num julgamento na escadaria da ágora.
-
-**Ato II: A Academia e o Oráculo.** Kleia encontra filósofos de verdade, que apresentam paradoxos em vez de erros. Agora apontar falácias não basta, porque não há falácia nenhuma. A história termina num tribunal com 501 jurados, e a última jogada de Kleia decide qual dos três finais você vê. O Ato II ainda está em construção.
-
-## Visual e som
-
-Pixel art no estilo dos jogos de 16 bits, com a paleta limitada dos consoles da época, e trilha sonora original.
-
-## Equipe
-
-- Arte e game design: Matheus Bonadio (840474)
-- Música e efeitos sonoros: Victor Vicentini (840763)
-
-## Para rodar e compilar
-
-O jogo é feito na Unity `6000.6.0f1`, e tudo roda pela linha de comando da Unity (Unity CLI):
+### Passos de Instalação
 
 ```powershell
+# Clone o repositório
+git lfs install
+git clone git@github.com:MatheusBonadio/greek-fight-tactics.git
+
+# Entre no diretório do projeto
+cd greek-fight-tactics
+
+# Instale a Unity CLI e o editor na versão do projeto
+& ([scriptblock]::Create((irm https://public-cdn.cloud.unity3d.com/hub/prod/cli/install.ps1))) -Target 1.0.0-beta.8
+unity auth login
 unity install 6000.6.0f1
+
+# Rode os testes
 ./tools/test.ps1 -Mode All
-./tools/build.ps1 -BuildProfile "Windows Development"
+
+# Gere o executável em Build/WindowsRelease/GFT.exe
+./tools/build.ps1 -BuildProfile "Windows Release"
 ```
 
-O build sai em `Build/WindowsDevelopment/GFT.exe`.
+O guia técnico completo está em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), a história e as regras em [docs/GDD.md](docs/GDD.md) e a arquitetura do código em [CLAUDE.md](CLAUDE.md).
 
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): guia técnico completo, com versões, preparação da máquina, ferramentas de arte e integração contínua.
-- [docs/GDD.md](docs/GDD.md): documento de design, com a história completa e as regras.
-- [CLAUDE.md](CLAUDE.md): arquitetura do código.
+## 👥 Equipe
+
+- **Matheus Bonadio** (840474): arte e game design
+- **Victor Vicentini** (840763): música e efeitos sonoros
+
+## 📄 Licença
+
+Este projeto ainda não tem uma licença definida. As fontes e bibliotecas de terceiros seguem as próprias licenças: Ark Pixel Font e Liberation Sans (SIL Open Font License 1.1), Newtonsoft.Json, SQLite-net e SQLite3 Multiple Ciphers (MIT) e os pacotes da Unity (Unity Companion License).
