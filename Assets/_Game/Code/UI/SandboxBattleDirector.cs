@@ -751,7 +751,8 @@ namespace Game.UI
                 return;
             }
 
-            if (outcome.Action == ActionId.Refute && outcome.Hit && catalog.TryGet(choice.FallacyId, out var fallacy))
+            var exposed = outcome.Action == ActionId.Refute ? choice.FallacyId : Session.State.CurrentArgument?.FallacyId;
+            if (outcome.Hit && (outcome.Action is ActionId.Refute or ActionId.Maieutics) && exposed != null && catalog.TryGet(exposed, out var fallacy))
             {
                 reveal.Reveal(fallacy);
                 if (services)
