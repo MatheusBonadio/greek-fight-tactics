@@ -132,7 +132,7 @@ namespace Game.Tests.PlayMode
             Assert.IsTrue(LastPlayerEntry(state).Hit);
             AssertPhase(1, phases[1]);
             Assert.AreEqual(Posture.Action, Trial.Actor.Posture);
-            Assert.AreEqual(ActorView.ActionState, Trial.Actor.PlayingState, "he gestures on the action frame of his sheet");
+            Assert.AreEqual(BattleAnimations.Talk, Trial.Actor.PlayingState, "he gestures with his talk strip, drawn like the rest of him, never with the old placeholder sheet");
             Assert.AreEqual("false_dilemma", state.CurrentArgument.Value.FallacyId);
 
             yield return Answer(new BattleMenuChoice(ActionId.Refute, state.CurrentArgument.Value.FallacyId));

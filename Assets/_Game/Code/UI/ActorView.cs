@@ -107,7 +107,20 @@ namespace Game.UI
             animator != null && animator.runtimeAnimatorController != null
             && animator.HasState(0, Animator.StringToHash(animation));
 
-        public static string StateFor(Posture posture, bool stepping) => stepping ? WalkState : posture == Posture.Action ? ActionState : IdleState;
+        public string StateFor(Posture stance, bool stepping)
+        {
+            if (stepping)
+            {
+                return WalkState;
+            }
+
+            if (stance != Posture.Action)
+            {
+                return IdleState;
+            }
+
+            return HasState(BattleAnimations.Talk) ? BattleAnimations.Talk : ActionState;
+        }
 
         public bool IsShown
         {
