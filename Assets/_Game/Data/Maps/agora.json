@@ -178,7 +178,7 @@
     {
       "character": "thrasybios_street_trial",
       "sheet": "thrasybios",
-      "x": 14,
+      "x": 16,
       "y": 8,
       "facing": "SouthWest",
       "enters": {

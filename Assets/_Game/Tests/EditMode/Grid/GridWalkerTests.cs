@@ -112,6 +112,21 @@ namespace Game.Tests.EditMode.Grid
             Assert.AreEqual(expected is Facing.NorthEast or Facing.SouthEast, screenStep.x > 0);
         }
 
+        [Test]
+        public void Face_TurnsAStandingActorAndWaitsOutAStep()
+        {
+            var start = new Coord(4, 4);
+            var walker = new GridWalker(grid, ActorId, start, Facing.SouthEast);
+
+            walker.Follow(new[] { start + new Coord(1, 0) });
+            walker.Face(Facing.SouthWest);
+            Assert.AreEqual(Facing.NorthEast, walker.Facing);
+
+            walker.Advance(GridWalker.SecondsPerCell);
+            walker.Face(Facing.SouthWest);
+            Assert.AreEqual(Facing.SouthWest, walker.Facing);
+        }
+
         [TestCase(Facing.SouthEast, false, Facing.SouthEast)]
         [TestCase(Facing.NorthEast, false, Facing.NorthEast)]
         [TestCase(Facing.SouthWest, true, Facing.SouthEast)]

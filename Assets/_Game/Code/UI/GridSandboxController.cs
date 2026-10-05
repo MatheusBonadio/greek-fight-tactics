@@ -496,6 +496,7 @@ namespace Game.UI
             var post = ToCoord(actor.StartCell);
             if (walker.Cell == post)
             {
+                walker.Face(actor.StartFacing);
                 return true;
             }
 
