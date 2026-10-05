@@ -41,7 +41,7 @@
     "compendium.counter": "{0}/{1} descobertas",
     "compendium.empty": "Nenhuma falácia descoberta ainda.",
     "credits.title": "CRÉDITOS",
-    "credits.body": "Greek Fight Tactics\nUm tactics de dialética em Atenas, 402 a.C.\n\nFONTES\nArk Pixel Font, Copyright (c) 2021, TakWolf, SIL Open Font License 1.1.\nLiberation Sans, SIL Open Font License 1.1, como reserva para glifos ausentes.\n\nBIBLIOTECAS\nNewtonsoft.Json, licença MIT, pelo pacote com.unity.nuget.newtonsoft-json.\nSQLite-net para Unity (Gil Barbosa Reis) e SQLite-net (Krueger Systems), licença MIT.\nSQLite3 Multiple Ciphers (Ulrich Telle), licença MIT, sobre o SQLite, de domínio público.\nPacotes Unity (URP 2D, Input System, Cinemachine, uGUI e TextMesh Pro), Unity Companion License.\n\nARTE\nPlaceholders em pixel art feitos para o projeto, sobre a paleta RGB555 própria em art/palette.\nCenários e tela de título gerados com PixelLab e ajustados à mesma paleta.",
+    "credits.body": "Arte, game design - 840474 - Matheus Bonadio\nMúsica e efeitos sonoros - 840763 - Victor Vicentini",
     "menu.choose_fallacy": "Qual falácia?",
     "options.title": "OPÇÕES",
     "options.volume": "Volume",

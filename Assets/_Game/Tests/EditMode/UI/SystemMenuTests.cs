@@ -174,7 +174,8 @@ namespace Game.Tests.EditMode.UI
                 Assert.IsTrue(uiText.Contains(key), key);
             }
 
-            StringAssert.Contains("Open Font License", uiText.Get(CreditsView.BodyKey));
+            StringAssert.Contains("Matheus Bonadio", uiText.Get(CreditsView.BodyKey));
+            StringAssert.Contains("Victor Vicentini", uiText.Get(CreditsView.BodyKey));
         }
 
         [Test]
@@ -243,7 +244,7 @@ namespace Game.Tests.EditMode.UI
         }
 
         [Test]
-        public void CreditsView_PagesThroughTheLicensesAndCloses()
+        public void CreditsView_PagesThroughTheTeamAndCloses()
         {
             var uiText = UiText();
             host = new GameObject("canvas", typeof(RectTransform));
@@ -251,7 +252,7 @@ namespace Game.Tests.EditMode.UI
             var panel = new GameObject("credits", typeof(RectTransform));
             panel.transform.SetParent(host.transform, false);
             var body = Child<TextMeshProUGUI>("body", panel.transform);
-            body.rectTransform.sizeDelta = new Vector2(192f, 60f);
+            body.rectTransform.sizeDelta = new Vector2(192f, 16f);
             body.font = TMP_Settings.defaultFontAsset;
             body.fontSize = BattleHudTools.FontSize;
             body.textWrappingMode = TextWrappingModes.Normal;
