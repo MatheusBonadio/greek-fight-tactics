@@ -26,6 +26,12 @@ namespace Game.UI
         public const string MaieuticsPremisesHeldKey = "battle.maieutics_premises_held";
         public const string ArgumentStoodKey = "battle.argument_stood";
 
+        public static string ActorAnimation(Outcome outcome) =>
+            outcome.Counterattack ? BattleAnimations.CoherenceDamage : BattleAnimations.For(outcome.Action);
+
+        public static string TargetAnimation(Outcome outcome) =>
+            outcome.TargetCoherenceDelta < 0 ? BattleAnimations.CoherenceDamage : outcome.Counterattack ? BattleAnimations.Argue : null;
+
         public static string StandingKey(Outcome outcome) =>
             outcome is { ArgumentStood: true } && outcome.TriggeredAbility != AbilityId.Inversion ? ArgumentStoodKey : null;
 

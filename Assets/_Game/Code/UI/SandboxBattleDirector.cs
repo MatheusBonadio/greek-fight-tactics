@@ -777,18 +777,17 @@ namespace Game.UI
         {
             posing.Clear();
             var target = actor == sandbox.Player ? engaged?.Actor : sandbox.Player;
-            if (actor && actor.PlayOnce(BattleAnimations.For(outcome.Action)))
+            Pose(actor, BattleText.ActorAnimation(outcome));
+            Pose(target, BattleText.TargetAnimation(outcome));
+            return posing.Count > 0;
+        }
+
+        private void Pose(ActorView actor, string animation)
+        {
+            if (actor && actor.PlayOnce(animation))
             {
                 posing.Add(actor);
             }
-
-            var hurt = outcome.ActorCoherenceDelta < 0 || outcome.TargetCoherenceDelta < 0;
-            if (hurt && target && target.PlayOnce(BattleAnimations.CoherenceDamage))
-            {
-                posing.Add(target);
-            }
-
-            return posing.Count > 0;
         }
 
         private static void SoundOf(Outcome outcome)

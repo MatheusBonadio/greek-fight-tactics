@@ -9,6 +9,26 @@ namespace Game.Tests.EditMode.UI
     public sealed class BattleUiModelTests
     {
         [Test]
+        public void OnlyWhoLosesCoherence_PlaysTheDamageAnimation()
+        {
+            var resolver = new BattleResolver();
+            var state = Battle.BattleFactory.CreateWithArgument(Battle.BattleFactory.RefutableArgument());
+
+            var miss = resolver.Resolve(Play.Maieutics(Battle.BattleFactory.PlayerId, Battle.BattleFactory.OpponentId, 0), state);
+            Assert.AreEqual(BattleAnimations.CoherenceDamage, BattleText.ActorAnimation(miss), "the wrong question hurts Kleia");
+            Assert.AreEqual(BattleAnimations.Argue, BattleText.TargetAnimation(miss), "and the opponent answers it, untouched");
+
+            var hit = resolver.Resolve(Play.Maieutics(Battle.BattleFactory.PlayerId, Battle.BattleFactory.OpponentId, Battle.BattleFactory.WeakPremise), state);
+            Assert.AreEqual(BattleAnimations.Maieutics, BattleText.ActorAnimation(hit));
+            Assert.AreEqual(BattleAnimations.CoherenceDamage, BattleText.TargetAnimation(hit), "only a blow that lands makes the opponent reel");
+
+            state.Apply(resolver.Resolve(Play.Concede(Battle.BattleFactory.PlayerId), state));
+            var argue = resolver.Resolve(Play.Argue(Battle.BattleFactory.OpponentId, Battle.BattleFactory.PlayerId, Battle.BattleFactory.RefutableArgument()), state);
+            Assert.AreEqual(BattleAnimations.Argue, BattleText.ActorAnimation(argue));
+            Assert.IsNull(BattleText.TargetAnimation(argue), "a sophist's argument sways the crowd without hurting Kleia");
+        }
+
+        [Test]
         public void DrainingBar_AnimatesOverFourHundredMilliseconds()
         {
             var bar = new DrainingBar(100, 80);
