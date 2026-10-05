@@ -21,6 +21,9 @@ namespace Game.Tests.EditMode.Battle
         public static Argument RefutableArgument() =>
             new("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", Fallacy, new[] { "Kleia é do Cerâmico", "Oleiros não entendem de justiça" }, WeakPremise, ArgumentTones.Mocking);
 
+        public static Argument SoundArgument() =>
+            new("Kleia é filha de oleiro e mal sabe ler. Que valor pode ter o que ela diz sobre justiça?", Fallacy, new[] { "Kleia é filha de um oleiro", "Kleia aprendeu a ler há pouco" }, Argument.NoWeakPremise, ArgumentTones.Mocking);
+
         public static Argument Paradox() =>
             new("Para cruzar a ágora você precisa cruzar a metade dela, e antes a metade da metade.", null, new[] { "Toda distância tem uma metade", "Infinitos passos não terminam" }, WeakPremise, ArgumentTones.Calm);
 

@@ -39,11 +39,23 @@ namespace Game.Tests.EditMode.Core
             Assert.AreEqual(ArgumentViolation.UnknownFallacy, validator.Validate(Build(fallacyId: "zeno_tortoise")));
         }
 
-        [TestCase(-1)]
+        [TestCase(-2)]
         [TestCase(2)]
         public void Validate_RejectsWeakPremiseOutsideThePremises(int weakPremise)
         {
             Assert.AreEqual(ArgumentViolation.WeakPremiseOutOfRange, validator.Validate(Build(weakPremise: weakPremise)));
+        }
+
+        [Test]
+        public void AnErrorInTheReasoning_NeedsNoWeakPremiseButAParadoxDoes()
+        {
+            var onlyRefutable = Build(weakPremise: Argument.NoWeakPremise);
+            Assert.AreEqual(ArgumentViolation.None, validator.Validate(onlyRefutable), "sound premises with a broken inference are answered by a refutation");
+            Assert.IsTrue(onlyRefutable.IsOnlyRefutable);
+            Assert.IsFalse(onlyRefutable.HasWeakPremise);
+
+            Assert.AreEqual(ArgumentViolation.Unanswerable, validator.Validate(Build(fallacyId: null, weakPremise: Argument.NoWeakPremise)), "a paradox without a weak premise could never be answered");
+            Assert.IsFalse(Build().IsOnlyRefutable);
         }
 
         [Test]

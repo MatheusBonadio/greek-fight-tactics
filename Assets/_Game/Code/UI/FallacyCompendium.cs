@@ -38,6 +38,6 @@ namespace Game.UI
         }
 
         public static int? WeakPremiseToHighlight(Argument? argument, bool assistedMode) =>
-            assistedMode && argument.HasValue && argument.Value.Premises.Count > 0 ? argument.Value.WeakPremise : (int?)null;
+            assistedMode && argument is { HasWeakPremise: true } && argument.Value.Premises.Count > 0 ? argument.Value.WeakPremise : (int?)null;
     }
 }

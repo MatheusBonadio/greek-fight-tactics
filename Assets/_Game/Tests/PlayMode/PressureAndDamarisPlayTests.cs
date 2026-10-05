@@ -324,7 +324,16 @@ namespace Game.Tests.PlayMode
             var menu = battle.Hud.Menu;
             Assert.IsFalse(menu.AssistedMode, "the gold highlight must come from the ability");
             Assert.IsTrue(battle.Session.State.IsWeakPremiseRevealed, "listening revealed the first argument");
-            var maieutics = battle.Session.Menu.Entries.Select((entry, index) => (entry, index)).Single(pair => pair.entry.Action == ActionId.Maieutics);
+            var entries = battle.Session.Menu.Entries.Select((entry, index) => (entry, index)).ToList();
+            var maieutics = entries.Single(pair => pair.entry.Action == ActionId.Maieutics);
+            if (battle.Session.State.CurrentArgument.Value.IsOnlyRefutable)
+            {
+                Assert.AreEqual(RejectionReason.PremisesHold, maieutics.entry.Reason, "listening heard that the premises hold");
+                var refute = entries.Single(pair => pair.entry.Action == ActionId.Refute);
+                menu.HandlePoint(BattleMenuLayer.Actions, refute.index);
+                return menu.ActionRows[refute.index].color == menu.HintColor;
+            }
+
             Assert.IsTrue(maieutics.entry.IsAvailable, "maieutics is on the menu");
             menu.HandlePoint(BattleMenuLayer.Actions, maieutics.index);
             menu.HandleConfirm();

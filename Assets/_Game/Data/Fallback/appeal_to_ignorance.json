@@ -16,8 +16,8 @@
   {
     "speech": "Nenhum médico explicou por que a peste parou. Logo, foram as minhas preces que a detiveram, e ninguém pode negar isso.",
     "fallacy_id": "appeal_to_ignorance",
-    "premises": ["A causa do fim da peste é desconhecida", "Uma causa desconhecida prova a minha explicação"],
-    "weak_premise": 1,
+    "premises": ["Nenhum médico explicou por que a peste parou", "Ele rezou enquanto a peste durava"],
+    "weak_premise": null,
     "tone": "theatrical"
   }
 ]

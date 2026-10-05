@@ -16,15 +16,15 @@ namespace Game.Tests.EditMode.Battle
         private static readonly Argument Amphora = new(
             "Esta ânfora não é uma ânfora, pois ânfora é o vaso ritual das Panateneias. O que o homem comprou é só um vaso comum.",
             Taught,
-            new[] { "Ânfora é apenas o vaso ritual das Panateneias", "Todo vaso de duas alças é chamado ânfora" },
-            0,
+            new[] { "Ânfora também é o nome do vaso ritual das Panateneias", "Todo vaso de duas alças é chamado ânfora" },
+            Argument.NoWeakPremise,
             ArgumentTones.Mocking);
 
         private static readonly Argument Death = new(
             "O fim de uma coisa é a sua perfeição. A morte é o fim da vida. Logo, a morte é a perfeição da vida, e não há o que temer.",
             Taught,
             new[] { "O fim de uma coisa é a sua perfeição", "A morte é o fim da vida" },
-            0,
+            Argument.NoWeakPremise,
             ArgumentTones.Cunning);
 
         private readonly BattleResolver resolver = new();

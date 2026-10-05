@@ -16,6 +16,9 @@ namespace Game.Battle
         NoQuoteUses,
         MissingArgument,
         ActionLocked,
-        ArgumentAlreadyAnswered
+        ArgumentAlreadyAnswered,
+        PremisesHold,
+        PremiseIsWeak,
+        ConcedeTheFact
     }
 }

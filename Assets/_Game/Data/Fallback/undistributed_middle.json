@@ -3,21 +3,21 @@
     "speech": "Todos os sofistas falam bem. Kleia fala bem. Portanto Kleia é uma sofista, igual a mim, e deveria cobrar pelas perguntas.",
     "fallacy_id": "undistributed_middle",
     "premises": ["Todos os sofistas falam bem", "Kleia fala bem"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "cunning"
   },
   {
     "speech": "Os traidores se reuniam à noite. Menexeno anda pela cidade à noite. Então Menexeno é um dos traidores que serviram aos Trinta.",
     "fallacy_id": "undistributed_middle",
     "premises": ["Os traidores se reuniam à noite", "Menexeno anda pela cidade à noite"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "theatrical"
   },
   {
     "speech": "Todo ímpio questiona os costumes. Sócrates questiona os costumes. Logo, Sócrates é ímpio, e um dia pagará por isso.",
     "fallacy_id": "undistributed_middle",
     "premises": ["Todo ímpio questiona os costumes", "Sócrates questiona os costumes"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "arrogant"
   }
 ]

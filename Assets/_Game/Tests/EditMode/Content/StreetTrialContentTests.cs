@@ -170,14 +170,17 @@ namespace Game.Tests.EditMode.Content
             Assert.Throws<InvalidOperationException>(() => DataTools.ParsePhases(Opponent(counter: "Circulate"), fallacies, dialogues), "moving does not answer");
             Assert.Throws<InvalidOperationException>(() => DataTools.ParsePhases(Opponent(floor: 60), fallacies, dialogues), "the first phase must end below the starting coherence");
             Assert.Throws<InvalidOperationException>(() => DataTools.ParsePhases(Opponent(tutorial: true), fallacies, dialogues), "a lesson cannot be phased");
+            Assert.IsTrue(DataTools.ParsePhases(Opponent(counter: "Maieutics"), fallacies, dialogues).IsDefined);
+            Assert.Throws<InvalidOperationException>(() => DataTools.ParsePhases(Opponent(counter: "Maieutics", weakPremise: "null"), fallacies, dialogues), "no question answers sound premises");
         }
 
         private static string Opponent(string dialogue = "street_trial_personal_attack", string music = "street_trial_personal_attack", string fallacy = "ad_hominem",
-            string speech = "Olhem bem para ela: filha de oleiro, mãos sujas de argila. Quem nasceu no Cerâmico não ensina nada.", string tint = "#D0C8F8", string counter = "Concede", int floor = 0, bool tutorial = false) =>
+            string speech = "Olhem bem para ela: filha de oleiro, mãos sujas de argila. Quem nasceu no Cerâmico não ensina nada.", string tint = "#D0C8F8", string counter = "Concede", int floor = 0, bool tutorial = false,
+            string weakPremise = "1") =>
             "{\"id\":\"trial\",\"display_name\":\"Trial\",\"profile\":\"Sophist\",\"act\":\"One\",\"max_coherence\":60,\"initial_audience\":30,\"fallacy_pool\":[\"ad_hominem\"]," +
             (tutorial ? "\"tutorial\":{\"fallacy\":\"ad_hominem\",\"done_flag\":\"trial_done\"}," : string.Empty) +
             "\"phased_duel\":{\"intro\":\"street_trial_intro\",\"phases\":[{\"id\":\"only\",\"counter\":\"" + counter + "\",\"until_coherence\":" + floor + ",\"dialogue\":\"" + dialogue + "\",\"music\":\"" + music + "\",\"tint\":\"" + tint + "\"," +
-            "\"arguments\":[{\"speech\":\"" + speech + "\",\"fallacy_id\":\"" + fallacy + "\",\"premises\":[\"Kleia é do Cerâmico\",\"Oleiros não ensinam\"],\"weak_premise\":1,\"tone\":\"mocking\"}]}]}}";
+            "\"arguments\":[{\"speech\":\"" + speech + "\",\"fallacy_id\":\"" + fallacy + "\",\"premises\":[\"Kleia é do Cerâmico\",\"Oleiros não ensinam\"],\"weak_premise\":" + weakPremise + ",\"tone\":\"mocking\"}]}]}}";
 
         private static GridModel GridFactoryFor(MapLayout map)
         {

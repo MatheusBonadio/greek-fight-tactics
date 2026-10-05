@@ -2,8 +2,8 @@
   {
     "speech": "Olhem para as mãos tortas deste velho oleiro! Como podem ficar do lado da filha dele contra mim, que só quero ajudá-lo?",
     "fallacy_id": "appeal_to_emotion",
-    "premises": ["Aristeu sofre de artrite", "Sentir pena de alguém mostra quem tem razão"],
-    "weak_premise": 1,
+    "premises": ["Aristeu sofre de artrite", "Kleia é filha de Aristeu"],
+    "weak_premise": null,
     "tone": "theatrical"
   },
   {
@@ -16,8 +16,8 @@
   {
     "speech": "Meus filhos passarão fome se vocês derem razão a ela contra mim. Vocês têm coragem de fazer isso com crianças inocentes?",
     "fallacy_id": "appeal_to_emotion",
-    "premises": ["O sofista tem filhos para sustentar", "A fome dos filhos decide quem vence o debate"],
-    "weak_premise": 1,
+    "premises": ["O sofista tem filhos para sustentar", "Perder o debate custaria clientes a ele"],
+    "weak_premise": null,
     "tone": "cunning"
   }
 ]

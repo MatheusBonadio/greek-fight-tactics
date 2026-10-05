@@ -75,6 +75,7 @@ namespace Game.UI
             set
             {
                 assistedMode = value;
+                Guide();
                 Render();
             }
         }
@@ -115,6 +116,7 @@ namespace Game.UI
             Controller = controller;
             blinkClock = 0f;
             CursorVisible = true;
+            Guide();
             Render();
         }
 
@@ -243,6 +245,17 @@ namespace Game.UI
         private bool SameLayer(BattleMenuLayer layer) =>
             layer == BattleMenuLayer.Actions ? Controller.Layer == BattleMenuLayer.Actions : Controller.Layer != BattleMenuLayer.Actions;
 
+        private void Guide()
+        {
+            if (Controller == null || Controller.Actions.AssistedMode == assistedMode)
+            {
+                return;
+            }
+
+            Controller.Actions.AssistedMode = assistedMode;
+            Controller.Refresh();
+        }
+
         private void RestartBlink()
         {
             blinkClock = 0f;
@@ -261,7 +274,7 @@ namespace Game.UI
                 if (used)
                 {
                     row.text = text.Get(UiTextKeys.For(entries[index].Action));
-                    row.color = entries[index].IsAvailable ? availableColor : unavailableColor;
+                    row.color = RowColor(entries[index]);
                 }
             }
 
@@ -272,12 +285,22 @@ namespace Game.UI
             reasonLabel.text = Interactive && inActions && !selected.IsAvailable ? text.Get(UiTextKeys.For(selected.Reason)) : string.Empty;
         }
 
+        private Color RowColor(ActionMenuEntry entry)
+        {
+            if (!entry.IsAvailable)
+            {
+                return unavailableColor;
+            }
+
+            return entry.Action == Controller.Actions.PointedAnswer ? hintColor : availableColor;
+        }
+
         private void RenderSubmenu()
         {
             submenuTitle.text = text.Get(Controller.Layer == BattleMenuLayer.Fallacies ? UiTextKeys.ChooseFallacy : UiTextKeys.ChoosePremise);
 
             var options = Controller.SubmenuOptions;
-            var highlighted = Controller.HighlightedPremise(assistedMode);
+            var highlighted = Controller.HighlightedOption(assistedMode);
             SubmenuWindowStart = WindowStart(Controller.SubmenuCursor, options.Count, submenuRows.Length);
             for (var row = 0; row < submenuRows.Length; row++)
             {

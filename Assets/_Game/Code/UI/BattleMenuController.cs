@@ -54,6 +54,26 @@ namespace Game.UI
         public int? HighlightedPremise(bool assistedMode) =>
             Layer == BattleMenuLayer.Premises ? FallacyCompendium.WeakPremiseToHighlight(Actions.CurrentArgument, assistedMode || Actions.RevealsWeakPremise) : null;
 
+        public int? HighlightedFallacy(bool assistedMode)
+        {
+            if (Layer != BattleMenuLayer.Fallacies || !assistedMode || Actions.CurrentArgument is not { IsRefutable: true } argument)
+            {
+                return null;
+            }
+
+            for (var index = 0; index < submenuOptions.Count; index++)
+            {
+                if (submenuOptions[index] == argument.FallacyId)
+                {
+                    return index;
+                }
+            }
+
+            return null;
+        }
+
+        public int? HighlightedOption(bool assistedMode) => HighlightedPremise(assistedMode) ?? HighlightedFallacy(assistedMode);
+
         public void Navigate(int delta)
         {
             if (Layer == BattleMenuLayer.Actions)
@@ -156,7 +176,7 @@ namespace Game.UI
 
             Layer = layer;
             submenuOptions = options;
-            SubmenuCursor = 0;
+            SubmenuCursor = HighlightedFallacy(Actions.AssistedMode) ?? 0;
         }
 
         private void Close()

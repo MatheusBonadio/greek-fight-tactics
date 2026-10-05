@@ -9,8 +9,8 @@
   {
     "speech": "Se eu baixar a taxa para você, todos vão querer desconto, o balcão vai falir e a cidade inteira ficará sem moeda.",
     "fallacy_id": "slippery_slope",
-    "premises": ["Um desconto seria concedido", "Um único desconto leva a cidade à falência"],
-    "weak_premise": 1,
+    "premises": ["Um freguês ganharia desconto", "Outros fregueses saberiam do desconto"],
+    "weak_premise": null,
     "tone": "cunning"
   },
   {

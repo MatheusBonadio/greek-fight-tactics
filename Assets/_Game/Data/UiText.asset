@@ -21,10 +21,16 @@ MonoBehaviour:
     value: "Fal\xE1cia exposta! {1} perde o fio e a plateia aplaude."
   - key: battle.refute_miss
     value: "N\xE3o era essa fal\xE1cia. {1} aproveita o erro e contra-ataca."
+  - key: battle.refute_premise_weak
+    value: "A fal\xE1cia est\xE1 l\xE1, mas o argumento se apoia numa premissa falsa. {1} se esquiva e contra-ataca."
   - key: battle.maieutics_hit
     value: "A pergunta certa: {1} se contradiz nas pr\xF3prias palavras."
   - key: battle.maieutics_miss
-    value: "A pergunta n\xE3o pegou, e a plateia se impacienta."
+    value: "A pergunta n\xE3o pegou. {1} aproveita a brecha e contra-ataca."
+  - key: battle.maieutics_premises_held
+    value: "As premissas se sustentam: o erro est\xE1 no racioc\xEDnio. {1} aproveita e contra-ataca."
+  - key: battle.argument_stood
+    value: "Sem resposta, o argumento de {0} fica de p\xE9 e pesa sobre {1}."
   - key: battle.concede
     value: "{0} cede o ponto e recupera o f\xF4lego."
   - key: battle.quote
@@ -41,6 +47,8 @@ MonoBehaviour:
     value: "INVERS\xC3O! Kleia n\xE3o segura o golpe de {0}: vira-o para a plateia, que aplaude."
   - key: battle.listening
     value: "ESCUTA: Kleia ouve onde o argumento range. A premissa fraca \xE9 \"{0}\"."
+  - key: battle.listening_sound
+    value: "ESCUTA: Kleia ouve com aten\xE7\xE3o. As premissas de {0} se sustentam: o erro est\xE1 no racioc\xEDnio."
   - key: act.one
     value: Ato I
   - key: act.two
@@ -175,6 +183,12 @@ MonoBehaviour:
     value: "Kleia ainda n\xE3o aprendeu a perguntar assim."
   - key: rejection.argument_already_answered
     value: "Esse argumento j\xE1 caiu."
+  - key: rejection.premises_hold
+    value: As premissas se sustentam. Refute.
+  - key: rejection.premise_is_weak
+    value: "Uma premissa \xE9 falsa. Pergunte."
+  - key: rejection.concede_the_fact
+    value: Ele diz um fato. Conceda.
   - key: hud.coherence
     value: "COER\xCANCIA"
   - key: hud.audience

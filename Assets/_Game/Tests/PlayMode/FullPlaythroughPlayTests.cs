@@ -724,12 +724,12 @@ namespace Game.Tests.PlayMode
                     return new BattleMenuChoice(ActionId.Refute, refutableIds.First(id => id != presented.FallacyId));
                 }
 
-                if (Missing(BattleText.MaieuticsMissKey) && presented.Premises.Count > 1 && Available(ActionId.Maieutics))
+                if (Missing(BattleText.MaieuticsMissKey) && presented.HasWeakPremise && presented.Premises.Count > 1 && Available(ActionId.Maieutics))
                 {
                     return new BattleMenuChoice(ActionId.Maieutics, premiseIndex: (presented.WeakPremise + 1) % presented.Premises.Count);
                 }
 
-                if (Missing(BattleText.MaieuticsHitKey) && Available(ActionId.Maieutics))
+                if (Missing(BattleText.MaieuticsHitKey) && presented.HasWeakPremise && Available(ActionId.Maieutics))
                 {
                     return new BattleMenuChoice(ActionId.Maieutics, premiseIndex: presented.WeakPremise);
                 }
@@ -746,12 +746,13 @@ namespace Game.Tests.PlayMode
                 }
             }
 
-            if (argument.HasValue && argument.Value.IsRefutable && Available(ActionId.Refute))
+            var answer = AnswerRule.Expected(session.State);
+            if (answer == ActionId.Refute && Available(ActionId.Refute))
             {
                 return new BattleMenuChoice(ActionId.Refute, argument.Value.FallacyId);
             }
 
-            if (argument.HasValue && Available(ActionId.Maieutics))
+            if (answer == ActionId.Maieutics && Available(ActionId.Maieutics))
             {
                 return new BattleMenuChoice(ActionId.Maieutics, premiseIndex: argument.Value.WeakPremise);
             }
@@ -837,8 +838,8 @@ namespace Game.Tests.PlayMode
 
         private static string OutcomeLineKey(BattleLogEntry entry) => entry.Deflected ? BattleText.DeflectedKey : entry.Action switch
         {
-            ActionId.Refute => entry.Hit ? BattleText.RefuteHitKey : BattleText.RefuteMissKey,
-            ActionId.Maieutics => entry.Hit ? BattleText.MaieuticsHitKey : BattleText.MaieuticsMissKey,
+            ActionId.Refute => entry.Hit ? BattleText.RefuteHitKey : entry.PremiseWasWeak ? BattleText.RefutePremiseWeakKey : BattleText.RefuteMissKey,
+            ActionId.Maieutics => entry.Hit ? BattleText.MaieuticsHitKey : entry.PremisesHeld ? BattleText.MaieuticsPremisesHeldKey : BattleText.MaieuticsMissKey,
             ActionId.Concede => entry.Hit ? BattleText.ConcedeCounterKey : BattleText.ConcedeKey,
             ActionId.Quote => BattleText.QuoteKey,
             _ => null

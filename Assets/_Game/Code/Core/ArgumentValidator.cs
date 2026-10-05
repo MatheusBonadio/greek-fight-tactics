@@ -58,7 +58,12 @@ namespace Game.Core
                 }
             }
 
-            if ((uint)argument.WeakPremise >= (uint)argument.Premises.Count)
+            if (!argument.HasWeakPremise && !argument.IsRefutable)
+            {
+                return ArgumentViolation.Unanswerable;
+            }
+
+            if (argument.HasWeakPremise && (uint)argument.WeakPremise >= (uint)argument.Premises.Count)
             {
                 return ArgumentViolation.WeakPremiseOutOfRange;
             }

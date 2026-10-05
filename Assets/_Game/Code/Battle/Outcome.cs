@@ -28,6 +28,12 @@ namespace Game.Battle
 
         public bool Deflected { get; internal set; }
 
+        public bool ArgumentStood { get; internal set; }
+
+        public bool PremisesHeld { get; internal set; }
+
+        public bool PremiseWasWeak { get; internal set; }
+
         public int ActorCoherenceDelta { get; internal set; }
 
         public int TargetCoherenceDelta { get; internal set; }

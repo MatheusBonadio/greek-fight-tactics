@@ -26,7 +26,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void ACrowdOnHerSide_StrengthensKleiasBlow()
         {
-            var state = ArguedWithCrowd(70, BesideKleia, TwoFromKleia);
+            var state = ArguedWithCrowd(SoundArgument(), 70, BesideKleia, TwoFromKleia);
             Assert.Greater(state.PlayerAudience, BattleRules.MaxAudience / 2);
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
@@ -38,7 +38,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void ACrowdAgainstHer_WeakensKleiasBlow()
         {
-            var state = ArguedWithCrowd(40, BesideKleia, TwoFromKleia);
+            var state = ArguedWithCrowd(RefutableArgument(), 40, BesideKleia, TwoFromKleia);
 
             var outcome = resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, WeakPremise), state);
 
@@ -49,7 +49,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void AnEvenlySplitAudience_LeavesTheBlowAlone()
         {
-            var state = ArguedWithCrowd(58, BesideKleia, TwoFromKleia);
+            var state = ArguedWithCrowd(SoundArgument(), 58, BesideKleia, TwoFromKleia);
             Assert.AreEqual(BattleRules.MaxAudience / 2, state.PlayerAudience);
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
@@ -61,7 +61,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void TheCrowdShift_StopsAtItsCap()
         {
-            var state = ArguedWithCrowd(90, BesideKleia, TwoFromKleia, BelowKleia, BehindKleia);
+            var state = ArguedWithCrowd(SoundArgument(), 90, BesideKleia, TwoFromKleia, BelowKleia, BehindKleia);
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
 
@@ -71,7 +71,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void OnlyTheCrowdCloseToTheStriker_Counts()
         {
-            var state = ArguedWithCrowd(70, ThreeFromKleia, BesideTheOpponent);
+            var state = ArguedWithCrowd(SoundArgument(), 70, ThreeFromKleia, BesideTheOpponent);
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
 
@@ -81,7 +81,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void AWrongRefutation_IsStruckBackWithTheOpponentsMorale()
         {
-            var state = ArguedWithCrowd(30, BesideTheOpponent);
+            var state = ArguedWithCrowd(SoundArgument(), 30, BesideTheOpponent);
             Assert.Less(state.PlayerAudience, BattleRules.MaxAudience / 2);
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, "straw_man"), state);
@@ -110,7 +110,7 @@ namespace Game.Tests.EditMode.Battle
             var spectators = new[] { CitizenId, CitizenId + 1 };
             var state = Create(playerInitiative: 5, opponentInitiative: 10, initialPlayerAudience: 70, spectators: spectators);
             Occupy(state, spectators, BesideKleia, TwoFromKleia);
-            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
+            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, SoundArgument()), state));
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
 
@@ -125,7 +125,7 @@ namespace Game.Tests.EditMode.Battle
             var crowd = new[] { CitizenId, CitizenId + 1, CitizenId + 2, CitizenId + 3 };
             var state = Create(playerInitiative: 5, opponentInitiative: 10, initialPlayerAudience: 10, audienceMembers: crowd, rules: RefuteTutorial.Rules(OpponentCoherence));
             Occupy(state, crowd, BesideKleia, TwoFromKleia, BelowKleia, BehindKleia);
-            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
+            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, SoundArgument()), state));
 
             Assert.AreEqual(-state.Rules.MaxMoraleShift, MoraleRule.ShiftFor(state, state.Player), "the lesson shows the crowd booing her");
 
@@ -137,7 +137,7 @@ namespace Game.Tests.EditMode.Battle
             Assert.AreEqual(BattleStatus.PlayerWon, state.Status);
         }
 
-        private BattleState ArguedWithCrowd(int initialPlayerAudience, params Coord[] cells)
+        private BattleState ArguedWithCrowd(Argument argument, int initialPlayerAudience, params Coord[] cells)
         {
             var crowd = new int[cells.Length];
             for (var index = 0; index < cells.Length; index++)
@@ -147,7 +147,7 @@ namespace Game.Tests.EditMode.Battle
 
             var state = Create(playerInitiative: 5, opponentInitiative: 10, initialPlayerAudience: initialPlayerAudience, audienceMembers: crowd);
             Occupy(state, crowd, cells);
-            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
+            state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, argument), state));
             return state;
         }
 

@@ -9,6 +9,7 @@ namespace Game.UI
         public const string IntroKey = "battle.intro";
         public const string RefuteHitKey = "battle.refute_hit";
         public const string RefuteMissKey = "battle.refute_miss";
+        public const string RefutePremiseWeakKey = "battle.refute_premise_weak";
         public const string MaieuticsHitKey = "battle.maieutics_hit";
         public const string MaieuticsMissKey = "battle.maieutics_miss";
         public const string ConcedeKey = "battle.concede";
@@ -21,11 +22,17 @@ namespace Game.UI
         public const string StalemateKey = "battle.stalemate";
         public const string InversionKey = "battle.inversion";
         public const string ListeningKey = "battle.listening";
+        public const string ListeningSoundKey = "battle.listening_sound";
+        public const string MaieuticsPremisesHeldKey = "battle.maieutics_premises_held";
+        public const string ArgumentStoodKey = "battle.argument_stood";
+
+        public static string StandingKey(Outcome outcome) =>
+            outcome is { ArgumentStood: true } && outcome.TriggeredAbility != AbilityId.Inversion ? ArgumentStoodKey : null;
 
         public static string AbilityKey(Outcome outcome) => outcome?.TriggeredAbility switch
         {
             AbilityId.Inversion => InversionKey,
-            AbilityId.Listening => ListeningKey,
+            AbilityId.Listening => outcome.PresentedArgument is { HasWeakPremise: false } ? ListeningSoundKey : ListeningKey,
             _ => null
         };
 
@@ -42,8 +49,8 @@ namespace Game.UI
 
         public static string OutcomeKey(Outcome outcome) => outcome.Deflected ? DeflectedKey : outcome.Action switch
         {
-            ActionId.Refute => outcome.Hit ? RefuteHitKey : RefuteMissKey,
-            ActionId.Maieutics => outcome.Hit ? MaieuticsHitKey : MaieuticsMissKey,
+            ActionId.Refute => outcome.Hit ? RefuteHitKey : outcome.PremiseWasWeak ? RefutePremiseWeakKey : RefuteMissKey,
+            ActionId.Maieutics => outcome.Hit ? MaieuticsHitKey : outcome.PremisesHeld ? MaieuticsPremisesHeldKey : MaieuticsMissKey,
             ActionId.Concede => outcome.Hit ? ConcedeCounterKey : ConcedeKey,
             ActionId.Quote => QuoteKey,
             _ => null

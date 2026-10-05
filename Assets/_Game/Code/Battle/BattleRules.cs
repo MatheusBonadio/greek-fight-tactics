@@ -25,9 +25,11 @@ namespace Game.Battle
 
         public int MaieuticsMissAudienceLoss { get; set; } = 10;
 
-        public int MaieuticsMissCoherenceLoss { get; set; } = 8;
+        public int MaieuticsMissCoherenceLoss { get; set; } = 12;
 
-        public int MaieuticsTurnCost { get; set; } = 2;
+        public int MaieuticsTurnCost { get; set; } = 3;
+
+        public int StandingArgumentDamage { get; set; } = 12;
 
         public int ConcedeRecovery { get; set; } = 15;
 
@@ -52,6 +54,8 @@ namespace Game.Battle
         public int ActTwoConcedeBonus { get; set; } = 10;
 
         public int ActTwoMaieuticsRangeBonus { get; set; } = 1;
+
+        public int ActTwoMaieuticsTurnDiscount { get; set; } = 1;
 
         public int InversionUsesPerBattle { get; set; } = 1;
 

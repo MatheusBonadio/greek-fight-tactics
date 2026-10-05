@@ -50,6 +50,18 @@ namespace Game.Tests.EditMode.Net
             Assert.IsFalse(argument.IsRefutable);
         }
 
+        [Test]
+        public void TryParse_ReadsANullWeakPremiseAsAnErrorInTheReasoning()
+        {
+            var json = ValidJson.Replace(@"""weak_premise"": 1", @"""weak_premise"": null");
+
+            Assert.IsTrue(ArgumentJson.TryParse(json, validator, out var argument, out _));
+            Assert.IsTrue(argument.IsOnlyRefutable);
+            Assert.IsTrue(ArgumentJson.TryParse(ArgumentJson.Serialize(argument), validator, out var restored, out _));
+            Assert.AreEqual(Argument.NoWeakPremise, restored.WeakPremise, "the missing weak premise survives a round trip");
+            StringAssert.Contains(@"""weak_premise"":null", ArgumentJson.Serialize(argument).Replace(" ", string.Empty));
+        }
+
         [TestCase("")]
         [TestCase("not json")]
         [TestCase("[]")]

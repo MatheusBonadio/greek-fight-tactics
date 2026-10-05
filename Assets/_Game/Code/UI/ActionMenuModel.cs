@@ -44,6 +44,10 @@ namespace Game.UI
 
         public bool RevealsWeakPremise => state.IsWeakPremiseRevealed;
 
+        public bool AssistedMode { get; set; }
+
+        public ActionId? PointedAnswer => AssistedMode || RevealsWeakPremise ? AnswerRule.Expected(state) : null;
+
         public void Refresh()
         {
             entries.Clear();
@@ -99,7 +103,23 @@ namespace Game.UI
                 _ => Play.Withdraw(player.Id)
             };
 
-            return resolver.Resolve(play, state).Rejection;
+            var rejection = resolver.Resolve(play, state).Rejection;
+            return rejection == RejectionReason.None ? WrongAnswer(action) : rejection;
+        }
+
+        private RejectionReason WrongAnswer(ActionId action)
+        {
+            if (action is not (ActionId.Refute or ActionId.Maieutics) || PointedAnswer is not { } answer || answer == action)
+            {
+                return RejectionReason.None;
+            }
+
+            return answer switch
+            {
+                ActionId.Refute => RejectionReason.PremisesHold,
+                ActionId.Maieutics => RejectionReason.PremiseIsWeak,
+                _ => RejectionReason.ConcedeTheFact
+            };
         }
 
         private Play ProbeCirculate(Debater player)

@@ -2,8 +2,8 @@
   {
     "speech": "Kleia diz que devemos questionar os mais velhos. Então ela quer que nenhum filho obedeça ao pai e que Atenas vire um caos!",
     "fallacy_id": "straw_man",
-    "premises": ["Kleia defende fazer perguntas aos mais velhos", "Fazer perguntas equivale a desobedecer a tudo"],
-    "weak_premise": 1,
+    "premises": ["Kleia defende fazer perguntas aos mais velhos", "Kleia faz perguntas na ágora"],
+    "weak_premise": null,
     "tone": "theatrical"
   },
   {
@@ -16,8 +16,8 @@
   {
     "speech": "Menexeno disse que ensinar de graça é nobre. Então ele acha que todo mestre que cobra é um ladrão! Que ofensa aos sofistas honestos.",
     "fallacy_id": "straw_man",
-    "premises": ["Menexeno elogia o ensino gratuito", "Elogiar quem ensina de graça é acusar quem cobra"],
-    "weak_premise": 1,
+    "premises": ["Menexeno elogia o ensino gratuito", "Menexeno ensina sem cobrar"],
+    "weak_premise": null,
     "tone": "mocking"
   }
 ]

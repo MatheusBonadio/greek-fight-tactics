@@ -48,7 +48,11 @@ namespace Game.Tests.EditMode.UI
             var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
             Assert.IsNotNull(uiText, $"run DataTools.Regenerate to create {DataTools.UiTextPath}");
 
-            foreach (var key in new[] { BattleText.RefuteHitKey, BattleText.RefuteMissKey, BattleText.MaieuticsHitKey })
+            var stood = string.Format(uiText.Get(BattleText.ArgumentStoodKey), listener, speaker);
+            StringAssert.Contains(listener, stood, "the argument that stands belongs to the one who argued");
+            StringAssert.EndsWith($"{speaker}.", stood, "and it weighs on the one who could not answer");
+
+            foreach (var key in new[] { BattleText.RefuteHitKey, BattleText.RefuteMissKey, BattleText.RefutePremiseWeakKey, BattleText.MaieuticsHitKey, BattleText.MaieuticsMissKey, BattleText.MaieuticsPremisesHeldKey })
             {
                 var line = string.Format(uiText.Get(key), speaker, listener);
                 StringAssert.Contains(listener, line, $"{key} tells what happened to the debater who was answered");

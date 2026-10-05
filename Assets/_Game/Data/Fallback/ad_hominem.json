@@ -7,10 +7,10 @@
     "tone": "mocking"
   },
   {
-    "speech": "Menexeno fala de virtude, mas passou a vida bebendo nas tavernas do Pireu. Um bêbado não pode ter razão sobre coisa alguma.",
+    "speech": "Menexeno fala de virtude, mas passou a vida bebendo nas tavernas do Pireu. Vão mesmo aprender virtude com um bêbado?",
     "fallacy_id": "ad_hominem",
-    "premises": ["Menexeno frequenta as tavernas do Pireu", "Quem bebe erra em tudo o que afirma"],
-    "weak_premise": 1,
+    "premises": ["Menexeno fala de virtude", "Menexeno bebe nas tavernas do Pireu"],
+    "weak_premise": null,
     "tone": "arrogant"
   },
   {

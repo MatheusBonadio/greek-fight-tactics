@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Core;
 using Game.Grid;
@@ -65,6 +66,9 @@ namespace Game.Battle
         public static int MaieuticsRange(BattleState state) =>
             state.Rules.MaieuticsRange + (state.Act == Act.Two ? state.Rules.ActTwoMaieuticsRangeBonus : 0);
 
+        public static int MaieuticsTurnCost(BattleState state) =>
+            Math.Max(1, state.Rules.MaieuticsTurnCost - (state.Act == Act.Two ? state.Rules.ActTwoMaieuticsTurnDiscount : 0));
+
         private Outcome ResolveCirculate(in Play play, Debater actor, BattleState state)
         {
             pathFinder.Reachable(state.Grid, actor.Position, state.Rules.MoveRange, reachable);
@@ -101,8 +105,12 @@ namespace Game.Battle
             }
 
             var outcome = new Outcome(actor.Id, play.Action) { TargetId = target.Id };
-            if (play.ChosenFallacyId != argument.FallacyId)
+            var namedTheFallacy = play.ChosenFallacyId == argument.FallacyId;
+            var asksForAQuestion = AnswerRule.AsksForAQuestion(argument, state);
+            if (!namedTheFallacy || asksForAQuestion)
             {
+                outcome.PremiseWasWeak = namedTheFallacy && asksForAQuestion;
+                outcome.TurnCost = asksForAQuestion ? MaieuticsTurnCost(state) : outcome.TurnCost;
                 outcome.Counterattack = true;
                 outcome.ActorCoherenceDelta = -state.Rules.CounterattackDamage;
                 return outcome;
@@ -138,9 +146,11 @@ namespace Game.Battle
                 return Outcome.Rejected(actor.Id, play.Action, RejectionReason.InvalidPremise);
             }
 
-            var outcome = new Outcome(actor.Id, play.Action) { TargetId = target.Id, TurnCost = state.Rules.MaieuticsTurnCost };
+            var outcome = new Outcome(actor.Id, play.Action) { TargetId = target.Id, TurnCost = MaieuticsTurnCost(state) };
             if (play.ChosenPremise != argument.WeakPremise)
             {
+                outcome.PremisesHeld = !argument.HasWeakPremise;
+                outcome.Counterattack = true;
                 outcome.ActorCoherenceDelta = -state.Rules.MaieuticsMissCoherenceLoss;
                 outcome.PlayerAudienceDelta = -AudienceTowards(actor, state.Rules.MaieuticsMissAudienceLoss);
                 return outcome;
@@ -210,6 +220,12 @@ namespace Game.Battle
             else
             {
                 outcome.TargetCoherenceDelta = -state.Rules.PhilosopherArgueCoherenceDamage;
+            }
+
+            if (state.IsArgumentStanding && state.Rules.StandingArgumentDamage > 0)
+            {
+                outcome.ArgumentStood = true;
+                outcome.TargetCoherenceDelta -= state.Rules.StandingArgumentDamage;
             }
 
             return outcome;

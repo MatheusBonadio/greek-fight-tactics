@@ -20,7 +20,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void AdjacentCitizens_AddAudienceToRefutation()
         {
-            var plain = CreateWithArgument(RefutableArgument());
+            var plain = CreateWithArgument(SoundArgument());
             var crowded = CreateWithArgumentAndCitizens(2);
 
             var plainOutcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), plain);
@@ -57,8 +57,8 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void RefutingFromBehind_AddsFlankBonus()
         {
-            var front = CreateWithArgument(RefutableArgument());
-            var behind = CreateWithArgument(RefutableArgument(), opponentFacing: Facing.NorthEast);
+            var front = CreateWithArgument(SoundArgument());
+            var behind = CreateWithArgument(SoundArgument(), opponentFacing: Facing.NorthEast);
 
             var frontOutcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), front);
             var behindOutcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), behind);
@@ -92,7 +92,7 @@ namespace Game.Tests.EditMode.Battle
                 GridFactory.Occupy(state.Grid, neighbours[index], CitizenId + index);
             }
 
-            state.Apply(new BattleResolver().Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
+            state.Apply(new BattleResolver().Resolve(Play.Argue(OpponentId, PlayerId, SoundArgument()), state));
             return state;
         }
     }

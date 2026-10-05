@@ -138,6 +138,8 @@ namespace Game.Tests.EditMode.Battle
             var duel = StreetTrial();
             var rules = duel.Rules();
             rules.CorneredBlockedNeighbours = 0;
+            rules.MaieuticsMissCoherenceLoss = 0;
+            rules.StandingArgumentDamage = 0;
             var state = BattleFactory.Create(rules: rules, playerInitiative: 5, opponentInitiative: 10);
             var opponent = new PhasedOpponent(duel);
 

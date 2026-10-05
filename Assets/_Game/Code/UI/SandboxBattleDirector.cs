@@ -821,7 +821,7 @@ namespace Game.UI
             {
                 if (outcome.PresentedArgument.HasValue)
                 {
-                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, () => AnnounceAbility(outcome, Continue));
+                    ShowLine(engaged.Opponent.DisplayName, engaged.Portrait, outcome.PresentedArgument.Value.Speech, () => AnnounceStanding(outcome, speaker, listener, () => AnnounceAbility(outcome, Continue)));
                     return;
                 }
 
@@ -865,6 +865,18 @@ namespace Game.UI
             var won = LastResult == BattleStatus.PlayerWon;
             sandbox.Player?.PlayOnce(won ? BattleAnimations.Victory : BattleAnimations.Defeat);
             engaged?.Actor?.PlayOnce(won ? BattleAnimations.Defeat : BattleAnimations.Victory);
+        }
+
+        private void AnnounceStanding(Outcome outcome, string speaker, string listener, Action continuation)
+        {
+            var key = BattleText.StandingKey(outcome);
+            if (key == null)
+            {
+                continuation();
+                return;
+            }
+
+            ShowLine(string.Empty, string.Format(text.Get(key), speaker, listener), continuation);
         }
 
         private void AnnounceAbility(Outcome outcome, Action continuation)

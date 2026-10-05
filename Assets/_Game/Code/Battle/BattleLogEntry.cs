@@ -14,6 +14,9 @@ namespace Game.Battle
             Hit = outcome.Hit;
             Counterattack = outcome.Counterattack;
             Deflected = outcome.Deflected;
+            ArgumentStood = outcome.ArgumentStood;
+            PremisesHeld = outcome.PremisesHeld;
+            PremiseWasWeak = outcome.PremiseWasWeak;
             ActorCoherenceDelta = outcome.ActorCoherenceDelta;
             TargetCoherenceDelta = outcome.TargetCoherenceDelta;
             PlayerAudienceDelta = outcome.PlayerAudienceDelta;
@@ -43,6 +46,12 @@ namespace Game.Battle
         public bool Counterattack { get; }
 
         public bool Deflected { get; }
+
+        public bool ArgumentStood { get; }
+
+        public bool PremisesHeld { get; }
+
+        public bool PremiseWasWeak { get; }
 
         public int ActorCoherenceDelta { get; }
 

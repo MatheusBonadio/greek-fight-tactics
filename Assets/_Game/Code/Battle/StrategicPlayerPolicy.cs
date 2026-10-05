@@ -21,12 +21,12 @@ namespace Game.Battle
 
             var argument = state.CurrentArgument.Value;
             var distance = PositionalModifiers.Distance(player.Position, opponent.Position);
-            if (distance <= BattleResolver.MaieuticsRange(state))
+            if (argument.HasWeakPremise && distance <= BattleResolver.MaieuticsRange(state))
             {
                 return Play.Maieutics(player.Id, opponent.Id, argument.WeakPremise);
             }
 
-            if (argument.IsRefutable && distance <= state.Rules.RefuteRange)
+            if (!AnswerRule.AsksForAQuestion(argument, state) && argument.IsRefutable && distance <= state.Rules.RefuteRange)
             {
                 return Play.Refute(player.Id, opponent.Id, argument.FallacyId);
             }

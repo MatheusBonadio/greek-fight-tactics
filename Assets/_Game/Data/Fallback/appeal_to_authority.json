@@ -1,16 +1,16 @@
 [
   {
-    "speech": "Protágoras, o maior dos sábios, disse que o homem é a medida de todas as coisas. Se ele disse, está decidido: calem-se.",
+    "speech": "Protágoras, o maior dos sábios, disse que o homem é a medida de todas as coisas. Vocês vão contradizer Protágoras? Calem-se.",
     "fallacy_id": "appeal_to_authority",
-    "premises": ["Protágoras é famoso e respeitado", "O que um homem famoso diz é verdade"],
-    "weak_premise": 1,
+    "premises": ["Protágoras é famoso e respeitado", "Protágoras disse que o homem é a medida de todas as coisas"],
+    "weak_premise": null,
     "tone": "arrogant"
   },
   {
     "speech": "O arconte comprou uma ânfora na minha banca e disse que é a melhor da ágora. Quem é você para discordar de um arconte?",
     "fallacy_id": "appeal_to_authority",
-    "premises": ["O arconte elogiou a ânfora", "A opinião de um arconte sobre cerâmica é prova"],
-    "weak_premise": 1,
+    "premises": ["O arconte comprou uma ânfora na banca", "O arconte elogiou a ânfora"],
+    "weak_premise": null,
     "tone": "arrogant"
   },
   {

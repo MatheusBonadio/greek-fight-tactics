@@ -15,7 +15,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void ARefutationThatEndsTheDuel_IsAVictoryByRefutation()
         {
-            var state = CreateWithArgument(RefutableArgument(), rules: new BattleRules { RefuteDamage = KnockoutDamage });
+            var state = CreateWithArgument(SoundArgument(), rules: new BattleRules { RefuteDamage = KnockoutDamage });
 
             Apply(state, Play.Refute(PlayerId, OpponentId, Fallacy));
 
@@ -38,7 +38,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void TheLastLandedBlowDecides_NotTheFirst()
         {
-            var state = CreateWithArgument(RefutableArgument(), rules: new BattleRules { RefuteDamage = 10, MaieuticsDamage = KnockoutDamage, MaieuticsTurnCost = 1 });
+            var state = CreateWithArgument(SoundArgument(), rules: new BattleRules { RefuteDamage = 10, MaieuticsDamage = KnockoutDamage, MaieuticsTurnCost = 1 });
 
             Apply(state, Play.Refute(PlayerId, OpponentId, Fallacy));
             Apply(state, Play.Argue(OpponentId, PlayerId, RefutableArgument()));

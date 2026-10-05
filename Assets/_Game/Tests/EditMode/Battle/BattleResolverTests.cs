@@ -35,7 +35,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void Refute_WithTheRightFallacy_DamagesAndWinsAudience()
         {
-            var state = CreateWithArgument(RefutableArgument());
+            var state = CreateWithArgument(SoundArgument());
             var audience = state.PlayerAudience;
 
             var outcome = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
@@ -84,7 +84,7 @@ namespace Game.Tests.EditMode.Battle
         }
 
         [Test]
-        public void Maieutics_OnTheWeakPremise_DealsHeavyDamageAndCostsTwoTurns()
+        public void Maieutics_OnTheWeakPremise_DealsHeavyDamageAndCostsThreeTurns()
         {
             var state = CreateWithArgument(RefutableArgument());
 
@@ -92,22 +92,102 @@ namespace Game.Tests.EditMode.Battle
             state.Apply(outcome);
 
             Assert.IsTrue(outcome.Hit);
-            Assert.AreEqual(state.Rules.MaieuticsTurnCost, outcome.TurnCost);
+            Assert.AreEqual(3, BattleResolver.MaieuticsTurnCost(state));
+            Assert.AreEqual(BattleResolver.MaieuticsTurnCost(state), outcome.TurnCost);
+            Assert.AreEqual(2, BattleResolver.MaieuticsTurnCost(CreateWithArgument(Paradox(), Act.Two)), "in the second act Kleia has the method, and paradoxes leave her nothing else");
             Assert.AreEqual(50 - state.Rules.MaieuticsDamage, state.Opponent.Coherence);
-            CollectionAssert.AreEqual(new[] { OpponentId, OpponentId, PlayerId }, state.Queue.Preview(3));
+            CollectionAssert.AreEqual(new[] { OpponentId, OpponentId, OpponentId, PlayerId }, state.Queue.Preview(4));
         }
 
         [Test]
-        public void Maieutics_OnAStrongPremise_CostsAudience()
+        public void Maieutics_OnAStrongPremise_CostsAudienceAndOpensACounterattack()
         {
             var state = CreateWithArgument(RefutableArgument());
             var audience = state.PlayerAudience;
 
-            state.Apply(resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, 0), state));
+            var outcome = resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, 0), state);
+            state.Apply(outcome);
 
+            Assert.IsTrue(outcome.Counterattack, "the wrong question hands the opponent his cue");
             Assert.AreEqual(50, state.Opponent.Coherence);
             Assert.AreEqual(audience - state.Rules.MaieuticsMissAudienceLoss, state.PlayerAudience);
             Assert.AreEqual(60 - state.Rules.MaieuticsMissCoherenceLoss, state.Player.Coherence, "a wrong question exposes Kleia too");
+        }
+
+        [Test]
+        public void AnArgumentRestingOnAWeakPremise_FallsOnlyToAQuestion()
+        {
+            var state = CreateWithArgument(RefutableArgument());
+
+            var refutation = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
+            Assert.IsFalse(refutation.Hit, "naming the fallacy does not knock down a false premise");
+            Assert.IsTrue(refutation.PremiseWasWeak, "the narration can say the premise was the problem");
+            Assert.IsTrue(refutation.Counterattack);
+            Assert.AreEqual(0, refutation.TargetCoherenceDelta);
+
+            var wrongFallacy = resolver.Resolve(Play.Refute(PlayerId, OpponentId, "straw_man"), state);
+            Assert.IsFalse(wrongFallacy.PremiseWasWeak, "a wrong fallacy gives nothing away");
+
+            Assert.AreEqual(ActionId.Maieutics, AnswerRule.Expected(state));
+            Assert.IsTrue(resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, WeakPremise), state).Hit);
+        }
+
+        [Test]
+        public void AnArgumentWithSoundPremises_FallsOnlyToARefutation()
+        {
+            var sound = new Argument(RefutableArgument().Speech, Fallacy, RefutableArgument().Premises, Argument.NoWeakPremise, ArgumentTones.Mocking);
+            var state = CreateWithArgument(sound);
+
+            for (var premise = 0; premise < sound.Premises.Count; premise++)
+            {
+                var question = resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, premise), state);
+                Assert.IsFalse(question.Hit, "no premise gives way when the error is in the reasoning");
+                Assert.IsTrue(question.PremisesHeld);
+                Assert.IsTrue(question.Counterattack);
+                Assert.AreEqual(0, question.TargetCoherenceDelta);
+            }
+
+            var refutation = resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state);
+            Assert.IsTrue(refutation.Hit);
+            Assert.Less(refutation.TargetCoherenceDelta, 0);
+            Assert.AreEqual(ActionId.Refute, AnswerRule.Expected(state));
+        }
+
+        [Test]
+        public void TheTurnMaieuticsSkips_LeavesTheNextArgumentStandingAgainstKleia()
+        {
+            var state = CreateWithArgument(RefutableArgument());
+            state.Apply(resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, WeakPremise), state));
+
+            var answered = resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state);
+            state.Apply(answered);
+            Assert.IsFalse(answered.ArgumentStood, "Kleia did answer the argument before the question");
+
+            for (var lost = 1; lost < BattleResolver.MaieuticsTurnCost(state); lost++)
+            {
+                var coherence = state.Player.Coherence;
+                var stood = resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state);
+                state.Apply(stood);
+
+                Assert.IsTrue(stood.ArgumentStood, "each turn she lost left the previous argument without an answer");
+                Assert.AreEqual(coherence - state.Rules.StandingArgumentDamage, state.Player.Coherence);
+                Assert.IsTrue(state.Log.Last().ArgumentStood, "the log tells where the damage came from");
+            }
+
+            Assert.AreEqual(PlayerId, state.Queue.Current);
+        }
+
+        [Test]
+        public void AnyMoveByKleia_KeepsTheNextArgumentFromStanding()
+        {
+            var state = CreateWithArgument(RefutableArgument());
+            state.Apply(resolver.Resolve(Play.Concede(PlayerId), state));
+
+            var next = resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state);
+
+            Assert.IsFalse(state.IsArgumentStanding);
+            Assert.IsFalse(next.ArgumentStood);
+            Assert.AreEqual(0, next.TargetCoherenceDelta, "a sophist's argument only sways the crowd");
         }
 
         [Test]
@@ -115,9 +195,12 @@ namespace Game.Tests.EditMode.Battle
         {
             var state = CreateWithArgument(RefutableArgument());
             state.Apply(resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, 0), state));
-            state.Apply(resolver.Resolve(Play.Concede(OpponentId), state));
-            state.Apply(resolver.Resolve(Play.Concede(OpponentId), state));
+            for (var turn = 0; turn < BattleResolver.MaieuticsTurnCost(state); turn++)
+            {
+                state.Apply(resolver.Resolve(Play.Concede(OpponentId), state));
+            }
 
+            Assert.AreEqual(PlayerId, state.Queue.Current);
             Assert.IsTrue(state.IsArgumentAnswered);
             Assert.IsFalse(state.HasOpenArgument);
             Assert.AreEqual(RejectionReason.ArgumentAlreadyAnswered, resolver.Resolve(Play.Maieutics(PlayerId, OpponentId, WeakPremise), state).Rejection,
@@ -184,7 +267,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void Concede_RecoversCoherenceAndGivesAudienceAway()
         {
-            var state = CreateWithArgument(RefutableArgument());
+            var state = CreateWithArgument(SoundArgument());
             state.Apply(resolver.Resolve(Play.Refute(PlayerId, OpponentId, "straw_man"), state));
             state.Apply(resolver.Resolve(Play.Argue(OpponentId, PlayerId, RefutableArgument()), state));
             var coherence = state.Player.Coherence;
@@ -323,7 +406,7 @@ namespace Game.Tests.EditMode.Battle
         [Test]
         public void Log_RecordsEveryResolutionWithResultingBars()
         {
-            var state = CreateWithArgument(RefutableArgument());
+            var state = CreateWithArgument(SoundArgument());
 
             state.Apply(resolver.Resolve(Play.Refute(PlayerId, OpponentId, Fallacy), state));
 

@@ -16,6 +16,7 @@ namespace Game.Battle
         private readonly HashSet<ActionId> lockedActions;
         private readonly Dictionary<AbilityId, int> abilityUses;
         private readonly List<BattleLogEntry> log = new();
+        private bool hasPlayerSpokenSinceArgument;
 
         public BattleState(
             GridModel grid,
@@ -88,6 +89,8 @@ namespace Game.Battle
         public bool IsArgumentAnswered { get; private set; }
 
         public bool HasOpenArgument => CurrentArgument.HasValue && !IsArgumentAnswered;
+
+        public bool IsArgumentStanding => CurrentArgument.HasValue && !hasPlayerSpokenSinceArgument;
 
         public IReadOnlyList<BattleLogEntry> Log => log;
 
@@ -163,8 +166,14 @@ namespace Game.Battle
             {
                 CurrentArgument = outcome.PresentedArgument;
                 IsArgumentAnswered = false;
+                hasPlayerSpokenSinceArgument = false;
             }
-            else if (AnswersTheArgument(outcome))
+            else if (actor.Side == Side.Player)
+            {
+                hasPlayerSpokenSinceArgument = true;
+            }
+
+            if (AnswersTheArgument(outcome))
             {
                 IsArgumentAnswered = true;
             }

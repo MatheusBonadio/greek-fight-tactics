@@ -3,21 +3,21 @@
     "speech": "Todo homem justo é temido pelos injustos. Sócrates é temido. Logo, Sócrates é justo, e quem o acusa é que deve ser julgado.",
     "fallacy_id": "affirming_the_consequent",
     "premises": ["Todo justo é temido pelos injustos", "Sócrates é temido"],
-    "weak_premise": 1,
+    "weak_premise": null,
     "tone": "arrogant"
   },
   {
     "speech": "Se alguém é ímpio, a cidade desconfia dele. A cidade desconfia de Kleia. Portanto Kleia é ímpia, e deve ser julgada.",
     "fallacy_id": "affirming_the_consequent",
     "premises": ["Se alguém é ímpio, a cidade desconfia dele", "A cidade desconfia de Kleia"],
-    "weak_premise": 1,
+    "weak_premise": null,
     "tone": "cunning"
   },
   {
     "speech": "Se choveu, a ágora está molhada. A ágora está molhada. Logo choveu, e não adianta dizer que foram os aguadeiros.",
     "fallacy_id": "affirming_the_consequent",
     "premises": ["Se choveu, a ágora fica molhada", "A ágora está molhada"],
-    "weak_premise": 1,
+    "weak_premise": null,
     "tone": "mocking"
   }
 ]

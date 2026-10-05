@@ -5,6 +5,8 @@ namespace Game.Core
 {
     public readonly struct Argument
     {
+        public const int NoWeakPremise = -1;
+
         public readonly string Speech;
         public readonly string FallacyId;
         public readonly IReadOnlyList<string> Premises;
@@ -21,5 +23,9 @@ namespace Game.Core
         }
 
         public bool IsRefutable => FallacyId != null;
+
+        public bool HasWeakPremise => WeakPremise != NoWeakPremise;
+
+        public bool IsOnlyRefutable => IsRefutable && !HasWeakPremise;
     }
 }

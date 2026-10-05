@@ -169,12 +169,13 @@ namespace Game.Tests.EditMode.Battle
             bool Available(ActionId action) => session.Menu.Entries.Any(entry => entry.Action == action && entry.IsAvailable);
 
             var argument = session.State.CurrentArgument;
-            if (argument.HasValue && argument.Value.IsRefutable && Available(ActionId.Refute))
+            var answer = AnswerRule.Expected(session.State);
+            if (answer == ActionId.Refute && Available(ActionId.Refute))
             {
                 return new BattleMenuChoice(ActionId.Refute, argument.Value.FallacyId);
             }
 
-            if (argument.HasValue && Available(ActionId.Maieutics))
+            if (answer == ActionId.Maieutics && Available(ActionId.Maieutics))
             {
                 return new BattleMenuChoice(ActionId.Maieutics, premiseIndex: argument.Value.WeakPremise);
             }
@@ -202,6 +203,6 @@ namespace Game.Tests.EditMode.Battle
             return (grid, session);
         }
 
-        private static IArgumentSource Source() => new ListArgumentSource(new[] { RefutableArgument() }, 402);
+        private static IArgumentSource Source() => new ListArgumentSource(new[] { SoundArgument() }, 402);
     }
 }

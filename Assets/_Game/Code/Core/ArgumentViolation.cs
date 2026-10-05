@@ -11,6 +11,7 @@ namespace Game.Core
         MissingPremises,
         EmptyPremise,
         WeakPremiseOutOfRange,
+        Unanswerable,
         UnknownTone
     }
 }

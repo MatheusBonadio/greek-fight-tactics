@@ -3,21 +3,21 @@
     "speech": "O vaso quebrou por descuido ou por defeito do forno. Houve descuido. Portanto o forno de Aristeu não tem defeito nenhum.",
     "fallacy_id": "invalid_disjunctive_syllogism",
     "premises": ["O vaso quebrou por descuido ou por defeito do forno", "Houve descuido"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "cunning"
   },
   {
     "speech": "Ou Kleia é inteligente, ou é bem ensinada. Ela é bem ensinada por Menexeno. Logo, não tem inteligência nenhuma.",
     "fallacy_id": "invalid_disjunctive_syllogism",
     "premises": ["Ou ela é inteligente, ou é bem ensinada", "Ela é bem ensinada"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "mocking"
   },
   {
     "speech": "Um cidadão serve à cidade na guerra ou na Assembleia. Eu servi na guerra. Logo, não preciso respeitar a Assembleia.",
     "fallacy_id": "invalid_disjunctive_syllogism",
     "premises": ["Serve-se à cidade na guerra ou na Assembleia", "Eu servi na guerra"],
-    "weak_premise": 0,
+    "weak_premise": null,
     "tone": "arrogant"
   }
 ]

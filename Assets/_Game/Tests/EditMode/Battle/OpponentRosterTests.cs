@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Battle;
@@ -55,6 +56,34 @@ namespace Game.Tests.EditMode.Battle
             {
                 Assert.AreEqual(opponent.Act == Act.One, fallacy.IsRefutable, $"{id}: act one opponents always commit an error to point out");
                 Assert.GreaterOrEqual(library.CountFor(fallacy.Id), DataTools.MinimumFallbackArguments, $"{id}: {fallacy.Id}");
+            }
+        }
+
+        [TestCaseSource(nameof(OpponentIds))]
+        public void Pool_MixesArgumentsOnlyARefutationAnswersWithOnesAQuestionAnswers(string id)
+        {
+            var opponent = Load(id);
+            if (opponent.Act != Act.One || opponent.Phases.ToDuel() != null)
+            {
+                return;
+            }
+
+            var arguments = opponent.FallacyPool.SelectMany(fallacy => Bank(fallacy.Id)).ToList();
+            var onlyRefutable = arguments.Count(argument => argument.IsOnlyRefutable);
+            Assert.Greater(arguments.Count - onlyRefutable, 0, $"{id} never leans on a weak premise, so the question never works");
+            Assert.GreaterOrEqual(onlyRefutable * 2, arguments.Count, $"{id}: at least half of the arguments keep sound premises and break the reasoning, so the question is not the answer to everything");
+        }
+
+        [Test]
+        public void FormalFallacies_KeepSoundPremisesAndBreakTheForm()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var formal = catalog.All.Where(fallacy => fallacy.Category == FallacyCategory.Formal).ToList();
+
+            Assert.IsNotEmpty(formal);
+            foreach (var fallacy in formal)
+            {
+                Assert.IsTrue(Bank(fallacy.Id).All(argument => argument.IsOnlyRefutable), $"{fallacy.Id}: the error of a formal fallacy is in its form, not in a premise");
             }
         }
 
@@ -124,7 +153,118 @@ namespace Game.Tests.EditMode.Battle
             Assert.Greater(wins, 0, $"no simulated duel against {id} ended in a player victory");
         }
 
+        [Test]
+        public void SimulatedDuels_OnlyTheRightAnswerToEachArgumentWinsReliably()
+        {
+            var duels = 0;
+            var guessedWins = 0;
+            var askedWins = 0;
+            var refutedWins = 0;
+            var readWins = 0;
+            var askingToll = 0;
+            var refutingToll = 0;
+            var readingToll = 0;
+            foreach (var id in OpponentIds())
+            {
+                var ground = DuelGround.For(id, Load(id));
+                if (ground.Opponent.Phases.ToDuel() != null)
+                {
+                    continue;
+                }
+
+                for (var battle = 0; battle < BattlesPerOpponent; battle++)
+                {
+                    duels++;
+                    guessedWins += Won(Simulate(ground, new MaieuticsPolicy(new System.Random(Seed * 7 + battle)), battle));
+
+                    var asked = Simulate(ground, new MaieuticsPolicy(), battle);
+                    askedWins += Won(asked);
+                    askingToll += Spent(asked);
+
+                    var refuted = Simulate(ground, new KnownFallacyPolicy(), battle);
+                    refutedWins += Won(refuted);
+                    refutingToll += Spent(refuted);
+
+                    var read = Simulate(ground, new ReadingPolicy(), battle);
+                    readWins += Won(read);
+                    readingToll += Spent(read);
+                }
+            }
+
+            TestContext.WriteLine($"of {duels} duels: guessing the premise won {guessedWins}, asking about everything won {askedWins}, refuting everything won {refutedWins}, reading each argument won {readWins}; coherence spent asking {askingToll}, refuting {refutingToll}, reading {readingToll}");
+            Assert.Less(askedWins * 2, duels, "the question is not the answer to everything: sound premises only fall to a refutation");
+            Assert.Less(refutedWins * 5, duels * 3, "naming the fallacy is not the answer to everything either: a false premise only falls to a question");
+            Assert.Less(guessedWins * 4, duels, "guessing the premise every turn loses three duels in four");
+            Assert.Greater(readWins * 10, duels * 9, "asking where a premise is false and refuting where the reasoning is wins");
+            Assert.Less(readingToll, Math.Min(askingToll, refutingToll), "the right answer to each argument is also the cheapest way through the duel");
+        }
+
+        private static int Spent(BattleState state) => state.Player.MaxCoherence - state.Player.Coherence;
+
+        private static int Won(BattleState state) => state.Status == BattleStatus.PlayerWon ? 1 : 0;
+
+        private BattleState Simulate(DuelGround ground, IPlayerPolicy player, int battle, BattleRules rules = null)
+        {
+            var source = new ShuffledPremiseSource(new LibraryArgumentSource(library, ground.Pool, Seed + battle), new System.Random(Seed + battle));
+            var session = BattleSession.Start(ground.Grid, new BattleSetup
+            {
+                PlayerId = PlayerId,
+                PlayerCell = ground.PlayerCell,
+                OpponentId = OpponentId,
+                OpponentCell = ground.OpponentCell,
+                OpponentFacing = ground.Placement.Facing,
+                OpponentProfile = ground.Opponent.Profile,
+                OpponentMaxCoherence = ground.Opponent.MaxCoherence,
+                InitialAudience = ground.Opponent.InitialAudience,
+                Act = ground.Opponent.Act,
+                AudienceIds = ground.Audience,
+                Spectators = ground.Spectators,
+                Seed = Seed + battle,
+                Rules = rules
+            }, source);
+            BattleSimulator.Run(session.State, player, new OpponentBrain(new System.Random(Seed * 31 + battle)), source);
+            return session.State;
+        }
+
+        private sealed class DuelGround
+        {
+            public OpponentSO Opponent { get; private set; }
+            public MapActor Placement { get; private set; }
+            public GridModel Grid { get; private set; }
+            public List<int> Audience { get; private set; }
+            public Coord PlayerCell { get; private set; }
+            public Coord OpponentCell => new(Placement.X, Placement.Y);
+            public List<KeyValuePair<int, Coord>> Spectators { get; private set; }
+            public List<string> Pool { get; private set; }
+
+            public static DuelGround For(string id, OpponentSO opponent)
+            {
+                var (map, placement) = OpponentRosterTests.Placement(id);
+                var grid = BuildGrid(map, placement, out var audience);
+                var playerCell = ChallengeCell(map, grid, placement);
+                var arena = DuelCrowdPlanner.Plan(grid, playerCell, new Coord(placement.X, placement.Y), null, Seed);
+                return new DuelGround
+                {
+                    Opponent = opponent,
+                    Placement = placement,
+                    Grid = grid,
+                    Audience = audience,
+                    PlayerCell = playerCell,
+                    Spectators = arena.Seats.Select((seat, index) => new KeyValuePair<int, Coord>(BattleCrowd.IdFor(index), seat.Seat)).ToList(),
+                    Pool = opponent.FallacyPool.Select(fallacy => fallacy.Id).ToList()
+                };
+            }
+        }
+
         private static IEnumerable<string> OpponentIds() => DataTools.OpponentIds();
+
+        private static List<Argument> Bank(string fallacyId)
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
+            var arguments = new List<Argument>();
+            ArgumentJson.ParseValidList(System.IO.File.ReadAllText($"{DataTools.FallbackFolder}/{fallacyId}.json"), new ArgumentValidator(catalog.RefutableIds), arguments);
+            return arguments;
+        }
 
         private static OpponentSO Load(string id)
         {

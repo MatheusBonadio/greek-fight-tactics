@@ -291,6 +291,90 @@ namespace Game.Tests.EditMode.UI
             view.AssistedMode = true;
             Assert.AreEqual(view.HintColor, options[1].color);
             Assert.AreEqual(view.AvailableColor, options[0].color);
+
+            view.HandleCancel();
+            var refute = ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Refute);
+            var maieutics = ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Maieutics);
+            Assert.AreEqual(view.HintColor, rows[maieutics].color, "a false premise is answered by the question");
+            Assert.AreEqual(view.UnavailableColor, rows[refute].color, "and naming the fallacy would not knock it down");
+            view.HandlePoint(BattleMenuLayer.Actions, refute);
+            Assert.AreEqual(uiText.Get(UiTextKeys.For(RejectionReason.PremiseIsWeak)), view.ReasonLabel.text);
+        }
+
+        [Test]
+        public void AssistedMode_PointsToTheRefutationWhenThePremisesHold()
+        {
+            var catalog = Catalog();
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            host = new GameObject("menu", typeof(RectTransform));
+            var rows = Enumerable.Range(0, 6).Select(index => Child<TextMeshProUGUI>($"action{index}")).Cast<TMP_Text>().ToArray();
+            var options = Enumerable.Range(0, 5).Select(index => Child<TextMeshProUGUI>($"option{index}")).Cast<TMP_Text>().ToArray();
+            var panel = new GameObject("panel", typeof(RectTransform));
+            panel.transform.SetParent(host.transform, false);
+            var view = host.AddComponent<ActionMenuView>();
+            view.Configure(rows, null, Child<TextMeshProUGUI>("reason"), panel, Child<TextMeshProUGUI>("title"), options, null, uiText, catalog);
+
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            var sound = new Argument("Menexeno fala de virtude, mas passou a vida bebendo nas tavernas do Pireu. Vão mesmo aprender virtude com um bêbado?", "ad_hominem", new[] { "Menexeno fala de virtude", "Menexeno bebe nas tavernas do Pireu" }, Argument.NoWeakPremise, ArgumentTones.Arrogant);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, sound), state));
+            view.Bind(new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds));
+            var refute = ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Refute);
+            var maieutics = ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Maieutics);
+
+            Assert.AreEqual(view.AvailableColor, rows[refute].color, "without help, the player has to see it alone");
+            Assert.AreEqual(view.AvailableColor, rows[maieutics].color);
+
+            view.AssistedMode = true;
+            Assert.AreEqual(view.HintColor, rows[refute].color, "the assisted mode points at the refutation");
+            Assert.AreEqual(view.UnavailableColor, rows[maieutics].color);
+
+            view.HandlePoint(BattleMenuLayer.Actions, maieutics);
+            Assert.AreEqual(uiText.Get(UiTextKeys.For(RejectionReason.PremisesHold)), view.ReasonLabel.text, "and says why the question will not work");
+            view.HandleConfirm();
+            Assert.AreEqual(BattleMenuLayer.Actions, view.Controller.Layer);
+
+            view.AssistedMode = false;
+            Assert.AreEqual(view.AvailableColor, rows[maieutics].color);
+        }
+
+        [Test]
+        public void AssistedMode_PointsToTheFallacyToRefute()
+        {
+            var catalog = Catalog();
+            var uiText = AssetDatabase.LoadAssetAtPath<UiTextSO>(DataTools.UiTextPath);
+            host = new GameObject("menu", typeof(RectTransform));
+            var rows = Enumerable.Range(0, 6).Select(index => Child<TextMeshProUGUI>($"action{index}")).Cast<TMP_Text>().ToArray();
+            var options = Enumerable.Range(0, 4).Select(index => Child<TextMeshProUGUI>($"option{index}")).Cast<TMP_Text>().ToArray();
+            var panel = new GameObject("panel", typeof(RectTransform));
+            panel.transform.SetParent(host.transform, false);
+            var view = host.AddComponent<ActionMenuView>();
+            view.Configure(rows, null, Child<TextMeshProUGUI>("reason"), panel, Child<TextMeshProUGUI>("title"), options, null, uiText, catalog);
+
+            var resolver = new BattleResolver();
+            var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
+            var fallacy = catalog.RefutableIds.Last();
+            var argument = new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", fallacy, new[] { "Kleia é do Cerâmico", "Oleiros também falam na ágora" }, Argument.NoWeakPremise, ArgumentTones.Mocking);
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, argument), state));
+            view.Bind(new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds));
+            var refute = ActionMenuModel.PlayerActions.ToList().IndexOf(ActionId.Refute);
+            Assert.IsTrue(catalog.TryGet(fallacy, out var answer));
+
+            view.HandlePoint(BattleMenuLayer.Actions, refute);
+            view.HandleConfirm();
+            Assert.AreEqual(0, view.Controller.SubmenuCursor, "without help the list opens at the top");
+            Assert.IsFalse(options.Any(option => option.color == view.HintColor), "and nothing glows");
+            view.HandleCancel();
+
+            view.AssistedMode = true;
+            view.HandlePoint(BattleMenuLayer.Actions, refute);
+            view.HandleConfirm();
+            var row = options.Single(option => option.color == view.HintColor);
+            Assert.AreEqual(answer.DisplayName, row.text, "the assisted mode paints the fallacy that was committed");
+            Assert.AreEqual(view.Controller.SubmenuOptions.ToList().IndexOf(fallacy), view.Controller.SubmenuCursor, "and opens the list on it, even when it sits below the visible rows");
+
+            Assert.IsTrue(view.Controller.TryConfirm(out var choice));
+            Assert.AreEqual(fallacy, choice.FallacyId);
         }
 
         private DialogueBoxView CreateDialogue()

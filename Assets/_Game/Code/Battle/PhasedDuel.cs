@@ -65,6 +65,11 @@ namespace Game.Battle
                     problems.Add($"phase {phase.Id} is countered by REFUTE but presents a paradox");
                 }
 
+                if (phase.Counter == ActionId.Maieutics && phase.Arguments.Any(argument => !argument.HasWeakPremise))
+                {
+                    problems.Add($"phase {phase.Id} is countered by MAIEUTICS but presents an argument without a weak premise");
+                }
+
                 previousFloor = phase.UntilCoherence;
             }
 

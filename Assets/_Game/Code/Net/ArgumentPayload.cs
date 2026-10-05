@@ -16,20 +16,20 @@ namespace Game.Net
         [JsonProperty("premises", Required = Required.Always)]
         public List<string> Premises { get; set; }
 
-        [JsonProperty("weak_premise", Required = Required.Always)]
-        public int WeakPremise { get; set; }
+        [JsonProperty("weak_premise", Required = Required.AllowNull)]
+        public int? WeakPremise { get; set; }
 
         [JsonProperty("tone", Required = Required.Always)]
         public string Tone { get; set; }
 
-        public Argument ToArgument() => new(Speech, FallacyId, Premises, WeakPremise, Tone);
+        public Argument ToArgument() => new(Speech, FallacyId, Premises, WeakPremise ?? Argument.NoWeakPremise, Tone);
 
         public static ArgumentPayload From(in Argument argument) => new()
         {
             Speech = argument.Speech,
             FallacyId = argument.FallacyId,
             Premises = argument.Premises.ToList(),
-            WeakPremise = argument.WeakPremise,
+            WeakPremise = argument.HasWeakPremise ? argument.WeakPremise : null,
             Tone = argument.Tone
         };
     }

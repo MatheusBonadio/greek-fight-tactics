@@ -150,7 +150,12 @@ namespace Game.Tests.PlayMode
             bool Available(ActionId action) => session.Menu.Entries.Any(entry => entry.Action == action && entry.IsAvailable);
 
             var argument = session.State.CurrentArgument;
-            if (argument.HasValue && argument.Value.IsRefutable && Available(ActionId.Refute))
+            if (AnswerRule.Expected(session.State) != ActionId.Refute)
+            {
+                return new BattleMenuChoice(ActionId.Concede);
+            }
+
+            if (Available(ActionId.Refute))
             {
                 return new BattleMenuChoice(ActionId.Refute, argument.Value.FallacyId);
             }

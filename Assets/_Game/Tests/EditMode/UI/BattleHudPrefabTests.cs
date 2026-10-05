@@ -244,7 +244,7 @@ namespace Game.Tests.EditMode.UI
             var catalog = AssetDatabase.LoadAssetAtPath<FallacyCatalogSO>(DataTools.CatalogPath);
             var resolver = new BattleResolver();
             var state = BattleArena.CreateDuel(Act.One, Profile.Philosopher, 7, BattleArena.OpponentOpens);
-            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "a", "b" }, 1, ArgumentTones.Mocking)), state));
+            state.Apply(resolver.Resolve(Play.Argue(BattleArena.OpponentId, BattleArena.PlayerId, new Argument("Quem nasceu no Cerâmico não tem autoridade para falar de justiça na ágora.", "ad_hominem", new[] { "a", "b" }, Argument.NoWeakPremise, ArgumentTones.Mocking)), state));
             var controller = new BattleMenuController(new ActionMenuModel(state, resolver), catalog.RefutableIds);
             hud.Bind(state, controller);
             BattleMenuChoice? chosen = null;
